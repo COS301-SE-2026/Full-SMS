@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --brand-primary: #00e5ff;
+    --brand-bg: #121212;
+    --brand-card: #1E1E1E;
+    --brand-fg: #e8e8e8;
+    --brand-success: #00e676;
+    --brand-warning: #ffd600;
+    --brand-destructive: #ff1744;
+    --brand-border: #3a3a3a;
+    --brand-muted: rgba(232,232,232,0.5);
+    --font-sans: 'Public Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  body { background: var(--brand-bg); color: var(--brand-fg); font-family: var(--font-sans); font-size: 13px; line-height: 1.6; }
+  .guide { max-width: 700px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .nav { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 2.5rem; border-bottom: 1px solid var(--brand-border); padding-bottom: 1rem; }
+  .nav-btn { background: none; border: none; color: var(--brand-muted); font-family: var(--font-sans); font-size: 12px; font-weight: 500; padding: 5px 10px; border-radius: 4px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.03em; text-transform: uppercase; }
+  .nav-btn:hover { color: var(--brand-fg); background: rgba(255,255,255,0.05); }
+  .nav-btn.active { color: var(--brand-primary); background: rgba(0,229,255,0.08); }
+  .section { display: none; }
+  .section.active { display: block; }
+  .section-title { font-size: 22px; font-weight: 600; color: var(--brand-fg); margin-bottom: 0.4rem; letter-spacing: -0.02em; }
+  .section-desc { color: var(--brand-muted); font-size: 13px; margin-bottom: 2rem; }
+  .block { margin-bottom: 2rem; }
+  .block-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand-muted); margin-bottom: 0.75rem; }
+  .preview { background: var(--brand-card); border: 1px solid var(--brand-border); border-radius: 8px 8px 0 0; padding: 1.25rem 1.5rem; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .preview.col { flex-direction: column; align-items: flex-start; }
+  .preview.alone { border-radius: 8px; }
+  .code { background: #0d0d0d; border: 1px solid var(--brand-border); border-radius: 0 0 8px 8px; padding: 1rem 1.25rem; font-family: var(--font-mono); font-size: 12px; color: #a0a0a0; overflow-x: auto; white-space: pre; line-height: 1.7; margin-top: -1px; }
+  .code .kw { color: var(--brand-primary); }
+  .code .str { color: #98c379; }
+  .code .cm { color: #555; }
+  .code .prop { color: #e06c75; }
+  .code .val { color: #d19a66; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--font-sans); font-weight: 500; font-size: 13px; border-radius: 6px; cursor: pointer; padding: 0 14px; height: 36px; border: none; transition: opacity 0.15s; white-space: nowrap; }
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: var(--brand-primary); color: #121212; }
+  .btn-secondary { background: var(--brand-card); color: var(--brand-fg); border: 1px solid var(--brand-border); }
+  .btn-outline { background: transparent; color: var(--brand-primary); border: 1px solid var(--brand-primary); }
+  .btn-ghost { background: transparent; color: var(--brand-fg); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.06); }
+  .btn-destructive { background: var(--brand-destructive); color: var(--brand-fg); }
+  .btn-sm { height: 30px; font-size: 12px; padding: 0 10px; }
+  .btn-lg { height: 44px; font-size: 15px; padding: 0 20px; }
+  .btn-disabled { opacity: 0.4; pointer-events: none; }
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; border: 1px solid; white-space: nowrap; }
+  .badge-default { background: rgba(0,229,255,0.12); color: var(--brand-primary); border-color: rgba(0,229,255,0.25); }
+  .badge-secondary { background: var(--brand-card); color: var(--brand-fg); border-color: var(--brand-border); }
+  .badge-outline { background: transparent; color: var(--brand-fg); border-color: var(--brand-border); }
+  .badge-destructive { background: rgba(255,23,68,0.12); color: var(--brand-destructive); border-color: rgba(255,23,68,0.25); }
+  .badge-success { background: rgba(0,230,118,0.12); color: var(--brand-success); border-color: rgba(0,230,118,0.25); }
+  .badge-warning { background: rgba(255,214,0,0.12); color: var(--brand-warning); border-color: rgba(255,214,0,0.25); }
+  .field { display: flex; flex-direction: column; gap: 5px; width: 100%; }
+  .field label { font-size: 13px; font-weight: 500; color: var(--brand-fg); }
+  .field input { background: var(--brand-bg); border: 1px solid var(--brand-border); border-radius: 6px; color: var(--brand-fg); font-family: var(--font-sans); font-size: 13px; height: 40px; padding: 0 12px; width: 100%; outline: none; transition: border-color 0.15s; }
+  .field input:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 2px rgba(0,229,255,0.15); }
+  .field input.error { border-color: var(--brand-destructive); }
+  .field .helper { font-size: 11px; color: var(--brand-muted); }
+  .field .err-msg { font-size: 11px; color: var(--brand-destructive); }
+  .toggle-wrap { display: flex; align-items: center; gap: 10px; }
+  .toggle-track { width: 40px; height: 22px; border-radius: 11px; border: none; cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .toggle-track.on { background: var(--brand-primary); }
+  .toggle-track.off { background: var(--brand-border); }
+  .toggle-thumb { position: absolute; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: #121212; transition: left 0.2s; }
+  .toggle-track.on .toggle-thumb { left: 21px; }
+  .toggle-track.off .toggle-thumb { left: 3px; }
+  .toggle-label { font-size: 13px; font-weight: 500; }
+  .card { background: var(--brand-card); border: 1px solid var(--brand-border); border-radius: 8px; overflow: hidden; }
+  .card-header { padding: 14px 16px 8px; }
+  .card-title { font-size: 14px; font-weight: 500; }
+  .card-desc { font-size: 12px; color: var(--brand-muted); margin-top: 3px; }
+  .card-content { padding: 8px 16px 14px; }
+  .card-footer { padding: 10px 16px; border-top: 1px solid var(--brand-border); display: flex; align-items: center; justify-content: space-between; }
+  .color-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; }
+  .color-swatch { border-radius: 6px; overflow: hidden; border: 1px solid var(--brand-border); }
+  .swatch-block { height: 48px; }
+  .swatch-info { padding: 6px 8px; background: #0d0d0d; }
+  .swatch-name { font-size: 11px; font-weight: 500; color: var(--brand-fg); }
+  .swatch-val { font-family: var(--font-mono); font-size: 10px; color: var(--brand-muted); }
+  .swatch-class { font-family: var(--font-mono); font-size: 10px; color: var(--brand-primary); }
+  .type-row { border-bottom: 1px solid var(--brand-border); padding: 10px 0; display: flex; align-items: baseline; gap: 16px; }
+  .type-row:last-child { border-bottom: none; }
+  .type-meta { font-family: var(--font-mono); font-size: 10px; color: var(--brand-muted); min-width: 130px; flex-shrink: 0; }
+  .token-table { width: 100%; border-collapse: collapse; }
+  .token-table th { text-align: left; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand-muted); padding: 0 0 8px; border-bottom: 1px solid var(--brand-border); }
+  .token-table td { padding: 7px 0; border-bottom: 1px solid rgba(58,58,58,0.5); font-size: 12px; vertical-align: middle; }
+  .token-table tr:last-child td { border-bottom: none; }
+  .mono { font-family: var(--font-mono); font-size: 11px; color: var(--brand-primary); }
+  .muted { color: var(--brand-muted); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner-el { border-radius: 50%; border-style: solid; border-color: rgba(232,232,232,0.2); border-top-color: var(--brand-primary); animation: spin 0.75s linear infinite; display: inline-block; }
+  .sp-sm { width: 16px; height: 16px; border-width: 2px; }
+  .sp-md { width: 28px; height: 28px; border-width: 2px; }
+  .sp-lg { width: 44px; height: 44px; border-width: 3px; }
+  .sp-btn { width: 14px; height: 14px; border-width: 2px; border-color: rgba(18,18,18,0.3); border-top-color: #121212; }
+</style>
+</head>
+<body>
+<div class="guide">
+
+  <div style="margin-bottom:2rem;">
+    <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--brand-primary);margin-bottom:6px;">FullSMS</div>
+    <div style="font-size:26px;font-weight:600;letter-spacing:-0.02em;margin-bottom:6px;">Design System</div>
+    <div style="color:var(--brand-muted);font-size:13px;">Usage guide for styles, tokens, and UI components</div>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-btn active" onclick="show('colors',this)">Colors</button>
+    <button class="nav-btn" onclick="show('typography',this)">Typography</button>
+    <button class="nav-btn" onclick="show('buttons',this)">Buttons</button>
+    <button class="nav-btn" onclick="show('inputs',this)">Inputs</button>
+    <button class="nav-btn" onclick="show('badges',this)">Badges</button>
+    <button class="nav-btn" onclick="show('card',this)">Card</button>
+    <button class="nav-btn" onclick="show('loader',this)">Loader</button>
+    <button class="nav-btn" onclick="show('tokens',this)">Tokens</button>
+  </nav>
+
+  <!-- COLORS -->
+  <div id="sec-colors" class="section active">
+    <div class="section-title">Colors</div>
+    <div class="section-desc">All colors are registered as Tailwind classes and CSS variables. Use class names in JSX, CSS variables in custom CSS, and raw values from <code style="font-family:var(--font-mono);color:var(--brand-primary)">lib/tokens.ts</code> in JS.</div>
+    <div class="block">
+      <div class="block-label">Brand palette</div>
+      <div class="preview alone" style="display:block;padding:1rem;">
+        <div class="color-grid">
+          <div class="color-swatch"><div class="swatch-block" style="background:#00e5ff"></div><div class="swatch-info"><div class="swatch-name">Primary</div><div class="swatch-val">#00e5ff</div><div class="swatch-class">bg-primary</div></div></div>
+          <div class="color-swatch"><div class="swatch-block" style="background:#121212"></div><div class="swatch-info"><div class="swatch-name">Background</div><div class="swatch-val">#121212</div><div class="swatch-class">bg-background</div></div></div>
+          <div class="color-swatch"><div class="swatch-block" style="background:#1E1E1E"></div><div class="swatch-info"><div class="swatch-name">Card</div><div class="swatch-val">#1E1E1E</div><div class="swatch-class">bg-card</div></div></div>
+          <div class="color-swatch"><div class="swatch-block" style="background:#e8e8e8"></div><div class="swatch-info"><div class="swatch-name">Foreground</div><div class="swatch-val">#e8e8e8</div><div class="swatch-class">text-foreground</div></div></div>
+          <div class="color-swatch"><div class="swatch-block" style="background:#00e676"></div><div class="swatch-info"><div class="swatch-name">Success</div><div class="swatch-val">#00e676</div><div class="swatch-class">bg-success</div></div></div>
+          <div class="color-swatch"><div class="swatch-block" style="background:#ffd600"></div><div class="swatch-info"><div class="swatch-name">Warning</div><div class="swatch-val">#ffd600</div><div class="swatch-class">bg-warning</div></div></div>
+          <div class="color-swatch"><div class="swatch-block" style="background:#ff1744"></div><div class="swatch-info"><div class="swatch-name">Destructive</div><div class="swatch-val">#ff1744</div><div class="swatch-class">bg-destructive</div></div></div>
+          <div class="color-swatch"><div class="swatch-block" style="background:#3a3a3a"></div><div class="swatch-info"><div class="swatch-name">Border</div><div class="swatch-val">#3a3a3a</div><div class="swatch-class">border-border</div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="block">
+      <div class="block-label">Chart palette (colorblind-safe)</div>
+      <div class="preview alone" style="display:block;padding:1rem;">
+        <div style="display:flex;gap:8px;">
+          <div class="color-swatch" style="flex:1"><div class="swatch-block" style="background:#440154"></div><div class="swatch-info"><div class="swatch-class">chart-1</div></div></div>
+          <div class="color-swatch" style="flex:1"><div class="swatch-block" style="background:#31688e"></div><div class="swatch-info"><div class="swatch-class">chart-2</div></div></div>
+          <div class="color-swatch" style="flex:1"><div class="swatch-block" style="background:#35b779"></div><div class="swatch-info"><div class="swatch-class">chart-3</div></div></div>
+          <div class="color-swatch" style="flex:1"><div class="swatch-block" style="background:#fde724"></div><div class="swatch-info"><div class="swatch-class">chart-4</div></div></div>
+          <div class="color-swatch" style="flex:1"><div class="swatch-block" style="background:#21918c"></div><div class="swatch-info"><div class="swatch-class">chart-5</div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="block">
+      <div class="block-label">Usage</div>
+      <div class="code"><span class="cm">// Tailwind classes</span>
+&lt;div <span class="prop">className</span>=<span class="str">"bg-card text-foreground border border-border"</span>&gt;
+&lt;span <span class="prop">className</span>=<span class="str">"text-primary"</span>&gt;Highlighted&lt;/span&gt;
+
+<span class="cm">// CSS variables</span>
+<span class="prop">color</span>: <span class="val">var(--color-primary)</span>;
+<span class="prop">background</span>: <span class="val">var(--color-card)</span>;
+
+<span class="cm">// Raw JS values (charts, canvas)</span>
+<span class="kw">import</span> { colors } <span class="kw">from</span> <span class="str">'@/lib/tokens'</span>
+colors.primary   <span class="cm">// '#00e5ff'</span>
+colors.chart     <span class="cm">// ['#440154', '#31688e', ...]</span></div>
+    </div>
+  </div>
+
+  <!-- TYPOGRAPHY -->
+  <div id="sec-typography" class="section">
+    <div class="section-title">Typography</div>
+    <div class="section-desc">Public Sans for UI text, JetBrains Mono for code and data values. Loaded via <code style="font-family:var(--font-mono);color:var(--brand-primary)">next/font</code> in <code style="font-family:var(--font-mono);color:var(--brand-primary)">app/layout.tsx</code>.</div>
+    <div class="block">
+      <div class="block-label">Type scale</div>
+      <div class="preview alone col" style="gap:0;padding:1.25rem 1.5rem;">
+        <div class="type-row"><div class="type-meta">2xl · 24px · 500</div><div style="font-size:24px;font-weight:500;letter-spacing:-0.01em;">Heading 1</div></div>
+        <div class="type-row"><div class="type-meta">xl · 20px · 500</div><div style="font-size:20px;font-weight:500;">Heading 2</div></div>
+        <div class="type-row"><div class="type-meta">lg · 16px · 500</div><div style="font-size:16px;font-weight:500;">Heading 3</div></div>
+        <div class="type-row"><div class="type-meta">base · 14px · 500</div><div style="font-size:14px;font-weight:500;">Heading 4</div></div>
+        <div class="type-row"><div class="type-meta">base · 14px · 400</div><div style="font-size:14px;font-weight:400;">Body text for content and descriptions</div></div>
+        <div class="type-row"><div class="type-meta">sm · 12px · 400</div><div style="font-size:12px;color:var(--brand-muted);">Helper text, captions, metadata</div></div>
+        <div class="type-row"><div class="type-meta">mono · 13px</div><div style="font-family:var(--font-mono);font-size:13px;color:var(--brand-primary);">const data = &#123; wavelength: 488 &#125;</div></div>
+      </div>
+    </div>
+    <div class="block">
+      <div class="block-label">Usage</div>
+      <div class="code">&lt;h1 <span class="prop">className</span>=<span class="str">"text-2xl font-medium"</span>&gt;Page title&lt;/h1&gt;
+&lt;h2 <span class="prop">className</span>=<span class="str">"text-xl font-medium"</span>&gt;Section&lt;/h2&gt;
+&lt;p  <span class="prop">className</span>=<span class="str">"text-base"</span>&gt;Body copy&lt;/p&gt;
+&lt;p  <span class="prop">className</span>=<span class="str">"text-sm text-foreground/60"</span>&gt;Muted&lt;/p&gt;
+&lt;code <span class="prop">className</span>=<span class="str">"font-mono"</span>&gt;1250.5 nm&lt;/code&gt;</div>
+    </div>
+  </div>
+
+  <!-- BUTTONS -->
+  <div id="sec-buttons" class="section">
+    <div class="section-title">Button</div>
+    <div class="section-desc">Five variants, three sizes. Import from <code style="font-family:var(--font-mono);color:var(--brand-primary)">@/components/ui</code>.</div>
+    <div class="block">
+      <div class="block-label">Variants</div>
+      <div class="preview">
+        <button class="btn btn-primary">Primary</button>
+        <button class="btn btn-secondary">Secondary</button>
+        <button class="btn btn-outline">Outline</button>
+        <button class="btn btn-ghost">Ghost</button>
+        <button class="btn btn-destructive">Destructive</button>
+      </div>
+      <div class="code"><span class="kw">import</span> { Button } <span class="kw">from</span> <span class="str">'@/components/ui'</span>
+
+&lt;Button <span class="prop">variant</span>=<span class="str">"primary"</span>&gt;Primary&lt;/Button&gt;
+&lt;Button <span class="prop">variant</span>=<span class="str">"secondary"</span>&gt;Secondary&lt;/Button&gt;
+&lt;Button <span class="prop">variant</span>=<span class="str">"outline"</span>&gt;Outline&lt;/Button&gt;
+&lt;Button <span class="prop">variant</span>=<span class="str">"ghost"</span>&gt;Ghost&lt;/Button&gt;
+&lt;Button <span class="prop">variant</span>=<span class="str">"destructive"</span>&gt;Destructive&lt;/Button&gt;</div>
+    </div>
+    <div class="block">
+      <div class="block-label">Sizes</div>
+      <div class="preview">
+        <button class="btn btn-primary btn-sm">Small</button>
+        <button class="btn btn-primary">Default</button>
+        <button class="btn btn-primary btn-lg">Large</button>
+      </div>
+      <div class="code">&lt;Button <span class="prop">size</span>=<span class="str">"sm"</span>&gt;Small&lt;/Button&gt;
+&lt;Button&gt;Default&lt;/Button&gt;
+&lt;Button <span class="prop">size</span>=<span class="str">"lg"</span>&gt;Large&lt;/Button&gt;</div>
+    </div>
+    <div class="block">
+      <div class="block-label">States</div>
+      <div class="preview">
+        <button class="btn btn-primary" style="gap:8px;"><div class="spinner-el sp-btn"></div>Saving…</button>
+        <button class="btn btn-primary btn-disabled">Disabled</button>
+      </div>
+      <div class="code">&lt;Button <span class="prop">loading</span>&gt;Saving…&lt;/Button&gt;
+&lt;Button <span class="prop">disabled</span>&gt;Disabled&lt;/Button&gt;</div>
+    </div>
+    <div class="block">
+      <div class="block-label">With icons</div>
+      <div class="preview">
+        <button class="btn btn-primary" style="gap:7px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>Continue</button>
+        <button class="btn btn-outline" style="gap:7px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
+      </div>
+      <div class="code"><span class="kw">import</span> { ArrowRight, Download } <span class="kw">from</span> <span class="str">'lucide-react'</span>
+
+&lt;Button <span class="prop">leftIcon</span>={&lt;ArrowRight /&gt;}&gt;Continue&lt;/Button&gt;
+&lt;Button <span class="prop">variant</span>=<span class="str">"outline"</span> <span class="prop">leftIcon</span>={&lt;Download /&gt;}&gt;Export&lt;/Button&gt;</div>
+    </div>
+  </div>
+
+  <!-- INPUTS -->
+  <div id="sec-inputs" class="section">
+    <div class="section-title">Input &amp; Toggle</div>
+    <div class="section-desc">Form controls with built-in label, helper text, error, and focus states.</div>
+    <div class="block">
+      <div class="block-label">Default input</div>
+      <div class="preview col">
+        <div class="field"><label>Wavelength</label><input type="text" placeholder="e.g. 488 nm" /><span class="helper">Enter value in nanometres</span></div>
+      </div>
+      <div class="code"><span class="kw">import</span> { Input } <span class="kw">from</span> <span class="str">'@/components/ui'</span>
+
+&lt;Input
+  <span class="prop">label</span>=<span class="str">"Wavelength"</span>
+  <span class="prop">placeholder</span>=<span class="str">"e.g. 488 nm"</span>
+  <span class="prop">helperText</span>=<span class="str">"Enter value in nanometres"</span>
+/&gt;</div>
+    </div>
+    <div class="block">
+      <div class="block-label">Error state</div>
+      <div class="preview col">
+        <div class="field"><label>API Key</label><input type="text" class="error" value="invalid-key-123" /><span class="err-msg">Invalid API key format</span></div>
+      </div>
+      <div class="code">&lt;Input <span class="prop">label</span>=<span class="str">"API Key"</span> <span class="prop">error</span>=<span class="str">"Invalid API key format"</span> /&gt;</div>
+    </div>
+    <div class="block">
+      <div class="block-label">Toggle</div>
+      <div class="preview col" style="gap:14px;">
+        <div class="toggle-wrap"><button class="toggle-track on" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button><span class="toggle-label">Notifications enabled</span></div>
+        <div class="toggle-wrap"><button class="toggle-track off" onclick="this.classList.toggle('on');this.classList.toggle('off')"><div class="toggle-thumb"></div></button><span class="toggle-label">Dark mode</span></div>
+      </div>
+      <div class="code"><span class="kw">import</span> { Toggle } <span class="kw">from</span> <span class="str">'@/components/ui'</span>
+
+&lt;Toggle
+  <span class="prop">label</span>=<span class="str">"Notifications enabled"</span>
+  <span class="prop">checked</span>={enabled}
+  <span class="prop">onCheckedChange</span>={setEnabled}
+/&gt;</div>
+    </div>
+  </div>
+
+  <!-- BADGES -->
+  <div id="sec-badges" class="section">
+    <div class="section-title">Badge</div>
+    <div class="section-desc">Compact status indicators. Six semantic variants.</div>
+    <div class="block">
+      <div class="block-label">Variants</div>
+      <div class="preview">
+        <span class="badge badge-default">Default</span>
+        <span class="badge badge-secondary">Secondary</span>
+        <span class="badge badge-outline">Outline</span>
+        <span class="badge badge-success">Success</span>
+        <span class="badge badge-warning">Warning</span>
+        <span class="badge badge-destructive">Destructive</span>
+      </div>
+      <div class="code"><span class="kw">import</span> { Badge } <span class="kw">from</span> <span class="str">'@/components/ui'</span>
+
+&lt;Badge&gt;Default&lt;/Badge&gt;
+&lt;Badge <span class="prop">variant</span>=<span class="str">"success"</span>&gt;Connected&lt;/Badge&gt;
+&lt;Badge <span class="prop">variant</span>=<span class="str">"warning"</span>&gt;Degraded&lt;/Badge&gt;
+&lt;Badge <span class="prop">variant</span>=<span class="str">"destructive"</span>&gt;Error&lt;/Badge&gt;</div>
+    </div>
+  </div>
+
+  <!-- CARD -->
+  <div id="sec-card" class="section">
+    <div class="section-title">Card</div>
+    <div class="section-desc">Elevated content surface composed of sub-components.</div>
+    <div class="block">
+      <div class="block-label">Full card</div>
+      <div class="preview alone" style="padding:1.25rem;display:block;">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Spectrum Analysis</div><div class="card-desc">Last updated 2 minutes ago</div></div>
+          <div class="card-content"><div style="font-family:var(--font-mono);font-size:12px;color:var(--brand-primary);background:var(--brand-bg);border:1px solid var(--brand-border);border-radius:5px;padding:10px 12px;line-height:1.8;">intensity: <span style="color:var(--brand-fg)">1250.5</span><br>wavelength: <span style="color:var(--brand-fg)">488 nm</span><br>status: <span style="color:var(--brand-success)">nominal</span></div></div>
+          <div class="card-footer"><span class="badge badge-success">Active</span><button class="btn btn-outline btn-sm">View details</button></div>
+        </div>
+      </div>
+      <div class="code"><span class="kw">import</span> { Card, CardHeader, CardTitle,
+  CardDescription, CardContent, CardFooter } <span class="kw">from</span> <span class="str">'@/components/ui'</span>
+
+&lt;Card&gt;
+  &lt;CardHeader&gt;
+    &lt;CardTitle&gt;Spectrum Analysis&lt;/CardTitle&gt;
+    &lt;CardDescription&gt;Last updated 2 minutes ago&lt;/CardDescription&gt;
+  &lt;/CardHeader&gt;
+  &lt;CardContent&gt;{<span class="cm">/* content */</span>}&lt;/CardContent&gt;
+  &lt;CardFooter&gt;
+    &lt;Badge <span class="prop">variant</span>=<span class="str">"success"</span>&gt;Active&lt;/Badge&gt;
+    &lt;Button <span class="prop">variant</span>=<span class="str">"outline"</span> <span class="prop">size</span>=<span class="str">"sm"</span>&gt;View details&lt;/Button&gt;
+  &lt;/CardFooter&gt;
+&lt;/Card&gt;</div>
+    </div>
+  </div>
+
+  <!-- LOADER -->
+  <div id="sec-loader" class="section">
+    <div class="section-title">Loader</div>
+    <div class="section-desc">Two components — <code style="font-family:var(--font-mono);color:var(--brand-primary)">Loader</code> for inline/section use, <code style="font-family:var(--font-mono);color:var(--brand-primary)">PageLoader</code> for full-screen blocking states.</div>
+
+    <div class="block">
+      <div class="block-label">Sizes</div>
+      <div class="preview" style="gap:24px;align-items:center;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+          <div class="spinner-el sp-sm"></div>
+          <span style="font-size:10px;color:var(--brand-muted);font-family:var(--font-mono);">sm</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+          <div class="spinner-el sp-md"></div>
+          <span style="font-size:10px;color:var(--brand-muted);font-family:var(--font-mono);">md</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+          <div class="spinner-el sp-lg"></div>
+          <span style="font-size:10px;color:var(--brand-muted);font-family:var(--font-mono);">lg</span>
+        </div>
+      </div>
+      <div class="code"><span class="kw">import</span> { Loader } <span class="kw">from</span> <span class="str">'@/components/ui'</span>
+
+&lt;Loader <span class="prop">size</span>=<span class="str">"sm"</span> /&gt;
+&lt;Loader /&gt;             <span class="cm">// md — default</span>
+&lt;Loader <span class="prop">size</span>=<span class="str">"lg"</span> /&gt;</div>
+    </div>
+
+    <div class="block">
+      <div class="block-label">Centered in a section</div>
+      <div class="preview alone" style="display:flex;align-items:center;justify-content:center;min-height:120px;">
+        <div class="spinner-el sp-lg"></div>
+      </div>
+      <div class="code">&lt;Loader <span class="prop">size</span>=<span class="str">"lg"</span> <span class="prop">centered</span> /&gt;</div>
+    </div>
+
+    <div class="block">
+      <div class="block-label">Inline — conditional render</div>
+      <div class="preview" style="gap:16px;align-items:center;">
+        <div style="display:flex;align-items:center;gap:10px;background:var(--brand-bg);border:1px solid var(--brand-border);border-radius:6px;padding:10px 14px;width:100%;">
+          <div class="spinner-el sp-sm"></div>
+          <span style="font-size:13px;color:var(--brand-muted);">Fetching results…</span>
+        </div>
+      </div>
+      <div class="code">{isLoading
+  ? &lt;Loader <span class="prop">size</span>=<span class="str">"sm"</span> /&gt;
+  : &lt;YourContent /&gt;
+}</div>
+    </div>
+
+    <div class="block">
+      <div class="block-label">With Next.js Suspense</div>
+      <div class="code"><span class="kw">import</span> { Suspense } <span class="kw">from</span> <span class="str">'react'</span>
+<span class="kw">import</span> { Loader } <span class="kw">from</span> <span class="str">'@/components/ui'</span>
+
+&lt;Suspense <span class="prop">fallback</span>={&lt;Loader <span class="prop">size</span>=<span class="str">"lg"</span> <span class="prop">centered</span> /&gt;}&gt;
+  &lt;AsyncComponent /&gt;
+&lt;/Suspense&gt;</div>
+    </div>
+
+    <div class="block">
+      <div class="block-label">PageLoader — full-screen overlay</div>
+      <div class="preview alone" style="display:block;min-height:160px;padding:0;overflow:hidden;border-radius:8px;">
+        <div style="background:rgba(18,18,18,0.97);min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;">
+          <div class="spinner-el sp-lg"></div>
+          <span style="font-size:12px;color:var(--brand-muted);">Loading…</span>
+        </div>
+      </div>
+      <div class="code"><span class="kw">import</span> { PageLoader } <span class="kw">from</span> <span class="str">'@/components/ui'</span>
+
+{isPageLoading && &lt;PageLoader <span class="prop">label</span>=<span class="str">"Loading dashboard…"</span> /&gt;}</div>
+    </div>
+
+    <div class="block">
+      <div class="block-label">Files to add</div>
+      <div class="code">components/ui/Loader.tsx      <span class="cm">// Loader component</span>
+components/ui/PageLoader.tsx  <span class="cm">// PageLoader component</span>
+components/ui/index.ts        <span class="cm">// add exports (see below)</span>
+
+<span class="cm">// Add to components/ui/index.ts:</span>
+<span class="kw">export</span> { Loader }     <span class="kw">from</span> <span class="str">'./Loader'</span>
+<span class="kw">export</span> { PageLoader } <span class="kw">from</span> <span class="str">'./PageLoader'</span></div>
+    </div>
+  </div>
+
+  <!-- TOKENS -->
+  <div id="sec-tokens" class="section">
+    <div class="section-title">Tokens &amp; Imports</div>
+    <div class="section-desc">Quick reference for everything exported by the design system.</div>
+    <div class="block">
+      <div class="block-label">Component imports</div>
+      <div class="code"><span class="kw">import</span> {
+  Button,
+  Input,
+  Toggle,
+  Badge,
+  Card, CardHeader, CardTitle,
+  CardDescription, CardContent, CardFooter,
+  Loader,
+  PageLoader,
+} <span class="kw">from</span> <span class="str">'@/components/ui'</span></div>
+    </div>
+    <div class="block">
+      <div class="block-label">JS token imports</div>
+      <div class="code"><span class="kw">import</span> { colors } <span class="kw">from</span> <span class="str">'@/lib/tokens'</span>
+
+colors.primary      <span class="cm">// '#00e5ff'</span>
+colors.background   <span class="cm">// '#121212'</span>
+colors.card         <span class="cm">// '#1E1E1E'</span>
+colors.foreground   <span class="cm">// '#e8e8e8'</span>
+colors.success      <span class="cm">// '#00e676'</span>
+colors.warning      <span class="cm">// '#ffd600'</span>
+colors.destructive  <span class="cm">// '#ff1744'</span>
+colors.border       <span class="cm">// '#3a3a3a'</span>
+colors.chart        <span class="cm">// ['#440154', '#31688e', '#35b779', '#fde724', '#21918c']</span></div>
+    </div>
+    <div class="block">
+      <div class="block-label">CSS variables</div>
+      <div class="code"><span class="prop">--color-primary</span>:     <span class="val">#00e5ff</span>;
+<span class="prop">--color-background</span>:  <span class="val">#121212</span>;
+<span class="prop">--color-card</span>:        <span class="val">#1E1E1E</span>;
+<span class="prop">--color-foreground</span>:  <span class="val">#e8e8e8</span>;
+<span class="prop">--color-success</span>:     <span class="val">#00e676</span>;
+<span class="prop">--color-warning</span>:     <span class="val">#ffd600</span>;
+<span class="prop">--color-destructive</span>: <span class="val">#ff1744</span>;
+<span class="prop">--color-border</span>:      <span class="val">#3a3a3a</span>;
+<span class="prop">--font-sans</span>: <span class="val">'Public Sans'</span>, sans-serif;
+<span class="prop">--font-mono</span>: <span class="val">'JetBrains Mono'</span>, monospace;</div>
+    </div>
+    <div class="block">
+      <div class="block-label">cn() class merger</div>
+      <div class="code"><span class="kw">import</span> { cn } <span class="kw">from</span> <span class="str">'@/lib/utils'</span>
+
+&lt;div <span class="prop">className</span>={cn(
+  <span class="str">'bg-card text-foreground'</span>,
+  isActive && <span class="str">'border border-primary'</span>,
+  className
+)} /&gt;</div>
+    </div>
+  </div>
+
+</div>
+<script>
+  function show(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'))
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'))
+    document.getElementById('sec-' + id).classList.add('active')
+    btn.classList.add('active')
+  }
+</script>
+</body>
+</html>
