@@ -1,6 +1,7 @@
 "use client"
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/Card"
+import { Input } from "@/components/ui/Input"
 
 export default function RegisterPage() {
     return (
@@ -11,6 +12,30 @@ export default function RegisterPage() {
                     <CardDescription>Enter your details to get started</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
+                    <Input
+                        label="Username"
+                        type="text"
+                        placeholder="your_username"
+                        onChange={() => {}}
+                    />
+                    <Input
+                        label="Email"
+                        type="email"
+                        placeholder="name@example.com"
+                        onChange={() => {}}
+                    />
+                    <Input
+                        label="Password"
+                        type="password"
+                        placeholder="Enter your password"
+                        onChange={() => {}}
+                    />
+                    <Input
+                        label="Confirm Password"
+                        type="password"
+                        placeholder="Repeat your password"
+                        onChange={() => {}}
+                    />
                 </CardContent>
                 <CardFooter className="justify-center border-t border-border">
                 </CardFooter>
