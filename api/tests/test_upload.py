@@ -25,3 +25,12 @@ def test_upload_valid_csv():
     )
     assert response.status_code == 200
     assert response.json()["filename"] == "data.csv"
+
+def test_upload_invalid_extension():
+    fake_file = io.BytesIO(b"some content")
+    response = client.post(
+        "/upload/",
+        files={"file": ("report.pdf", fake_file, "application/pdf")}
+    )
+    assert response.status_code == 400
+    assert "Unsupported file type" in response.json()["detail"]
