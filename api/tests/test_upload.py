@@ -34,3 +34,7 @@ def test_upload_invalid_extension():
     )
     assert response.status_code == 400
     assert "Unsupported file type" in response.json()["detail"]
+
+def test_upload_no_file_sent():
+    response = client.post("/upload/")
+    assert response.status_code == 422
