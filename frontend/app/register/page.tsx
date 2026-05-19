@@ -2,6 +2,8 @@
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/Card"
 import { Input } from "@/components/ui/Input"
+import { Button } from "@/components/ui/Button"
+import Link from "next/link"
 
 export default function RegisterPage() {
     return (
@@ -36,8 +38,17 @@ export default function RegisterPage() {
                         placeholder="Repeat your password"
                         onChange={() => {}}
                     />
+                    <Button variant="primary" size="md" className="w-full">
+                        Sign up
+                    </Button>
                 </CardContent>
                 <CardFooter className="justify-center border-t border-border">
+                    <p className="text-sm text-foreground/60">
+                        Already have an account?{" "}
+                        <Link href="/login" className="text-primary hover:underline font-medium">
+                            Log in
+                        </Link>
+                    </p>
                 </CardFooter>
             </Card>
         </div>
