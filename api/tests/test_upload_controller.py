@@ -51,3 +51,15 @@ async def test_uppercase_extension_still_works():
     result = await handle_upload(fake_file)
     
     assert result["status"] == "pending"
+
+@pytest.mark.asyncio
+async def test_response_has_all_expected_keys():
+    fake_file = UploadFile(filename="data.csv", file=io.BytesIO(b"col1,col2\n1,2"))
+    
+    result = await handle_upload(fake_file)
+    
+    assert "message" in result
+    assert "filename" in result
+    assert "saved_as" in result
+    assert "size_bytes" in result
+    assert "status" in result
