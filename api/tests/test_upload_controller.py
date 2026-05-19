@@ -42,3 +42,12 @@ async def test_invalid_extension_exe():
         await handle_upload(fake_file)
     
     assert exc_info.value.status_code == 400
+
+@pytest.mark.asyncio
+async def test_uppercase_extension_still_works():
+    # .PT3 should work the same as .pt3 because we call .lower()
+    fake_file = UploadFile(filename="experiment.PT3", file=io.BytesIO(b"fake content"))
+    
+    result = await handle_upload(fake_file)
+    
+    assert result["status"] == "pending"
