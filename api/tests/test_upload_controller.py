@@ -14,3 +14,12 @@ async def test_valid_pt3_upload():
     assert result["filename"] == "experiment.pt3"
     assert result["message"] == "File uploaded successfully"
     assert result["size_bytes"] > 0
+
+@pytest.mark.asyncio
+async def test_valid_csv_upload():
+    fake_file = UploadFile(filename="data.csv", file=io.BytesIO(b"time,intensity\n0.1,500"))
+    
+    result = await handle_upload(fake_file)
+    
+    assert result["status"] == "pending"
+    assert result["filename"] == "data.csv"
