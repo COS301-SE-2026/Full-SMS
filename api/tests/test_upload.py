@@ -38,3 +38,18 @@ def test_upload_invalid_extension():
 def test_upload_no_file_sent():
     response = client.post("/upload/")
     assert response.status_code == 422
+
+def test_response_contains_all_keys():
+    fake_file = io.BytesIO(b"fake pt3 binary content")
+    response = client.post(
+        "/upload/",
+        files={"file": ("experiment.pt3", fake_file, "application/octet-stream")}
+    )
+    body = response.json()
+    assert "message" in body
+    assert "filename" in body
+    assert "saved_as" in body
+    assert "size_bytes" in body
+    assert "status" in body
+
+    
