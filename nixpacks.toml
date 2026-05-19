@@ -5,7 +5,7 @@ nixPkgs = ['python311']
 cmds = [
   'python3 -m venv /opt/venv',
   '/opt/venv/bin/pip install --upgrade pip',
-  '/opt/venv/bin/pip install -r requirements.txt'
+  '/opt/venv/bin/pip install -r api/requirements.txt'
 ]
 
 [start]
