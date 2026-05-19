@@ -33,3 +33,12 @@ async def test_invalid_extension_pdf():
     
     assert "400" in str(exc_info.value.status_code)
     assert "Unsupported file type" in exc_info.value.detail
+
+@pytest.mark.asyncio
+async def test_invalid_extension_exe():
+    fake_file = UploadFile(filename="malware.exe", file=io.BytesIO(b"bad content"))
+    
+    with pytest.raises(Exception) as exc_info:
+        await handle_upload(fake_file)
+    
+    assert exc_info.value.status_code == 400
