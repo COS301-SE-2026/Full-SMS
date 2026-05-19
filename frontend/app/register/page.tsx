@@ -16,6 +16,9 @@ const RegisterSchema = Yup.object({
         .required("Email is required"),
     password: Yup.string()
         .min(8, "Password must be at least 8 characters")
+        .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
+        .matches(/[0-9]/, "Password must contain at least one number")
+        .matches(/[!@#$%^&*(),.?":{}|<>]/, "Password must contain at least one special character")
         .required("Password is required"),
     confirmPassword: Yup.string()
         .oneOf([Yup.ref("password")], "Passwords do not match")
@@ -49,7 +52,7 @@ export default function RegisterPage() {
                     <Input
                         label="Username"
                         type="text"
-                        placeholder="your_username"
+                        placeholder="e.g User12345"
                         {...formik.getFieldProps("username")}
                         error={formik.touched.username && formik.errors.username ? formik.errors.username : undefined}
                     />
@@ -70,7 +73,7 @@ export default function RegisterPage() {
                     <Input
                         label="Confirm Password"
                         type="password"
-                        placeholder="Repeat your password"
+                        placeholder="Re-type password"
                          {...formik.getFieldProps("confirmPassword")}
                         error={formik.touched.confirmPassword && formik.errors.confirmPassword ? formik.errors.confirmPassword : undefined}                
                     />
