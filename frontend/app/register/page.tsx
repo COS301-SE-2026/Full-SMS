@@ -63,7 +63,7 @@ export default function RegisterPage() {
                     <Input
                         label="Password"
                         type="password"
-                        placeholder="Enter your password"
+                        placeholder="Create a password"
                         {...formik.getFieldProps("password")}
                         error={formik.touched.password && formik.errors.password ? formik.errors.password : undefined}                
                     />
