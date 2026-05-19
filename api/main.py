@@ -1,6 +1,9 @@
+# main
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
+
+from api.routes.auth_routes import router as auth_router
 
 app = FastAPI(
     title="Full-SMS API",
@@ -20,6 +23,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth_router, prefix="/api/py")
+
+@app.on_event("startup")
+async def startup_event():
+    print("\n" + "="*60)
+    print("Full-SMS Backend Server Started")
+    print("Swagger Documentation: http://localhost:8000/api/py/docs")
+    print("Health Check: http://localhost:8000/api/py/health")
+    print("="*60 + "\n")
 
 
 @app.get("/api/py/health", tags=["Health Check"])
