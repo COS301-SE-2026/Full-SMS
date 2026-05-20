@@ -1,6 +1,6 @@
 name: Backend CI
 
-  on:
+on:
     push:
       branches: [ chore/github-actions-ci-cd ]
       paths:
@@ -12,7 +12,7 @@ name: Backend CI
         - 'api/**'
         - '.github/workflows/backend-ci.yml'
 
-  jobs:
+jobs:
     lint-and-test:
       runs-on: ubuntu-latest
 

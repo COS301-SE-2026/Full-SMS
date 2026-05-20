@@ -1,6 +1,5 @@
- name: Frontend CI
-
-  on:
+name: Frontend CI
+on:
     push:
       branches: [ chore/github-actions-ci-cd ]
       paths:
@@ -12,7 +11,7 @@
         - 'frontend/**'
         - '.github/workflows/frontend-ci.yml'
 
-  jobs:
+jobs:
     lint-build-test:
       runs-on: ubuntu-latest
 
