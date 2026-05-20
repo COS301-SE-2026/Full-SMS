@@ -6,6 +6,9 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
+import { useAuth } from "@/contexts/authContext/AuthContext"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 const RegisterSchema = Yup.object({
     username: Yup.string()
@@ -27,18 +30,43 @@ const RegisterSchema = Yup.object({
 })
 
 export default function RegisterPage() {
+        const { signUp } = useAuth()
+        const router = useRouter()
+        const [errorMessage, setErrorMessage] = useState("")
+        const [successMessage, setSuccessMessage] = useState("")
+
         const formik = useFormik({
             initialValues: {
                 username: "",
                 email: "",
                 password: "",
                 confirmPassword: "",
-            }, 
-            validationSchema: RegisterSchema, 
-            onSubmit: (values, { setSubmitting }) => {
-                //connect to API backend 
-                console.log(values)
-                setSubmitting(false)
+            },
+            validationSchema: RegisterSchema,
+            onSubmit: async (values, { setSubmitting }) => {
+                try {
+                    setErrorMessage("")
+                    setSuccessMessage("")
+
+                    const { user, error: signUpError } = await signUp(values.email, values.password)
+
+                    if (signUpError) {
+                        setErrorMessage(signUpError.message || "Registration failed")
+                        setSubmitting(false)
+                        return
+                    }
+
+                    setSuccessMessage("Account created! Please check your email to verify your account.")
+                    setTimeout(() => {
+                        router.push("/login")
+                    }, 2000)
+
+                } catch (error: any) {
+                    console.error("Registration error:", error)
+                    setErrorMessage(error.message || "An unexpected error occurred")
+                } finally {
+                    setSubmitting(false)
+                }
             },
         })
     return (
@@ -49,6 +77,16 @@ export default function RegisterPage() {
                     <CardDescription>Enter your details to get started</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
+                    {errorMessage && (
+                        <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-md">
+                            <p className="text-sm text-red-500">{errorMessage}</p>
+                        </div>
+                    )}
+                    {successMessage && (
+                        <div className="px-4 py-3 bg-green-500/10 border border-green-500/20 rounded-md">
+                            <p className="text-sm text-green-500">{successMessage}</p>
+                        </div>
+                    )}
                     <Input
                         label="Username"
                         type="text"
@@ -77,9 +115,10 @@ export default function RegisterPage() {
                          {...formik.getFieldProps("confirmPassword")}
                         error={formik.touched.confirmPassword && formik.errors.confirmPassword ? formik.errors.confirmPassword : undefined}                
                     />
-                    <Button 
-                        variant="primary"  
-                        size="md" 
+                    <Button
+                        type="button"
+                        variant="primary"
+                        size="md"
                         className="w-full"
                         loading={formik.isSubmitting}
                         onClick={() => formik.handleSubmit()}
