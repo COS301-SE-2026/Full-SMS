@@ -1,28 +1,60 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from api.services.profile_service import get_user_profile 
+from fastapi.testclient import TestClient
+from api.main import app
 
+client = TestClient(app)
+
+MOCK_TOKEN = "mock.jwt.token"
 MOCK_USER_ID = "test-user-123"
 
-def make_mock_user(username="testuser", role="researcher"):
-    user = MagicMock()
-    user.id = MOCK_USER_ID
-    user.email = "test@example.com"
-    user.user_metadata = {"username": username, "role": role}
-    return user
+MOCK_VERIFIED_USER = {
+    "valid": True,
+    "user": {"id": MOCK_USER_ID, "email": "test@example.com", "role": "authenticated"}
+}
 
-def test_get_user_profile_returns_correct_fields():
-    mock_user = make_mock_user()
-    mock_response = MagicMock()
-    mock_response.user = mock_user
+MOCK_PROFILE = {
+    "id":  MOCK_USER_ID,
+    "email": "test@example.com",
+    "username": "testuser", 
+    "role": "researcher"
+}
 
-    with patch("api.services.profile_service.get_supabase_admin") as mock_admin:
-        mock_admin.return_value.auth.admin.get_user_by_id.return_value = mock_response
-        result = get_user_profile(MOCK_USER_ID)
 
-    assert result["id"] == MOCK_USER_ID
-    assert result["email"] == "test@example.com"
-    assert result["username"] == "testuser"
-    assert result["role"] == "researcher"
+class TestGetProfile:
+    def test_get_profile_success(self):
+        with patch("api.controllers.auth_controller.verify_token_controller", return_value=MOCK_VERIFIED_USER):
+            with patch("api.services.profile_service.get_user_profile", return_value=MOCK_PROFILE):
+                response = client.get("/api/py/profile/me", headers={"Authorization": f"Bearer {MOCK_TOKEN}"})
+                assert response.status_code == 200
+                data = response.json()
+                assert data["success"] is True
+                assert data["user"]["username"] == "testuser"
+    def test_get_profile_unauthorized(self):
+        response = client.get("/api/py/profile/me")
+        assert response.status_code == 403
 
+    def test_get_profile_user_not_found(self):
+        with patch("api.controllers.auth_controller.verify_token_controller", return_value=MOCK_VERIFIED_USER):
+            with patch("api.services.profile_service.get_user_profile", side_effect=ValueError("User not found")):
+                response = client.get("/api/py/profile/me", headers={"Authorization": f"Bearer {MOCK_TOKEN}"})
+                assert response.status_code == 404
+
+class TestUpdateProfile:
+    def test_update_username_success(self):
+        updated_profile = {**MOCK_PROFILE, "username": "newusername"}
+        with patch("api.controllers.auth_controller.verify_token_controller", return_value=MOCK_VERIFIED_USER):
+            with patch("api.services.profile_service.update_user_profile", return_value=updated_profile):
+                response = client.put("/api/py/profile/me", headers={"Authorization": f"Bearer {MOCK_TOKEN}"}, json={"username": "newusername"})
+                assert response.status_code == 200
+                assert response.json()["user"]["username"] == "newusername"
+    def test_update_profile_unauthorized(self):
+        response = client.put("/api/py/profile/me", json={"username" : "newusername"})
+        assert response.status_code == 403
+
+    def test_update_profile_no_data(self):
+        with patch("api.controllers.auth_controller.verify_token_controller", return_value=MOCK_VERIFIED_USER):
+            with patch("api.services.profile_service.update_user_profile", side_effect=ValueError("No update data provided")):
+                response = client.put("/api/py/profile/me", headers={"Authorization": f"Bearer {MOCK_TOKEN}"}, json={})
+                assert response.status_code == 400
 
