@@ -65,3 +65,5 @@ coverage/
 
 CLAUDE.md
 .vercel
+
+test-hdf5s/*.h5
