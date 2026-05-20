@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 from api.routes.auth_routes import router as auth_router
-
+from api.routes.profile_routes import router as profile_router
 app = FastAPI(
     title="Full-SMS API",
     description="Backend API for Single-Molecule Spectroscopy Analysis Web Platform",
@@ -27,7 +27,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router, prefix="/api/py")
-
+app.include_router(profile_router, prefix="/api/py")
 @app.on_event("startup")
 async def startup_event():
     print("\n" + "="*60)
