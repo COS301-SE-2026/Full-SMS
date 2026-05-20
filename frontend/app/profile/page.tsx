@@ -14,19 +14,56 @@ function Avatar({ username }: { username: string}) {
         </div>
     )
 }
+
+function RoleBadge({ role }: { role: string }) {
+    const colours: Record<string, string> = {
+        owner:"bg-primary/20 text-primary border border-primary/30",
+        researcher: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
+        collaborator: "bg-purple-500/20 text-purple-400 border border-purple-500/30",
+        administrator: "bg-red-500/20 text-red-400 border border-red-500/30",
+
+    }
+    return (
+        <span className={`text-xs font-medium px-3 py-1 rounded-full ${colours[role] ?? "bg-border text-foreground"}`}>
+           {role.charAt(0).toUpperCase() + role.slice(1)} 
+        </span>
+    )
+}
 export default function ProfilePage(){
+    const mockUser = {
+        username: "researcher_one",
+        email: "researcher_one@up.ac.za",
+        role: "researcher",
+        joinedDate: "January 2026",
+        datasets: 12,
+        sessions: 34,
+    }
     return(
         <div className="min-h-screen bg-background px-4 py-8 dark">
             <div className="max-w-lg mx-auto">
-                <div className="flex flex-col items-center gap-3 mb-8">
-                    <Avatar username="researcher_one" />
+                <div className="flex flex-col items-center gap-3 mb-6">
+                    <Avatar username={mockUser.username}/>
                     <div className="text-center">
-                        <h1 className="text-xl font-semibold text-foreground">researcher_one</h1>
-                        <p className="text-sm text-foreground/60">researcher_one@up.ac.za</p>
+                        <h1 className="text-xl font-semibold text-foreground">{mockUser.username}</h1>
+                        <p className="text-sm text-foreground/60">{mockUser.email}</p>
+                        <div className="flex items-center justify-center gap-2 mt-2">
+                            <RoleBadge role={mockUser.role} />
+                            <span className="text-xs text-foreground/40">Member since {mockUser.joinedDate}</span>
                     </div>
                 </div>
             </div>
+            <div className="grid grid-cols-2 gap-3 mb-6">
+                <div className="bg-card border border-border rounded-md p-4 text-center">
+                    <p className="text-2xl font-bold text-foreground">{mockUser.datasets}</p>
+                    <p className="text-xs text-foreground/60 mt-1">Datasets Uploaded</p>
+                </div>
+                <div className="bg-card border border-border rounded-md p-4 text-center">
+                    <p className="text-2xl font-bold text-foreground">{mockUser.sessions}</p>
+                    <p className="text-xs text-foreground/60 mt-1">Analysis Sessions</p>
+                </div>            
+            </div>
         </div>
+    </div>
     )
 }
 
