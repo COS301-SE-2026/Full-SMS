@@ -32,6 +32,15 @@ async def test_valid_h5_upload():
     
     assert result["status"] == "pending"
     assert result["filename"] == "data.h5"
+
+@pytest.mark.asyncio
+async def test_valid_hdf5_upload():
+    fake_file = UploadFile(filename="data.hdf5", file=io.BytesIO(b"fake hdf5 content"))
+    
+    result = await handle_upload(fake_file)
+    
+    assert result["status"] == "pending"
+    assert result["filename"] == "data.hdf5"
     
 @pytest.mark.asyncio
 async def test_invalid_extension_pdf():
