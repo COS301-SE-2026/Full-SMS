@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 
-class UserProfile(BaseModel)
+class UserProfile(BaseModel):
     id: str
     email: str
     username: Optional[str] = None
@@ -9,9 +9,5 @@ class UserProfile(BaseModel)
 
 class UpdateProfileRequest(BaseModel):
     username: Optional[str] = None
-    new_password:  Optional[str] = None
+    new_password: Optional[str] = None
 
-class UpdateProfileResponse(BaseModel):
-    success: bool
-    message: str
-    user: Optional[UserProfile] = None
