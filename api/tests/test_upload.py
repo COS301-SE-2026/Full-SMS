@@ -26,6 +26,15 @@ def test_upload_valid_csv():
     assert response.status_code == 200
     assert response.json()["filename"] == "data.csv"
 
+def test_upload_valid_h5():
+    fake_file = io.BytesIO(b"fake h5 content")
+    response = client.post(
+        "/upload/",
+        files={"file": ("data.h5", fake_file, "application/octet-stream")}
+    )
+    assert response.status_code == 200
+    assert response.json()["filename"] == "data.h5"
+    
 def test_upload_invalid_extension():
     fake_file = io.BytesIO(b"some content")
     response = client.post(
