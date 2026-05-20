@@ -15,8 +15,8 @@ import h5py
 import numpy as np
 from numpy.typing import NDArray
 
-from full_sms.models.measurement import ChannelData, MeasurementData, RasterScanData, SpectraData
-from full_sms.models.session import FileMetadata
+from api.legacy.models.measurement import ChannelData, MeasurementData, RasterScanData, SpectraData
+from api.legacy.models.session import FileMetadata
 
 
 # File versions that predate certain features

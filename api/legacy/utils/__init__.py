@@ -1,6 +1,6 @@
 """Utility functions and helpers."""
 
-from full_sms.utils.platform import (
+from api.legacy.utils.platform import (
     IS_LINUX,
     IS_MACOS,
     IS_WINDOWS,

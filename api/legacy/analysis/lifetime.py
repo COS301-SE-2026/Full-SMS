@@ -18,7 +18,7 @@ from numpy.typing import NDArray
 from scipy.optimize import curve_fit
 from scipy.signal import convolve
 
-from full_sms.models.fit import FitResult
+from api.legacy.models.fit import FitResult
 
 
 class FitMethod(Enum):

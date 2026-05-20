@@ -13,10 +13,10 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from full_sms.models.fit import FitResultData, IRFData
-from full_sms.models.group import ClusteringResult, ClusteringStep, GroupData
-from full_sms.models.level import LevelData
-from full_sms.models.session import (
+from api.legacy.models.fit import FitResultData, IRFData
+from api.legacy.models.group import ClusteringResult, ClusteringStep, GroupData
+from api.legacy.models.level import LevelData
+from api.legacy.models.session import (
     ActiveTab,
     ChannelSelection,
     ConfidenceLevel,

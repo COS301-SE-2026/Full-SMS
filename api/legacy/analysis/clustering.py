@@ -14,8 +14,8 @@ import numpy as np
 from numba import jit
 from scipy.stats import poisson
 
-from full_sms.models.group import ClusteringResult, ClusteringStep, GroupData
-from full_sms.models.level import LevelData
+from api.legacy.models.group import ClusteringResult, ClusteringStep, GroupData
+from api.legacy.models.level import LevelData
 
 
 @dataclass

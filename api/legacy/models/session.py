@@ -5,10 +5,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from full_sms.models.fit import FitResult, FitResultData, IRFData
-from full_sms.models.group import ClusteringResult
-from full_sms.models.level import LevelData
-from full_sms.models.measurement import MeasurementData
+from api.legacy.models.fit import FitResult, FitResultData, IRFData
+from api.legacy.models.group import ClusteringResult
+from api.legacy.models.level import LevelData
+from api.legacy.models.measurement import MeasurementData
 
 
 class ConfidenceLevel(Enum):
