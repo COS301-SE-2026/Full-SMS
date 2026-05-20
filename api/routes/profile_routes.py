@@ -9,3 +9,7 @@ bearer_scheme = HTTPBearer()
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)) -> dict:
     return verify_token_controller(credentials.credentials)
+
+@router.get("/me", summary="Get current user profile")
+def get_my_profile(current_user: dict = Depends(get_current_user)):
+    return get_profile_controller(current_user["user"]["id"])
