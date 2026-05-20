@@ -13,3 +13,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_
 @router.get("/me", summary="Get current user profile")
 def get_my_profile(current_user: dict = Depends(get_current_user)):
     return get_profile_controller(current_user["user"]["id"])
+
+@router.put("/me", summary="Update current user profile")
+def update_my_profile(request: UpdateProfileRequest, current_user: dict = Depends(get_current_user)) :
+    return update_profile_controller(current_user["user"]["id"], request)
