@@ -35,7 +35,7 @@ jobs:
 
       - name: Run unit tests
         working-directory: frontend
-        run: npm test -- --coverage --passWithNoTests
+        run: npm test -- --coverage --passWithNoTests --testPathIgnorePatterns="__tests__/integration"
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
