@@ -31,3 +31,4 @@ def update_profile_controller(user_id: str, request: UpdateProfileRequest) -> di
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )  
+
