@@ -1,7 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import ProfilePage from "../page"
-import { it } from "node:test"
 
 jest.mock("next/navigation", () => ({
     useRouter: () => ({ push: jest.fn() }),
