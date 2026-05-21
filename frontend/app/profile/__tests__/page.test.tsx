@@ -65,6 +65,17 @@ describe("ProfilePage", () => {
          })
    })
 
+   it("shows error when passwords do not match", async () => {
+        render(<ProfilePage />)
+        fireEvent.click(screen.getByRole("button", { name: /change/i }))
+        await waitFor(() => expect(screen.getByLabelText("New Password")).toBeInTheDocument())
+        await userEvent.type(screen.getByLabelText("New Password"), "password123")
+        await userEvent.type(screen.getByLabelText("Confirm Password"), "different123")
+        fireEvent.click(screen.getByRole("button", { name: /update password/i }))
+        await waitFor(() => {
+            expect(screen.getByText("Passwords do not match")).toBeInTheDocument()
+         })
+   })   
 
     it("renders the dark mode toggle", () => {
         render(<ProfilePage />)
