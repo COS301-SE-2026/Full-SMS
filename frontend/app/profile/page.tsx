@@ -85,7 +85,6 @@ export default function ProfilePage(){
 
     const handleThemeToggle = (checked: boolean) => {
         setDarkMode(checked)
-        document.documentElement.classList.toggle("dark", checked)
     }
 
     const handleLogout = () => {
@@ -121,19 +120,22 @@ export default function ProfilePage(){
     })
 
     return(
-        <div className="min-h-screen bg-background px-4 py-8 dark">
-            <div className="max-w-lg mx-auto">
+        <div className={`min-h-screen bg-background px-4 py-8 ${darkMode ? "dark" : ""}`}>
+            <div className="w-full">
 
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-8">
                     <h1 className="text-lg font-semibold text-foreground">My Profile</h1>
                     <Button variant="ghost" size="sm" onClick={handleLogout}>
                         Log out
                     </Button>
                 </div>
 
+                <div className="grid grid-cols-3 gap-8 px-2">
+
+                <div className="col-span-1 flex flex-col gap-4">
                 {/* Avatar and user info */}
-                <div className="flex flex-col items-center gap-3 mb-6">
+                <div className="bg-card border border-border rounded-md p-6 flex flex-col items-center gap-3">
                     <Avatar username={mockUser.username}/>
                     <div className="text-center">
                         <h2 className="text-xl font-semibold text-foreground">
@@ -142,13 +144,12 @@ export default function ProfilePage(){
                         <p className="text-sm text-foreground/60">{mockUser.email}</p>
                         <div className="flex items-center justify-center gap-2 mt-2">
                             <RoleBadge role={mockUser.role} />
-                            <span className="text-xs text-foreground/40">Member since {mockUser.joinedDate}</span>
+                            <span className="text-xs text-foreground/40">Since {mockUser.joinedDate}</span>
                     </div>
                 </div>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
                 <div className="bg-card border border-border rounded-md p-4 text-center">
                     <p className="text-2xl font-bold text-foreground">{mockUser.datasets}</p>
                     <p className="text-xs text-foreground/60 mt-1">Datasets Uploaded</p>
@@ -159,15 +160,16 @@ export default function ProfilePage(){
                 </div>            
             </div>
 
-            {successMessage && (
-                <p className="text-sm text-primary text-center mb-4 font-medium">
-                    {successMessage}
-                </p>
-            )}
+            <div className="col-span-2 flex flex-col gap-4">
+                {successMessage && (
+                    <p className="text-sm text-primary text-center font-medium">
+                        {successMessage}
+                    </p>
+                )}
 
 
             {/* Account information */}
-            <Card className="mb-4">
+            <Card>
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <CardTitle className="text-base">Account Information</CardTitle>
@@ -241,7 +243,7 @@ export default function ProfilePage(){
             </Card>
 
             {/* Password section */}
-            <Card className="mb-4">
+            <Card>
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <CardTitle className="text-base">Password</CardTitle>
@@ -323,7 +325,7 @@ export default function ProfilePage(){
             </Card>
 
             {/* Preferences */}
-            <Card className="mb-4">
+            <Card>
                 <CardHeader>
                     <CardTitle className="text-base">Preferences</CardTitle>
                 </CardHeader>
@@ -336,8 +338,10 @@ export default function ProfilePage(){
                         />
                 </CardContent>
             </Card>
-
             
+
+               </div>     
+            </div>
         </div>
     </div>
     )
