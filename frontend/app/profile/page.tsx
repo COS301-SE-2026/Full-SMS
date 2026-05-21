@@ -1,5 +1,8 @@
 "use client"
 
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card"
+import { Button } from "@/components/ui/Button"
+
 function Avatar({ username }: { username: string}) {
     const initials = username
         .split("_")
@@ -27,6 +30,15 @@ function RoleBadge({ role }: { role: string }) {
         <span className={`text-xs font-medium px-3 py-1 rounded-full ${colours[role] ?? "bg-border text-foreground"}`}>
            {role.charAt(0).toUpperCase() + role.slice(1)} 
         </span>
+    )
+}
+
+function InfoRow({ label, value }: { label: string; value: string}){
+    return (
+        <div className="flex items-center justify-between py-3 border-b border-border last:border-0">
+            <span className="text-sm text-foreground/60">{label}</span>
+            <span className="text-sm text-foreground font-medium">{value}</span>
+        </div>
     )
 }
 export default function ProfilePage(){
@@ -62,6 +74,23 @@ export default function ProfilePage(){
                     <p className="text-xs text-foreground/60 mt-1">Analysis Sessions</p>
                 </div>            
             </div>
+
+            <Card className="mb-4">
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="text-base">Account Information</CardTitle>
+                        <Button variant="outline" size="sm">
+                            Edit Profile
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <InfoRow label="Username" value={mockUser.username}/>
+                    <InfoRow label="Email" value={mockUser.email}/>
+                    <InfoRow label="Role" value={mockUser.role.charAt(0).toUpperCase() + mockUser.role.slice(1)}/>
+                    <InfoRow label="Member Since" value={mockUser.joinedDate}/>
+                </CardContent>
+            </Card>
         </div>
     </div>
     )
