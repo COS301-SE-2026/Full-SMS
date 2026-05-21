@@ -15,5 +15,11 @@ describe("ProfilePage", () => {
         expect(screen.getByText("Preferences")).toBeInTheDocument()
 
     })
+
+    it("renders the dark mode toggle", () => {
+        render(<ProfilePage />)
+        expect(screen.getByText("Dark Mode")).toBeInTheDocument()
+        expect(screen.getByRole("switch")).toBeInTheDocument()
+    })
 })
 
