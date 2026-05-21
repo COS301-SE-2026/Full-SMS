@@ -4,6 +4,17 @@
 
 Full SMS is a professional single-molecule spectroscopy (SMS) data analysis application being modernized from a desktop DearPyGui application into a web-based platform. This rewrite delivers the same powerful scientific analysis capabilities (change point detection, hierarchical clustering, lifetime fitting, correlation analysis) through a modern web interface with a FastAPI backend, enabling broader accessibility, improved maintainability, and collaborative research workflows.
 
+## Dependencies
+
+### Frontend
+![Next.js](https://img.shields.io/badge/Next.js-15-black)
+![React](https://img.shields.io/badge/React-19-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4-teal)
+![Formik](https://img.shields.io/badge/Formik-latest-orange)
+![Yup](https://img.shields.io/badge/Yup-latest-orange)
+
+
 ## Documentation
 
 - [Software Requirements Specification (SRS)](./documentation/SRS.pdf)
