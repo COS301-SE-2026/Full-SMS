@@ -35,6 +35,7 @@ app.add_middleware(
 
 app.include_router(auth_router, prefix="/api/py")
 app.include_router(hdf5_router, prefix="/api/py")
+app.include_router(profile_router, prefix="/api/py")
 
 @app.on_event("startup")
 async def startup_event():
