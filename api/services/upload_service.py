@@ -3,7 +3,8 @@ import uuid
 from pathlib import Path
 from fastapi import UploadFile
 
-TEMP_DIR = Path("/tmp/sms_uploads")
+API_ROOT = Path(__file__).resolve().parent.parent  # points to api/
+TEMP_DIR = API_ROOT / "tmp" / "sms_uploads"
 
 async def save_temp_file(file: UploadFile) -> Path:
     TEMP_DIR.mkdir(parents=True, exist_ok=True)
