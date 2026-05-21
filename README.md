@@ -19,12 +19,13 @@ Full SMS is a professional single-molecule spectroscopy (SMS) data analysis appl
 
 [LinkedIn Profile](https://www.linkedin.com/in/kudakwashe-mujuru-09880228a/)
 
-### [Team Member 2 Name]
-**Role:** [Role/Specialization]
+### Nomzi Phosa
+**Role:** Backend Software Developer/Tester
 
-**Profile:**
+**Profile:** I am currently a third-year BSc. Computer Science student from the University of Pretoria. I am an open-minded individual with a practical approach to problem solving. I aspire to be a Software Engineer and an educator in the technology industry. I am interested in software development, system architecture, technical education and the entire product lifecycle, as well as in technical writing and mentorship to help bridge the gap between complex technology and its users.
 
-[LinkedIn Profile](LINKEDIN_URL_2)
+[LinkedIn Profile](www.linkedin.com/in/
+nomziphosa)
 
 ### [Team Member 3 Name]
 **Role:** [Role/Specialization]
