@@ -97,7 +97,7 @@ class TestEdgeCases:
             await handle_upload(fake_file)
         assert exc_info.value.status_code == 400
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_empty_file_still_uploads(self):
         """An empty file (0 bytes) should still be accepted if extension is valid."""
         fake_file = UploadFile(
