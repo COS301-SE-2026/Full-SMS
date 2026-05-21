@@ -39,5 +39,12 @@ jobs:
 
       - name: Run tests with pytest
         run: |
-          pytest api/tests/ -v --cov=api --cov-report=term-missing
+          pytest api/tests/ -v --cov=api --cov-report=term-missing --cov-report=xml
         continue-on-error: true
+
+      - name: Upload backend coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: backend
+          fail_ci_if_error: false
