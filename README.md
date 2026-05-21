@@ -27,12 +27,12 @@ Full SMS is a professional single-molecule spectroscopy (SMS) data analysis appl
 [LinkedIn Profile](www.linkedin.com/in/
 nomziphosa)
 
-### [Team Member 3 Name]
-**Role:** [Role/Specialization]
+### Mbali Thobejane
+**Role:** Frontend Software Developer
 
-**Profile:**
+**Profile:** A final-year BSc Computer Science student at the University of Pretoria with a strong foundation in software engineering, data structures, and frontend development. I am passionate about building intuitive, component-based user interfaces and bridging the gap between powerful backend systems and seamless user experiences.
 
-[LinkedIn Profile](LINKEDIN_URL_3)
+[LinkedIn Profile](https://www.linkedin.com/in/mbali-thobejane-06b7a33b6/)
 
 ### [Team Member 4 Name]
 **Role:** [Role/Specialization]
