@@ -1,9 +1,13 @@
 "use client"
 
 import { useState } from "react"
+import { useFormik } from "formik"
+import * as Yup from "yup"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
+import { Toggle } from "@/components/ui/Toggle"
+
 
 
 function Avatar({ username }: { username: string}) {
@@ -30,7 +34,10 @@ function RoleBadge({ role }: { role: string }) {
 
     }
     return (
-        <span className={`text-xs font-medium px-3 py-1 rounded-full ${colours[role] ?? "bg-border text-foreground"}`}>
+        <span className={`text-xs font-medium px-3 py-1 rounded-full ${
+            colours[role] ?? "bg-border text-foreground"
+            }`}
+            >
            {role.charAt(0).toUpperCase() + role.slice(1)} 
         </span>
     )
@@ -44,8 +51,28 @@ function InfoRow({ label, value }: { label: string; value: string}){
         </div>
     )
 }
+
+const ProfileSchema = Yup.object({
+    username: Yup.string()
+    .min(3, "Username must be at least 3 characters")
+    .required("Username is required"),
+})
+
+const PasswordSchema = Yup.object({
+    newPassword: Yup.string()
+        .min(8, "Password must be at least 8 characters")
+        .required("New password is required"),
+    confirmPassword: Yup.string()
+        .oneOf([Yup.ref("newPassword")], "Passwords do not match")
+        .required("Please confirm your password"),
+})
+
 export default function ProfilePage(){
     const [isEditing, setIsEditing] = useState(false)
+    const [isChangingPassword, setIsChangingPassword] = useState(false)
+    const [darkMode, setDarkMode] = useState(true)
+    const [successMessage, setSuccessMessage] = useState("")
+    const [passwordSuccess, setPasswordSuccess] = useState("")
 
     const mockUser = {
         username: "researcher_one",
@@ -55,13 +82,63 @@ export default function ProfilePage(){
         datasets: 12,
         sessions: 34,
     }
+
+    const handleThemeToggle = (checked: boolean) => {
+        setDarkMode(checked)
+        document.documentElement.classList.toggle("dark", checked)
+    }
+
+    const handleLogout = () => {
+        //connect to supabase signOut -auth
+        console.log("logout")
+    }
+
+    const profileFormik = useFormik({
+        initialValues: { username: mockUser.username },
+        validationSchema: ProfileSchema,
+        onSubmit: (values, { setSubmitting }) => {
+            //will connect to  profile update API 
+            console.log("Profile updated:", values)
+            setSubmitting(false)
+            setIsEditing(false)
+            setSuccessMessage("Profile updated successfully")
+            setTimeout(() => setSuccessMessage(""), 3000)
+        },
+    })
+
+        const passwordFormik = useFormik({
+        initialValues: { newPassword: "", confirmPassword: "" },
+        validationSchema: PasswordSchema,
+        onSubmit: (values, { setSubmitting, resetForm }) => {
+            //will connect to  password update API 
+            console.log("Password updated:", values)
+            setSubmitting(false)
+            setIsChangingPassword(false)
+            resetForm()
+            setPasswordSuccess("Password updated successfully")
+            setTimeout(() => setPasswordSuccess(""), 3000)
+        },
+    })
+
     return(
         <div className="min-h-screen bg-background px-4 py-8 dark">
             <div className="max-w-lg mx-auto">
+
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                    <h1 className="text-lg font-semibold text-foreground">My Profile</h1>
+                    <Button variant="ghost" size="sm" onClick={handleLogout}>
+                        Log out
+                    </Button>
+                </div>
+
+                {/* Avatar and user info */}
                 <div className="flex flex-col items-center gap-3 mb-6">
                     <Avatar username={mockUser.username}/>
                     <div className="text-center">
-                        <h1 className="text-xl font-semibold text-foreground">{mockUser.username}</h1>
+                        <h2 className="text-xl font-semibold text-foreground">
+                            {mockUser.username}
+                        </h2>
                         <p className="text-sm text-foreground/60">{mockUser.email}</p>
                         <div className="flex items-center justify-center gap-2 mt-2">
                             <RoleBadge role={mockUser.role} />
@@ -69,7 +146,9 @@ export default function ProfilePage(){
                     </div>
                 </div>
             </div>
-            <div className="grid grid-cols-2 gap-3 mb-6">
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
                 <div className="bg-card border border-border rounded-md p-4 text-center">
                     <p className="text-2xl font-bold text-foreground">{mockUser.datasets}</p>
                     <p className="text-xs text-foreground/60 mt-1">Datasets Uploaded</p>
@@ -80,13 +159,21 @@ export default function ProfilePage(){
                 </div>            
             </div>
 
+            {successMessage && (
+                <p className="text-sm text-primary text-center mb-4 font-medium">
+                    {successMessage}
+                </p>
+            )}
+
+
+            {/* Account information */}
             <Card className="mb-4">
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <CardTitle className="text-base">Account Information</CardTitle>
                         {!isEditing && (
                             <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                                Edit Profile
+                                Edit 
                             </Button>
                         )}
                     </div>
@@ -97,8 +184,13 @@ export default function ProfilePage(){
                             <Input
                                 label="Username"
                                 type="text"
-                                defaultValue={mockUser.username}
-                                onChange={() => {}}
+                                {...profileFormik.getFieldProps("username")}
+                                error={
+                                    profileFormik.touched.username &&
+                                    profileFormik.errors.username
+                                        ? profileFormik.errors.username
+                                        : undefined
+                                }
                             />
                              <Input
                                 label="Email"
@@ -109,14 +201,23 @@ export default function ProfilePage(){
                                 onChange={() => {}}
                             />
                             <div className="flex gap-2 mt-2">
-                                <Button variant="primary" size="sm" className="flex-1">
-                                    Save changes
+                                <Button 
+                                    variant="primary" 
+                                    size="sm" 
+                                    className="flex-1" 
+                                    loading={profileFormik.isSubmitting} 
+                                    onClick={() => profileFormik.handleSubmit()}
+                                >
+                                    Save
                                 </Button>
                                 <Button 
                                     variant="secondary"
                                     size="sm"
                                     className="flex-1"
-                                    onClick={() => setIsEditing(false)}
+                                    onClick={() => {
+                                        setIsEditing(false)
+                                        profileFormik.resetForm()
+                                    }}
                                 >
                                   Cancel  
                                 </Button>
@@ -126,12 +227,117 @@ export default function ProfilePage(){
                     <>
                         <InfoRow label="Username" value={mockUser.username}/>
                         <InfoRow label="Email" value={mockUser.email}/>
-                        <InfoRow label="Role" value={mockUser.role.charAt(0).toUpperCase() + mockUser.role.slice(1)}/>
+                        <InfoRow 
+                            label="Role"   
+                            value={
+                                mockUser.role.charAt(0).toUpperCase() + 
+                                mockUser.role.slice(1)
+                            }
+                        />
                         <InfoRow label="Member Since" value={mockUser.joinedDate}/>
                     </>
                     )}
                 </CardContent>
             </Card>
+
+            {/* Password section */}
+            <Card className="mb-4">
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="text-base">Password</CardTitle>
+                        {!isChangingPassword && (
+                            <Button
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setIsChangingPassword(true)}
+                            >
+                                Change
+                            </Button>
+                        )}
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {isChangingPassword ? (
+                        <div className="flex flex-col gap-4">
+                           <Input
+                                label="New Password"
+                                type="password"
+                                placeholder="Create a new password"
+                                {...passwordFormik.getFieldProps("newPassword")}
+                                error={
+                                    passwordFormik.touched.newPassword &&
+                                    passwordFormik.errors.newPassword
+                                        ? passwordFormik.errors.newPassword
+                                        : undefined
+                                }
+                            /> 
+                            <Input
+                                label="Confirm Password"
+                                type="password"
+                                placeholder="Re-type new password"
+                                {...passwordFormik.getFieldProps("confirmPassword")}
+                                error={
+                                    passwordFormik.touched.confirmPassword &&
+                                    passwordFormik.errors.confirmPassword
+                                        ? passwordFormik.errors.confirmPassword
+                                        : undefined
+                                }
+                            /> 
+                            <div className="flex gap-2 mt-2">
+                                <Button 
+                                    variant="primary"
+                                    size="sm"
+                                    className="flex-1"
+                                    loading={passwordFormik.isSubmitting}
+                                    onClick={() => passwordFormik.handleSubmit()}
+                                >
+                                  Update Password  
+                                </Button>
+                                 <Button 
+                                    variant="secondary"
+                                    size="sm"
+                                    className="flex-1"
+                                    onClick={() => {
+                                        setIsChangingPassword(false)
+                                        passwordFormik.resetForm()
+                                    }}
+                                >
+                                  Cancel  
+                                </Button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="py-2">
+                            {passwordSuccess ? (
+                                <p className="text-sm text-primary font-medium">
+                                    {passwordSuccess}
+                                </p>
+                            ) : (
+                                <p className="text-sm text-foreground/60">
+                                    Click change to update your password
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* Preferences */}
+            <Card className="mb-4">
+                <CardHeader>
+                    <CardTitle className="text-base">Preferences</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Toggle
+                        label="Dark Mode"
+                        helperText="Switch between light and dark theme"
+                        checked={darkMode}
+                        onCheckedChange={handleThemeToggle}
+                        />
+                </CardContent>
+            </Card>
+
+            
         </div>
     </div>
     )
