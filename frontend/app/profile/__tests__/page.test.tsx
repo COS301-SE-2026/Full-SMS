@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import ProfilePage from "../page"
+import { it } from "node:test"
 
 jest.mock("next/navigation", () => ({
     useRouter: () => ({ push: jest.fn() }),
@@ -21,16 +22,26 @@ describe("ProfilePage", () => {
         expect(screen.getByText("Researcher")).toBeInTheDocument()
     })
 
-    it("renders the logout button", () => {
+   it("clicking Edit shows the edit form", async () => {
         render(<ProfilePage />)
-        expect(screen.getByRole("button", { name: /log out/i })).toBeInTheDocument()
-    })    
+        fireEvent.click(screen.getByRole("button", { name: /edit/i }))
+        await waitFor(() => {
+        expect(screen.getByLabelText("Username")).toBeInTheDocument()
+        expect(screen.getByLabelText("Email")).toBeInTheDocument()
 
+        })
+   })
 
     it("renders the dark mode toggle", () => {
         render(<ProfilePage />)
         expect(screen.getByText("Dark Mode")).toBeInTheDocument()
         expect(screen.getByRole("switch")).toBeInTheDocument()
     })
+
+     it("renders the logout button", () => {
+        render(<ProfilePage />)
+        expect(screen.getByRole("button", { name: /log out/i })).toBeInTheDocument()
+    })    
+
 })
 
