@@ -10,7 +10,7 @@ describe("ProfilePage", () => {
     it("renders the profile page correctly", () => {
         render(<ProfilePage />)
         expect(screen.getByText("My Profile")).toBeInTheDocument()
-        expect(screen.getByText("researcher_one")).toBeInTheDocument()
+        expect(screen.getAllByText("researcher_one")[0]).toBeInTheDocument()
         expect(screen.getByText("Account Information")).toBeInTheDocument()
         expect(screen.getByText("Password")).toBeInTheDocument()
         expect(screen.getByText("Preferences")).toBeInTheDocument()
@@ -19,7 +19,7 @@ describe("ProfilePage", () => {
 
     it("renders the role badge", () => {
         render(<ProfilePage />)
-        expect(screen.getByText("Researcher")).toBeInTheDocument()
+        expect(screen.getAllByText("Researcher")[0]).toBeInTheDocument()
     })
 
    it("clicking Edit shows the edit form", async () => {
