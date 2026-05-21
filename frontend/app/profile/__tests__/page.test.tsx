@@ -16,6 +16,17 @@ describe("ProfilePage", () => {
 
     })
 
+    it("renders the role badge", () => {
+        render(<ProfilePage />)
+        expect(screen.getByText("Researcher")).toBeInTheDocument()
+    })
+
+    it("renders the logout button", () => {
+        render(<ProfilePage />)
+        expect(screen.getByRole("button", { name: /log out/i })).toBeInTheDocument()
+    })    
+
+
     it("renders the dark mode toggle", () => {
         render(<ProfilePage />)
         expect(screen.getByText("Dark Mode")).toBeInTheDocument()
