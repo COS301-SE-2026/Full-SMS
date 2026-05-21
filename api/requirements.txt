@@ -28,3 +28,4 @@ passlib[bcrypt]==1.7.4
 pydantic-settings==2.11.0
 email-validator==2.3.0
 bcrypt==4.3.0
+supabase==2.30.0

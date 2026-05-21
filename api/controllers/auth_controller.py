@@ -1,6 +1,6 @@
 # controllers
 from fastapi import Depends, HTTPException, status
-from api.services.auth_service import verify_token
+from services.auth_service import verify_token
 
 def verify_token_controller(token: str) -> dict:
     """

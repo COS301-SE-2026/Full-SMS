@@ -1,7 +1,7 @@
 # middlewares
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from api.services.auth_service import verify_token
+from services.auth_service import verify_token
 
 bearer_scheme = HTTPBearer()
 

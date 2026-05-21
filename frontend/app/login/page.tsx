@@ -49,7 +49,7 @@ export default function LoginPage() {
 
                     if (verifyResponse.valid) {
                         // Success! Redirect to dashboard
-                        router.push("/dashboard")
+                        router.push("/upload")
                     } else {
                         setErrorMessage("Token verification failed")
                     }

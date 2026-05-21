@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from api.controllers.auth_controller import verify_token_controller
+from controllers.auth_controller import verify_token_controller
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 

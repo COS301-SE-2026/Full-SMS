@@ -2,7 +2,7 @@ import io
 import pytest
 from pathlib import Path
 from fastapi import UploadFile
-from api.services.upload_service import save_temp_file, get_file_size
+from services.upload_service import save_temp_file, get_file_size
 
 @pytest.mark.asyncio
 async def test_file_is_saved_to_disk():
