@@ -1,12 +1,12 @@
 name: Frontend CI
 on:
     push:
-      branches: [ chore/github-actions-ci-cd ]
+      branches: [ develop, main, chore/github-actions-ci-cd ]
       paths:
         - 'frontend/**'
         - '.github/workflows/frontend-ci.yml'
     pull_request:
-      branches: [ chore/github-actions-ci-cd ]
+      branches: [ develop, main, chore/github-actions-ci-cd ]
       paths:
         - 'frontend/**'
         - '.github/workflows/frontend-ci.yml'

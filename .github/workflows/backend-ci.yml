@@ -2,12 +2,12 @@ name: Backend CI
 
 on:
     push:
-      branches: [ chore/github-actions-ci-cd ]
+      branches: [ develop, main, chore/github-actions-ci-cd ]
       paths:
         - 'api/**'
         - '.github/workflows/backend-ci.yml'
     pull_request:
-      branches: [ chore/github-actions-ci-cd ]
+      branches: [ develop, main, chore/github-actions-ci-cd ]
       paths:
         - 'api/**'
         - '.github/workflows/backend-ci.yml'
