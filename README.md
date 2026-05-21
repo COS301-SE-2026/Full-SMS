@@ -11,8 +11,22 @@ Full SMS is a professional single-molecule spectroscopy (SMS) data analysis appl
 ![React](https://img.shields.io/badge/React-19-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4-teal)
+![Supabase](https://img.shields.io/badge/Supabase--JS-2.105.4-green)
+![Axios](https://img.shields.io/badge/Axios-1.16.1-purple)
 ![Formik](https://img.shields.io/badge/Formik-latest-orange)
 ![Yup](https://img.shields.io/badge/Yup-latest-orange)
+![Lucide React](https://img.shields.io/badge/Lucide--React-1.16.0-yellow)
+
+
+### Backend
+![FastAPI](https://img.shields.io/badge/FastAPI-latest-green)
+![Python](https://img.shields.io/badge/Python-3.11+-blue)
+![Uvicorn](https://img.shields.io/badge/Uvicorn-0.39.0-lightgrey)
+![Pydantic](https://img.shields.io/badge/Pydantic-2.13.4-red)
+![NumPy](https://img.shields.io/badge/NumPy-2.0.2-blue)
+![SciPy](https://img.shields.io/badge/SciPy-1.13.1-blue)
+![H5py](https://img.shields.io/badge/H5py-3.14.0-orange)
+![Supabase](https://img.shields.io/badge/Supabase-latest-green)
 
 
 ## Documentation
