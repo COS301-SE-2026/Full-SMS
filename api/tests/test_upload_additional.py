@@ -59,3 +59,40 @@ class TestMissingFileTypes:
         )
         result = await handle_upload(fake_file)
         assert result["status"] == "pending"  
+
+class TestEdgeCases:
+    """Edge case tests for upload controller."""
+
+    @pytest.mark.asyncio
+    async def test_file_with_no_extension_rejected(self):
+        """Files with no extension should be rejected."""
+        fake_file = UploadFile(
+            filename="no_extension",
+            file=io.BytesIO(b"some content")
+        )
+        with pytest.raises(Exception) as exc_info:
+            await handle_upload(fake_file)
+        assert exc_info.value.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_txt_file_rejected(self):
+        """.txt files should be rejected."""
+        fake_file = UploadFile(
+            filename="notes.txt",
+            file=io.BytesIO(b"some text")
+        )
+        with pytest.raises(Exception) as exc_info:
+            await handle_upload(fake_file)
+        assert exc_info.value.status_code == 400
+        assert "Unsupported file type" in exc_info.value.detail
+
+    @pytest.mark.asyncio
+    async def test_jpg_file_rejected(self):
+        """.jpg files should be rejected."""
+        fake_file = UploadFile(
+            filename="photo.jpg",
+            file=io.BytesIO(b"fake image bytes")
+        )
+        with pytest.raises(Exception) as exc_info:
+            await handle_upload(fake_file)
+        assert exc_info.value.status_code == 400
