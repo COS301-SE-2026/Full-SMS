@@ -19,6 +19,7 @@
   "homepage": "https://github.com/COS301-SE-2026/Full-SMS#readme",
   "description": "",
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "husky": "^9.1.7"
   }
 }
