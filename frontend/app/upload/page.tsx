@@ -8,8 +8,11 @@ import { Button } from '@/components/ui';
 import { useHdf5Data } from '@/contexts/Hdf5DataContext';
 
 
+type UploadPageProps = {
+  onComplete?: () => void
+}
 
-export default function UploadPage() {
+export default function UploadPage({ onComplete }: UploadPageProps) {
   const [queue, setQueue] = useState<SelectedFile[]>([]);
   const { setHdf5Data } = useHdf5Data()
 
@@ -20,34 +23,29 @@ export default function UploadPage() {
 };
 
 const handleOpen = async () => {
-  const items = [...queue]; // snapshot
+  const items = [...queue]
+  let hadError = false
 
   for (const item of items) {
-    updateItem(item.id, {
-      status: "pending",
-      progress: 0,
-      errorMessage: undefined,
-    });
-
+    updateItem(item.id, { status: "pending", progress: 0, errorMessage: undefined })
     try {
-      await uploadFile(item.file, (pct) =>
-        updateItem(item.id, { progress: pct })
-      );
-
-      const parsed = await readHdf5(item.file);
-
-      updateItem(item.id, { status: "success", progress: 100 });
+      await uploadFile(item.file, (pct) => updateItem(item.id, { progress: pct }))
+      const parsed = await readHdf5(item.file)
+      updateItem(item.id, { status: "success", progress: 100 })
       setHdf5Data(parsed)
-      console.log("Parsed HDF5:", parsed);
-
     } catch (err: any) {
+      hadError = true
       updateItem(item.id, {
         status: "error",
         errorMessage: err?.message ?? "Upload or parse failed",
-      });
+      })
     }
   }
-};
+
+  if (!hadError) {
+    onComplete?.()
+  }
+}
 
   const handleFilesSelected = (newFiles: File[]) => {
     const freshQueueEntries: SelectedFile[] = newFiles.map((file) => ({

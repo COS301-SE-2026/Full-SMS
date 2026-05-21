@@ -10,20 +10,12 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Measurement } from '@/types/hdf5';
 import { MeasurementsBar } from './measurementsBar';
 
 const navItems = [
   { icon: Activity, label: 'Intensity', key: 'intensity' },
-  { icon: Clock, label: 'Lifetime', key: 'lifetime' },
-  { icon: Layers, label: 'Grouping', key: 'grouping' },
-  { icon: GitCompare, label: 'Correlation', key: 'correlation' },
-  { icon: Waves, label: 'Spectra', key: 'spectra' },
-  { icon: Grid3x3, label: 'Raster', key: 'raster' },
-  { icon: Download, label: 'Export', key: 'export' },
+
 ];
-
-
 
 export function Sidebar() {
   const [active, setActive] = useState('intensity');
