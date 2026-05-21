@@ -32,6 +32,17 @@ describe("ProfilePage", () => {
         })
    })
 
+   it("clicking Cancel in edit mode hides the form", async () => {
+        render(<ProfilePage />)
+        fireEvent.click(screen.getByRole("button", { name: /edit/i }))
+        await waitFor(() => expect(screen.getByLabelText("Username")).toBeInTheDocument())
+        fireEvent.click(screen.getByRole("button", { name: /cancel/i }))
+        await waitFor(() => {expect(screen.queryByLabelText("Username")).not.toBeInTheDocument()
+
+        })
+   })   
+
+
     it("renders the dark mode toggle", () => {
         render(<ProfilePage />)
         expect(screen.getByText("Dark Mode")).toBeInTheDocument()
