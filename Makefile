@@ -39,3 +39,7 @@ backend-check: setup-backend
 
 frontend-check:
 	cd frontend && npm install && npm run lint && npm run build
+
+backend-test: setup-backend
+	python -m pip install pytest
+	cd api && python -m pytest -q

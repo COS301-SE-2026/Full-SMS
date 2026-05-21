@@ -10,6 +10,10 @@ env_path = Path(__file__).parent / '.env'
 load_dotenv(dotenv_path=env_path)
 from routes.auth_routes import router as auth_router
 from routes.profile_routes import router as profile_router
+
+from routes.auth_routes import router as auth_router
+from routes.hdf5_routes import router as hdf5_router
+
 app = FastAPI(
     title="Full-SMS API",
     description="Backend API for Single-Molecule Spectroscopy Analysis Web Platform",
@@ -30,7 +34,9 @@ app.add_middleware(
 )
 
 app.include_router(auth_router, prefix="/api/py")
+app.include_router(hdf5_router, prefix="/api/py")
 app.include_router(profile_router, prefix="/api/py")
+
 @app.on_event("startup")
 async def startup_event():
     print("\n" + "="*60)
@@ -54,3 +60,10 @@ async def root():
     Root endpoint - redirects to documentation
     """
     return {"message": "Full-SMS API", "docs": "/api/py/docs"}
+
+@app.get("/read", tags=["HDF5 Reading Test"])
+async def read_hdf5():
+    """
+    Test endpoint for reading HDF5 files - not for production use
+    """
+    return {"message": "This endpoint is for testing HDF5 file reading."}
