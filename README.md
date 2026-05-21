@@ -20,24 +20,28 @@ Full SMS is a professional single-molecule spectroscopy (SMS) data analysis appl
 
 ### [Team Member 2 Name]
 **Role:** [Role/Specialization]
+
 **Profile:**
 
 [LinkedIn Profile](LINKEDIN_URL_2)
 
 ### [Team Member 3 Name]
 **Role:** [Role/Specialization]
+
 **Profile:**
 
 [LinkedIn Profile](LINKEDIN_URL_3)
 
 ### [Team Member 4 Name]
 **Role:** [Role/Specialization]
+
 **Profile:**
 
 [LinkedIn Profile](LINKEDIN_URL_4)
 
 ### [Team Member 5 Name]
 **Role:** [Role/Specialization]
+
 **Profile:**
 
 [LinkedIn Profile](LINKEDIN_URL_5)
