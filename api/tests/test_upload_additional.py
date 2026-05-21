@@ -96,3 +96,36 @@ class TestEdgeCases:
         with pytest.raises(Exception) as exc_info:
             await handle_upload(fake_file)
         assert exc_info.value.status_code == 400
+
+        @pytest.mark.asyncio
+    async def test_empty_file_still_uploads(self):
+        """An empty file (0 bytes) should still be accepted if extension is valid."""
+        fake_file = UploadFile(
+            filename="empty.h5",
+            file=io.BytesIO(b"")
+        )
+        result = await handle_upload(fake_file)
+        assert result["status"] == "pending"
+        assert result["size_bytes"] == 0
+
+    @pytest.mark.asyncio
+    async def test_filename_with_dots_uses_last_extension(self):
+        """Files like 'my.experiment.data.h5' should use .h5 as the extension."""
+        fake_file = UploadFile(
+            filename="my.experiment.data.h5",
+            file=io.BytesIO(b"fake h5 content")
+        )
+        result = await handle_upload(fake_file)
+        assert result["status"] == "pending"
+        assert result["filename"] == "my.experiment.data.h5"
+
+    @pytest.mark.asyncio
+    async def test_response_size_matches_content(self):
+        """The size_bytes in response should match actual file content size."""
+        content = b"x" * 1024 
+        fake_file = UploadFile(
+            filename="data.h5",
+            file=io.BytesIO(content)
+        )
+        result = await handle_upload(fake_file)
+        assert result["size_bytes"] == 1024
