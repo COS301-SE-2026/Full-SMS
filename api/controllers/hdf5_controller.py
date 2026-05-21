@@ -2,7 +2,7 @@ import os
 import tempfile
 from pathlib import Path
 from fastapi import UploadFile, HTTPException
-import api.services.hdf5_services as read_hdf5_service
+import services.hdf5_services as read_hdf5_service
 
 async def read_hdf5_file(file: UploadFile):
     if not file.filename.endswith((".hdf5", ".h5")):

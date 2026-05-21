@@ -17,14 +17,14 @@ from typing import TYPE_CHECKING
 import numpy as np
 from numpy.typing import NDArray
 
-from api.legacy.analysis.histograms import bin_photons
+from legacy.analysis.histograms import bin_photons
 
 if TYPE_CHECKING:
-    from api.legacy.models.fit import FitResult
-    from api.legacy.models.group import ClusteringResult, GroupData
-    from api.legacy.models.level import LevelData
-    from api.legacy.models.measurement import MeasurementData
-    from api.legacy.models.session import SessionState
+    from legacy.models.fit import FitResult
+    from legacy.models.group import ClusteringResult, GroupData
+    from legacy.models.level import LevelData
+    from legacy.models.measurement import MeasurementData
+    from legacy.models.session import SessionState
 
 
 logger = logging.getLogger(__name__)
@@ -859,7 +859,7 @@ def export_all_measurement_data(
                 for level_index, fit_data in all_level_fits.items():
                     level_fits_dict[level_index] = fit_data
 
-            from api.legacy.io.exporters import export_levels as _export_levels
+            from legacy.io.exporters import export_levels as _export_levels
             path = _export_levels(
                 levels_data,
                 output_dir / f"{prefix}_levels",
@@ -873,7 +873,7 @@ def export_all_measurement_data(
     if export_groups:
         groups_data = state.get_groups(measurement_id, channel)
         if groups_data:
-            from api.legacy.io.exporters import export_groups as _export_groups
+            from legacy.io.exporters import export_groups as _export_groups
             path = _export_groups(
                 groups_data,
                 output_dir / f"{prefix}_groups",

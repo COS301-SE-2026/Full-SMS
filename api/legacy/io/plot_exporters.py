@@ -14,15 +14,15 @@ from typing import TYPE_CHECKING, Optional
 import numpy as np
 from numpy.typing import NDArray
 
-from api.legacy.analysis.histograms import bin_photons
-from api.legacy.analysis.lifetime import compute_convolved_fit_curve
-from api.legacy.models.fit import FitResultData, IRFData
+from legacy.analysis.histograms import bin_photons
+from legacy.analysis.lifetime import compute_convolved_fit_curve
+from legacy.models.fit import FitResultData, IRFData
 
 if TYPE_CHECKING:
-    from api.legacy.models.fit import FitResult
-    from api.legacy.models.group import ClusteringResult, GroupData
-    from api.legacy.models.level import LevelData
-    from api.legacy.models.measurement import MeasurementData
+    from legacy.models.fit import FitResult
+    from legacy.models.group import ClusteringResult, GroupData
+    from legacy.models.level import LevelData
+    from legacy.models.measurement import MeasurementData
 
 
 logger = logging.getLogger(__name__)
@@ -267,11 +267,11 @@ def export_decay_plot(
         counts: Photon counts array.
         output_path: Path to output file (without extension).
         channelwidth: TCSPC channel width in nanoseconds (required for fit_data).
-        fit_result: Optional FitResult for overlay (api.legacy, has pre-computed curve).
+        fit_result: Optional FitResult for overlay (legacy, has pre-computed curve).
         fit_data: Optional FitResultData for overlay (curve will be computed).
         irf_data: Optional IRFData for computing fit curve and/or displaying IRF.
-        irf_t: Optional IRF time array (api.legacy, for direct display).
-        irf_counts: Optional IRF counts array (api.legacy, for direct display).
+        irf_t: Optional IRF time array (legacy, for direct display).
+        irf_counts: Optional IRF counts array (legacy, for direct display).
         log_scale: Whether to use logarithmic y-axis.
         show_residuals: Whether to show residuals subplot (if fit provided).
         show_fit: Whether to show the fit curve (if fit data provided).
@@ -298,7 +298,7 @@ def export_decay_plot(
     has_fit = False
 
     if fit_result is not None and show_fit:
-        # Use api.legacy FitResult with pre-computed arrays
+        # Use legacy FitResult with pre-computed arrays
         has_fit = True
         fitted_curve = fit_result.fitted_curve
         residuals = fit_result.residuals
@@ -396,7 +396,7 @@ def export_decay_plot(
 
     if show_irf:
         if irf_t is not None and irf_counts is not None:
-            # Use api.legacy direct IRF arrays
+            # Use legacy direct IRF arrays
             display_irf_t = irf_t
             display_irf_counts = irf_counts
         elif irf_data is not None and not irf_data.is_simulated:
@@ -415,7 +415,7 @@ def export_decay_plot(
                 display_irf_counts = np.array(irf_data.counts)
         elif irf_data is not None and irf_data.is_simulated and fit_data is not None:
             # Generate simulated IRF for display
-            from api.legacy.analysis.lifetime import simulate_irf
+            from legacy.analysis.lifetime import simulate_irf
             fwhm = fit_data.fitted_irf_fwhm if fit_data.fitted_irf_fwhm else irf_data.fwhm_ns
             if fwhm is not None:
                 sim_irf, _ = simulate_irf(channelwidth, fwhm, counts.astype(np.float64))
@@ -752,7 +752,7 @@ def export_all_plots(
     # Export decay plot if we have microtimes
     if channel_data.microtimes is not None and len(channel_data.microtimes) > 0:
         try:
-            from api.legacy.analysis.histograms import build_decay_histogram
+            from legacy.analysis.histograms import build_decay_histogram
 
             t_ns, counts = build_decay_histogram(
                 channel_data.microtimes.astype(np.float64),

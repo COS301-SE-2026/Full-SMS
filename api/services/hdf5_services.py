@@ -1,4 +1,4 @@
-from api.legacy.io.hdf5_reader import load_h5_file, load_irf
+from legacy.io.hdf5_reader import load_h5_file, load_irf
 
 def _channel_to_dict(channel):
     if channel is None:

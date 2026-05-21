@@ -1,23 +1,23 @@
 """Analysis algorithms: change point detection, clustering, lifetime fitting, correlation."""
 
-from api.legacy.analysis.change_point import (
+from legacy.analysis.change_point import (
     CPAParams,
     ChangePointResult,
     ConfidenceLevel,
     find_change_points,
 )
-from api.legacy.analysis.correlation import (
+from legacy.analysis.correlation import (
     CorrelationResult,
     calculate_g2,
     rebin_correlation,
 )
-from api.legacy.analysis.histograms import (
+from legacy.analysis.histograms import (
     bin_photons,
     build_decay_histogram,
     compute_intensity_cps,
     rebin_histogram,
 )
-from api.legacy.analysis.lifetime import (
+from legacy.analysis.lifetime import (
     FitMethod,
     FitSettings,
     StartpointMode,
