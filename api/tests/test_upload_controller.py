@@ -2,7 +2,7 @@ import io
 import pytest
 from fastapi import UploadFile
 from unittest.mock import patch, AsyncMock
-from api.controllers.upload_controller import handle_upload
+from controllers.upload_controller import handle_upload
 
 @pytest.mark.asyncio
 async def test_valid_pt3_upload():

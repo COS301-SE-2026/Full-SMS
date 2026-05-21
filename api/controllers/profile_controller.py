@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
-from api.services.profile_service import get_user_profile, update_user_profile
-from api.models.user import UpdateProfileRequest
+from services.profile_service import get_user_profile, update_user_profile
+from models.user import UpdateProfileRequest
 
 def get_profile_controller(user_id: str) -> dict:
     try:

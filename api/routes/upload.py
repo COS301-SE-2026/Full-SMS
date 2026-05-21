@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File
-from api.controllers.upload_controller import handle_upload
+from controllers.upload_controller import handle_upload
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 

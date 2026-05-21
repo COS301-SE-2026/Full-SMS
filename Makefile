@@ -28,14 +28,14 @@ setup-backend:
 run-api: setup-backend
 	@echo "Backend dependencies installed."
 	@echo "Starting the API server..."
-	uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+	cd api && uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
 run-frontend:
 	cd frontend && npm install && npm run dev
 
 backend-check: setup-backend
 	python -m pip install pytest
-	python -m pytest -q || [ $$? -eq 5 ]
+	cd api && python -m pytest -q || [ $$? -eq 5 ]
 
 frontend-check:
 	cd frontend && npm install && npm run lint && npm run build
