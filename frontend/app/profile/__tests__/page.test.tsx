@@ -50,7 +50,7 @@ describe("ProfilePage", () => {
         await userEvent.type(screen.getByLabelText("Username"), "ab")
         fireEvent.click(screen.getByRole("button", { name: /save/i }))
         await waitFor(() => {
-            expect(screen.getByText("Username must be at least 3 characters")).not.toBeInTheDocument()
+            expect(screen.getByText("Username must be at least 3 characters")).toBeInTheDocument()
 
         })
    }) 
