@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import ProfilePage from "../page"
 import { it } from "node:test"
 
@@ -41,6 +42,18 @@ describe("ProfilePage", () => {
 
         })
    })   
+
+   it("shows username error when username is too short", async () => {
+        render(<ProfilePage />)
+        fireEvent.click(screen.getByRole("button", { name: /edit/i }))
+        await waitFor(() => expect(screen.getByLabelText("Username")).toBeInTheDocument())
+        await userEvent.clear(screen.getByLabelText("Username"))
+        await userEvent.type(screen.getByLabelText("Username"), "ab")
+        fireEvent.click(screen.getByRole("button", { name: /save/i }))
+        await waitFor(() => {expect(screen.getByText("Username must be at least 3 characters")).not.toBeInTheDocument()
+
+        })
+   })    
 
 
     it("renders the dark mode toggle", () => {
