@@ -50,10 +50,20 @@ describe("ProfilePage", () => {
         await userEvent.clear(screen.getByLabelText("Username"))
         await userEvent.type(screen.getByLabelText("Username"), "ab")
         fireEvent.click(screen.getByRole("button", { name: /save/i }))
-        await waitFor(() => {expect(screen.getByText("Username must be at least 3 characters")).not.toBeInTheDocument()
+        await waitFor(() => {
+            expect(screen.getByText("Username must be at least 3 characters")).not.toBeInTheDocument()
 
         })
-   })    
+   }) 
+   
+   it("clicking Change shows the password form", async () => {
+        render(<ProfilePage />)
+        fireEvent.click(screen.getByRole("button", { name: /change/i }))
+        await waitFor(() => {
+            expect(screen.getByLabelText("New Password")).toBeInTheDocument()
+            expect(screen.getByLabelText("Confirm Password")).toBeInTheDocument()
+         })
+   })
 
 
     it("renders the dark mode toggle", () => {
