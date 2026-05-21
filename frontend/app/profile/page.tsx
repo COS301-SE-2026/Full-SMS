@@ -1,7 +1,10 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
+import { Input } from "@/components/ui/Input"
+
 
 function Avatar({ username }: { username: string}) {
     const initials = username
@@ -42,6 +45,8 @@ function InfoRow({ label, value }: { label: string; value: string}){
     )
 }
 export default function ProfilePage(){
+    const [isEditing, setIsEditing] = useState(false)
+
     const mockUser = {
         username: "researcher_one",
         email: "researcher_one@up.ac.za",
@@ -79,16 +84,52 @@ export default function ProfilePage(){
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <CardTitle className="text-base">Account Information</CardTitle>
-                        <Button variant="outline" size="sm">
-                            Edit Profile
-                        </Button>
+                        {!isEditing && (
+                            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                                Edit Profile
+                            </Button>
+                        )}
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <InfoRow label="Username" value={mockUser.username}/>
-                    <InfoRow label="Email" value={mockUser.email}/>
-                    <InfoRow label="Role" value={mockUser.role.charAt(0).toUpperCase() + mockUser.role.slice(1)}/>
-                    <InfoRow label="Member Since" value={mockUser.joinedDate}/>
+                    {isEditing ? (
+                        <div className="flex flex-col gap-4">
+                            <Input
+                                label="Username"
+                                type="text"
+                                defaultValue={mockUser.username}
+                                onChange={() => {}}
+                            />
+                             <Input
+                                label="Email"
+                                type="email"
+                                value={mockUser.email}
+                                disabled
+                                helperText="Email cannot be changed"
+                                onChange={() => {}}
+                            />
+                            <div className="flex gap-2 mt-2">
+                                <Button variant="primary" size="sm" className="flex-1">
+                                    Save changes
+                                </Button>
+                                <Button 
+                                    variant="secondary"
+                                    size="sm"
+                                    className="flex-1"
+                                    onClick={() => setIsEditing(false)}
+                                >
+                                  Cancel  
+                                </Button>
+                            </div>
+                        </div>
+                    ) : (
+                    <>
+                        <InfoRow label="Username" value={mockUser.username}/>
+                        <InfoRow label="Email" value={mockUser.email}/>
+                        <InfoRow label="Role" value={mockUser.role.charAt(0).toUpperCase() + mockUser.role.slice(1)}/>
+                        <InfoRow label="Member Since" value={mockUser.joinedDate}/>
+                    </>
+                    )}
                 </CardContent>
             </Card>
         </div>
