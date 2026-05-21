@@ -7,7 +7,7 @@
 #This makefile defines the following targets:
 #- setup-backend: Installs the backend dependencies using pip.
 #- run-api: Sets up the backend and starts the API server using uvicorn.
-#- run-frontend: Navigates to the frontend directory, installs dependencies using pnpm,
+#- run-frontend: Navigates to the frontend directory, installs dependencies using npm,
 #  and starts the development server.
 #- backend-check: Installs pytest and runs backend tests, allowing for a specific exit code
 #  to indicate no tests were collected.
@@ -28,14 +28,14 @@ setup-backend:
 run-api: setup-backend
 	@echo "Backend dependencies installed."
 	@echo "Starting the API server..."
-	uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+	cd api && uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
 run-frontend:
-	cd frontend && pnpm install && pnpm run dev
+	cd frontend && npm install && npm run dev
 
 backend-check: setup-backend
 	python -m pip install pytest
-	python -m pytest -q || [ $$? -eq 5 ]
+	cd api && python -m pytest -q || [ $$? -eq 5 ]
 
-frontend-check: 
-	cd frontend && pnpm install && pnpm lint && pnpm run build
+frontend-check:
+	cd frontend && npm install && npm run lint && npm run build

@@ -1,3 +1,5 @@
+import { User as SupabaseUser, AuthError, Session } from '@supabase/supabase-js'
+
 export interface User {
     id: string
     email: string
@@ -9,10 +11,12 @@ export interface User {
   }
 
   export interface AuthContextType {
-    user: User | null
+    user: SupabaseUser | null
+    session: Session | null
     loading: boolean
-    signUp: (email: string, password: string) => Promise<void>
-    signIn: (email: string, password: string) => Promise<void>
-    signOut: () => Promise<void>
-    resetPassword: (email: string) => Promise<void>
+    signUp: (email: string, password: string) => Promise<{ user: SupabaseUser | null; error: AuthError | null }>
+    signIn: (email: string, password: string) => Promise<{ user: SupabaseUser | null; error: AuthError | null }>
+    signOut: () => Promise<{ error: AuthError | null }>
+    resetPassword: (email: string) => Promise<{ error: AuthError | null }>
+    updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>
   }

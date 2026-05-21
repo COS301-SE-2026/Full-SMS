@@ -6,6 +6,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
+import { useAuth } from "@/contexts/authContext/AuthContext"
+import { authService } from "@/services/authServices"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 const LoginSchema = Yup.object({
     email: Yup.string()
@@ -17,15 +21,49 @@ const LoginSchema = Yup.object({
 })
 
 export default function LoginPage() {
+    const { signIn } = useAuth()
+    const router = useRouter()
+    const [errorMessage, setErrorMessage] = useState("")
+
     const formik = useFormik({
         initialValues: {
             email: "",
             password: "",
-        }, 
-        validationSchema: LoginSchema, 
-        onSubmit: (values, { setSubmitting }) => {
-            console.log(values)
-            setSubmitting(false)
+        },
+        validationSchema: LoginSchema,
+        onSubmit: async (values, { setSubmitting }) => {
+            try {
+                setErrorMessage("")
+
+                const { user, error: signInError } = await signIn(values.email, values.password)
+
+                if (signInError) {
+                    setErrorMessage(signInError.message || "Login failed")
+                    setSubmitting(false)
+                    return
+                }
+
+                // Step 2: Verify token with backend
+                try {
+                    const verifyResponse = await authService.verifyToken()
+
+                    if (verifyResponse.valid) {
+                        // Success! Redirect to dashboard
+                        router.push("/upload")
+                    } else {
+                        setErrorMessage("Token verification failed")
+                    }
+                } catch (verifyError: any) {
+                    console.error("Backend verification error:", verifyError)
+                    setErrorMessage("Unable to verify authentication with server")
+                }
+
+            } catch (error: any) {
+                console.error("Login error:", error)
+                setErrorMessage(error.message || "An unexpected error occurred")
+            } finally {
+                setSubmitting(false)
+            }
         },
     })
 
@@ -37,6 +75,11 @@ export default function LoginPage() {
                     <CardDescription>Enter your credentials to access your account</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
+                    {errorMessage && (
+                        <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-md">
+                            <p className="text-sm text-red-500">{errorMessage}</p>
+                        </div>
+                    )}
                     <Input
                         label="Email"
                         type="email"
@@ -49,11 +92,12 @@ export default function LoginPage() {
                         type="password"
                         placeholder="Enter your password"
                         {...formik.getFieldProps("password")}
-                        error={formik.touched.password && formik.errors.password ? formik.errors.password : undefined}                
+                        error={formik.touched.password && formik.errors.password ? formik.errors.password : undefined}
                     />
-                    <Button 
-                        variant="primary" 
-                        size="md" 
+                    <Button
+                        type="button"
+                        variant="primary"
+                        size="md"
                         className="w-full"
                         loading={formik.isSubmitting}
                         onClick={() => formik.handleSubmit()}

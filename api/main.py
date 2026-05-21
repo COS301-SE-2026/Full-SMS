@@ -2,6 +2,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from api/.env
+env_path = Path(__file__).parent / '.env'
+load_dotenv(dotenv_path=env_path)
+from routes.auth_routes import router as auth_router
+from routes.profile_routes import router as profile_router
 
 from api.routes.auth_routes import router as auth_router
 from api.routes.hdf5_routes import router as hdf5_router
