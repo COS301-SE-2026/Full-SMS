@@ -14,6 +14,7 @@ Full SMS is a professional single-molecule spectroscopy (SMS) data analysis appl
 
 ### Kudakwashe Mujuru
 **Role:** Team Lead/Software Developer
+
 **Profile:** Computer science student passionate about technology and software development. Problem solver with strong technical fundamentals.
 
 [LinkedIn Profile](https://www.linkedin.com/in/kudakwashe-mujuru-09880228a/)
