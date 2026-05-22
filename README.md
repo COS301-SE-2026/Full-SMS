@@ -52,8 +52,7 @@ Full SMS is a professional single-molecule spectroscopy (SMS) data analysis appl
 
 **Profile:** I am currently a third-year BSc. Computer Science student from the University of Pretoria. I am an open-minded individual with a practical approach to problem solving. I aspire to be a Software Engineer and an educator in the technology industry. I am interested in software development, system architecture, technical education and the entire product lifecycle, as well as in technical writing and mentorship to help bridge the gap between complex technology and its users.
 
-[LinkedIn Profile](www.linkedin.com/in/
-nomziphosa)
+[LinkedIn Profile](www.linkedin.com/in/nomziphosa)
 
 ### Mbali Thobejane
 **Role:** Frontend Software Developer
@@ -62,20 +61,22 @@ nomziphosa)
 
 [LinkedIn Profile](https://www.linkedin.com/in/mbali-thobejane-06b7a33b6/)
 
-### [Team Member 4 Name]
-**Role:** [Role/Specialization]
+### Carlos Juma
+**Role:** UI/UX designer, Backend developer
 
-**Profile:**
+**Profile:** Final-year BSc IKS student at the University of Pretoria with a unique blend of creative and technical skills. I specialize in building user-centric software, combining a strong passion for UX/UI design with proficient backend development to deliver functional, high-quality digital experiences.
 
-[LinkedIn Profile](LINKEDIN_URL_4)
+[LinkedIn Profile](www.linkedin.com/in/carlos-juma-506ab31b3)
 
-### [Team Member 5 Name]
-**Role:** [Role/Specialization]
+### Thabo Seripe
+**Role:** Software developer
 
-**Profile:**
+**Profile:** I am a multimedia student at the University of Pretoria with
+a strong interest in game development and interactive design.
+I enjoy combining creativity and technology to build engaging
+digital experiences.
 
-[LinkedIn Profile](LINKEDIN_URL_5)
-
+[LinkedIn Profile](www.linkedin.com/in/thabo-seripe-9080703ba)
 
 ## Getting Started
 
