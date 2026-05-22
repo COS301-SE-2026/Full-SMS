@@ -1,26 +1,22 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { useFormik } from "formik"
 import * as Yup from "yup"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Toggle } from "@/components/ui/Toggle"
+import { useAuth } from "@/contexts/authContext/AuthContext"
 
-
-
-function Avatar({ username }: { username: string}) {
-    const initials = username
-        .split("_")
-        .map((word) => word[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+function Avatar({ email }: { email: string}) {
+    // Get initials from email (first letter before @)
+    const initial = email.charAt(0).toUpperCase()
 
     return(
         <div className="w-20 h-20 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center shrink-0">
-            <span className="text-2xl font-bold text-primary">{initials}</span>
+            <span className="text-2xl font-bold text-primary">{initial}</span>
         </div>
     )
 }
@@ -73,30 +69,40 @@ export default function ProfilePage(){
     const [darkMode, setDarkMode] = useState(true)
     const [successMessage, setSuccessMessage] = useState("")
     const [passwordSuccess, setPasswordSuccess] = useState("")
+    const { user, signOut, updatePassword } = useAuth()
+    const router = useRouter()
 
-    const mockUser = {
-        username: "researcher_one",
-        email: "researcher_one@up.ac.za",
-        role: "researcher",
-        joinedDate: "January 2026",
-        datasets: 12,
-        sessions: 34,
-    }
+    // Derive username from email (part before @)
+    const username = user?.email?.split('@')[0] || 'User'
+    const email = user?.email || ''
+    const role = user?.user_metadata?.role || 'researcher'
+    const joinedDate = user?.created_at
+        ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+        : 'Recently'
 
     const handleThemeToggle = (checked: boolean) => {
         setDarkMode(checked)
     }
 
-    const handleLogout = () => {
-        //connect to supabase signOut -auth
-        console.log("logout")
+    const handleLogout = async() => {
+        try {
+            const { error } = await signOut()
+            if (error) {
+                console.error("Logout error:", error)
+            } else {
+                router.push('/login')
+            }
+        } catch (error) {
+            console.error("Logout error:", error)
+        }
     }
 
     const profileFormik = useFormik({
-        initialValues: { username: mockUser.username },
+        initialValues: { username },
+        enableReinitialize: true,
         validationSchema: ProfileSchema,
         onSubmit: (values, { setSubmitting }) => {
-            //will connect to  profile update API 
+            //will connect to  profile update API
             console.log("Profile updated:", values)
             setSubmitting(false)
             setIsEditing(false)
@@ -105,16 +111,25 @@ export default function ProfilePage(){
         },
     })
 
-        const passwordFormik = useFormik({
+    const passwordFormik = useFormik({
         initialValues: { newPassword: "", confirmPassword: "" },
         validationSchema: PasswordSchema,
-        onSubmit: (values, { setSubmitting, resetForm }) => {
-            //will connect to  password update API 
-            console.log("Password updated:", values)
+        onSubmit: async (values, { setSubmitting, resetForm }) => {
+            try {
+                const { error } = await updatePassword(values.newPassword)
+                if (error) {
+                    console.error("Password update error:", error)
+                    setPasswordSuccess("Failed to update password")
+                } else {
+                    setPasswordSuccess("Password updated successfully")
+                    resetForm()
+                    setIsChangingPassword(false)
+                }
+            } catch (error) {
+                console.error("Password update error:", error)
+                setPasswordSuccess("Failed to update password")
+            }
             setSubmitting(false)
-            setIsChangingPassword(false)
-            resetForm()
-            setPasswordSuccess("Password updated successfully")
             setTimeout(() => setPasswordSuccess(""), 3000)
         },
     })
@@ -136,28 +151,28 @@ export default function ProfilePage(){
                 <div className="col-span-1 flex flex-col gap-4">
                 {/* Avatar and user info */}
                 <div className="bg-card border border-border rounded-md p-6 flex flex-col items-center gap-3">
-                    <Avatar username={mockUser.username}/>
+                    <Avatar email={email}/>
                     <div className="text-center">
                         <h2 className="text-xl font-semibold text-foreground">
-                            {mockUser.username}
+                            {username}
                         </h2>
-                        <p className="text-sm text-foreground/60">{mockUser.email}</p>
+                        <p className="text-sm text-foreground/60">{email}</p>
                         <div className="flex items-center justify-center gap-2 mt-2">
-                            <RoleBadge role={mockUser.role} />
-                            <span className="text-xs text-foreground/40">Since {mockUser.joinedDate}</span>
+                            <RoleBadge role={role} />
+                            <span className="text-xs text-foreground/40">Since {joinedDate}</span>
                     </div>
                 </div>
             </div>
 
             {/* Stats */}
                 <div className="bg-card border border-border rounded-md p-4 text-center">
-                    <p className="text-2xl font-bold text-foreground">{mockUser.datasets}</p>
+                    <p className="text-2xl font-bold text-foreground">0</p>
                     <p className="text-xs text-foreground/60 mt-1">Datasets Uploaded</p>
                 </div>
                 <div className="bg-card border border-border rounded-md p-4 text-center">
-                    <p className="text-2xl font-bold text-foreground">{mockUser.sessions}</p>
+                    <p className="text-2xl font-bold text-foreground">0</p>
                     <p className="text-xs text-foreground/60 mt-1">Analysis Sessions</p>
-                </div>            
+                </div>
             </div>
 
             <div className="col-span-2 flex flex-col gap-4">
@@ -197,7 +212,7 @@ export default function ProfilePage(){
                              <Input
                                 label="Email"
                                 type="email"
-                                value={mockUser.email}
+                                value={email}
                                 disabled
                                 helperText="Email cannot be changed"
                                 onChange={() => {}}
@@ -227,16 +242,16 @@ export default function ProfilePage(){
                         </div>
                     ) : (
                     <>
-                        <InfoRow label="Username" value={mockUser.username}/>
-                        <InfoRow label="Email" value={mockUser.email}/>
-                        <InfoRow 
-                            label="Role"   
+                        <InfoRow label="Username" value={username}/>
+                        <InfoRow label="Email" value={email}/>
+                        <InfoRow
+                            label="Role"
                             value={
-                                mockUser.role.charAt(0).toUpperCase() + 
-                                mockUser.role.slice(1)
+                                role.charAt(0).toUpperCase() +
+                                role.slice(1)
                             }
                         />
-                        <InfoRow label="Member Since" value={mockUser.joinedDate}/>
+                        <InfoRow label="Member Since" value={joinedDate}/>
                     </>
                     )}
                 </CardContent>

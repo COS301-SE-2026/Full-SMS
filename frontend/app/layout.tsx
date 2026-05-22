@@ -1,6 +1,7 @@
 import { Public_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/authContext/AuthContext";
+import ClientLayout from "@/components/auth/ClientLayout";
 
 const publicSans = Public_Sans({
   subsets: ["latin"],
@@ -27,7 +28,9 @@ export default function RootLayout({
       className={`${publicSans.variable} ${jetbrainsMono.variable}`}
     >
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <ClientLayout>{children}</ClientLayout>
+        </AuthProvider>
       </body>
     </html>
   );
