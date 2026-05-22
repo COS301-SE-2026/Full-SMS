@@ -30,12 +30,10 @@ export default function RootLayout({
     >
       <body>
         <AuthProvider>
-          <ClientLayout>{children}</ClientLayout>
-        </AuthProvider>
           <Hdf5DataProvider>
-            {children}
+            <ClientLayout>{children}</ClientLayout>
           </Hdf5DataProvider>
-          </AuthProvider>
+        </AuthProvider>
       </body>
     </html>
   );
