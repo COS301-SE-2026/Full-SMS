@@ -1,7 +1,7 @@
 import io
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
-from routes.upload import router
+from api.routes.upload_routes import router
 
 app = FastAPI()
 app.include_router(router)
