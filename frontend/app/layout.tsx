@@ -1,6 +1,7 @@
 import { Public_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/authContext/AuthContext";
+import ClientLayout from "@/components/auth/ClientLayout";
 import { Hdf5DataProvider } from "@/contexts/Hdf5DataContext";
 
 const publicSans = Public_Sans({
@@ -30,9 +31,9 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <Hdf5DataProvider>
-            {children}
+            <ClientLayout>{children}</ClientLayout>
           </Hdf5DataProvider>
-          </AuthProvider>
+        </AuthProvider>
       </body>
     </html>
   );

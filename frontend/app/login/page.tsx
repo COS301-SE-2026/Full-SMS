@@ -48,8 +48,7 @@ export default function LoginPage() {
                     const verifyResponse = await authService.verifyToken()
 
                     if (verifyResponse.valid) {
-                        // Success! Redirect to dashboard
-                        router.push("/upload")
+                        window.location.href = "/upload"
                     } else {
                         setErrorMessage("Token verification failed")
                     }
