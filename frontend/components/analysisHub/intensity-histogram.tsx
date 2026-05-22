@@ -22,7 +22,7 @@ function generateBins() {
 }
 
 export function IntensityHistogram() {
-  const data = useMemo(generateBins, []);
+  const data = useMemo(() => generateBins(), []);
 
   return (
     <Card className="w-[220px] shrink-0 flex flex-col p-4">

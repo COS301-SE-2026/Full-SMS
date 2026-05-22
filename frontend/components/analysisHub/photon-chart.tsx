@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   LineChart,
   Line,
@@ -9,19 +9,12 @@ import {
   Tooltip,
 } from 'recharts';
 import { Card } from '../ui/Card';
-import { Brush } from 'recharts';
 import intensityPoints from '@/app/demo-data/intensity_points';
 import { useHdf5Data } from '@/contexts/Hdf5DataContext';
 
 export function PhotonChart() {
-  const [data, setData] = useState([] as { x: number; y: number }[]);
   const { hdf5Data } = useHdf5Data()
-
-  useEffect(() => {
-    if (hdf5Data) {
-      setData(intensityPoints);
-    }
-  }, [hdf5Data]);
+  const data = useMemo(() => (hdf5Data ? intensityPoints : []), [hdf5Data])
 
   return (
     <Card className="flex-1 flex flex-col p-4 min-w-0">

@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-const menus = ['File', 'Analysis', 'View', 'Settings', 'Help'];
 
 interface MenuBarProps {
   onOpenFileUpload: () => void;
