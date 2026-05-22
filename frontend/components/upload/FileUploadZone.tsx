@@ -4,6 +4,7 @@
 
 import React, { useState, useRef } from 'react';
 import { TrackedFile } from './uploadProgress';
+import { SelectedFile } from '@/types/file';
 
 interface FileUploadZoneProps {
   onFilesSelected: (files: File[]) => void;
@@ -11,14 +12,6 @@ interface FileUploadZoneProps {
 
 const ALLOWED_EXTENSIONS = ['.pt3', '.csv', '.h5', '.hdf5'];
 
-export interface SelectedFile {
-  id: string;            
-  name: string;         
-  sizeBytes: number;   
-  progress: number;     
-  status: 'idle' | 'pending' | 'success' | 'error'; 
-  errorMessage?: string; 
-}
 
 export default function FileUploadZone({ onFilesSelected }: FileUploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);

@@ -67,5 +67,8 @@ coverage/
 CLAUDE.md
 .vercel
 
-test-hdf5s/*.h5
+test-hdf5s
 response.txt
+
+#temp files
+api/tmp/*

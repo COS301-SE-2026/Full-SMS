@@ -10,7 +10,7 @@ env_path = Path(__file__).parent / '.env'
 load_dotenv(dotenv_path=env_path)
 from routes.auth_routes import router as auth_router
 from routes.profile_routes import router as profile_router
-
+from routes.upload_routes import router as upload_router
 from routes.auth_routes import router as auth_router
 from routes.hdf5_routes import router as hdf5_router
 
@@ -36,6 +36,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api/py")
 app.include_router(hdf5_router, prefix="/api/py")
 app.include_router(profile_router, prefix="/api/py")
+app.include_router(upload_router, prefix="/api/py")
 
 @app.on_event("startup")
 async def startup_event():
@@ -61,9 +62,9 @@ async def root():
     """
     return {"message": "Full-SMS API", "docs": "/api/py/docs"}
 
-@app.get("/read", tags=["HDF5 Reading Test"])
+@app.get("/read", tags=["HDF5 Reading"])
 async def read_hdf5():
     """
-    Test endpoint for reading HDF5 files - not for production use
+    Endpoint for reading HDF5 files
     """
-    return {"message": "This endpoint is for testing HDF5 file reading."}
+    return {"message": "This endpoint is for HDF5 file reading."}

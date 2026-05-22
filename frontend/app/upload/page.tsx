@@ -3,13 +3,54 @@
 import React, { useState } from 'react';
 import { FileUploadZone, FileList } from '@/components/upload';
 import type { SelectedFile } from '@/components/upload';
+import { uploadFile, readHdf5 } from "@/services/hdf5services";
+import { Button } from '@/components/ui';
+import { useHdf5Data } from '@/contexts/Hdf5DataContext';
 
-export default function UploadPage() {
+
+type UploadPageProps = {
+  onComplete?: () => void
+}
+
+export default function UploadPage({ onComplete }: UploadPageProps) {
   const [queue, setQueue] = useState<SelectedFile[]>([]);
+  const { setHdf5Data } = useHdf5Data()
+
+  const updateItem = (id: string, patch: Partial<SelectedFile>) => {
+  setQueue((prev) =>
+    prev.map((item) => (item.id === id ? { ...item, ...patch } : item))
+  );
+};
+
+const handleOpen = async () => {
+  const items = [...queue]
+  let hadError = false
+
+  for (const item of items) {
+    updateItem(item.id, { status: "pending", progress: 0, errorMessage: undefined })
+    try {
+      await uploadFile(item.file, (pct) => updateItem(item.id, { progress: pct }))
+      const parsed = await readHdf5(item.file)
+      updateItem(item.id, { status: "success", progress: 100 })
+      setHdf5Data(parsed)
+    } catch (err: any) {
+      hadError = true
+      updateItem(item.id, {
+        status: "error",
+        errorMessage: err?.message ?? "Upload or parse failed",
+      })
+    }
+  }
+
+  if (!hadError) {
+    onComplete?.()
+  }
+}
 
   const handleFilesSelected = (newFiles: File[]) => {
     const freshQueueEntries: SelectedFile[] = newFiles.map((file) => ({
       id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2),
+      file,
       name: file.name,
       sizeBytes: file.size,
       progress: 0,
@@ -78,19 +119,12 @@ export default function UploadPage() {
         {/* Footer */}
         {queue.length > 0 && (
           <div className="flex items-center justify-end gap-3 pt-2 max-w-4xl mx-auto">
-            <button
-              onClick={clearWholeStagingQueue}
-              type="button"
-              className="px-5 py-2 text-[13px] font-medium text-zinc-400 bg-[#1e1e24] hover:bg-[#282830] rounded-md transition-colors shadow-sm"
-            >
+            <Button variant="outline" onClick={clearWholeStagingQueue} className="px-5 py-2 text-[13px] font-medium">
               Cancel
-            </button>
-            <button
-              type="button"
-              className="px-6 py-2 text-[13px] font-medium text-zinc-950 bg-[#4fd1c5] hover:bg-[#3db8ad] rounded-md transition-colors font-sans shadow-md"
-            >
+            </Button>
+            <Button onClick={handleOpen} className="px-5 py-2 text-[13px] font-medium">
               Open
-            </button>
+            </Button>
           </div>
         )}
 
