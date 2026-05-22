@@ -340,7 +340,7 @@ export default function ProfilePage(){
             </Card>
 
             {/* Preferences */}
-            <Card>
+            {/* <Card>
                 <CardHeader>
                     <CardTitle className="text-base">Preferences</CardTitle>
                 </CardHeader>
@@ -352,7 +352,7 @@ export default function ProfilePage(){
                         onCheckedChange={handleThemeToggle}
                         />
                 </CardContent>
-            </Card>
+            </Card> */}
             
 
                </div>     
