@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { SelectedFile } from './FileUploadZone';
+import { SelectedFile } from '@/types/file';
 
 interface FileListProps {
   files: SelectedFile[];
