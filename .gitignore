@@ -27,6 +27,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+pnpm-lock.yaml
 
 # Next.js
 .next/
@@ -62,3 +63,12 @@ coverage/
 
 # Misc
 .vercel/
+
+CLAUDE.md
+.vercel
+
+test-hdf5s
+response.txt
+
+#temp files
+api/tmp/*

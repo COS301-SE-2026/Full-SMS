@@ -1,0 +1,16 @@
+{
+  "name": "full-sms-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full SMS monorepo - Git hooks and shared tooling",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/COS301-SE-2026/Full-SMS.git"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}
