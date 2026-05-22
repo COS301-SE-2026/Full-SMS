@@ -48,7 +48,7 @@ export default function LoginPage() {
                     const verifyResponse = await authService.verifyToken()
 
                     if (verifyResponse.valid) {
-                        window.location.href = "/upload"
+                        window.location.href = "/analysisHub"
                     } else {
                         setErrorMessage("Token verification failed")
                     }
