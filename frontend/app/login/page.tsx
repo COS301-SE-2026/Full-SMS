@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/authContext/AuthContext"
 import { authService } from "@/services/authServices"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { useToast } from "@/contexts/toastContext/ToastContext"
 
 const LoginSchema = Yup.object({
     email: Yup.string()
@@ -23,6 +24,7 @@ const LoginSchema = Yup.object({
 export default function LoginPage() {
     const { signIn } = useAuth()
     const router = useRouter()
+    const { errorToast, successToast } = useToast()
     const [errorMessage, setErrorMessage] = useState("")
 
     const formik = useFormik({
@@ -38,7 +40,8 @@ export default function LoginPage() {
                 const { user, error: signInError } = await signIn(values.email, values.password)
 
                 if (signInError) {
-                    setErrorMessage(signInError.message || "Login failed")
+                    setErrorMessage(signInError.message)
+                    errorToast(errorMessage|| "Login failed")
                     setSubmitting(false)
                     return
                 }
@@ -48,18 +51,21 @@ export default function LoginPage() {
                     const verifyResponse = await authService.verifyToken()
 
                     if (verifyResponse.valid) {
-                        window.location.href = "/upload"
+                        successToast("Login successful!")
+                        router.push("/upload")
                     } else {
                         setErrorMessage("Token verification failed")
+                        errorToast("Token verification failed")
                     }
                 } catch (verifyError: any) {
                     console.error("Backend verification error:", verifyError)
                     setErrorMessage("Unable to verify authentication with server")
+                    errorToast("Unable to verify authentication with server")
                 }
-
             } catch (error: any) {
                 console.error("Login error:", error)
                 setErrorMessage(error.message || "An unexpected error occurred")
+                errorToast("An unexpected error occurred")
             } finally {
                 setSubmitting(false)
             }
@@ -74,11 +80,6 @@ export default function LoginPage() {
                     <CardDescription>Enter your credentials to access your account</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
-                    {errorMessage && (
-                        <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-md">
-                            <p className="text-sm text-red-500">{errorMessage}</p>
-                        </div>
-                    )}
                     <Input
                         label="Email"
                         type="email"
@@ -93,11 +94,19 @@ export default function LoginPage() {
                         {...formik.getFieldProps("password")}
                         error={formik.touched.password && formik.errors.password ? formik.errors.password : undefined}
                     />
+                    <div className="text-right -mt-1"> 
+                        <Link 
+                            href="/reset-password"
+                            className="text-sm text-primary hover:text-primary hover:underline"
+                        >
+                            Forgot your password?
+                        </Link>
+                    </div>
                     <Button
                         type="button"
                         variant="primary"
                         size="md"
-                        className="w-full"
+                        className="w-full mt-2"
                         loading={formik.isSubmitting}
                         onClick={() => formik.handleSubmit()}
                         >

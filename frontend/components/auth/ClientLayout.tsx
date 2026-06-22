@@ -7,7 +7,7 @@ interface ClientLayoutProps {
   children: React.ReactNode;
 }
 
-const PUBLIC_ROUTES = ["/login", "/register"];
+const PUBLIC_ROUTES = ["/login", "/register", "/reset-password", "/update-password"];
 
 export default function ClientLayout({ children }: ClientLayoutProps) {
   const pathname = usePathname();
