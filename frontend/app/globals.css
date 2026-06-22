@@ -77,3 +77,23 @@
   .Toastify__progress-bar--error   { background: var(--color-destructive) !important; }
   .Toastify__progress-bar--info    { background: var(--color-primary) !important; }
   .Toastify__progress-bar--warning { background: var(--color-warning) !important; }
+
+  .Toastify__toast-icon svg path {
+    fill: currentColor !important;
+  }
+
+  .Toastify__toast--success .Toastify__toast-icon {
+    color: var(--color-success) !important;
+  }
+
+  .Toastify__toast--error .Toastify__toast-icon {
+    color: var(--color-destructive) !important;
+  }
+
+  .Toastify__toast--info .Toastify__toast-icon {
+    color: var(--color-primary) !important;
+  }
+
+  .Toastify__toast--warning .Toastify__toast-icon {
+    color: var(--color-warning) !important;
+  }
