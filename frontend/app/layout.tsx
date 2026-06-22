@@ -1,7 +1,8 @@
 import { Public_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/contexts/authContext/AuthContext";
 import ClientLayout from "@/components/auth/ClientLayout";
+import { AuthProvider } from "@/contexts/authContext/AuthContext";
+import { ToastProvider } from "@/contexts/toastContext/ToastContext";
 import { Hdf5DataProvider } from "@/contexts/Hdf5DataContext";
 
 const publicSans = Public_Sans({
@@ -29,11 +30,13 @@ export default function RootLayout({
       className={`${publicSans.variable} ${jetbrainsMono.variable}`}
     >
       <body>
-        <AuthProvider>
-          <Hdf5DataProvider>
-            <ClientLayout>{children}</ClientLayout>
-          </Hdf5DataProvider>
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <Hdf5DataProvider>
+              <ClientLayout>{children}</ClientLayout>
+            </Hdf5DataProvider>
+          </AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );
