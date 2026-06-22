@@ -41,25 +41,21 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
   const successToast = (msg: string) =>
     toast.success(msg, {
       ...defaultOptions,
-      progressStyle: { background: "var(--color-success)" },
     });
 
   const errorToast = (msg: string) =>
     toast.error(msg, {
       ...defaultOptions,
-      progressStyle: { background: "var(--color-destructive)" },
     });
 
   const infoToast = (msg: string) =>
     toast.info(msg, {
       ...defaultOptions,
-      progressStyle: { background: "var(--color-primary)" },
     });
 
   const warningToast = (msg: string) =>
     toast.warning(msg, {
       ...defaultOptions,
-      progressStyle: { background: "var(--color-warning)" },
     });
 
   return (
