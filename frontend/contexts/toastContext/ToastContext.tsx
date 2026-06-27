@@ -3,8 +3,8 @@
 import {
   createContext,
   useContext,
-  useEffect,
-  useState,
+  useCallback,
+  useMemo,
   ReactNode,
 } from "react";
 import { toast, ToastContainer, ToastOptions } from "react-toastify";
@@ -19,7 +19,7 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
+export const ToastProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const defaultOptions: ToastOptions = {
@@ -38,30 +38,50 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
     },
   };
 
-  const successToast = (msg: string) =>
-    toast.success(msg, {
-      ...defaultOptions,
-    });
+  const successToast = useCallback(
+    (msg: string) =>
+      toast.success(msg, {
+        ...defaultOptions,
+      }),
+    [],
+  );
 
-  const errorToast = (msg: string) =>
-    toast.error(msg, {
-      ...defaultOptions,
-    });
+  const errorToast = useCallback(
+    (msg: string) =>
+      toast.error(msg, {
+        ...defaultOptions,
+      }),
+    [],
+  );
 
-  const infoToast = (msg: string) =>
-    toast.info(msg, {
-      ...defaultOptions,
-    });
+  const infoToast = useCallback(
+    (msg: string) =>
+      toast.info(msg, {
+        ...defaultOptions,
+      }),
+    [],
+  );
 
-  const warningToast = (msg: string) =>
-    toast.warning(msg, {
-      ...defaultOptions,
-    });
+  const warningToast = useCallback(
+    (msg: string) =>
+      toast.warning(msg, {
+        ...defaultOptions,
+      }),
+    [],
+  );
+
+  const contextValue = useMemo(
+    () => ({
+      successToast,
+      errorToast,
+      infoToast,
+      warningToast,
+    }),
+    [successToast, errorToast, infoToast, warningToast],
+  );
 
   return (
-    <ToastContext.Provider
-      value={{ successToast, errorToast, infoToast, warningToast }}
-    >
+    <ToastContext.Provider value={contextValue}>
       {children}
       <ToastContainer toastClassName="dark-toast" />
     </ToastContext.Provider>
