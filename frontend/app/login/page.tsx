@@ -52,7 +52,8 @@ export default function LoginPage() {
 
                     if (verifyResponse.valid) {
                         successToast("Login successful!")
-                        router.push("/upload")
+                        router.push("/analysisHub")
+
                     } else {
                         setErrorMessage("Token verification failed")
                         errorToast("Token verification failed")

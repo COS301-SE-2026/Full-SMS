@@ -7,7 +7,7 @@ export const uploadFile = async (
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await axiosInstance.post("/api/py/upload", formData, {
+  const response = await axiosInstance.post("/api/py/upload/", formData, {
     headers: { "Content-Type": "multipart/form-data" },
     onUploadProgress: (evt) => {
       if (!evt.total) return;

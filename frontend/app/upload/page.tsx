@@ -33,6 +33,7 @@ const handleOpen = async () => {
       const parsed = await readHdf5(item.file)
       updateItem(item.id, { status: "success", progress: 100 })
       setHdf5Data(parsed)
+      console.log("Parsed HDF5 data:", parsed)
     } catch (err: any) {
       hadError = true
       updateItem(item.id, {
