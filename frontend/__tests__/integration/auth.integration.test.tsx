@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase/supabaseConfig";
 
 describe("Auth Integration Tests", () => {
-  const testEmail = `kudakwashemujuru1@gmail.com`;
+  const testEmail = `test-user-${Date.now()}@gmail.com`;
   const testPassword = "TestPassword123!";
   let userId: string | null = null;
 
@@ -21,7 +21,7 @@ describe("Auth Integration Tests", () => {
       });
 
       expect(error).toBeNull();
-      expect(data.user).toBeDefined();
+      expect(data.user).not.toBeNull();
       expect(data.user?.email).toBe(testEmail);
 
       if (data.user) {
@@ -149,7 +149,7 @@ describe("Auth Integration Tests", () => {
       const token = data.session?.access_token;
       if (token) {
         const parts = token.split(".");
-        expect(parts.length).toBe(3);
+        expect(parts).toHaveLength(3);
 
         const payload = JSON.parse(atob(parts[1]));
         expect(payload.sub).toBe(userId);
@@ -162,6 +162,37 @@ describe("Auth Integration Tests", () => {
         console.log(`Email: ${payload.email}`);
         console.log(`Expires: ${new Date(payload.exp * 1000).toISOString()}`);
       }
+    }, 10000);
+  });
+
+  describe("resetPassword and updatePassword", () => {
+    it("should send password reset email", async () => {
+      const { error } = await supabase.auth.resetPasswordForEmail(testEmail, {
+        redirectTo: `${window.location.origin}/update-password`,
+      });
+
+      expect(error).toBeNull();
+      console.log(`Password reset email sent to ${testEmail}`);
+    }, 10000);
+
+    it("should update password successfully", async () => {
+      const newPassword = "NewTestPassword123!";
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      expect(error).toBeNull();
+      console.log(`Password updated successfully for ${testEmail}`);
+
+      const { data, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email: testEmail,
+          password: newPassword,
+        });
+
+      expect(signInError).toBeNull();
+      expect(data.user).toBeDefined();
+      console.log(`Login successful with new password`);
     }, 10000);
   });
 });

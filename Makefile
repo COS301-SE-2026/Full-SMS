@@ -27,8 +27,9 @@ setup-backend:
 
 run-api: setup-backend
 	@echo "Backend dependencies installed."
+	@echo "Loading local development environment..."
 	@echo "Starting the API server..."
-	cd api && uvicorn main:app --reload --host 0.0.0.0 --port 8000
+	cd api && set -a && . ./.env.local && uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
 run-frontend:
 	cd frontend && npm install && npm run dev
