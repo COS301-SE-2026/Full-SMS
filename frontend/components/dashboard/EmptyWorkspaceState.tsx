@@ -7,7 +7,7 @@ import { EmptyWorkspaceStateProps } from "@/types/dashboard";
 
 export default function EmptyWorkspaceState({
   onCreateWorkspace,
-}: EmptyWorkspaceStateProps) {
+}: Readonly<EmptyWorkspaceStateProps>) {
   return (
     <div className="flex-1 flex max-w-7xl mx-auto w-full">
       <Card className="border-dashed flex-1 flex items-center justify-center">

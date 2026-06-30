@@ -8,7 +8,7 @@ export default function StatusFilterButton({
   currentFilter,
   onClick,
   count,
-}: StatusFilterButtonProps) {
+}: Readonly<StatusFilterButtonProps>) {
   const isActive = currentFilter === value;
 
   return (

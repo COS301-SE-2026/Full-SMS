@@ -10,7 +10,7 @@ export default function ConfirmDeleteModal({
   onClose,
   onConfirm,
   workspaceName,
-}: ConfirmDeleteModalProps) {
+}: Readonly<ConfirmDeleteModalProps>) {
   return (
     <Modal open={isOpen} onClose={onClose} title="Delete Workspace">
       <div className="space-y-4">

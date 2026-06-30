@@ -8,8 +8,7 @@ import { useToast } from "@/contexts/toastContext/ToastContext";
 import { Loader } from "@/components/ui/Loader";
 import { Card, CardContent } from "@/components/ui/Card";
 import WorkspaceTable from "@/components/dashboard/WorkspaceTable";
-import { WorkspaceTableRow } from "@/types/workspace";
-import { WorkspaceFilterStatus } from "@/types/workspace";
+import { WorkspaceTableRow, WorkspaceFilterStatus } from "@/types/workspace";
 import EmptyWorkspaceState from "@/components/dashboard/EmptyWorkspaceState";
 import CreateWorkspaceModal from "@/components/dashboard/CreateWorkspaceModal";
 import StatusFilterButton from "@/components/dashboard/StatusFilterButton";
@@ -74,7 +73,7 @@ const DUMMY_WORKSPACES: WorkspaceTableRow[] = [
 export default function DashboardPage() {
   const { user, signOut } = useAuth();
   const router = useRouter();
-  const { successToast, errorToast } = useToast();
+  const { errorToast } = useToast();
 
   const [workspaces, setWorkspaces] = useState<WorkspaceTableRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,14 +109,37 @@ export default function DashboardPage() {
     }
   }, [user, router]);
 
-  const fetchWorkspaces = async () => {
-    setWorkspaces(DUMMY_WORKSPACES);
-    setLoading(false);
-  };
-
   useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    const fetchWorkspaces = async () => {
+      setLoading(true);
+      try {
+        if (DUMMY_WORKSPACES.length > 0) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          if (!cancelled) {
+            setWorkspaces(DUMMY_WORKSPACES);
+          }
+        }
+      } catch (error: unknown) {
+        if (!cancelled) {
+          console.error("Error fetching workspaces:", error);
+          errorToast(
+            error.message || "An error occurred while fetching workspaces.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
     fetchWorkspaces();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [user, errorToast]);
 
   const handleOpenWorkspace = (workspaceId: string) => {
     router.push("/analysisHub");
@@ -205,7 +227,7 @@ export default function DashboardPage() {
 
             <Button
               variant="primary"
-              size="md"
+              size="sm"
               leftIcon={<Plus className="h-4 w-4" />}
               onClick={() => setIsCreateModalOpen(true)}
               className="ml-auto"

@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import { CreateWorkspaceModalProps } from "@/types/dashboard";
-import { useToast } from "@/contexts/toastContext/ToastContext";
 
 const CreateWorkspaceSchema = Yup.object({
   name: Yup.string()
@@ -24,8 +23,7 @@ export default function CreateWorkspaceModal({
   isOpen,
   onClose,
   onCreate,
-}: CreateWorkspaceModalProps) {
-  const { errorToast, successToast } = useToast();
+}: Readonly<CreateWorkspaceModalProps>) {
   const formik = useFormik({
     initialValues: {
       name: "",
@@ -61,7 +59,7 @@ export default function CreateWorkspaceModal({
             className="block text-sm font-medium text-foreground mb-1.5"
           >
             Workspace Description
-            <span className="text-foreground/40"> (optional)</span>
+            <span className="text-foreground/40">(optional)</span>
           </label>
           <textarea
             id="description"
@@ -90,6 +88,7 @@ export default function CreateWorkspaceModal({
             variant="primary"
             loading={formik.isSubmitting}
             leftIcon={<FolderPlus className="w-4 h-4" />}
+            size="md"
           >
             Create Workspace
           </Button>

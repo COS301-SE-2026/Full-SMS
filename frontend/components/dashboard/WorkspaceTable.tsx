@@ -11,9 +11,8 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { WorkspaceTableRow } from "@/types/workspace";
+import { WorkspaceTableRow, WorkspaceTableProps } from "@/types/workspace";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
-import { WorkspaceTableProps } from "@/types/workspace";
 import { formatDate, formatRelativeTime } from "@/utils/dateTime";
 
 export default function WorkspaceTable({
@@ -22,7 +21,7 @@ export default function WorkspaceTable({
   onDelete,
   onArchive,
   onUnarchive,
-}: WorkspaceTableProps) {
+}: Readonly<WorkspaceTableProps>) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [deleteModalWorkspace, setDeleteModalWorkspace] =
     useState<WorkspaceTableRow | null>(null);
@@ -122,12 +121,17 @@ export default function WorkspaceTable({
                         <div
                           className="absolute right-0 top-full mt-1 w-48 bg-card border border-border rounded-lg shadow-lg z-10"
                           onClick={(e) => e.stopPropagation()}
+                          role="menu"
+                          onKeyDown={(e) => {
+                            e.stopPropagation();
+                          }}
                         >
                           <button
                             onClick={() =>
                               handleAction(() => onOpen(workspace.id))
                             }
                             className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors"
+                            role="menuitem"
                           >
                             <FolderOpen className="h-4 w-4" />
                             Open
@@ -149,6 +153,7 @@ export default function WorkspaceTable({
                                 handleAction(() => onUnarchive(workspace.id))
                               }
                               className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors"
+                              role="menuitem"
                             >
                               <RotateCcw className="h-4 w-4" />
                               UnArchive
@@ -161,6 +166,7 @@ export default function WorkspaceTable({
                               setDeleteModalWorkspace(workspace);
                             }}
                             className="w-full flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                            role="menuitem"
                           >
                             <Trash2 className="h-4 w-4" />
                             Delete
