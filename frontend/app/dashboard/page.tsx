@@ -124,9 +124,7 @@ export default function DashboardPage() {
       } catch (error: unknown) {
         if (!cancelled) {
           console.error("Error fetching workspaces:", error);
-          errorToast(
-            error.message || "An error occurred while fetching workspaces.",
-          );
+          errorToast("An error occurred while fetching workspaces.");
         }
       } finally {
         if (!cancelled) {
