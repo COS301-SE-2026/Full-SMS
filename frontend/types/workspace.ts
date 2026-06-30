@@ -1,7 +1,5 @@
 export type WorkspaceStatus = "active" | "archived";
 
-export type WorkspaceFilterStatus = "all" | "active" | "archived";
-
 export interface Workspace {
   id: string;
   user_id: string;

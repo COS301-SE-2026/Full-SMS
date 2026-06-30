@@ -22,3 +22,4 @@ export interface StatusFilterButtonProps {
   onClick: (value: WorkspaceFilterStatus) => void;
   count: number;
 }
+export type WorkspaceFilterStatus = "all" | "active" | "archived";

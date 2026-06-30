@@ -8,7 +8,8 @@ import { useToast } from "@/contexts/toastContext/ToastContext";
 import { Loader } from "@/components/ui/Loader";
 import { Card, CardContent } from "@/components/ui/Card";
 import WorkspaceTable from "@/components/dashboard/WorkspaceTable";
-import { WorkspaceTableRow, WorkspaceFilterStatus } from "@/types/workspace";
+import { WorkspaceTableRow } from "@/types/workspace";
+import { WorkspaceFilterStatus } from "@/types/dashboard";
 import EmptyWorkspaceState from "@/components/dashboard/EmptyWorkspaceState";
 import CreateWorkspaceModal from "@/components/dashboard/CreateWorkspaceModal";
 import StatusFilterButton from "@/components/dashboard/StatusFilterButton";
@@ -143,7 +144,10 @@ export default function DashboardPage() {
     router.push("/analysisHub");
   };
 
-  const handleCreateWorkspace = async (name: string, description?: string) => {};
+  const handleCreateWorkspace = async (
+    name: string,
+    description?: string,
+  ) => {};
 
   const handleDeleteWorkspace = async (workspaceId: string) => {};
 
