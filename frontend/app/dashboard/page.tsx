@@ -143,7 +143,7 @@ export default function DashboardPage() {
     router.push("/analysisHub");
   };
 
-  const handleCreateWorkspace = async (name: string, description: string) => {};
+  const handleCreateWorkspace = async (name: string, description?: string) => {};
 
   const handleDeleteWorkspace = async (workspaceId: string) => {};
 
