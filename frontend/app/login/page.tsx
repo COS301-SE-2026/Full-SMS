@@ -52,8 +52,7 @@ export default function LoginPage() {
 
                     if (verifyResponse.valid) {
                         successToast("Login successful!")
-                        router.push("/analysisHub")
-
+                        router.push("/dashboard")
                     } else {
                         setErrorMessage("Token verification failed")
                         errorToast("Token verification failed")

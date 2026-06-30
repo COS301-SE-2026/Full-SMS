@@ -24,14 +24,14 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-auto">
-      <div className="absolute inset-0 bg-background/80" onClick={onClose} />
+      <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" onClick={onClose} />
       <div
         role="dialog"
         aria-modal="true"
-        className="relative mx-auto mt-16 w-[min(900px,95vw)] rounded-xl bg-[#141417] border border-[#222226] shadow-xl"
+        className="relative mx-auto mt-16 w-[min(900px,95vw)] rounded-xl bg-card border border-border shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {title && <div className="px-6 pt-5 pb-3 text-zinc-200">{title}</div>}
+        {title && <div className="px-6 pt-5 pb-3 text-lg font-semibold text-foreground">{title}</div>}
         <div className="px-6 pb-6">{children}</div>
       </div>
     </div>,
