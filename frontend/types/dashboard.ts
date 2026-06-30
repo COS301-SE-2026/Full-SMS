@@ -23,3 +23,14 @@ export interface StatusFilterButtonProps {
   count: number;
 }
 export type WorkspaceFilterStatus = "all" | "active" | "archived";
+
+export interface DashboardSidebarProps {
+  activeItem?: string;
+}
+
+export interface NavItem {
+  icon: React.ComponentType<{ size?: number }>;
+  label: string;
+  key: string;
+  onClick: () => void;
+}

@@ -14,6 +14,7 @@ import EmptyWorkspaceState from "@/components/dashboard/EmptyWorkspaceState";
 import CreateWorkspaceModal from "@/components/dashboard/CreateWorkspaceModal";
 import StatusFilterButton from "@/components/dashboard/StatusFilterButton";
 import { Plus, Search } from "lucide-react";
+import Sidebar from "@/components/dashboard/Sidebar";
 
 const DUMMY_WORKSPACES: WorkspaceTableRow[] = [
   {
@@ -72,7 +73,7 @@ const DUMMY_WORKSPACES: WorkspaceTableRow[] = [
   },
 ];
 export default function DashboardPage() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const { errorToast } = useToast();
 
@@ -155,42 +156,28 @@ export default function DashboardPage() {
 
   const handleUnarchiveWorkspace = async (workspaceId: string) => {};
 
-  const handleSignOut = async () => {
-    await signOut();
-  };
-
   const hasWorkspaces = workspaces.length > 0;
 
-  return (
-    <div className="min-h-screen bg-background p-6 dark flex flex-col">
-      <div className="max-w-7xl mx-auto w-full">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-semibold text-foreground mb-2">
-              Workspaces
-            </h1>
-            <p className="text-foreground/60">
-              Manage your spectroscopy analysis workspaces
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <p className="text-sm text-foreground/60">{user?.email}</p>
-            <Button variant="destructive" size="sm" onClick={handleSignOut}>
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </div>
-      {loading ? (
+  const renderContent = () => {
+    if (loading) {
+      return (
         <div className="flex-1 flex items-center justify-center">
           <Loader centered size="lg" label="Loading workspaces..." />
         </div>
-      ) : !hasWorkspaces ? (
-        <EmptyWorkspaceState
-          onCreateWorkspace={() => setIsCreateModalOpen(true)}
-        />
-      ) : (
-        <div className="max-w-7xl mx-auto w-full">
+      );
+    }
+
+    if (hasWorkspaces) {
+      return (
+        <div className="flex-1 p-6 overflow-auto">
+          <div className="mb-6">
+            <h1 className="text-2xl font-semibold text-foreground mb-1">
+              Workspaces
+            </h1>
+            <p className="text-foreground/60 text-sm">
+              Manage your spectroscopy analysis workspaces
+            </p>
+          </div>
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/40" />
@@ -262,8 +249,20 @@ export default function DashboardPage() {
             </Card>
           )}
         </div>
-      )}
+      );
+    }
 
+    return (
+      <EmptyWorkspaceState
+        onCreateWorkspace={() => setIsCreateModalOpen(true)}
+      />
+    );
+  };
+
+  return (
+    <div className="flex h-screen bg-background text-foreground">
+      <Sidebar />
+      <main className="flex-1 flex flex-col min-w-0">{renderContent()}</main>
       <CreateWorkspaceModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
