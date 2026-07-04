@@ -3,12 +3,33 @@ import tempfile
 from pathlib import Path
 from fastapi import UploadFile, HTTPException
 import services.hdf5_services as read_hdf5_service
+import services.hdf5_upload_service as hdf5_upload_service
+import services.storage_service as storage_service
 
 async def init_hdf5_upload(payload: dict, current_user: dict) -> dict:
     """
     Initialize an HDF5 file upload.
+
+    Args:
+        payload (dict)
+        current_user (dict)
     """
-    pass
+
+    hdf5_upload_service.validate_upload_request(payload["filename"], payload["size_bytes"])
+    hdf5_upload_record = hdf5_upload_service.create_upload_record(user_id=current_user["id"], filename=payload["filename"], size_bytes=payload["size_bytes"], storage_key=payload["storage_key"])
+    hdf5_upload_url = storage_service.create_signed_upload_url(payload["storage_key"])
+
+    return {
+        "upload_id": hdf5_upload_record["id"],
+        "upload_url": hdf5_upload_url,
+        "storage_key": payload["storage_key"],
+        "file_size_bytes": payload["size_bytes"],
+        "filename": payload["filename"],
+
+    }
+
+
+
 
 async def complete_hdf5_upload(upload_id: str, payload: dict, current_user: dict) -> dict:
     """
