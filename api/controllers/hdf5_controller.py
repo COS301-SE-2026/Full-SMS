@@ -4,6 +4,30 @@ from pathlib import Path
 from fastapi import UploadFile, HTTPException
 import services.hdf5_services as read_hdf5_service
 
+async def init_hdf5_upload(payload: dict, current_user: dict) -> dict:
+    """
+    Initialize an HDF5 file upload.
+    """
+    pass
+
+async def complete_hdf5_upload(upload_id: str, payload: dict, current_user: dict) -> dict:
+    """
+    Complete an HDF5 file upload.
+    """
+    pass
+
+async def get_hdf5_upload_status(upload_id: str, current_user: dict) -> dict:
+    """
+    Get the status of an HDF5 file upload.
+    """
+    pass
+
+async def get_hdf5_upload_result(upload_id: str, current_user: dict) -> dict:
+    """
+    Get the result of an HDF5 file upload.
+    """
+    pass
+
 async def read_hdf5_file(file: UploadFile):
     if not file.filename.endswith((".hdf5", ".h5")):
         raise HTTPException(status_code=400, detail="Invalid file type. Please upload an HDF5 file.")
