@@ -1,7 +1,25 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
-from controllers.hdf5_controller import read_hdf5_file
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from routes.profile_routes import get_current_user
+from controllers.hdf5_controller import (read_hdf5_file, init_hdf5_upload, complete_hdf5_upload, get_hdf5_upload_status, get_hdf5_upload_result)
 
 router = APIRouter(prefix="/hdf5", tags=["hdf5"])
+
+@router.post("/uploads/init")
+async def init_upload(payload: dict, current_user: dict = Depends(get_current_user)):
+    return await init_hdf5_upload(payload, current_user)
+
+@router.post("/uploads/{upload_id}/complete")
+async def complete_upload(upload_id: str, payload: dict, current_user: dict = Depends(get_current_user)):
+    return await complete_hdf5_upload(upload_id, payload, current_user)
+
+@router.get("/uploads/{upload_id}")
+async def upload_status(upload_id: str, current_user: dict = Depends(get_current_user)):
+    return await get_hdf5_upload_status(upload_id, current_user)
+
+@router.get("/uploads/{upload_id}/result")
+async def upload_result(upload_id: str, current_user: dict = Depends(get_current_user)):
+    return await get_hdf5_upload_result(upload_id, current_user)
+
 
 @router.post("/read")
 async def read(file: UploadFile = File(...)):
