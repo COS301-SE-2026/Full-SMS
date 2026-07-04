@@ -1,3 +1,6 @@
+from fastapi import HTTPException
+
+
 def validate_upload_request(filename: str, size_bytes: int) -> None:
     """
     Validate the upload request.
@@ -6,6 +9,13 @@ def validate_upload_request(filename: str, size_bytes: int) -> None:
         filename (str): The name of the uploaded file.
         size_bytes (int): The size of the uploaded file in bytes.
     """
+    if not filename.endswith((".hdf5", ".h5")):
+        raise HTTPException(status_code=400, detail="Invalid file type. Please upload an HDF5 or H5 file.")
+    
+    if size_bytes <= 0:
+        raise HTTPException(status_code=400, detail="Invalid file size. The file size must be greater than 0 bytes.")
+
+
 
 def create_upload_record(user_id: str, filename: str, size_bytes: int, storage_key: str) -> dict:
     """
