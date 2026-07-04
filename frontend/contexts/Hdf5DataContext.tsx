@@ -3,12 +3,10 @@
 import {
   createContext,
   useContext,
-  useEffect,
   useState,
   ReactNode,
 } from "react";
 
-import { SelectedFile } from "@/types/file";
 
 type Hdf5Response = {
   metadata: {
