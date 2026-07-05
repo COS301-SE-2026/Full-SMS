@@ -1,11 +1,11 @@
-import tempFile
+import tempfile
 import os
 import pathlib
 from fastapi import UploadFile, HTTPException
-from supabase import create_Client
+from supabase import create_client
 
 
-supabase = create_Client(
+supabase = create_client(
     os.environ.get("SUPABASE_URL"),
     os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 )
@@ -60,8 +60,7 @@ def download_to_temp(storage_key: str) -> str:
         storage_key (str): The storage key for the object.
 
     """
-    fd, tempPath = tempFile.mkstemp(".hdf5" or ".h5" )
-    os.close(fd)
+    fd, tempPath = tempfile.mkstemp(".hdf5" or ".h5" )
     with open(tempPath, "wb+") as f:
         response = (
             supabase.storage

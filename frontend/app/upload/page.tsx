@@ -3,9 +3,10 @@
 import React, { useState } from 'react';
 import { FileUploadZone, FileList } from '@/components/upload';
 import type { SelectedFile } from '@/components/upload';
-import { uploadFile, readHdf5 } from "@/services/hdf5services";
+import { initHdf5Upload, uploadToSignedUrl, completeHdf5Upload, computeSHA256, getHdf5UploadResult } from "@/services/hdf5services";
 import { Button } from '@/components/ui';
 import { useHdf5Data } from '@/contexts/Hdf5DataContext';
+
 
 
 type UploadPageProps = {
@@ -22,6 +23,7 @@ export default function UploadPage({ onComplete }: UploadPageProps) {
   );
 };
 
+
 const handleOpen = async () => {
   const items = [...queue]
   let hadError = false
@@ -29,11 +31,27 @@ const handleOpen = async () => {
   for (const item of items) {
     updateItem(item.id, { status: "pending", progress: 0, errorMessage: undefined })
     try {
-      await uploadFile(item.file, (pct) => updateItem(item.id, { progress: pct }))
-      const parsed = await readHdf5(item.file)
+      const sha256_hash = await computeSHA256(item.file)
+      const initialize = await initHdf5Upload({
+        filename: item.name,
+        size_bytes: item.sizeBytes,
+        content_type: item.file.type,
+        sha256: sha256_hash,
+      });
+
+      await uploadToSignedUrl(initialize.upload_url, item.file, (pct) => {
+        updateItem(item.id, { progress: pct })
+      });
+
+      await completeHdf5Upload(initialize.upload_id, {
+        storage_key: initialize.storage_key,
+        sha256: sha256_hash,
+      });
+
       updateItem(item.id, { status: "success", progress: 100 })
-      setHdf5Data(parsed)
-      console.log("Parsed HDF5 data:", parsed)
+      const result = await getHdf5UploadResult(initialize.upload_id)
+      setHdf5Data(result)
+
     } catch (err: any) {
       hadError = true
       updateItem(item.id, {

@@ -1,11 +1,23 @@
 import axiosInstance from "@/lib/api/axiosInstance";
 
+
 export type InitUploadResponse = {
   upload_id: string;
   storage_key: string;
   upload_url: string;
   url_expires_at: string;
   max_file_size_bytes: number;
+};
+
+
+export const computeSHA256 = async(hdf5_file: File): Promise<string>=>{
+  const array = await hdf5_file.arrayBuffer();
+  const checksumBuffer = await window.crypto.subtle.digest("SHA-256", array);
+
+  const checksumArray = Array.from(new Uint8Array(checksumBuffer));
+  const checksumHex = checksumArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  return checksumHex;
 }
 
 export const initHdf5Upload = async (payload:{
@@ -37,7 +49,7 @@ export const completeHdf5Upload = async (upload_id: string, payload: {storage_ke
 }
 
 export const getHdf5UploadStatus = async (upload_id: string)=>{
-  const {data} = await axiosInstance.get(`api/py/hdf5uploads/${upload_id}/status`);
+  const {data} = await axiosInstance.get(`api/py/hdf5/uploads/${upload_id}`);
   return data;
 }
 
