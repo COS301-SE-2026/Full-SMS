@@ -1,3 +1,10 @@
+import tempfile
+import os
+from celery import Celery
+from utils.supabase_client import supabaseClient
+
+
+
 
 async def enqueue_parse(upload_id: str, user_id: str, storage_key: str) -> None:
     """

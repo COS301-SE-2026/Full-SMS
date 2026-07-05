@@ -1,15 +1,9 @@
 import uuid
 
 from fastapi import HTTPException
-from supabase import create_client
-import os
+from utils.supabase_client import supabaseClient
 
 from services import storage_service
-
-supabase = create_client(
-    os.environ.get("SUPABASE_URL"),
-    os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-)
 
 
 def validate_upload_request(filename: str, size_bytes: int) -> None:
@@ -43,7 +37,7 @@ def create_upload_record(user_id: str, filename: str, size_bytes: int) -> dict:
     upload_id = str(uuid.uuid4())
     storage_key = storage_service.build_storage_key(user_id=user_id, upload_id=upload_id, file_name=filename)
     response = (
-        supabase.table("hdf5_uploads")
+        supabaseClient.table("hdf5_uploads")
         .insert({
             "id": upload_id,
             "user_id": user_id,
@@ -67,7 +61,7 @@ def mark_uploaded(upload_id: str, user_id: str) -> None:
         upload_id (str): The ID of the upload.
         user_id (str): The ID of the user.
     """
-    supabase.table("hdf5_uploads").update({"status": "uploaded"}).eq("id", upload_id).eq("user_id", user_id).execute()
+    supabaseClient.table("hdf5_uploads").update({"status": "uploaded"}).eq("id", upload_id).eq("user_id", user_id).execute()
 
 
 def set_status(upload_id: str, user_id: str, status: str, *, progress: int | None = None, err_code: str | None = None, err_msg: str | None = None) -> None:
@@ -83,9 +77,9 @@ def set_status(upload_id: str, user_id: str, status: str, *, progress: int | Non
         err_msg (str | None): The error message for the upload.
     """
     if status == "failed":
-        supabase.table("hdf5_uploads").update({"status": status, "err_code": err_code, "err_msg": err_msg}).eq("id", upload_id).eq("user_id", user_id).execute()
+        supabaseClient.table("hdf5_uploads").update({"status": status, "err_code": err_code, "err_msg": err_msg}).eq("id", upload_id).eq("user_id", user_id).execute()
     else:
-        supabase.table("hdf5_uploads").update({"status": status, "progress": progress}).eq("id", upload_id).eq("user_id", user_id).execute()
+        supabaseClient.table("hdf5_uploads").update({"status": status, "progress": progress}).eq("id", upload_id).eq("user_id", user_id).execute()
 
 
 def get_upload(upload_id: str, user_id: str) -> dict | None:
@@ -100,7 +94,7 @@ def get_upload(upload_id: str, user_id: str) -> dict | None:
         dict | None: The upload information, or None if not found.
     """
     response = (
-        supabase.table("hdf5_uploads")
+        supabaseClient.table("hdf5_uploads")
         .select("*")
         .eq("id", upload_id)
         .eq("user_id", user_id)
@@ -118,7 +112,7 @@ def save_parse_result(upload_id: str, metadata: dict, measurements: list[dict], 
         measurements (list[dict]): The measurements for the parsed file.
         result_storage_key (str | None): The storage key for the parsing result.
     """
-    supabase.table("hdf5_results").insert({
+    supabaseClient.table("hdf5_results").insert({
         "upload_id": upload_id,
         "metadata": metadata,
         "measurements": measurements,

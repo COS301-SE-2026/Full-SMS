@@ -3,6 +3,7 @@ import os
 import pathlib
 from fastapi import UploadFile, HTTPException
 from supabase import create_client
+from utils.supabase_client import supabaseClient
 
 
 supabase = create_client(
@@ -39,7 +40,7 @@ def create_signed_upload_url(storage_key: str, expires_seconds: int=900) -> str:
         str: The signed URL for uploading the file.
     """
 
-    return supabase.storage.from_(BUCKET).create_signed_upload_url(storage_key)
+    return supabaseClient.storage.from_(BUCKET).create_signed_upload_url(storage_key)
 
 def object_exists(storage_key: str) -> bool:
     """
@@ -48,8 +49,8 @@ def object_exists(storage_key: str) -> bool:
     Args:
         storage_key (str): The storage key for the object.
     """
-    print(f"Checking if object exists: {supabase.storage.from_(BUCKET).list(path=storage_key)}")
-    if supabase.storage.from_(BUCKET).list(path=storage_key) is not None:
+    print(f"Checking if object exists: {supabaseClient.storage.from_(BUCKET).list(path=storage_key)}")
+    if supabaseClient.storage.from_(BUCKET).list(path=storage_key) is not None:
         return True
     return False
 
@@ -64,7 +65,7 @@ def download_to_temp(storage_key: str) -> str:
     fd, tempPath = tempfile.mkstemp(".hdf5" or ".h5" )
     with open(tempPath, "wb+") as f:
         response = (
-            supabase.storage
+            supabaseClient.storage
             .from_(BUCKET)
             .download(storage_key)
         )
