@@ -31,8 +31,8 @@ export const uploadToSignedUrl = async (upload_url: string, Hfile: File, onProgr
   });
 }
 
-export const completeHdf5Upload = async (uplaod_id: string, payload: {storage_key: string, etag?: string; sha256?: string})=>{
-  const {data} = await axiosInstance.post(`api/py/hdf5uploads/${uplaod_id}/complete`, payload);
+export const completeHdf5Upload = async (upload_id: string, payload: {storage_key: string, etag?: string; sha256?: string})=>{
+  const {data} = await axiosInstance.post(`api/py/hdf5/uploads/${upload_id}/complete`, payload);
   return data;
 }
 
@@ -42,7 +42,7 @@ export const getHdf5UploadStatus = async (upload_id: string)=>{
 }
 
 export const getHdf5UploadResult = async (upload_id: string)=>{
-  const {data} = await axiosInstance.get(`api/py/hdf5uploads/${upload_id}/result`);
+  const {data} = await axiosInstance.get(`api/py/hdf5/uploads/${upload_id}/result`);
   return data;
 }
 
