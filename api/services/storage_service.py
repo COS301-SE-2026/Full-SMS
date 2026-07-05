@@ -12,19 +12,19 @@ supabase = create_client(
 
 BUCKET = os.environ.get("SUPABASE_BUCKET_NAME")
 
-def build_storage_key(user_id: str, upload_id: str, storage_key: str) -> None:
+def build_storage_key(user_id: str, upload_id: str, file_name: str) -> str:
     """
     Build a storage key for an uploaded file.
 
     Args:
         user_id (str): The ID of the user.
         upload_id (str): The ID of the upload.
-        storage_key (str): The original storage key.
+        file_name (str): The name of the file.
 
     Returns:
         str: The constructed storage key.
     """
-    return f"{user_id}/{upload_id}/{storage_key}"
+    return f"{user_id}/{upload_id}/{file_name}"
 
 
 def create_signed_upload_url(storage_key: str, expires_seconds: int=900) -> str:
@@ -39,7 +39,7 @@ def create_signed_upload_url(storage_key: str, expires_seconds: int=900) -> str:
         str: The signed URL for uploading the file.
     """
 
-    return supabase.storage.create_signed_upload_url(storage_key, expires_seconds)
+    return supabase.storage.from_(BUCKET).create_signed_upload_url(storage_key, expires_seconds)
 
 def object_exists(storage_key: str) -> bool:
     """

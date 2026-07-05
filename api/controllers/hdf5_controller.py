@@ -17,15 +17,16 @@ async def init_hdf5_upload(payload: dict, current_user: dict) -> dict:
     """
 
     hdf5_upload_service.validate_upload_request(payload["filename"], payload["size_bytes"])
-    hdf5_upload_record = hdf5_upload_service.create_upload_record(user_id=current_user["id"], filename=payload["filename"], size_bytes=payload["size_bytes"], storage_key=payload["storage_key"])
-    hdf5_upload_url = storage_service.create_signed_upload_url(payload["storage_key"])
+    hdf5_upload_record = hdf5_upload_service.create_upload_record(user_id=current_user["user"]["id"], filename=payload["filename"], size_bytes=payload["size_bytes"])
+    print(f"Created upload record: {hdf5_upload_record}")
+    hdf5_upload_url = storage_service.create_signed_upload_url(hdf5_upload_record["storage_key"])
 
     return {
         "upload_id": hdf5_upload_record["id"],
         "upload_url": hdf5_upload_url,
-        "storage_key": payload["storage_key"],
-        "file_size_bytes": payload["size_bytes"],
-        "filename": payload["filename"],
+        "storage_key": hdf5_upload_record["storage_key"],
+        "file_size_bytes": hdf5_upload_record["size_bytes"],
+        "filename": hdf5_upload_record["filename"],
     }
 
 

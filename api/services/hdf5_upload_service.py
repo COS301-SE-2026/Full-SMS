@@ -1,6 +1,10 @@
+import uuid
+
 from fastapi import HTTPException
 from supabase import create_client
 import os
+
+from services import storage_service
 
 supabase = create_client(
     os.environ.get("SUPABASE_URL"),
@@ -24,7 +28,7 @@ def validate_upload_request(filename: str, size_bytes: int) -> None:
 
 
 
-def create_upload_record(user_id: str, filename: str, size_bytes: int, storage_key: str) -> dict:
+def create_upload_record(user_id: str, filename: str, size_bytes: int) -> dict:
     """
     Create a record for a new file upload.
 
@@ -32,14 +36,16 @@ def create_upload_record(user_id: str, filename: str, size_bytes: int, storage_k
         user_id (str): The ID of the user.
         filename (str): The name of the uploaded file.
         size_bytes (int): The size of the uploaded file in bytes.
-        storage_key (str): The storage key for the uploaded file.
 
     Returns:
         dict: The created upload record.
     """
+    upload_id = str(uuid.uuid4())
+    storage_key = storage_service.build_storage_key(user_id=user_id, upload_id=upload_id, file_name=filename)
     response = (
         supabase.table("hdf5_uploads")
         .insert({
+            "id": upload_id,
             "user_id": user_id,
             "filename": filename,
             "size_bytes": size_bytes,
@@ -48,7 +54,7 @@ def create_upload_record(user_id: str, filename: str, size_bytes: int, storage_k
             "status": "initialized",
             "progress": 0
         })
-        .select("")
+        .select("*")
         .execute()
     )
     return response.data[0]
