@@ -8,6 +8,8 @@ async def enqueue_parse(upload_id: str, user_id: str, storage_key: str) -> None:
         user_id (str): The ID of the user.
         storage_key (str): The storage key for the uploaded file.
     """
+    # Enqueue the parsing job using Celery
+    parse_upload_job.delay(upload_id, user_id, storage_key)
 
 
 def parse_upload_job(upload_id: str, user_id: str, storage_key: str) -> None:

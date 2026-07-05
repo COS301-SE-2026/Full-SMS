@@ -39,7 +39,7 @@ def create_signed_upload_url(storage_key: str, expires_seconds: int=900) -> str:
         str: The signed URL for uploading the file.
     """
 
-    return supabase.storage.from_(BUCKET).create_signed_upload_url(storage_key, expires_seconds)
+    return supabase.storage.from_(BUCKET).create_signed_upload_url(storage_key)
 
 def object_exists(storage_key: str) -> bool:
     """
@@ -48,9 +48,10 @@ def object_exists(storage_key: str) -> bool:
     Args:
         storage_key (str): The storage key for the object.
     """
-    if not supabase.storage.from_(BUCKET).list(path=storage_key):
-        return False
-    return True
+    print(f"Checking if object exists: {supabase.storage.from_(BUCKET).list(path=storage_key)}")
+    if supabase.storage.from_(BUCKET).list(path=storage_key) is not None:
+        return True
+    return False
 
 def download_to_temp(storage_key: str) -> str: 
     """

@@ -59,16 +59,15 @@ def create_upload_record(user_id: str, filename: str, size_bytes: int) -> dict:
     )
     return response.data[0]
 
-def mark_uploaded(upload_id: str, user_id: str, etag: str | None) -> None:
+def mark_uploaded(upload_id: str, user_id: str) -> None:
     """
     Mark an upload as completed.
 
     Args:
         upload_id (str): The ID of the upload.
         user_id (str): The ID of the user.
-        etag (str | None): The ETag of the uploaded file.
     """
-    supabase.table("hdf5_uploads").update({"status": "uploaded"}).eq("upload_id", upload_id).eq("user_id", user_id).execute()
+    supabase.table("hdf5_uploads").update({"status": "uploaded"}).eq("id", upload_id).eq("user_id", user_id).execute()
 
 
 def set_status(upload_id: str, user_id: str, status: str, *, progress: int | None = None, err_code: str | None = None, err_msg: str | None = None) -> None:
@@ -84,9 +83,9 @@ def set_status(upload_id: str, user_id: str, status: str, *, progress: int | Non
         err_msg (str | None): The error message for the upload.
     """
     if status == "failed":
-        supabase.table("hdf5_uploads").update({"status": status, "err_code": err_code, "err_msg": err_msg}).eq("upload_id", upload_id).eq("user_id", user_id).execute()
+        supabase.table("hdf5_uploads").update({"status": status, "err_code": err_code, "err_msg": err_msg}).eq("id", upload_id).eq("user_id", user_id).execute()
     else:
-        supabase.table("hdf5_uploads").update({"status": status, "progress": progress}).eq("upload_id", upload_id).eq("user_id", user_id).execute()
+        supabase.table("hdf5_uploads").update({"status": status, "progress": progress}).eq("id", upload_id).eq("user_id", user_id).execute()
 
 
 def get_upload(upload_id: str, user_id: str) -> dict | None:
@@ -103,7 +102,7 @@ def get_upload(upload_id: str, user_id: str) -> dict | None:
     response = (
         supabase.table("hdf5_uploads")
         .select("*")
-        .eq("upload_id", upload_id)
+        .eq("id", upload_id)
         .eq("user_id", user_id)
         .execute()
     )

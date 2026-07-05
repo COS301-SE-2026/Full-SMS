@@ -35,14 +35,15 @@ async def complete_hdf5_upload(upload_id: str, payload: dict, current_user: dict
     """
     Complete an HDF5 file upload.
     """
-    hdf5_upload = hdf5_upload_service.get_upload(upload_id, current_user['id'])
+    hdf5_upload = hdf5_upload_service.get_upload(upload_id, current_user["user"]["id"])
+    print(f"Retrieved upload record: {hdf5_upload}")
     if not hdf5_upload:
         raise HTTPException(status_code=404, detail="Upload not found.")
     if not storage_service.object_exists(hdf5_upload["storage_key"]):
         raise HTTPException(status_code=404, detail="Uploaded file not found")
-    hdf5_upload_service.mark_uploaded(upload_id, current_user["id"], payload["etag"])
-    hdf5_job_service.enqueue_parse(upload_id, current_user["id"], hdf5_upload["storage_key"])
-    hdf5_upload_service.set_status(upload_id, current_user["id"], status="queued", progress=0)
+    hdf5_upload_service.mark_uploaded(upload_id, current_user["user"]["id"])
+    hdf5_job_service.enqueue_parse(upload_id, current_user["user"]["id"], hdf5_upload["storage_key"])
+    hdf5_upload_service.set_status(upload_id, current_user["user"]["id"], status="queued", progress=0)
 
     return {"status": "queued", "message": "Upload completed and parsing job queued."}
 
@@ -52,7 +53,7 @@ async def get_hdf5_upload_status(upload_id: str, current_user: dict) -> dict:
     """
     Get the status of an HDF5 file upload.
     """
-    hdf5_upload = hdf5_upload_service.get_upload(upload_id, current_user['id'])
+    hdf5_upload = hdf5_upload_service.get_upload(upload_id, current_user['user']['id'])
     if not hdf5_upload:
         raise HTTPException(status_code=404, detail="Upload not found.")
 
@@ -62,7 +63,7 @@ async def get_hdf5_upload_result(upload_id: str, current_user: dict) -> dict:
     """
     Get the result of an HDF5 file upload.
     """
-    hdf5_upload = hdf5_upload_service.get_upload(upload_id, current_user['id'])
+    hdf5_upload = hdf5_upload_service.get_upload(upload_id, current_user['user']['id'])
     if not hdf5_upload:
         raise HTTPException(status_code=404, detail="Upload not found.")
     if hdf5_upload["status"] != "completed":
