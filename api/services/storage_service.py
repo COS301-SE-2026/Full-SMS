@@ -51,20 +51,33 @@ def object_exists(storage_key: str) -> bool:
         return True
     return False
 
-def download_to_temp(storage_key: str) -> str: 
+def download_to_temp(storage_key: str, file_extension: str = ".hdf5") -> str:
     """
     Download an object from storage to a temporary file.
 
     Args:
         storage_key (str): The storage key for the object.
-
+        file_extension (str): The file extension for the temporary file.
     """
-    fd, tempPath = tempfile.mkstemp(".hdf5" or ".h5" )
-    with open(tempPath, "wb+") as f:
-        response = (
-            supabaseClient.storage
-            .from_(BUCKET)
-            .download(storage_key)
-        )
-        f.write(response)
-    return tempPath
+
+    try:
+        fd, tempPath = tempfile.mkstemp(suffix=file_extension)
+        #changed to os.fdopen, helps prevent the lockfile issue on windows
+        with os.fdopen(fd, "wb") as f:
+            response = (
+                supabaseClient.storage
+                .from_(BUCKET)
+                .download(storage_key)
+            )
+            f.write(response)
+
+        return tempPath
+    except Exception as e:
+        print(f"Error downloading file from storage: {e}")
+
+        if 'tempPath' in locals() and os.path.exists(tempPath):
+            try:
+                os.remove(tempPath)
+            except:
+                pass
+        raise HTTPException(status_code=500, detail="Error downloading file from storage.")

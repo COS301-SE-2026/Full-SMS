@@ -22,7 +22,7 @@ def validate_upload_request(filename: str, size_bytes: int) -> None:
 
 
 
-def create_upload_record(user_id: str, filename: str, size_bytes: int) -> dict:
+def create_upload_record(user_id: str, filename: str, size_bytes: int, sha256: str) -> dict:
     """
     Create a record for a new file upload.
 
@@ -30,6 +30,7 @@ def create_upload_record(user_id: str, filename: str, size_bytes: int) -> dict:
         user_id (str): The ID of the user.
         filename (str): The name of the uploaded file.
         size_bytes (int): The size of the uploaded file in bytes.
+        sha256 (str): The SHA256 hash of the uploaded file.
 
     Returns:
         dict: The created upload record.
@@ -44,7 +45,7 @@ def create_upload_record(user_id: str, filename: str, size_bytes: int) -> dict:
             "filename": filename,
             "size_bytes": size_bytes,
             "storage_key": storage_key,
-            "sha256": None,
+            "sha256": sha256,
             "status": "initialized",
             "progress": 0
         })
@@ -102,19 +103,39 @@ def get_upload(upload_id: str, user_id: str) -> dict | None:
     )
     return response.data[0] if response.data else None
 
-def save_parse_result(upload_id: str, metadata: dict, measurements: list[dict], result_storage_key: str | None = None) -> None:
+def get_upload_result(upload_id: str, user_id: str) -> dict | None:
+    """
+    Retrieve the result of a specific upload.
+
+    Args:
+        upload_id (str): The ID of the upload.
+        user_id (str): The ID of the user.
+
+    Returns:
+        dict | None: The upload result, or None if not found.
+    """
+    response = (
+        supabaseClient.table("hdf5_results")
+        .select("*")
+        .eq("upload_id", upload_id)
+        .execute()
+    )
+    return response.data[0] if response.data else None
+
+def save_parse_result(upload_id: str, metadata: dict, measurements: str, result_storage_key: str) -> None:
     """
     Save the parsing result for a specific upload.
 
     Args:
         upload_id (str): The ID of the upload.
         metadata (dict): The metadata for the parsed file.
-        measurements (list[dict]): The measurements for the parsed file.
-        result_storage_key (str | None): The storage key for the parsing result.
+        measurements (str): Path to the measurements JSON file in storage.
+        result_storage_key (str): The storage key for the parsing result.
     """
+    print(f"raw_result_storage_key FROM save_parse_result: {result_storage_key}")
     supabaseClient.table("hdf5_results").insert({
         "upload_id": upload_id,
-        "metadata": metadata,
-        "measurements": measurements,
-        "result_storage_key": result_storage_key
+        "metadata_json": metadata,
+        "measurements_json": measurements,
+        "raw_result_storage_key": result_storage_key
     }).execute()
