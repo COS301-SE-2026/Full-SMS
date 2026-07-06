@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
-from routes.profile_routes import get_current_user
-from controllers.hdf5_controller import (read_hdf5_file, init_hdf5_upload, complete_hdf5_upload, get_hdf5_upload_status, get_hdf5_upload_result)
+from api.routes.profile_routes import get_current_user
+from api.controllers.hdf5_controller import (read_hdf5_file, init_hdf5_upload, complete_hdf5_upload, get_hdf5_upload_status, get_hdf5_upload_result)
 
 router = APIRouter(prefix="/hdf5", tags=["hdf5"])
 

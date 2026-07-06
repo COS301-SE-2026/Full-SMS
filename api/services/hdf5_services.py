@@ -1,4 +1,4 @@
-from legacy.io.hdf5_reader import load_h5_file, load_irf
+from api.legacy.io.hdf5_reader import load_h5_file, load_irf
 
 def _channel_to_dict(channel):
     if channel is None:
@@ -27,6 +27,12 @@ def _raster_to_dict(raster):
     }
 
 def read_hdf5(path):
+    """
+    Read an HDF5 file and return its metadata and measurements.
+
+    Returns:
+        dict: A dictionary containing the metadata and measurements of the HDF5 file.
+    """
     metadata, measurements = load_h5_file(path)
     return {
         "metadata": {

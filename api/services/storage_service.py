@@ -3,13 +3,10 @@ import os
 import pathlib
 from fastapi import UploadFile, HTTPException
 from supabase import create_client
-from utils.supabase_client import supabaseClient
+from api.utils.supabase_client import supabaseClient
 
 
-supabase = create_client(
-    os.environ.get("SUPABASE_URL"),
-    os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-)
+
 
 BUCKET = os.environ.get("SUPABASE_BUCKET_NAME")
 

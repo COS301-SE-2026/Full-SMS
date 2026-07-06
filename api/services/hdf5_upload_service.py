@@ -1,9 +1,9 @@
 import uuid
 
 from fastapi import HTTPException
-from utils.supabase_client import supabaseClient
+from api.utils.supabase_client import supabaseClient
 
-from services import storage_service
+from api.services import storage_service
 
 
 def validate_upload_request(filename: str, size_bytes: int) -> None:
