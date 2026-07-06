@@ -1,10 +1,11 @@
 from fastapi import HTTPException
-from supabase import create_client
+from supabase import Client, create_client
 import os
+from dotenv import load_dotenv
 
-from services import storage_service
+load_dotenv()  
 
-supabaseClient = create_client(
-    os.environ.get("SUPABASE_URL"),
-    os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+supabaseClient: Client = create_client(
+    os.getenv("SUPABASE_URL"),
+    os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 )
