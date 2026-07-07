@@ -60,7 +60,7 @@ def parse_upload_job(upload_id: str, user_id: str, storage_key: str) -> None:
 
         with gzip.open("DEBUG_measurements.json.gz", "wt", encoding='utf-8') as debug_file:
             json.dump(result_measurements, debug_file, indent=4)
-        print("\n\n🛑 INTERCEPTED: Saved to DEBUG_measurements.json.gz in project root!\n\n")
+        print("\n\nINTERCEPTED: Saved to DEBUG_measurements.json.gz in project root!\n\n")
 
         fd, temp_json_path = tempfile.mkstemp(suffix=".json.gz") 
         with gzip.open(temp_json_path, 'wt', encoding='utf-8') as compressed_json_file:
