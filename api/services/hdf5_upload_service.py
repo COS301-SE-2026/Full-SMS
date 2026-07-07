@@ -62,7 +62,12 @@ def mark_uploaded(upload_id: str, user_id: str) -> None:
         upload_id (str): The ID of the upload.
         user_id (str): The ID of the user.
     """
-    supabaseClient.table("hdf5_uploads").update({"status": "uploaded"}).eq("id", upload_id).eq("user_id", user_id).execute()
+    response = (supabaseClient.table("hdf5_uploads")
+     .update({"status": "uploaded"})
+     .eq("id", upload_id)
+     .eq("user_id", user_id)
+     .execute()
+    )
 
 
 def set_status(upload_id: str, user_id: str, status: str, *, progress: int | None = None, err_code: str | None = None, err_msg: str | None = None) -> None:
@@ -78,9 +83,18 @@ def set_status(upload_id: str, user_id: str, status: str, *, progress: int | Non
         err_msg (str | None): The error message for the upload.
     """
     if status == "failed":
-        supabaseClient.table("hdf5_uploads").update({"status": status, "err_code": err_code, "err_msg": err_msg}).eq("id", upload_id).eq("user_id", user_id).execute()
+        res = (supabaseClient.table("hdf5_uploads")
+         .update({"status": status, "err_code": err_code, "err_msg": err_msg}).eq("id", upload_id)
+         .eq("user_id", user_id)
+         .execute()
+        )
     else:
-        supabaseClient.table("hdf5_uploads").update({"status": status, "progress": progress}).eq("id", upload_id).eq("user_id", user_id).execute()
+        res = (supabaseClient.table("hdf5_uploads")
+         .update({"status": status, "progress": progress})
+         .eq("id", upload_id)
+         .eq("user_id", user_id)
+         .execute()
+        )
 
 
 def get_upload(upload_id: str, user_id: str) -> dict | None:
@@ -114,13 +128,22 @@ def get_upload_result(upload_id: str, user_id: str) -> dict | None:
     Returns:
         dict | None: The upload result, or None if not found.
     """
-    response = (
-        supabaseClient.table("hdf5_results")
-        .select("*")
-        .eq("upload_id", upload_id)
+    upload_status = (
+        supabaseClient.table("hdf5_uploads")
+        .select("status")
+        .eq("id", upload_id)
         .execute()
     )
-    return response.data[0] if response.data else None
+    if upload_status == "parsed":
+        response = (
+            supabaseClient.table("hdf5_results")
+            .select("*")
+            .eq("upload_id", upload_id)
+            .execute()
+        )
+        return response.data[0] if response.data else None
+    else:
+        return {"error": "Result Unavailable, upload has not yet been parsed"}
 
 def save_parse_result(upload_id: str, metadata: dict, measurements: str, result_storage_key: str) -> None:
     """
