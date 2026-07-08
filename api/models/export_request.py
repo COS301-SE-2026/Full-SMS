@@ -8,3 +8,4 @@ class ExportRequest(BaseModel):
     export_groups: bool= False
     export_intensity: bool = False
     format: ExportFormat = ExportFormat.CSV
+    use_roi: bool = False
