@@ -32,7 +32,10 @@ def get_sessions(user_id:str)->list:
     response = supabase.table('sessions_table').select('*').eq('user_id',user_id).execute()
     return response.data
 
-
+#retrieving a specific session of a particular user
+def get_session_by_id(session_id:str,user_id:str)->dict:
+    response = supabase.table('sessions_table').select('*').eq('id',session_id).eq('user_id',user_id).execute()
+    return response.data[0]
 
 
 
