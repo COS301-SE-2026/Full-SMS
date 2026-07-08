@@ -13,7 +13,9 @@ def save_session(session:SessionCreate,user_id:str):
 def get_sessions(user_id:str):
     return handle_get_sessions(user_id)
 
-
+@session_router.get("/{session_id}")
+def get_session_by_id(session_id:str,user_id:str):
+    return handle_get_session_by_id(session_id,user_id)
 
 
 
