@@ -18,18 +18,6 @@ import Sidebar from "@/components/dashboard/Sidebar";
 import { workspaceService } from "@/services/workspaceServices";
 import { getErrorMessage } from "@/utils/dashboard";
 
-export default function DashboardPage() {
-  const { user } = useAuth();
-  const router = useRouter();
-  const { errorToast, successToast } = useToast();
-
-  const [workspaces, setWorkspaces] = useState<WorkspaceTableRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [statusFilter, setStatusFilter] =
-    useState<WorkspaceFilterStatus>("active");
-
   async function runWorkspaceAction<T>({
     action,
     onSuccess,
@@ -38,6 +26,7 @@ export default function DashboardPage() {
     errorFallback,
     successToast,
     errorToast,
+    setLoading,
   }: {
     action: () => Promise<T & { success: boolean }>;
     onSuccess?: (response: T) => void;
@@ -46,6 +35,7 @@ export default function DashboardPage() {
     errorFallback?: string;
     successToast: (message: string) => void;
     errorToast: (message: string) => void;
+    setLoading: (loading: boolean) => void;
   }) {
     setLoading(true);
     try {
@@ -61,6 +51,18 @@ export default function DashboardPage() {
       setLoading(false);
     }
   }
+
+export default function DashboardPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const { errorToast, successToast } = useToast();
+
+  const [workspaces, setWorkspaces] = useState<WorkspaceTableRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [statusFilter, setStatusFilter] =
+    useState<WorkspaceFilterStatus>("active");
 
   const filteredWorkspaces = useMemo(() => {
     return workspaces.filter((workspace) => {
@@ -144,7 +146,6 @@ export default function DashboardPage() {
   };
 
   const handleDeleteWorkspace = async (workspaceId: string) => {
-    setLoading(true);
     await runWorkspaceAction({
       action: () =>
         workspaceService.deleteWorkspace(workspaceId, user?.id || ""),
