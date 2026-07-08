@@ -9,6 +9,10 @@ session_router = APIRouter(prefix="/sessions",tags=["sessions"])
 def save_session(session:SessionCreate,user_id:str):
     return handle_save_session(user_id,session)
 
+@session_router.get("/")
+def get_sessions(user_id:str):
+    return handle_get_sessions(user_id)
+
 
 
 
