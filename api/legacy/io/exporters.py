@@ -969,3 +969,10 @@ def export_spectra(
         measurement_name: str= "",
 ) -> Path: raise NotImplementedError("spectra export not migrated yet")
 
+
+def export_raster_scan(
+        output_path: Path,
+        fmt : ExportFormat = ExportFormat.CSV,
+        measurement_name: str= "",
+) -> Path: raise NotImplementedError("raster scan export not migrated yet")
+
