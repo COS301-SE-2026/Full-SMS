@@ -17,6 +17,62 @@ import { FolderPlus, Search } from "lucide-react";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { workspaceService } from "@/services/workspaceServices";
 
+const DUMMY_WORKSPACES: WorkspaceTableRow[] = [
+  {
+    id: "1",
+    name: "Protein Folding Analysis",
+    description: "Single molecule FRET analysis of protein folding dynamics",
+    file_count: 12,
+    status: "active",
+    created_at: "2024-01-15T10:30:00Z",
+    updated_at: "2024-06-28T14:22:00Z",
+  },
+  {
+    id: "2",
+    name: "DNA Repair Mechanisms",
+    description: "Fluorescence lifetime analysis of DNA repair proteins",
+    file_count: 8,
+    status: "active",
+    created_at: "2024-02-20T09:15:00Z",
+    updated_at: "2024-06-25T11:45:00Z",
+  },
+  {
+    id: "3",
+    name: "Enzyme Kinetics Study",
+    description: "Change point analysis of enzyme conformational changes",
+    file_count: 5,
+    status: "active",
+    created_at: "2024-03-10T14:00:00Z",
+    updated_at: "2024-06-20T16:30:00Z",
+  },
+  {
+    id: "4",
+    name: "Membrane Protein Dynamics",
+    description: "Correlation analysis of ion channel gating",
+    file_count: 15,
+    status: "active",
+    created_at: "2024-04-05T11:20:00Z",
+    updated_at: "2024-06-15T09:10:00Z",
+  },
+  {
+    id: "5",
+    name: "Old Calibration Data",
+    description: "Archived calibration measurements from 2023",
+    file_count: 3,
+    status: "archived",
+    created_at: "2023-11-01T08:00:00Z",
+    updated_at: "2024-01-10T10:00:00Z",
+  },
+  {
+    id: "6",
+    name: "Test Measurements",
+    description: "Archived test data",
+    file_count: 2,
+    status: "archived",
+    created_at: "2023-12-15T13:45:00Z",
+    updated_at: "2024-02-01T15:30:00Z",
+  },
+];
 export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
