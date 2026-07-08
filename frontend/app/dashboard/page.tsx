@@ -3,7 +3,7 @@
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import { Loader } from "@/components/ui/Loader";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -13,69 +13,14 @@ import { WorkspaceFilterStatus } from "@/types/dashboard";
 import EmptyWorkspaceState from "@/components/dashboard/EmptyWorkspaceState";
 import CreateWorkspaceModal from "@/components/dashboard/CreateWorkspaceModal";
 import StatusFilterButton from "@/components/dashboard/StatusFilterButton";
-import { Plus, Search } from "lucide-react";
+import { FolderPlus, Search } from "lucide-react";
 import Sidebar from "@/components/dashboard/Sidebar";
+import { workspaceService } from "@/services/workspaceServices";
 
-const DUMMY_WORKSPACES: WorkspaceTableRow[] = [
-  {
-    id: "1",
-    name: "Protein Folding Analysis",
-    description: "Single molecule FRET analysis of protein folding dynamics",
-    file_count: 12,
-    status: "active",
-    created_at: "2024-01-15T10:30:00Z",
-    updated_at: "2024-06-28T14:22:00Z",
-  },
-  {
-    id: "2",
-    name: "DNA Repair Mechanisms",
-    description: "Fluorescence lifetime analysis of DNA repair proteins",
-    file_count: 8,
-    status: "active",
-    created_at: "2024-02-20T09:15:00Z",
-    updated_at: "2024-06-25T11:45:00Z",
-  },
-  {
-    id: "3",
-    name: "Enzyme Kinetics Study",
-    description: "Change point analysis of enzyme conformational changes",
-    file_count: 5,
-    status: "active",
-    created_at: "2024-03-10T14:00:00Z",
-    updated_at: "2024-06-20T16:30:00Z",
-  },
-  {
-    id: "4",
-    name: "Membrane Protein Dynamics",
-    description: "Correlation analysis of ion channel gating",
-    file_count: 15,
-    status: "active",
-    created_at: "2024-04-05T11:20:00Z",
-    updated_at: "2024-06-15T09:10:00Z",
-  },
-  {
-    id: "5",
-    name: "Old Calibration Data",
-    description: "Archived calibration measurements from 2023",
-    file_count: 3,
-    status: "archived",
-    created_at: "2023-11-01T08:00:00Z",
-    updated_at: "2024-01-10T10:00:00Z",
-  },
-  {
-    id: "6",
-    name: "Test Measurements",
-    description: "Archived test data",
-    file_count: 2,
-    status: "archived",
-    created_at: "2023-12-15T13:45:00Z",
-    updated_at: "2024-02-01T15:30:00Z",
-  },
-];
 export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const { errorToast } = useToast();
+  const { errorToast, successToast } = useToast();
 
   const [workspaces, setWorkspaces] = useState<WorkspaceTableRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,50 +56,144 @@ export default function DashboardPage() {
     }
   }, [user, router]);
 
+  const fetchWorkspaces = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await workspaceService.getWorkspaces();
+
+      if (response?.success) {
+        setWorkspaces(response?.workspaces);
+      }
+    } catch (error: unknown) {
+      console.error("Error fetching workspaces:", error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An error occurred while fetching workspaces.";
+      errorToast(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [errorToast]);
+
   useEffect(() => {
-    if (!user) return;
     let cancelled = false;
-    const fetchWorkspaces = async () => {
-      setLoading(true);
-      try {
-        if (DUMMY_WORKSPACES.length > 0) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          if (!cancelled) {
-            setWorkspaces(DUMMY_WORKSPACES);
-          }
-        }
-      } catch (error: unknown) {
-        if (!cancelled) {
-          console.error("Error fetching workspaces:", error);
-          errorToast("An error occurred while fetching workspaces.");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+    const loadWorkspaces = async () => {
+      if (!cancelled) {
+        await fetchWorkspaces();
       }
     };
+    loadWorkspaces();
 
-    fetchWorkspaces();
     return () => {
       cancelled = true;
     };
-  }, [user, errorToast]);
+  }, [fetchWorkspaces]);
 
   const handleOpenWorkspace = (workspaceId: string) => {
     router.push("/analysisHub");
   };
 
-  const handleCreateWorkspace = async (
-    name: string,
-    description?: string,
-  ) => {};
+  const handleCreateWorkspace = async (name: string, description?: string) => {
+    try {
+      const response = await workspaceService.createWorkspace({
+        name,
+        description,
+      });
+      if (response?.success && response?.workspace) {
+        await fetchWorkspaces();
+        successToast("Workspace created successfully");
+        setIsCreateModalOpen(false);
+        return response;
+      }
+    } catch (error: unknown) {
+      console.error("Error creating workspace:", error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An error occurred while creating the workspace.";
+      errorToast(message);
+    }
+  };
 
-  const handleDeleteWorkspace = async (workspaceId: string) => {};
+  const handleDeleteWorkspace = async (workspaceId: string) => {
+    setLoading(true);
+    try {
+      const response = await workspaceService.deleteWorkspace(
+        workspaceId,
+        user?.id || "",
+      );
+      if (response?.success) {
+        setWorkspaces((prev) =>
+          prev.filter((workspace) => workspace.id !== workspaceId),
+        );
+        successToast("Workspace deleted successfully");
+      }
+    } catch (error: unknown) {
+      console.error("Error deleting workspace:", error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An error occurred while deleting the workspace.";
+      errorToast(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleArchiveWorkspace = async (workspaceId: string) => {};
+  const handleArchiveWorkspace = async (workspaceId: string) => {
+    try {
+      const response = await workspaceService.archiveWorkspace(workspaceId);
+      if (response?.success) {
+        setWorkspaces((prev) =>
+          prev.map((workspace) =>
+            workspace.id === workspaceId
+              ? {
+                  ...workspace,
+                  status: "archived" as const,
+                  updated_at: new Date().toISOString(),
+                }
+              : workspace,
+          ),
+        );
+        successToast("Workspace archived successfully");
+      }
+    } catch (error: unknown) {
+      console.error("Error archiving workspace:", error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An error occurred while archiving the workspace.";
+      errorToast(message);
+    }
+  };
 
-  const handleUnarchiveWorkspace = async (workspaceId: string) => {};
+  const handleUnarchiveWorkspace = async (workspaceId: string) => {
+    try {
+      const response = await workspaceService.unarchiveWorkspace(workspaceId);
+      if (response?.success) {
+        setWorkspaces((prev) =>
+          prev.map((workspace) =>
+            workspace.id === workspaceId
+              ? {
+                  ...workspace,
+                  status: "active" as const,
+                  updated_at: new Date().toISOString(),
+                }
+              : workspace,
+          ),
+        );
+        successToast("Workspace unarchived successfully");
+      }
+    } catch (error: unknown) {
+      console.error("Error unarchiving workspace:", error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "An error occurred while unarchiving the workspace.";
+      errorToast(message);
+    }
+  };
 
   const hasWorkspaces = workspaces.length > 0;
 
@@ -217,7 +256,7 @@ export default function DashboardPage() {
             <Button
               variant="primary"
               size="sm"
-              leftIcon={<Plus className="h-4 w-4" />}
+              leftIcon={<FolderPlus className="h-5 w-4" />}
               onClick={() => setIsCreateModalOpen(true)}
               className="ml-auto"
             >

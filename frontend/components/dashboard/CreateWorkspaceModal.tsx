@@ -30,7 +30,22 @@ export default function CreateWorkspaceModal({
       description: "",
     },
     validationSchema: CreateWorkspaceSchema,
-    onSubmit: async (values, { setSubmitting, resetForm }) => {},
+    onSubmit: async (values, { setSubmitting, resetForm }) => {
+      try {
+        const response = await onCreate(
+          values.name?.trim(),
+          values.description?.trim() || undefined,
+        );
+        if (response?.success) {
+          resetForm();
+          onClose();
+        }
+      } catch (error: any) {
+        console.error("Error creating workspace:", error);
+      } finally {
+        setSubmitting(false);
+      }
+    },
   });
 
   const handleClose = () => {
