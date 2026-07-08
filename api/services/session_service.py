@@ -6,9 +6,12 @@ from models.session import SessionCreate
 
 #Load environment variables from .env file
 load_dotenv()
+load_dotenv()
 
 SUPABASE_URL = os.getenv('SUPABASE_URL')
 SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY')
+print(f"SUPABASE_URL: {os.getenv('SUPABASE_URL')}")
+print(f"SUPABASE_SERVICE_KEY: {os.getenv('SUPABASE_SERVICE_KEY')}")
 
 if not all([SUPABASE_URL, SUPABASE_SERVICE_KEY]):
     raise EnvironmentError("One or more Supabase environment variables are missing.")
