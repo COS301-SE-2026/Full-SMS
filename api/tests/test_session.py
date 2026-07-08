@@ -33,3 +33,16 @@ MOCK_SESSION_LIST = [
     }
 ]
 
+class TestSaveSession:
+    def test_save_session_success(self):
+        with patch("routes.session_routes.handle_save_session",return_value=MOCK_SESSION):
+            response = client.post("/api/py/sessions",
+                                   json={
+                                       "name":'Test Session 0',
+                                       'dataset_ref':'experiment.h5',
+                                       'parameters': {'bin_size':10, 'confidence':0.96},
+                                       'results': {}
+                                   }, params={"user_id":MOCK_USER_ID})
+            assert response.status_code == 200
+            assert response.json()["name"] == "Test Session 0"
+            assert response.json()["user_id"] == MOCK_USER_ID
