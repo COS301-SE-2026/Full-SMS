@@ -8,6 +8,7 @@ from api.utils.supabase_client import supabaseClient
 from api.services.hdf5_services import read_hdf5
 import traceback
 import gzip
+import redis
 
 
 app = Celery('hdf5_job_service', broker=os.environ.get("CELERY_BROKER_URL"), backend=os.environ.get("CELERY_RESULT_BACKEND"))
@@ -57,6 +58,9 @@ def parse_upload_job(upload_id: str, user_id: str, storage_key: str) -> None:
         result_metadata: dict = read_result["metadata"]
         print(f"\n\nParsed metadata: {result_metadata}\n\n")
         result_measurements = read_result["measurements"]
+  
+        redis_cache = redis.Redis(host="localhost", port= 6379, db=2)
+        redis_cache.set(f"raw_data:{upload_id}:{result_measurements}")
 
         with gzip.open("DEBUG_measurements.json.gz", "wt", encoding='utf-8') as debug_file:
             json.dump(result_measurements, debug_file, indent=4)
@@ -68,6 +72,7 @@ def parse_upload_job(upload_id: str, user_id: str, storage_key: str) -> None:
 
         new_json_storage_key = build_storage_key(user_id, upload_id, "measurements.json.gz")
         print(f"\n\nSTORAGE KEY: {new_json_storage_key}\n\n")
+
 
         with os.fdopen(fd, "rb") as compressed_json_file:
             json_res = (
