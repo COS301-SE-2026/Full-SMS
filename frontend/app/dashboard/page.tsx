@@ -129,9 +129,9 @@ export default function DashboardPage() {
 
   const handleCreateWorkspace = async (name: string, description?: string) => {
     await runWorkspaceAction({
-      action: () => workspaceService.createWorkspace(name, description),
+      action: () => workspaceService.createWorkspace({ name, description }),
       onSuccess: (response) => {
-        fetchWorkSpaces();
+        fetchWorkspaces();
         setIsCreateModalOpen(false);
       },
       successMessage: "Workspace created successfully",
