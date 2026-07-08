@@ -79,3 +79,7 @@ class TestGetSessionsById:
             assert response.json()["name"] == "Test Session 0"
             assert response.json()["user_id"] == MOCK_USER_ID
 
+    def test_get_session_not_found(self):
+        with patch("routes.session_routes.handle_get_session_by_id",side_effect=HTTPException(status_code=404, detail="Session not found")):
+            response = client.get("/api/py/sessions/newSessionId",params={'user_id':MOCK_USER_ID})
+            assert response.status_code == 404
