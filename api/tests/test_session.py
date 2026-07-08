@@ -70,3 +70,12 @@ class TestGetSessions:
             assert response.status_code == 200
             assert response.json() == []
 
+class TestGetSessionsById:
+    def test_get_session_by_id_success(self):
+        with patch("routes.session_routes.handle_get_session_by_id",return_value=MOCK_SESSION):
+            response = client.get("/api/py/sessions/mock-session-uuid-123",params={'id': 'mock-session-uuid-123',
+                                                             'user_id':MOCK_USER_ID})
+            assert response.status_code == 200
+            assert response.json()["name"] == "Test Session 0"
+            assert response.json()["user_id"] == MOCK_USER_ID
+
