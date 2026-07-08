@@ -46,3 +46,13 @@ class TestSaveSession:
             assert response.status_code == 200
             assert response.json()["name"] == "Test Session 0"
             assert response.json()["user_id"] == MOCK_USER_ID
+
+    def test_save_session_missing_name(self):
+        response = client.post("/api/py/sessions",
+                               json={
+                                       'dataset_ref':'experiment.h5',
+                                       'parameters': {'bin_size':10, 'confidence':0.96},
+                                       'results': {}
+                                    }, params={"user_id":MOCK_USER_ID})
+        assert response.status_code == 422
+
