@@ -122,6 +122,7 @@ export default function WorkspaceTable({
                           className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-lg shadow-lg z-10"
                           onClick={(e) => e.stopPropagation()}
                           role="menu"
+                          tabIndex={0}
                           onKeyDown={(e) => {
                             e.stopPropagation();
                           }}

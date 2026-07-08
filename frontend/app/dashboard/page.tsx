@@ -117,8 +117,8 @@ export default function DashboardPage() {
     try {
       const response = await workspaceService.getWorkspaces();
 
-      if (response?.success) {
-        setWorkspaces(response?.workspaces);
+      if (response?.success && response.workspaces) {
+        setWorkspaces(response.workspaces);
       }
     } catch (error: unknown) {
       console.error("Error fetching workspaces:", error);

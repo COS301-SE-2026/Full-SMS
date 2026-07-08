@@ -36,10 +36,7 @@ export default function CreateWorkspaceModal({
           values.name?.trim(),
           values.description?.trim() || undefined,
         );
-        if (response?.success) {
-          resetForm();
-          onClose();
-        }
+        resetForm();
       } catch (error: any) {
         console.error("Error creating workspace:", error);
       } finally {

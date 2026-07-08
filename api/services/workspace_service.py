@@ -36,7 +36,7 @@ def get_workspace_by_id(workspace_id: str, user_id: str) -> Optional[dict]:
     )
 
     if not response.data:
-        raise ValueError(f"Workspace not found")
+        raise ValueError("Workspace not found")
 
     data = response.data
 
@@ -121,7 +121,7 @@ def update_workspace(workspace_id: str, user_id: str, name: Optional[str] = None
     return response.data[0]
 
 
-def delete_workspace(workspace_id: str, user_id: str) -> None:
+def delete_workspace(workspace_id: str, user_id: str) -> bool:
     supabase = get_supabase_admin()
 
     workspace = get_workspace_by_id(workspace_id, user_id)
