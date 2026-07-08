@@ -16,6 +16,7 @@ import StatusFilterButton from "@/components/dashboard/StatusFilterButton";
 import { FolderPlus, Search } from "lucide-react";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { workspaceService } from "@/services/workspaceServices";
+import { getErrorMessage } from "@/utils/dashboard";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -28,6 +29,38 @@ export default function DashboardPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] =
     useState<WorkspaceFilterStatus>("active");
+
+  async function runWorkspaceAction<T>({
+    action,
+    onSuccess,
+    successMessage,
+    errorContext,
+    errorFallback,
+    successToast,
+    errorToast,
+  }: {
+    action: () => Promise<T & { success: boolean }>;
+    onSuccess?: (response: T) => void;
+    successMessage: string;
+    errorContext: string;
+    errorFallback?: string;
+    successToast: (message: string) => void;
+    errorToast: (message: string) => void;
+  }) {
+    setLoading(true);
+    try {
+      const response = await action();
+      if (response?.success) {
+        onSuccess?.(response);
+        successToast(successMessage);
+      }
+    } catch (error: unknown) {
+      console.error(errorContext, error);
+      errorToast(getErrorMessage(error, errorContext));
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const filteredWorkspaces = useMemo(() => {
     return workspaces.filter((workspace) => {
@@ -95,56 +128,41 @@ export default function DashboardPage() {
   };
 
   const handleCreateWorkspace = async (name: string, description?: string) => {
-    try {
-      const response = await workspaceService.createWorkspace({
-        name,
-        description,
-      });
-      if (response?.success && response?.workspace) {
-        await fetchWorkspaces();
-        successToast("Workspace created successfully");
+    await runWorkspaceAction({
+      action: () => workspaceService.createWorkspace(name, description),
+      onSuccess: (response) => {
+        fetchWorkSpaces();
         setIsCreateModalOpen(false);
-        return response;
-      }
-    } catch (error: unknown) {
-      console.error("Error creating workspace:", error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : "An error occurred while creating the workspace.";
-      errorToast(message);
-    }
+      },
+      successMessage: "Workspace created successfully",
+      errorContext: "Error creating workspace:",
+      errorFallback: "An error occurred while creating the workspace.",
+      successToast,
+      errorToast,
+      setLoading,
+    });
   };
 
   const handleDeleteWorkspace = async (workspaceId: string) => {
     setLoading(true);
-    try {
-      const response = await workspaceService.deleteWorkspace(
-        workspaceId,
-        user?.id || "",
-      );
-      if (response?.success) {
-        setWorkspaces((prev) =>
-          prev.filter((workspace) => workspace.id !== workspaceId),
-        );
-        successToast("Workspace deleted successfully");
-      }
-    } catch (error: unknown) {
-      console.error("Error deleting workspace:", error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : "An error occurred while deleting the workspace.";
-      errorToast(message);
-    } finally {
-      setLoading(false);
-    }
+    await runWorkspaceAction({
+      action: () =>
+        workspaceService.deleteWorkspace(workspaceId, user?.id || ""),
+      onSuccess: () =>
+        setWorkspaces((prev) => prev.filter((w) => w.id !== workspaceId)),
+      successMessage: "Workspace deleted successfully",
+      errorContext: "Error deleting workspace:",
+      errorFallback: "An error occurred while deleting the workspace.",
+      successToast,
+      errorToast,
+      setLoading,
+    });
   };
 
   const handleArchiveWorkspace = async (workspaceId: string) => {
-    try {
-      const response = await workspaceService.archiveWorkspace(workspaceId);
-      if (response?.success) {
+    await runWorkspaceAction({
+      action: () => workspaceService.archiveWorkspace(workspaceId),
+      onSuccess: () =>
         setWorkspaces((prev) =>
           prev.map((workspace) =>
             workspace.id === workspaceId
@@ -155,23 +173,20 @@ export default function DashboardPage() {
                 }
               : workspace,
           ),
-        );
-        successToast("Workspace archived successfully");
-      }
-    } catch (error: unknown) {
-      console.error("Error archiving workspace:", error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : "An error occurred while archiving the workspace.";
-      errorToast(message);
-    }
+        ),
+      successMessage: "Workspace archived successfully",
+      errorContext: "Error archiving workspace:",
+      errorFallback: "An error occurred while archiving the workspace.",
+      successToast,
+      errorToast,
+      setLoading,
+    });
   };
 
   const handleUnarchiveWorkspace = async (workspaceId: string) => {
-    try {
-      const response = await workspaceService.unarchiveWorkspace(workspaceId);
-      if (response?.success) {
+    await runWorkspaceAction({
+      action: () => workspaceService.unarchiveWorkspace(workspaceId),
+      onSuccess: () =>
         setWorkspaces((prev) =>
           prev.map((workspace) =>
             workspace.id === workspaceId
@@ -182,17 +197,14 @@ export default function DashboardPage() {
                 }
               : workspace,
           ),
-        );
-        successToast("Workspace unarchived successfully");
-      }
-    } catch (error: unknown) {
-      console.error("Error unarchiving workspace:", error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : "An error occurred while unarchiving the workspace.";
-      errorToast(message);
-    }
+        ),
+      successMessage: "Workspace unarchived successfully",
+      errorContext: "Error unarchiving workspace:",
+      errorFallback: "An error occurred while unarchiving the workspace.",
+      successToast,
+      errorToast,
+      setLoading,
+    });
   };
 
   const hasWorkspaces = workspaces.length > 0;
