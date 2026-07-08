@@ -5,6 +5,12 @@ from models.session import SessionCreate
 session_router = APIRouter(prefix="/sessions",tags=["sessions"])
 
 
+@session_router.post("/")
+def save_session(session:SessionCreate,user_id:str):
+    return handle_save_session(user_id,session)
+
+
+
 
 
 
