@@ -63,3 +63,10 @@ class TestGetSessions:
             assert response.status_code == 200
             assert len(response.json()) == 2
             assert response.json()[0]["user_id"] == MOCK_USER_ID
+    
+    def test_get_sessions_empty_list(self):
+        with patch("routes.session_routes.handle_get_sessions",return_value=[]):
+            response = client.get("/api/py/sessions",params={"user_id":MOCK_USER_ID})
+            assert response.status_code == 200
+            assert response.json() == []
+
