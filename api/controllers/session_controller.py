@@ -12,4 +12,12 @@ def handle_save_session(user_id:str,session:SessionCreate)->dict:
     except Exception as e:
         raise HTTPException(status_code=500,detail=str(e))
 
+#implementing the handle_get_sessions function
+def handle_get_sessions(user_id:str)->list:
+    try:
+        result = get_sessions(user_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=str(e))
+
 
