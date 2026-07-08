@@ -976,3 +976,8 @@ def export_raster_scan(
         measurement_name: str= "",
 ) -> Path: raise NotImplementedError("raster scan export not migrated yet")
 
+def export_antibunching(
+        output_path: Path,
+        fmt : ExportFormat = ExportFormat.CSV,
+        measurement_name: str= "",
+) -> Path: raise NotImplementedError("antibunching export not migrated yet")
