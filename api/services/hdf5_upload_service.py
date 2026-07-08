@@ -128,22 +128,14 @@ def get_upload_result(upload_id: str, user_id: str) -> dict | None:
     Returns:
         dict | None: The upload result, or None if not found.
     """
-    upload_status = (
-        supabaseClient.table("hdf5_uploads")
-        .select("status")
-        .eq("id", upload_id)
+    response = (
+        supabaseClient.table("hdf5_results")
+        .select("*")
+        .eq("upload_id", upload_id)
         .execute()
     )
-    if upload_status == "parsed":
-        response = (
-            supabaseClient.table("hdf5_results")
-            .select("*")
-            .eq("upload_id", upload_id)
-            .execute()
-        )
-        return response.data[0] if response.data else None
-    else:
-        return {"error": "Result Unavailable, upload has not yet been parsed"}
+    return response.data[0] if response.data else None
+
 
 def save_parse_result(upload_id: str, metadata: dict, measurements: str, result_storage_key: str) -> None:
     """
@@ -162,3 +154,5 @@ def save_parse_result(upload_id: str, metadata: dict, measurements: str, result_
         "measurements_json": measurements,
         "raw_result_storage_key": result_storage_key
     }).execute()
+
+    get_upload_result("e1dcf4df-710a-4f68-ae90-3ee6102c0bbd", "0f9c1780-e927-4e54-a36c-bdc7a16493ef")
