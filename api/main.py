@@ -13,6 +13,7 @@ from routes.profile_routes import router as profile_router
 from routes.upload_routes import router as upload_router
 from routes.auth_routes import router as auth_router
 from routes.hdf5_routes import router as hdf5_router
+from routes.session_routes import session_router
 
 app = FastAPI(
     title="Full-SMS API",
@@ -37,6 +38,7 @@ app.include_router(auth_router, prefix="/api/py")
 app.include_router(hdf5_router, prefix="/api/py")
 app.include_router(profile_router, prefix="/api/py")
 app.include_router(upload_router, prefix="/api/py")
+app.include_router(session_router, prefix="/api/py")
 
 @app.on_event("startup")
 async def startup_event():
