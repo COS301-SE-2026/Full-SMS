@@ -58,14 +58,12 @@ def parse_upload_job(upload_id: str, user_id: str, storage_key: str) -> None:
         result_metadata: dict = read_result["metadata"]
         print(f"\n\nParsed metadata: {result_metadata}\n\n")
         result_measurements = read_result["measurements"]
-  
+
+        #save data to cache before compressing and sending to supabase
         redis_cache = redis.Redis(host="localhost", port= 6379, db=2)
         redis_cache.set(f"raw_data:{upload_id}:{result_measurements}")
 
-        with gzip.open("DEBUG_measurements.json.gz", "wt", encoding='utf-8') as debug_file:
-            json.dump(result_measurements, debug_file, indent=4)
-        print("\n\nINTERCEPTED: Saved to DEBUG_measurements.json.gz in project root!\n\n")
-
+        #compress raw json
         fd, temp_json_path = tempfile.mkstemp(suffix=".json.gz") 
         with gzip.open(temp_json_path, 'wt', encoding='utf-8') as compressed_json_file:
             json.dump(result_measurements, compressed_json_file)

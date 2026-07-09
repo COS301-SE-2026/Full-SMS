@@ -1,4 +1,3 @@
-from fastapi import HTTPException
 from supabase import Client, create_client
 import os
 from dotenv import load_dotenv

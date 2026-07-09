@@ -102,45 +102,44 @@ useEffect (()=>{
 
                       console.log("Parsing is complete! Fetching final data...");
                       setIsParsing(false);
-                      
-                      try {
-                        const result = await getHdf5UploadResult(uploadId);
+                      // try {
+                      //   const result = await getHdf5UploadResult(uploadId);
 
-                        const { data: blob, error} = await supabase.storage
-                          .from("processed_hdf5")
-                          .download(result.measurements_json);
+                      //   const { data: blob, error} = await supabase.storage
+                      //     .from("processed_hdf5")
+                      //     .download(result.measurements_json);
 
-                        if(!blob || error )
-                          throw new Error("Failed to download .h/.hdf5 file from supabase")
+                      //   if(!blob || error )
+                      //     throw new Error("Failed to download .h/.hdf5 file from supabase")
 
-                        const buffer = await blob.arrayBuffer();
-                        const parseWorker = new Worker(new URL('../../public/workers/parseWorker.ts', import.meta.url));
+                      //   const buffer = await blob.arrayBuffer();
+                      //   const parseWorker = new Worker(new URL('../../public/workers/parseWorker.ts', import.meta.url));
 
-                        parseWorker.postMessage({buffer});
+                      //   parseWorker.postMessage({buffer});
 
-                        parseWorker.onmessage = (e) =>{
-                          if (e.data.success){
-                            setHdf5Data({
-                              metadata: result,
-                              measurements: e.data.data
-                            });
-                            console.log("HDF5 Data successfully saved to context!");
+                      //   parseWorker.onmessage = (e) =>{
+                      //     if (e.data.success){
+                      //       setHdf5Data({
+                      //         metadata: result,
+                      //         measurements: e.data.data
+                      //       });
+                      //       console.log("HDF5 Data successfully saved to context!");
                             
-                            parseWorker.terminate();
-                            if (onComplete) {
-                                onComplete(); 
-                            }
-                          }
-                          else{
-                            console.error("Worker could not parse:", e.data.error)
-                            parseWorker.terminate();
-                          }
+                      //       parseWorker.terminate();
+                      //       if (onComplete) {
+                      //           onComplete(); 
+                      //       }
+                      //     }
+                      //     else{
+                      //       console.error("Worker could not parse:", e.data.error)
+                      //       parseWorker.terminate();
+                      //     }
 
-                        }
+                      //   }
                         
-                      } catch (err) {
-                        console.error("Failed to fetch parsed HDF5 data:", err);
-                      }
+                      // } catch (err) {
+                      //   console.error("Failed to fetch parsed HDF5 data:", err);
+                      // }
                     }
                   }
                 )
@@ -151,7 +150,7 @@ useEffect (()=>{
     return () =>{
       supabase.removeChannel(sub);
     }            
-},[uploadId, setHdf5Data])
+},[uploadId])
 
   const handleFilesSelected = (newFiles: File[]) => {
     const freshQueueEntries: SelectedFile[] = newFiles.map((file) => ({

@@ -2,7 +2,7 @@
 
 import {MenuBar} from '@/components/analysisHub/menu-bar';
 import {Sidebar} from '@/components/analysisHub/sidebar';
-import {PhotonChart} from '@/components/analysisHub/photon-chart';
+import {IntensityChart} from '@/components/analysisHub/intensity-chart';
 import {IntensityHistogram} from '@/components/analysisHub/intensity-histogram';
 import {StatusBar} from '@/components/analysisHub/status-bar';
 import { AnalysisToolbar } from '@/components/analysisHub/analysis-toolbar';
