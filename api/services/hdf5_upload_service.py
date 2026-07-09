@@ -154,5 +154,3 @@ def save_parse_result(upload_id: str, metadata: dict, measurements: str, result_
         "measurements_json": measurements,
         "raw_result_storage_key": result_storage_key
     }).execute()
-
-    get_upload_result("e1dcf4df-710a-4f68-ae90-3ee6102c0bbd", "0f9c1780-e927-4e54-a36c-bdc7a16493ef")
