@@ -1,0 +1,10 @@
+import os
+from pathlib import Path
+from fastapi import HTTPException, BackgroundTasks
+from fastapi.responses import FileResponse
+from models.export_request import ExportRequest
+
+async def handle_export(request: ExportRequest, background_tasks: BackgroundTasks):
+    if not any([request.export_intensity, request.export_levels, request.export_groups]):
+        raise HTTPException(status_code = 400, detail= "No export category selected.")
+    
