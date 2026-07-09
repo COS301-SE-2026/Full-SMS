@@ -5,6 +5,7 @@ import json
 from api.services.hdf5_upload_service import save_parse_result, set_status
 from api.services.storage_service import download_to_temp, build_storage_key
 from api.utils.supabase_client import supabaseClient
+from api.utils.redis_Client import redisClient
 from api.services.hdf5_services import read_hdf5
 import traceback
 import gzip
@@ -60,8 +61,7 @@ def parse_upload_job(upload_id: str, user_id: str, storage_key: str) -> None:
         result_measurements = read_result["measurements"]
 
         #save data to cache before compressing and sending to supabase
-        redis_cache = redis.Redis(host="localhost", port= 6379, db=2)
-        redis_cache.set(f"raw_data:{upload_id}:{result_measurements}")
+        redis_cache = redisClient.set(f"raw_data:{upload_id}:{result_measurements}")
 
         #compress raw json
         fd, temp_json_path = tempfile.mkstemp(suffix=".json.gz") 
