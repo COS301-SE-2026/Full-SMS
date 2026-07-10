@@ -24,6 +24,7 @@ function NumberField({
   );
 }
 
+
 export function AnalysisToolbar() {
   const [bin, setBin] = useState('10');
   const [confidence, setConfidence] = useState('99');

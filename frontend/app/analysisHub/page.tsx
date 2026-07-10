@@ -2,8 +2,7 @@
 
 import {MenuBar} from '@/components/analysisHub/menu-bar';
 import {Sidebar} from '@/components/analysisHub/sidebar';
-import {PhotonChart} from '@/components/analysisHub/photon-chart';
-import {IntensityHistogram} from '@/components/analysisHub/intensity-histogram';
+import {IntensityChart} from '@/components/analysisHub/intensity-chart';
 import {StatusBar} from '@/components/analysisHub/status-bar';
 import { AnalysisToolbar } from '@/components/analysisHub/analysis-toolbar';
 import { useState } from 'react';
@@ -23,8 +22,7 @@ export default function App() {
         <div className="flex flex-col flex-1 min-w-0">
           <AnalysisToolbar />
           <div className="flex flex-1 gap-3 p-3 min-h-0">
-            <PhotonChart />
-            <IntensityHistogram />
+            <IntensityChart />
           </div>
         </div>
       </div>

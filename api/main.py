@@ -8,13 +8,13 @@ from dotenv import load_dotenv
 # Load environment variables from api/.env
 env_path = Path(__file__).parent / '.env'
 load_dotenv(dotenv_path=env_path)
-from routes.auth_routes import router as auth_router
-from routes.profile_routes import router as profile_router
-from routes.upload_routes import router as upload_router
-from routes.auth_routes import router as auth_router
-from routes.hdf5_routes import router as hdf5_router
-from routes.session_routes import session_router
-from routes.workspace_routes import router as workspace_router
+from api.routes.auth_routes import router as auth_router
+from api.routes.profile_routes import router as profile_router
+from api.routes.upload_routes import router as upload_router
+from api.routes.auth_routes import router as auth_router
+from api.routes.hdf5_routes import router as hdf5_router
+from api.routes.workspace_routes import router as workspace_router
+from api.routes.session_routes import session_router
 
 app = FastAPI(
     title="Full-SMS API",

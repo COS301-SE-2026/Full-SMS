@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SelectedFile } from '@/types/file';
+import { useHdf5Data,  } from '@/contexts/Hdf5DataContext';
 
 interface FileListProps {
   files: SelectedFile[];
@@ -25,6 +26,11 @@ const getFormattedCurrentDate = (): string => {
 };
 
 export default function FileList({ files, onRemove }: FileListProps) {
+  const {isParsing } = useHdf5Data()
+  useEffect(()=>{
+    console.log("isParsing: ", isParsing);
+  },[isParsing])
+  
   if (files.length === 0) return null;
 
   return (
@@ -57,9 +63,9 @@ export default function FileList({ files, onRemove }: FileListProps) {
                     <svg
                       className={`w-[18px] h-[18px] flex-shrink-0 transition-colors ${
                         isPending || isSuccess 
-                          ? 'text-[#4fd1c5]' 
+                          ? 'text-primary' 
                           : isError 
-                          ? 'text-red-400' 
+                          ? 'text-destructive' 
                           : 'text-zinc-400 group-hover:text-zinc-300'
                       }`}
                       fill="none"
@@ -102,6 +108,19 @@ export default function FileList({ files, onRemove }: FileListProps) {
                           )}
                         </div>
                       )}
+                      {isSuccess && (
+                      <div className="text-[11px] mt-0.5 font-medium tracking-wide">
+                        {isParsing ? (
+                          <span className="text-[#4fd1c5] animate-pulse">
+                            Upload Complete! Please wait while we process your file.
+                          </span>
+                        ) : (
+                          <span className="text-[#4fd1c5]">
+                            Upload and parsing complete.
+                          </span>
+                        )}
+                      </div>
+                    )}
                     </div>
                   </div>
 
