@@ -2,7 +2,7 @@
 import os
 from supabase import create_client, Client
 from dotenv import load_dotenv
-from models.session import SessionCreate
+from api.models.session import SessionCreate
 
 #Load environment variables from .env file
 load_dotenv()
