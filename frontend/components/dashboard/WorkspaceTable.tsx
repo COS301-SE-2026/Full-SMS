@@ -37,8 +37,8 @@ export default function WorkspaceTable({
 
   return (
     <>
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
+      <Card className="overflow-visible">
+        <div className="overflow-x-auto overflow-y-visible">
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-card/50">
@@ -105,7 +105,7 @@ export default function WorkspaceTable({
                       {workspace.status}
                     </Badge>
                   </td>
-                  <td className="py-4 px-4 text-right">
+                  <td className="py-4 px-4">
                     <div className="relative inline-block">
                       <button
                         onClick={(e) => {
@@ -119,9 +119,10 @@ export default function WorkspaceTable({
 
                       {openMenuId === workspace.id && (
                         <div
-                          className="absolute right-0 top-full mt-1 w-48 bg-card border border-border rounded-lg shadow-lg z-10"
+                          className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-lg shadow-lg z-10"
                           onClick={(e) => e.stopPropagation()}
                           role="menu"
+                          tabIndex={0}
                           onKeyDown={(e) => {
                             e.stopPropagation();
                           }}
@@ -187,6 +188,7 @@ export default function WorkspaceTable({
         onConfirm={() => {
           if (deleteModalWorkspace) {
             onDelete(deleteModalWorkspace.id);
+            setDeleteModalWorkspace(null);
           }
         }}
         workspaceName={deleteModalWorkspace?.name || ""}
