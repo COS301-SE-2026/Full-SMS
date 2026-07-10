@@ -8,6 +8,7 @@ import { Button } from '@/components/ui';
 import { useHdf5Data } from '@/contexts/Hdf5DataContext';
 import {supabase} from '@/lib/supabase/supabaseConfig'
 import { throwDeprecation } from 'process';
+import { InitUploadResponse } from '@/types/hdf5';
 
 
 type UploadPageProps = {
@@ -17,7 +18,7 @@ type UploadPageProps = {
 export default function UploadPage({ onComplete }: UploadPageProps) {
   const [queue, setQueue] = useState<SelectedFile[]>([]);
   const { setHdf5Data, setIsParsing, isParsing } = useHdf5Data()
-  const [uploadId, setUploadId] = useState();
+  const [uploadId, setUploadId] = useState<string>("");
   const [status, setStatus] = useState("queued");
 
   const updateItem = (id: string, patch: Partial<SelectedFile>) => {
@@ -40,7 +41,7 @@ const handleOpen = async () => {
 
       console.log("initializing upload");
       
-      const initialize = await initHdf5Upload({
+      const initialize: InitUploadResponse = await initHdf5Upload({
         filename: item.name,
         size_bytes: item.sizeBytes,
         content_type: item.file.type,

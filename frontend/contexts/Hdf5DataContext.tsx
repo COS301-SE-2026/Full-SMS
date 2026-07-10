@@ -26,15 +26,15 @@ type Hdf5Response = {
 interface Hdf5DataContextType {
   hdf5Data: Hdf5Response | null
   setHdf5Data: (data: Hdf5Response | null) => void
-  isParsing: Boolean
-  setIsParsing: (is_parsing: Boolean) => void
+  isParsing: boolean
+  setIsParsing: (is_parsing: boolean) => void
 }
 
 const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(undefined)
 
 export function Hdf5DataProvider({ children }: { children: ReactNode }) {
   const [hdf5Data, setHdf5Data] = useState<Hdf5Response | null>(null)
-  const [isParsing, setIsParsing] = useState<Boolean>(true);
+  const [isParsing, setIsParsing] = useState<boolean>(true);
   console.log(hdf5Data);
   
 

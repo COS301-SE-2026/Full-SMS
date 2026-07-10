@@ -1,14 +1,8 @@
 import axiosInstance from "@/lib/api/axiosInstance";
 import { User } from "@/types/auth";
+import { InitUploadResponse } from "@/types/hdf5";
 
 
-export type InitUploadResponse = {
-  upload_id: string;
-  storage_key: string;
-  upload_url: string;
-  url_expires_at: string;
-  max_file_size_bytes: number;
-};
 
 
 export const computeSHA256 = async(hdf5_file: File): Promise<string>=>{

@@ -5,10 +5,11 @@ import { useHdf5Data } from '@/contexts/Hdf5DataContext';
 import { getUserHdf5Uploads } from '@/services/hdf5services';
 import { useAuth } from '@/contexts/authContext/AuthContext'; 
 import { Card, CardContent, CardHeader, CardDescription, CardFooter, Button, CardTitle, Badge, Loader } from '../ui';
+import { UploadRecord } from '@/types/hdf5';
 
 export default function RecentUploads() {
   const auth = useAuth()
-  const[userUploads, setUserUploads] = useState({data:[]})
+  const [userUploads, setUserUploads] = useState<{ data: UploadRecord[] }>({ data: [] });  
   const [isLoading, setIsLoading]= useState(true)
 
   console.log(auth.user)
@@ -50,13 +51,12 @@ export default function RecentUploads() {
       {
         isLoading ? (<Loader/>) :(
           userUploads.data?.slice(0,5).map((upload) => (
-          <Card className='mb-2 border border-primary outline'>
+          <Card key={upload.id} className='mb-2 border border-primary outline'>
               <CardHeader>
                 <CardTitle>{upload.filename}</CardTitle>
                 <CardDescription className='flex flex-row justify-items-end-safe'>
-                  <p className='mr-4'>{(upload.size_bytes/(1024*1024)).toFixed(1)} MB</p>
-                  <br/>
-                  <p>Uploaded {getRelativeDaysAgo(upload.created_at)}</p>
+                  <span className='mr-4'>{(upload.size_bytes/(1024*1024)).toFixed(1)} MB</span>
+                  <span>Uploaded {getRelativeDaysAgo(upload.created_at)}</span>
                 </CardDescription>
               </CardHeader>
           </Card>

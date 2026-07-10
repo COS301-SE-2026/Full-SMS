@@ -3,7 +3,7 @@ import axiosInstance from "@/lib/api/axiosInstance";
 export type Intensity_Req = {
     upload_id: string;
     measurement_id: string;
-    bin_size_ms: Number
+    bin_size_ms: number
 }
 
 export type Intensity_Res = {
