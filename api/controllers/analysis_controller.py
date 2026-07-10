@@ -14,5 +14,3 @@ async def intensity_analysis_controller(req: Intensity_Req) -> Intensity_Res:
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Could not complete Intsity Analysis: {e}")
-    except ValueError as ve:
-        raise HTTPException(status_code=404, detail=ve)

@@ -37,8 +37,8 @@ export const uploadToSignedUrl = async (upload_url: string, Hfile: File, onProgr
   });
 }
 
-export const completeHdf5Upload = async (upload_id: string, payload: {storage_key: string, etag?: string; sha256?: string})=>{
-  const {data} = await axiosInstance.post(`/api/py/hdf5/uploads/${upload_id}/complete`, payload);
+export const completeHdf5Upload = async (upload_id: string)=>{
+  const {data} = await axiosInstance.post(`/api/py/hdf5/uploads/${upload_id}/complete`);
   return data;
 }
 

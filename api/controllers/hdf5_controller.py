@@ -7,7 +7,7 @@ import api.services.hdf5_upload_service as hdf5_upload_service
 import api.services.storage_service as storage_service
 import api.services.hdf5_job_service as hdf5_job_service
 
-async def init_hdf5_upload(payload: dict, current_user: dict) -> dict:
+def init_hdf5_upload(payload: dict, current_user: dict) -> dict:
     """
     Initialize an HDF5 file upload.
 
@@ -31,7 +31,7 @@ async def init_hdf5_upload(payload: dict, current_user: dict) -> dict:
 
 
 
-async def complete_hdf5_upload(upload_id: str, payload: dict, current_user: dict) -> dict:
+def complete_hdf5_upload(upload_id: str, current_user: dict) -> dict:
     """
     Complete an HDF5 file upload.
     """
@@ -49,7 +49,7 @@ async def complete_hdf5_upload(upload_id: str, payload: dict, current_user: dict
 
 
 
-async def get_hdf5_upload_status(upload_id: str, current_user: dict) -> dict:
+def get_hdf5_upload_status(upload_id: str, current_user: dict) -> dict:
     """
     Get the status of an HDF5 file upload.
     """
@@ -58,7 +58,7 @@ async def get_hdf5_upload_status(upload_id: str, current_user: dict) -> dict:
         raise HTTPException(status_code=404, detail="Upload not found.")
     return hdf5_upload.status
 
-async def get_hdf5_upload_result(upload_id: str, current_user: dict) -> dict:
+def get_hdf5_upload_result(upload_id: str, current_user: dict) -> dict:
     """
     Get the result of an HDF5 file upload.
     """
@@ -84,7 +84,7 @@ async def read_hdf5_file(file: UploadFile):
         if tmp_path and os.path.exists(tmp_path):
             os.remove(tmp_path)
 
-async def get_user_uploads_by_id(user_id: str) -> list:
+def get_user_uploads_by_id(user_id: str) -> list:
     user_uploads = hdf5_upload_service.get_user_uploads_service(user_id)
     if not user_uploads:
         raise HTTPException(status_code=404, detail="User uploads not found")

@@ -54,10 +54,7 @@ const handleOpen = async () => {
         updateItem(item.id, { progress: pct })
       });
 
-      await completeHdf5Upload(initialize.upload_id, {
-        storage_key: initialize.storage_key,
-        sha256: sha256_hash,
-      });
+      await completeHdf5Upload(initialize.upload_id);
 
       //at this point the celery worker is now parsing the uploaded hdf5/h5 file
 
