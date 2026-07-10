@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/api/axiosInstance";
+import { User } from "@/types/auth";
 
 
 export type InitUploadResponse = {
@@ -58,6 +59,11 @@ export const getHdf5UploadResult = async (upload_id: string)=>{
   return data;
 }
 
+export const getUserHdf5Uploads = async () =>{
+  const {data}  = await axiosInstance.get(`api/py/hdf5/user-uploads`);
+  console.log(data)
+  return data;
+}
 
 // export const uploadFile = async (
 //   file: File,

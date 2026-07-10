@@ -9,7 +9,6 @@ from api.utils.redis_Client import redisClient
 from api.services.hdf5_services import read_hdf5
 import traceback
 import gzip
-import redis
 
 
 app = Celery('hdf5_job_service', broker=os.environ.get("CELERY_BROKER_URL"), backend=os.environ.get("CELERY_RESULT_BACKEND"))
@@ -51,6 +50,8 @@ def parse_upload_job(upload_id: str, user_id: str, storage_key: str) -> None:
 
     #resulting measurements json files are too large to store on free tier of supabase
     #currently trying to compress with gzip first 
+    temp_hdf5_path = None
+    temp_json_path = None
 
     try:
         temp_hdf5_path = download_to_temp(storage_key, ".hdf5")
@@ -58,10 +59,15 @@ def parse_upload_job(upload_id: str, user_id: str, storage_key: str) -> None:
         read_result = read_hdf5(temp_hdf5_path)
         result_metadata: dict = read_result["metadata"]
         print(f"\n\nParsed metadata: {result_metadata}\n\n")
-        result_measurements = read_result["measurements"]
+        result_measurements = read_result["measurements"] # returns a list of dicts!!
 
         #save data to cache before compressing and sending to supabase
-        redis_cache = redisClient.set(f"raw_data:{upload_id}:{result_measurements}")
+        #
+        for measurement_data in result_measurements:
+            measurement_id= measurement_data.get("id")
+            key= f"raw_data:{upload_id}:{measurement_id}"
+            redisClient.set(key, json.dumps(measurement_data))
+
 
         #compress raw json
         fd, temp_json_path = tempfile.mkstemp(suffix=".json.gz") 
@@ -86,12 +92,12 @@ def parse_upload_job(upload_id: str, user_id: str, storage_key: str) -> None:
         traceback.print_exc()
     finally:
         # delete temporary file
-        if os.path.exists(temp_hdf5_path):
+        if temp_hdf5_path and os.path.exists(temp_hdf5_path):
             try:
                 os.remove(temp_hdf5_path)
             except Exception as e:
                 print(f"Failed to delete temporary HDF5 file: {e}")
-        if os.path.exists(temp_json_path):
+        if temp_json_path and os.path.exists(temp_json_path):
             try:
                 os.remove(temp_json_path)
             except Exception as e:

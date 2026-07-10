@@ -154,3 +154,21 @@ def save_parse_result(upload_id: str, metadata: dict, measurements: str, result_
         "measurements_json": measurements,
         "raw_result_storage_key": result_storage_key
     }).execute()
+
+def get_user_uploads_service(user_id) -> list:
+    """
+    Get a users upload by their id.
+
+    Args:
+        user_id (str): A users id- uuid
+
+    Returns:
+        hdf5_uploads (list): Upload record in the hdf5_upoads table
+    """
+    resoponse=(supabaseClient.table("hdf5_uploads")
+                .select("*")
+                .eq("user_id", user_id)
+                .execute()
+                )
+    return resoponse
+            

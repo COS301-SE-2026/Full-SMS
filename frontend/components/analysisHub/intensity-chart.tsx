@@ -8,7 +8,6 @@ import { colors } from '@/lib/tokens';
 
 export function IntensityChart() {
   const { hdf5Data } = useHdf5Data()
-  const data = useMemo(() => (hdf5Data ? intensityPoints : []), [hdf5Data])
   const x_coords = intensityPoints.map(point => point.x);
   const y_coords = intensityPoints.map(point => point.y);
 

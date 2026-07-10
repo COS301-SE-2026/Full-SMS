@@ -83,3 +83,9 @@ async def read_hdf5_file(file: UploadFile):
     finally:
         if tmp_path and os.path.exists(tmp_path):
             os.remove(tmp_path)
+
+async def get_user_uploads_by_id(user_id: str) -> list:
+    user_uploads = hdf5_upload_service.get_user_uploads_service(user_id)
+    if not user_uploads:
+        raise HTTPException(status_code=404, detail="User uploads not found")
+    return user_uploads

@@ -8,6 +8,7 @@ import { AnalysisToolbar } from '@/components/analysisHub/analysis-toolbar';
 import { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import UploadPage from '../upload/page';
+import RecentUploads from "@/components/upload/recentUploads"
 
 export default function App() {
     const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
