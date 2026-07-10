@@ -13,6 +13,7 @@ from api.routes.profile_routes import router as profile_router
 from api.routes.upload_routes import router as upload_router
 from api.routes.auth_routes import router as auth_router
 from api.routes.hdf5_routes import router as hdf5_router
+from api.routes.workspace_routes import router as workspace_router
 
 app = FastAPI(
     title="Full-SMS API",
