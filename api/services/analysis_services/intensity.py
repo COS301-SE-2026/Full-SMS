@@ -1,17 +1,17 @@
 from api.utils.redis_Client import redisClient
-from api.models.analysis_models import Intensity_Req, Intensity_Res
+from api.models.analysis_models import IntensityReq, IntensityRes
 import json
 import numpy as np 
 from api.legacy.analysis.histograms import bin_photons, compute_intensity_cps
 
 import json
 
-async def intensity_analysis(payload: Intensity_Req) -> Intensity_Res:
+def intensity_analysis(payload: IntensityReq) -> IntensityRes:
     """
     Intensity analysis Service.
 
     Returns:
-        response (Intensity_Res): Object containing time_bins, counts and intesity_cps
+        response (IntensityRes): Object containing time_bins, counts and intesity_cps
     """
     upload_id= payload.uplod_id
     measurement_id = payload.upload_id
@@ -26,10 +26,11 @@ async def intensity_analysis(payload: Intensity_Req) -> Intensity_Res:
     times_ms, counts = bin_photons(abstimes=abstimes, bin_size_ms=payload.bin_size_ms)
     intensity_cps = compute_intensity_cps(counts=counts, bin_size_ms=payload.bin_size_ms)
 
-    response: Intensity_Res = {
+    res_data = {
         "time_bins": times_ms.tolist(),
         "counts": counts.tolist(),
         "intensity_cps": intensity_cps.tolist()
     }
 
+    response: IntensityRes = IntensityRes(**res_data)
     return response

@@ -1,5 +1,4 @@
 import axiosInstance from "@/lib/api/axiosInstance";
-import { User } from "@/types/auth";
 import { InitUploadResponse } from "@/types/hdf5";
 
 

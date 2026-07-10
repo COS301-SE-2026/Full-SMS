@@ -3,11 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { FileUploadZone, FileList } from '@/components/upload';
 import type { SelectedFile } from '@/components/upload';
-import { initHdf5Upload, uploadToSignedUrl, completeHdf5Upload, computeSHA256, getHdf5UploadResult } from "@/services/hdf5services";
+import { initHdf5Upload, uploadToSignedUrl, completeHdf5Upload, computeSHA256} from "@/services/hdf5services";
 import { Button } from '@/components/ui';
 import { useHdf5Data } from '@/contexts/Hdf5DataContext';
 import {supabase} from '@/lib/supabase/supabaseConfig'
-import { throwDeprecation } from 'process';
 import { InitUploadResponse } from '@/types/hdf5';
 
 
@@ -17,10 +16,8 @@ type UploadPageProps = {
 
 export default function UploadPage({ onComplete }: UploadPageProps) {
   const [queue, setQueue] = useState<SelectedFile[]>([]);
-  const { setHdf5Data, setIsParsing, isParsing } = useHdf5Data()
+  const {setIsParsing } = useHdf5Data()
   const [uploadId, setUploadId] = useState<string>("");
-  const [status, setStatus] = useState("queued");
-
   const updateItem = (id: string, patch: Partial<SelectedFile>) => {
   setQueue((prev) =>
     prev.map((item) => (item.id === id ? { ...item, ...patch } : item))
@@ -98,7 +95,6 @@ useEffect (()=>{
                     const recentStatus: string = payload.new.status
                     console.log("recent status: ",recentStatus);
                     
-                    setStatus(recentStatus);
                     if (recentStatus.toLowerCase() === 'parsed') {
 
                       console.log("Parsing is complete! Fetching final data...");
@@ -180,9 +176,9 @@ useEffect (()=>{
 
         {/* File upload area */}
         <div className="space-y-2">
-          <label className="text-xs font-semibold text-zinc-500 uppercase tracking-widest px-1 text-center block">
+          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-widest px-1 text-center block">
             Drop Your Files Here
-          </label>
+          </span>
           <FileUploadZone onFilesSelected={handleFilesSelected} />
         </div>
 

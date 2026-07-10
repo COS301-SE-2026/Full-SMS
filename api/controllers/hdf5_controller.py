@@ -43,7 +43,7 @@ async def complete_hdf5_upload(upload_id: str, payload: dict, current_user: dict
         raise HTTPException(status_code=404, detail="Uploaded file not found")
     hdf5_upload_service.mark_uploaded(upload_id, current_user["user"]["id"])
     hdf5_upload_service.set_status(upload_id, current_user["user"]["id"], status="uploaded", progress=0)
-    await hdf5_job_service.enqueue_parse(upload_id, current_user["user"]["id"], hdf5_upload["storage_key"])
+    hdf5_job_service.enqueue_parse(upload_id, current_user["user"]["id"], hdf5_upload["storage_key"])
 
     return {"status": "uploaded", "message": "Upload completed and parsing job queued."}
 

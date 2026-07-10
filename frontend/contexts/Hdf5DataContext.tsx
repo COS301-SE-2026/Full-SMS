@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   ReactNode,
+  useMemo,
 } from "react";
 
 
@@ -37,9 +38,12 @@ export function Hdf5DataProvider({ children }: { children: ReactNode }) {
   const [isParsing, setIsParsing] = useState<boolean>(true);
   console.log(hdf5Data);
   
-
+  const contextValue = useMemo(()=>({
+    hdf5Data, setHdf5Data, isParsing, setIsParsing 
+  }),[hdf5Data, isParsing])
+  
   return (
-    <Hdf5DataContext.Provider value={{ hdf5Data, setHdf5Data, isParsing, setIsParsing }}>
+    <Hdf5DataContext.Provider value={contextValue}>
       {children}
     </Hdf5DataContext.Provider>
   )

@@ -62,7 +62,7 @@ def mark_uploaded(upload_id: str, user_id: str) -> None:
         upload_id (str): The ID of the upload.
         user_id (str): The ID of the user.
     """
-    response = (supabaseClient.table("hdf5_uploads")
+    (supabaseClient.table("hdf5_uploads")
      .update({"status": "uploaded"})
      .eq("id", upload_id)
      .eq("user_id", user_id)
@@ -83,13 +83,13 @@ def set_status(upload_id: str, user_id: str, status: str, *, progress: int | Non
         err_msg (str | None): The error message for the upload.
     """
     if status == "failed":
-        res = (supabaseClient.table("hdf5_uploads")
+        (supabaseClient.table("hdf5_uploads")
          .update({"status": status, "err_code": err_code, "err_msg": err_msg}).eq("id", upload_id)
          .eq("user_id", user_id)
          .execute()
         )
     else:
-        res = (supabaseClient.table("hdf5_uploads")
+        (supabaseClient.table("hdf5_uploads")
          .update({"status": status, "progress": progress})
          .eq("id", upload_id)
          .eq("user_id", user_id)

@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useHdf5Data } from '@/contexts/Hdf5DataContext';
 import { getUserHdf5Uploads } from '@/services/hdf5services';
 import { useAuth } from '@/contexts/authContext/AuthContext'; 
-import { Card, CardContent, CardHeader, CardDescription, CardFooter, Button, CardTitle, Badge, Loader } from '../ui';
+import { Card, CardHeader, CardDescription, CardTitle, Loader } from '../ui';
 import { UploadRecord } from '@/types/hdf5';
 
 export default function RecentUploads() {

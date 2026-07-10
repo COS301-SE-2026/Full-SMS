@@ -13,7 +13,7 @@ import gzip
 
 app = Celery('hdf5_job_service', broker=os.environ.get("CELERY_BROKER_URL"), backend=os.environ.get("CELERY_RESULT_BACKEND"))
 
-async def enqueue_parse(upload_id: str, user_id: str, storage_key: str) -> None:
+def enqueue_parse(upload_id: str, user_id: str, storage_key: str) -> None:
     """
     Enqueue a task to parse an HDF5 file.
 
@@ -79,7 +79,7 @@ def parse_upload_job(upload_id: str, user_id: str, storage_key: str) -> None:
 
 
         with os.fdopen(fd, "rb") as compressed_json_file:
-            json_res = (
+            (
                 supabaseClient.storage
                 .from_("processed_hdf5")
                 .upload(path=new_json_storage_key, file=compressed_json_file, file_options={"content-type": "application/gzip"}) # Set the content type to application/gzip - this caused the .pop(error in the celery terminal)

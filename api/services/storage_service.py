@@ -6,8 +6,6 @@ from supabase import create_client
 from api.utils.supabase_client import supabaseClient
 
 
-
-
 BUCKET = os.environ.get("SUPABASE_BUCKET_NAME")
 
 def build_storage_key(user_id: str, upload_id: str, file_name: str) -> str:
@@ -61,7 +59,7 @@ def download_to_temp(storage_key: str, file_extension: str = ".hdf5") -> str:
     """
 
     try:
-        fd, tempPath = tempfile.mkstemp(suffix=file_extension)
+        fd, temp_path = tempfile.mkstemp(suffix=file_extension)
         #changed to os.fdopen, helps prevent the lockfile issue on windows
         with os.fdopen(fd, "wb") as f:
             response = (
@@ -71,10 +69,10 @@ def download_to_temp(storage_key: str, file_extension: str = ".hdf5") -> str:
             )
             f.write(response)
 
-        return tempPath
+        return temp_path
     except Exception as e:
         print(f"Error downloading file from storage: {e}")
 
-        if 'tempPath' in locals() and os.path.exists(tempPath):
-            os.remove(tempPath)
+        if 'temp_path' in locals() and os.path.exists(temp_path):
+            os.remove(temp_path)
         raise HTTPException(status_code=500, detail="Error downloading file from storage.")

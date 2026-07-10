@@ -1,19 +1,15 @@
-import { useMemo } from 'react';
 import { Card } from '../ui/Card';
 import intensityPoints from '@/app/demo-data/intensity_points';
-import { useHdf5Data } from '@/contexts/Hdf5DataContext';
 import Plot from 'react-plotly.js'
 
 import { colors } from '@/lib/tokens';
 
 export function IntensityChart() {
-  const { hdf5Data } = useHdf5Data()
   const x_coords = intensityPoints.map(point => point.x);
   const y_coords = intensityPoints.map(point => point.y);
 
   return (
     <Card className="flex-1 flex flex-col p-4 min-w-0">
-      <h4 className="mb-3"></h4>
       <div className="flex-1 min-h-0 h-full overflow-hidden">
         <Plot
           data={[

@@ -1,5 +1,3 @@
-import { StringifyOptions } from "querystring";
-
 export interface InitUploadResponse {
   upload_id: string;
   storage_key: string;
