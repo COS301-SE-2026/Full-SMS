@@ -21,7 +21,7 @@ import numpy as np
 from numba import jit
 from numpy.typing import NDArray
 
-from legacy.models import LevelData
+from api.legacy.models import LevelData
 
 
 class ConfidenceLevel(Enum):
