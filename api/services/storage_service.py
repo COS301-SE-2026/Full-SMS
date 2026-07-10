@@ -76,8 +76,5 @@ def download_to_temp(storage_key: str, file_extension: str = ".hdf5") -> str:
         print(f"Error downloading file from storage: {e}")
 
         if 'tempPath' in locals() and os.path.exists(tempPath):
-            try:
-                os.remove(tempPath)
-            except:
-                pass
+            os.remove(tempPath)
         raise HTTPException(status_code=500, detail="Error downloading file from storage.")

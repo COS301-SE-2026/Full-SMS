@@ -50,7 +50,7 @@ def test_object_exists_false(mock_supabase):
 @patch("tempfile.mkstemp")
 @patch("os.fdopen")
 def test_download_to_temp_success(mock_fdopen, mock_mkstemp, mock_supabase):
-    mock_mkstemp.return_value = (99, "/tmp/fakefile.hdf5") 
+    mock_mkstemp.return_value = (99, "/mock_safe_dir/ch-8.hdf5") 
 
     mock_file_handle = MagicMock()
     mock_fdopen.return_value.__enter__.return_value = mock_file_handle
@@ -61,7 +61,7 @@ def test_download_to_temp_success(mock_fdopen, mock_mkstemp, mock_supabase):
     mock_bucket.download.return_value = b"fake binary data"
     filepath = download_to_temp("user/file.hdf5", ".hdf5")
 
-    assert filepath == "/tmp/fakefile.hdf5"
+    assert filepath == "/mock_safe_dir/ch-8.hdf5"
     mock_bucket.download.assert_called_once_with("user/file.hdf5")
 
     mock_file_handle.write.assert_called_once_with(b"fake binary data")
@@ -73,7 +73,7 @@ def test_download_to_temp_success(mock_fdopen, mock_mkstemp, mock_supabase):
 @patch("api.services.storage_service.os.path.exists")
 @patch("api.services.storage_service.os.remove")
 def test_download_to_temp_failure_cleanup(mock_remove, mock_exists, mock_mkstemp, mock_supabase):
-    mock_mkstemp.return_value = (99, "/tmp/failed_file.hdf5")
+    mock_mkstemp.return_value = (99, "/mock_safe_dir/failed_file.hdf5")
     mock_exists.return_value = True # Pretend the file got created
 
     # Force the supabase download to crash
@@ -86,4 +86,4 @@ def test_download_to_temp_failure_cleanup(mock_remove, mock_exists, mock_mkstemp
 
     assert exc_info.value.status_code == 500
     assert exc_info.value.detail == "Error downloading file from storage."
-    mock_remove.assert_called_once_with("/tmp/failed_file.hdf5")
+    mock_remove.assert_called_once_with("/mock_safe_dir/failed_file.hdf5")
