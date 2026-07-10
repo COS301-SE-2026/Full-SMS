@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from controllers.auth_controller import verify_token_controller
-from controllers.workspace_controller import (
+from api.controllers.auth_controller import verify_token_controller
+from api.controllers.workspace_controller import (
     get_workspaces_controller,
     get_workspace_controller,
     create_workspace_controller,
@@ -10,7 +10,7 @@ from controllers.workspace_controller import (
     archive_workspace_controller,
     unarchive_workspace_controller)
 
-from models.workspace import WorkspaceCreate, WorkspaceUpdate
+from api.models.workspace import WorkspaceCreate, WorkspaceUpdate
 from typing import Annotated
 
 router = APIRouter(prefix="/workspaces", tags=["Workspaces"])

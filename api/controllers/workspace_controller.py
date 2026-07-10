@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from services.workspace_service import (
+from api.services.workspace_service import (
     create_workspace,
     get_user_workspaces,
     get_workspace_by_id,
@@ -8,7 +8,7 @@ from services.workspace_service import (
     archive_workspace,
     unarchive_workspace
 )
-from models.workspace import WorkspaceCreate, WorkspaceUpdate
+from api.models.workspace import WorkspaceCreate, WorkspaceUpdate
 
 
 def get_workspaces_controller(user_id: str):
