@@ -12,45 +12,45 @@ import { Measurement } from '@/types/hdf5';
 import { useHdf5Data } from '@/contexts/Hdf5DataContext'
 
 export function MeasurementsBar() {
-  const { hdf5Data } = useHdf5Data()
-  const [state, setState] = useState<Record<string, { checked: boolean; expanded: boolean }>>({})
-  const baseMeasurements = useMemo(() => {
-    if (!hdf5Data) return []
-    return hdf5Data.measurements.map((x) => ({
-      name: x.name,
-      channels: x.channelWidth > 1
-        ? Array.from({ length: x.channelWidth }, (_, i) => `Channel ${i + 1}`)
-        : undefined,
-    }))
-  }, [hdf5Data])
+  // const { hdf5Data } = useHdf5Data()
+  // const [state, setState] = useState<Record<string, { checked: boolean; expanded: boolean }>>({})
+  // const baseMeasurements = useMemo(() => {
+  //   if (!hdf5Data) return []
+  //   return hdf5Data?.measurements.map((x) => ({
+  //     name: x.name,
+  //     channels: x.channelWidth > 1
+  //       ? Array.from({ length: x.channelWidth }, (_, i) => `Channel ${i + 1}`)
+  //       : undefined,
+  //   }))
+  // }, [hdf5Data])
 
-  const measurements: Measurement[] = useMemo(() => {
-    return baseMeasurements.map((m) => ({
-      ...m,
-      checked: state[m.name]?.checked ?? false,
-      expanded: state[m.name]?.expanded ?? false,
-    }))
-  }, [baseMeasurements, state])
+  // const measurements: Measurement[] = useMemo(() => {
+  //   return baseMeasurements.map((m) => ({
+  //     ...m,
+  //     checked: state[m.name]?.checked ?? false,
+  //     expanded: state[m.name]?.expanded ?? false,
+  //   }))
+  // }, [baseMeasurements, state])
 
-  console.log("MeasurementsBar - measurements:", measurements)
+  // console.log("MeasurementsBar - measurements:", measurements)
 
-  const toggleCheck = (i: number) => {
-    const name = measurements[i]?.name
-    if (!name) return
-    setState((prev) => ({
-      ...prev,
-      [name]: { checked: !prev[name]?.checked, expanded: prev[name]?.expanded ?? false },
-    }))
-  }
+  // const toggleCheck = (i: number) => {
+  //   const name = measurements[i]?.name
+  //   if (!name) return
+  //   setState((prev) => ({
+  //     ...prev,
+  //     [name]: { checked: !prev[name]?.checked, expanded: prev[name]?.expanded ?? false },
+  //   }))
+  // }
 
-  const toggleExpand = (i: number) => {
-    const name = measurements[i]?.name
-    if (!name) return
-    setState((prev) => ({
-      ...prev,
-      [name]: { checked: prev[name]?.checked ?? false, expanded: !prev[name]?.expanded },
-    }))
-  }
+  // const toggleExpand = (i: number) => {
+  //   const name = measurements[i]?.name
+  //   if (!name) return
+  //   setState((prev) => ({
+  //     ...prev,
+  //     [name]: { checked: prev[name]?.checked ?? false, expanded: !prev[name]?.expanded },
+  //   }))
+  // }
 
 
   return (
@@ -60,7 +60,7 @@ export function MeasurementsBar() {
         <button className="text-xs text-foreground/60 hover:text-primary">All</button>
       </div>
 
-      <div className="flex flex-col mt-1 overflow-y-auto flex-1">
+      {/* <div className="flex flex-col mt-1 overflow-y-auto flex-1">
         {measurements.map((m, i) => (
           <div key={m.name}>
             <div className="flex items-center gap-1.5 px-3.5 py-1 hover:bg-card cursor-pointer">
@@ -107,7 +107,7 @@ export function MeasurementsBar() {
               ))}
           </div>
         ))}
-      </div>
+      </div> */}
     </div>
   )
 }
