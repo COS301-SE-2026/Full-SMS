@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Response, File
+from fastapi import APIRouter, BackgroundTasks
 from models.export_request import ExportRequest
 from controllers.export_controller import handle_export
 
 router = APIRouter(prefix= "/export", tags=["export"])
 
 @router.post("/")
-async def export_data(request: ExportRequest):
-    return await handle_export(request)
+async def export_data(request: ExportRequest, background_tasks: BackgroundTasks):
+    return await handle_export(request, background_tasks)
