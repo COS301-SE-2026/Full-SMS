@@ -33,9 +33,16 @@ def export_data(request: ExportRequest, user_id: str) -> Path:
         
         if request.export_intensity:
             channel_key = f"channel{request.channel}"
-            abtimes=np.array(data[channel_key]["abtimes"], dtype=np.uint64)
+            abstimes=np.array(data[channel_key]["abstimes"], dtype=np.uint64)
 
             fd, temp_path = tempfile.mkstemp()
             os.close(fd)
-        # will call exporters.exporters_intensitytrace etc where a real output path will be built
-        raise NotImplementedError("to be wired")
+            output_path=exporters.export_intensity_trace(
+                abstimes=abstimes,
+                output_path=Path(temp_path),
+                fmt=request.format,
+                measurement_name=data.get("name", ""),
+            
+            )
+            return output_path
+        raise NotImplementedError("levels/groups export to be wired")
