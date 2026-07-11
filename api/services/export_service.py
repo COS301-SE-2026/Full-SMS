@@ -1,9 +1,13 @@
+import json
 from pathlib import Path
 from api.models.export_request import ExportRequest
 from api.legacy.io import exporters
+from api.utils.redis_Client import redisClient
 
-def _get_measurement_data(measurement_id: int, channel: int) :
-    #to add real data fetch after Carlos confirms how to get full channel data
+def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> dict :
+    cashedData = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
+    if cashedData:
+        return json.loads(cashedData)
     raise NotImplementedError("to be wired")
 
 def export_data(request: ExportRequest) -> Path:
