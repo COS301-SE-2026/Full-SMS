@@ -1,7 +1,14 @@
+import Hero from "@/components/landing/hero";
+import NavBar from "@/components/landing/navBar";
 import Image from "next/image";
-import { Button } from "@/components/ui";
 import { redirect } from "next/navigation";
 
 export default function Home() {
-  redirect('/login')
+  return(
+    <>
+      <NavBar/>
+      <Hero/>
+    </>
+
+  )
 }
