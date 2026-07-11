@@ -1,5 +1,6 @@
 import gzip
 import json
+import numpy as np
 from pathlib import Path
 from api.models.export_request import ExportRequest
 from api.legacy.io import exporters
@@ -25,5 +26,8 @@ def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> d
 def export_data(request: ExportRequest, user_id: str) -> Path:
     for measurement_id in request.measurement_ids:
         data = _get_measurement_data(request.upload_id, measurement_id, user_id)
+        if request.export_intensity:
+            channel_key = f"channel{request.channel}"
+            abtimes=np.array(data[channel_key]["abtimes"], dtype=np.uint64)
         # will call exporters.exporters_intensitytrace etc where a real output path will be built
         raise NotImplementedError("to be wired")
