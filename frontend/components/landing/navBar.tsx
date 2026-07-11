@@ -11,14 +11,17 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, PhoneIcon, PlayCircleIcon } from '@heroicons/react/20/solid'
+import { Button } from '../ui'
+import Link from 'next/link'
+import { useAuth } from '@/contexts/authContext/AuthContext'
 
 export default function NavBar() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+    const {user} = useAuth();
   return (
     <header className="">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-8 px-2 sm:px-4 lg:px-6">
-            <a className="block text-teal-600 text-xl dark:text-teal-300" href="#">
+            <a className="block text-primary text-xl dark:text-primary" href="#">
                 <span className='font-mono'>Full SMS</span>
             </a>
 
@@ -82,21 +85,22 @@ export default function NavBar() {
             </nav>
 
             <div className="flex items-center gap-4">
-                <div className="sm:flex sm:gap-4">
-                <a
-                    className="block rounded-md bg-teal-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-teal-700 dark:hover:bg-teal-500"
-                    href="#"
-                >
-                    Login
-                </a>
-
-                <a
-                    className="hidden rounded-md bg-gray-100 px-5 py-2.5 text-sm font-medium text-teal-600 transition hover:text-teal-600/75 sm:block dark:bg-gray-800 dark:text-white dark:hover:text-white/75"
-                    href="#"
-                >
-                    Register
-                </a>
-                </div>
+                {!user ? (<div className="sm:flex sm:gap-4">
+                    <Link href="/login">
+                        <Button variant="outline" className='mr-2'>
+                            Login
+                        </Button>
+                    </Link>
+                    <Link href='/register'>
+                        <Button variant="primary">
+                            Sign Up
+                        </Button>
+                    </Link>
+                </div>) : (
+                    <Link href="dashboard">
+                        <Button variant="outline">Dashboard</Button>
+                    </Link>
+                )}
 
                 <button
                 className="block rounded-sm bg-gray-100 p-2.5 text-gray-600 transition hover:text-gray-600/75 md:hidden dark:bg-gray-800 dark:text-white dark:hover:text-white/75"
