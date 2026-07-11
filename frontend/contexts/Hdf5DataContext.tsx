@@ -8,7 +8,7 @@ import {
   useMemo,
 } from "react";
 import { UploadMetadata, UploadResultRecord } from "@/types/hdf5";
-import { string } from "yup";
+import { ChangePointResult } from "@/types/intensity";
 
 // class IntensityRes(BaseModel):
 //     time_bins: List[float]       # X-axis ( time in milliseconds)
@@ -21,8 +21,10 @@ type Hdf5Response = {
   intensity_cps: number[]
 }
 
+type Confidence = 69 | 90 | 95 | 99
+
 interface Hdf5DataContextType {
-  hdf5Data: Hdf5Response
+  hdf5Data: Hdf5Response | undefined
   setHdf5Data: (data: Hdf5Response) => void
   isParsing: boolean
   setIsParsing: (is_parsing: boolean) => void
@@ -34,17 +36,24 @@ interface Hdf5DataContextType {
   hdf5Metadata: UploadMetadata
   bin: number,
   setBin: (bin: number)=>void
+  confidence: Confidence
+  setConfidence: (conf: Confidence)=> void
+  cpaData: ChangePointResult | undefined
+  setCpaData: (data: ChangePointResult)=>void
 }
 
 const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(undefined)
 
 export function Hdf5DataProvider({ children }: { children: ReactNode }) {
   const [hdf5Data, setHdf5Data] = useState<Hdf5Response>({time_bins:[],counts:[],intensity_cps:[]})
+  const [cpaData, setCpaData] = useState<ChangePointResult>()
   const [hdf5Metadata, setHdf5Metadata] = useState()
   const [isParsing, setIsParsing] = useState<boolean>(true);
-  const [currentUpload, setCurrentUpload] = useState<string>("");
-  const [currentMeasurement, setCurrentMeasurement] = useState<string>("1")
+  const [currentUpload, setCurrentUpload] = useState<string>("70cc3a45-de95-4e27-8f5f-3907aaa13b54");
+  const [currentMeasurement, setCurrentMeasurement] = useState<string>("0")
   const [bin, setBin] = useState<number>(10)
+  const [confidence, setConfidence] = useState<Confidence>(90)
+
 
   const contextValue = useMemo(()=>({
     hdf5Data, 
@@ -58,8 +67,12 @@ export function Hdf5DataProvider({ children }: { children: ReactNode }) {
     hdf5Metadata,
     setHdf5Metadata,
     bin,
-    setBin
-  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin])
+    setBin,
+    confidence, 
+    setConfidence,
+    setCpaData,
+    cpaData
+  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin, confidence,cpaData])
   
   return (
     <Hdf5DataContext.Provider value={contextValue}>
