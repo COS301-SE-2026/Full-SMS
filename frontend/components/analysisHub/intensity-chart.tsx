@@ -29,7 +29,6 @@ export function IntensityChart() {
   
     const fetchUploadResult = async ()=>{
       const response: UploadResultRecord = await getHdf5UploadResult("70cc3a45-de95-4e27-8f5f-3907aaa13b54")
-      console.log(response)
       return response
     }
   

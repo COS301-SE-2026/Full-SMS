@@ -26,7 +26,6 @@ export default function UploadPage({ onComplete }: UploadPageProps) {
 };
 
 const handleOpen = async () => {
-  console.log("FILE OPENED")
   const items = [...queue]
   let hadError = false
 
@@ -34,10 +33,8 @@ const handleOpen = async () => {
     updateItem(item.id, { status: "pending", progress: 0, errorMessage: undefined })
     try {
 
-      console.log("computing sha256");
       const sha256_hash = await computeSHA256(item.file)
 
-      console.log("initializing upload");
       
       const initialize: InitUploadResponse = await initHdf5Upload({
         filename: item.name,
@@ -46,7 +43,6 @@ const handleOpen = async () => {
         sha256: sha256_hash,
       });
 
-      console.log("init success: ", initialize)
       
       //get upload_id for status subscription (subscribing?? idk)
       setUploadId(initialize.upload_id)

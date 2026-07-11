@@ -36,7 +36,6 @@ export function MeasurementsBar() {
           const record = await fetchUploadResult();
           const metadata: UploadMetadata = record.metadata_json;
           setNum_measurements(metadata.num_measurements)
-          console.log("XXXXXXXX",metadata);        
         } catch (error) {
           console.error("Failed to fetch or parse upload result:", error);
         }

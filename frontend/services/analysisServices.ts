@@ -12,9 +12,7 @@ export type Intensity_Res = {
     intensity_cps: Float64Array
 }
 
-export const intensityAnalysis = async (payload: Intensity_Req)=>{
-    console.log("payload: ", payload);
-    
+export const intensityAnalysis = async (payload: Intensity_Req)=>{    
    const {data} = await axiosInstance.post('api/py/analysis/intensity', payload);
    return data;
 }
