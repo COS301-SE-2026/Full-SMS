@@ -1,11 +1,15 @@
 import gzip
 import json
+import tempfile
+import os
 import numpy as np
 from pathlib import Path
 from api.models.export_request import ExportRequest
 from api.legacy.io import exporters
 from api.utils.redis_Client import redisClient
 from api.services.storage_service import build_storage_key, download_to_temp
+
+
 
 def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> dict :
     cashedData = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
@@ -26,8 +30,12 @@ def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> d
 def export_data(request: ExportRequest, user_id: str) -> Path:
     for measurement_id in request.measurement_ids:
         data = _get_measurement_data(request.upload_id, measurement_id, user_id)
+        
         if request.export_intensity:
             channel_key = f"channel{request.channel}"
             abtimes=np.array(data[channel_key]["abtimes"], dtype=np.uint64)
+
+            fd, temp_path = tempfile.mkstemp()
+            os.close(fd)
         # will call exporters.exporters_intensitytrace etc where a real output path will be built
         raise NotImplementedError("to be wired")
