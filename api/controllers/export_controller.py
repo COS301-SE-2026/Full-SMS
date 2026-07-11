@@ -15,3 +15,10 @@ async def handle_export(request: ExportRequest, background_tasks: BackgroundTask
         raise HTTPException(status_code=501, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Export failed: {e}")
+    
+    background_tasks.add_task(os.remove, output_path)
+    return FileResponse(
+        path=output_path,
+        filename=Path(output_path).name,
+        media_type="application/octet-stream",
+    )
