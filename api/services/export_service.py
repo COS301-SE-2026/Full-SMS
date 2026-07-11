@@ -28,6 +28,7 @@ def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> d
 
 
 def export_data(request: ExportRequest, user_id: str) -> Path:
+    outputPaths =[]
     for measurement_id in request.measurement_ids:
         data = _get_measurement_data(request.upload_id, measurement_id, user_id)
         
@@ -44,5 +45,6 @@ def export_data(request: ExportRequest, user_id: str) -> Path:
                 measurement_name=data.get("name", ""),
             
             )
-            return output_path
-        raise NotImplementedError("levels/groups export to be wired")
+            outputPaths.append(output_path)
+        else:
+            raise NotImplementedError("levels/groups export to be wired")
