@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from fastapi import HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
-from models.export_request import ExportRequest
+from api.models.export_request import ExportRequest
 
 async def handle_export(request: ExportRequest, background_tasks: BackgroundTasks):
     if not any([request.export_intensity, request.export_levels, request.export_groups]):

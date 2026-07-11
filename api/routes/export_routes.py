@@ -1,6 +1,6 @@
 from fastapi import APIRouter, BackgroundTasks
-from models.export_request import ExportRequest
-from controllers.export_controller import handle_export
+from api.models.export_request import ExportRequest
+from api.controllers.export_controller import handle_export
 
 router = APIRouter(prefix= "/export", tags=["export"])
 
