@@ -14,9 +14,9 @@ from typing import TYPE_CHECKING, Optional
 import numpy as np
 from numpy.typing import NDArray
 
-from legacy.analysis.histograms import bin_photons
-from legacy.analysis.lifetime import compute_convolved_fit_curve
-from legacy.models.fit import FitResultData, IRFData
+from api.legacy.analysis.histograms import bin_photons
+from api.legacy.analysis.lifetime import compute_convolved_fit_curve
+from api.legacy.models.fit import FitResultData, IRFData
 
 if TYPE_CHECKING:
     from legacy.models.fit import FitResult
