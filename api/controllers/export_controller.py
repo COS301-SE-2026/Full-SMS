@@ -9,3 +9,9 @@ async def handle_export(request: ExportRequest, background_tasks: BackgroundTask
     if not any([request.export_intensity, request.export_levels, request.export_groups]):
         raise HTTPException(status_code = 400, detail= "No export category selected.")
     
+    try:
+        output_path = export_service.export_data(request, user_id)
+    except NotImplementedError as e:
+        raise HTTPException(status_code=501, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Export failed: {e}")
