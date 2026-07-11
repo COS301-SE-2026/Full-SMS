@@ -22,8 +22,8 @@ def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> d
 
 
 
-def export_data(request: ExportRequest) -> Path:
+def export_data(request: ExportRequest, user_id: str) -> Path:
     for measurement_id in request.measurement_ids:
-        data = _get_measurement_data(measurement_id, request.channel)
-        # will call exporters.exporters_intensitytrace etc once data exists
+        data = _get_measurement_data(request.upload_id, measurement_id, user_id)
+        # will call exporters.exporters_intensitytrace etc where a real output path will be built
         raise NotImplementedError("to be wired")
