@@ -21,6 +21,22 @@ export interface UploadRecord{
   updated_at: string,
   parsed_at: string
 }
+export interface UploadMetadata {
+  filename: string;
+  has_rasters: boolean;
+  has_spectra: boolean;
+  num_measurements: number;
+}
+
+export interface UploadResultRecord {
+  upload_id: string;
+
+  metadata_json: UploadMetadata;
+  measurements_json: string;
+  raw_result_storage_key: string;
+
+  created_at: string;
+}
 
 export interface Measurement {
   name: string;

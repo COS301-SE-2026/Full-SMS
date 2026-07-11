@@ -1,10 +1,12 @@
 from fastapi import APIRouter
-from api.models.analysis_models import (Intensity_Req, Intensity_Res, Lifetime_Req, Lifetime_Res)
+from api.models.analysis_models import (IntensityReq, IntensityRes, LifetimeReq, LifetimeRes)
 from api.controllers.analysis_controller import intensity_analysis_controller
 
 router = APIRouter(prefix="/analysis", tags=["Analysis"])
 
-@router.post("/intensity", response_model=Intensity_Res)
-async def get_intensity_trace(req: Intensity_Req):
+@router.post("/intensity", response_model=IntensityRes)
+def get_intensity_trace(req: IntensityReq):
     """Generate an intensity trace."""
-    return await intensity_analysis_controller(req)
+    print(f"\n\n\n{req}\n\n\n\n")
+    return intensity_analysis_controller(req)
+

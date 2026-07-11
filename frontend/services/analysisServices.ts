@@ -13,6 +13,8 @@ export type Intensity_Res = {
 }
 
 export const intensityAnalysis = async (payload: Intensity_Req)=>{
+    console.log("payload: ", payload);
+    
    const {data} = await axiosInstance.post('api/py/analysis/intensity', payload);
    return data;
 }

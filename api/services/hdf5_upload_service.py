@@ -168,6 +168,8 @@ def get_user_uploads_service(user_id) -> list:
     resoponse=(supabaseClient.table("hdf5_uploads")
                 .select("*")
                 .eq("user_id", user_id)
+                .eq("status","parsed")
+                .order("created_at",desc=True) 
                 .execute()
                 )
     return resoponse

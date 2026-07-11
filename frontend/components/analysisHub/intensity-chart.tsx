@@ -1,12 +1,46 @@
 import { Card } from '../ui/Card';
 import intensityPoints from '@/app/demo-data/intensity_points';
 import Plot from 'react-plotly.js'
-
+import { useEffect, useState } from 'react';
 import { colors } from '@/lib/tokens';
+import { intensityAnalysis, Intensity_Req, Intensity_Res } from '@/services/analysisServices';
+import { useHdf5Data } from '@/contexts/Hdf5DataContext';
+import { UploadResultRecord } from '@/types/hdf5';
+import { getHdf5UploadResult } from '@/services/hdf5services';
 
 export function IntensityChart() {
-  const x_coords = intensityPoints.map(point => point.x);
-  const y_coords = intensityPoints.map(point => point.y);
+  var x_coords: number[] = []
+  var y_coords: number[] = []
+  const {setHdf5Data,hdf5Data, currentMeasurement} = useHdf5Data();
+  if(hdf5Data?.counts.length !== 0 && hdf5Data?.time_bins.length !== 0){
+    x_coords = hdf5Data?.time_bins
+    y_coords = hdf5Data?.counts
+  }
+
+    const fetchIntensityTrace= async ()=>{
+      const request: Intensity_Req ={
+        upload_id:"70cc3a45-de95-4e27-8f5f-3907aaa13b54",
+        measurement_id:currentMeasurement,
+        bin_size_ms:10,
+      }
+      const response = await intensityAnalysis(request)
+      setHdf5Data(response)
+    }
+  
+    const fetchUploadResult = async ()=>{
+      const response: UploadResultRecord = await getHdf5UploadResult("70cc3a45-de95-4e27-8f5f-3907aaa13b54")
+      console.log(response)
+      return response
+    }
+  
+  
+    useEffect(()=>{
+      fetchIntensityTrace()
+      },[currentMeasurement]);
+
+  useEffect(()=>{
+
+  })
 
   return (
     <Card className="flex-1 flex flex-col p-4 min-w-0">

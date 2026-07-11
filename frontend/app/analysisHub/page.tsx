@@ -5,9 +5,14 @@ import {Sidebar} from '@/components/analysisHub/sidebar';
 import {IntensityChart} from '@/components/analysisHub/intensity-chart';
 import {StatusBar} from '@/components/analysisHub/status-bar';
 import { AnalysisToolbar } from '@/components/analysisHub/analysis-toolbar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import UploadPage from '../upload/page';
+
+import { useHdf5Data } from '@/contexts/Hdf5DataContext';
+import { intensityAnalysis, Intensity_Req, Intensity_Res } from '@/services/analysisServices';
+import { getHdf5UploadResult } from '@/services/hdf5services';
+import { UploadMetadata, UploadResultRecord } from '@/types/hdf5';
 
 export default function App() {
     const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);

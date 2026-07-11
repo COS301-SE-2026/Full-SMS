@@ -8,6 +8,7 @@ import { Button } from '@/components/ui';
 import { useHdf5Data } from '@/contexts/Hdf5DataContext';
 import {supabase} from '@/lib/supabase/supabaseConfig'
 import { InitUploadResponse } from '@/types/hdf5';
+import { Intensity_Req, intensityAnalysis } from '@/services/analysisServices';
 
 
 type UploadPageProps = {
@@ -16,7 +17,7 @@ type UploadPageProps = {
 
 export default function UploadPage({ onComplete }: UploadPageProps) {
   const [queue, setQueue] = useState<SelectedFile[]>([]);
-  const {setIsParsing } = useHdf5Data()
+  const {setIsParsing, setCurrentUpload, currentUpload } = useHdf5Data()
   const [uploadId, setUploadId] = useState<string>("");
   const updateItem = (id: string, patch: Partial<SelectedFile>) => {
   setQueue((prev) =>
@@ -49,7 +50,7 @@ const handleOpen = async () => {
       
       //get upload_id for status subscription (subscribing?? idk)
       setUploadId(initialize.upload_id)
-
+      setCurrentUpload(initialize.upload_id)
       await uploadToSignedUrl(initialize.upload_url.signed_url, item.file, (pct) => {
         updateItem(item.id, { progress: pct })
       });
@@ -96,44 +97,19 @@ useEffect (()=>{
 
                       console.log("Parsing is complete! Fetching final data...");
                       setIsParsing(false);
-                      // try {
-                      //   const result = await getHdf5UploadResult(uploadId);
-
-                      //   const { data: blob, error} = await supabase.storage
-                      //     .from("processed_hdf5")
-                      //     .download(result.measurements_json);
-
-                      //   if(!blob || error )
-                      //     throw new Error("Failed to download .h/.hdf5 file from supabase")
-
-                      //   const buffer = await blob.arrayBuffer();
-                      //   const parseWorker = new Worker(new URL('../../public/workers/parseWorker.ts', import.meta.url));
-
-                      //   parseWorker.postMessage({buffer});
-
-                      //   parseWorker.onmessage = (e) =>{
-                      //     if (e.data.success){
-                      //       setHdf5Data({
-                      //         metadata: result,
-                      //         measurements: e.data.data
-                      //       });
-                      //       console.log("HDF5 Data successfully saved to context!");
-                            
-                      //       parseWorker.terminate();
-                      //       if (onComplete) {
-                      //           onComplete(); 
-                      //       }
-                      //     }
-                      //     else{
-                      //       console.error("Worker could not parse:", e.data.error)
-                      //       parseWorker.terminate();
-                      //     }
-
-                      //   }
+                      try {
+                        const requestPayload: Intensity_Req = {
+                          upload_id: currentUpload,
+                          measurement_id: "1",
+                          bin_size_ms: 10
+                        }
+                        const intensityTraceData = await intensityAnalysis(requestPayload)
+                        console.log(intensityTraceData);
                         
-                      // } catch (err) {
-                      //   console.error("Failed to fetch parsed HDF5 data:", err);
-                      // }
+                        
+                      } catch (error) {
+                        
+                      }
                     }
                   }
                 )
