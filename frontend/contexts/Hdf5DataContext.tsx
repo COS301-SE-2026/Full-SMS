@@ -8,6 +8,7 @@ import {
   useMemo,
 } from "react";
 import { UploadMetadata, UploadResultRecord } from "@/types/hdf5";
+import { string } from "yup";
 
 // class IntensityRes(BaseModel):
 //     time_bins: List[float]       # X-axis ( time in milliseconds)
@@ -31,6 +32,8 @@ interface Hdf5DataContextType {
   setCurrentMeasurement: (measurement_id: string) => void,
   setHdf5Metadata: (metadata: UploadMetadata)=> void,
   hdf5Metadata: UploadMetadata
+  bin: number,
+  setBin: (bin: number)=>void
 }
 
 const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(undefined)
@@ -41,7 +44,8 @@ export function Hdf5DataProvider({ children }: { children: ReactNode }) {
   const [isParsing, setIsParsing] = useState<boolean>(true);
   const [currentUpload, setCurrentUpload] = useState<string>("");
   const [currentMeasurement, setCurrentMeasurement] = useState<string>("1")
-  
+  const [bin, setBin] = useState<number>(10)
+
   const contextValue = useMemo(()=>({
     hdf5Data, 
     setHdf5Data, 
@@ -52,8 +56,10 @@ export function Hdf5DataProvider({ children }: { children: ReactNode }) {
     setCurrentMeasurement,
     currentMeasurement,
     hdf5Metadata,
-    setHdf5Metadata
-  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement])
+    setHdf5Metadata,
+    bin,
+    setBin
+  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin])
   
   return (
     <Hdf5DataContext.Provider value={contextValue}>

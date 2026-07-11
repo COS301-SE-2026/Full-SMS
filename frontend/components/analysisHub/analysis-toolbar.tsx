@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Play, Maximize2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { cn } from '@/lib/utils';
+import { useHdf5Data } from '@/contexts/Hdf5DataContext';
 
 function NumberField({
   label,
@@ -9,8 +10,8 @@ function NumberField({
   onChange,
 }: {
   label: string;
-  value: string;
-  onChange: (v: string) => void;
+  value: number;
+  onChange: (v: number) => void;
 }) {
   return (
     <div className="flex items-center gap-2">
@@ -26,8 +27,8 @@ function NumberField({
 
 
 export function AnalysisToolbar() {
-  const [bin, setBin] = useState('10');
-  const [confidence, setConfidence] = useState('99');
+  const {bin, setBin} = useHdf5Data()
+  const [confidence, setConfidence] = useState(99);
   const [scope, setScope] = useState<'selected' | 'all'>('selected');
 
   return (

@@ -11,7 +11,7 @@ import { getHdf5UploadResult } from '@/services/hdf5services';
 export function IntensityChart() {
   var x_coords: number[] = []
   var y_coords: number[] = []
-  const {setHdf5Data,hdf5Data, currentMeasurement} = useHdf5Data();
+  const {setHdf5Data,hdf5Data, currentMeasurement, bin} = useHdf5Data();
   if(hdf5Data?.counts.length !== 0 && hdf5Data?.time_bins.length !== 0){
     x_coords = hdf5Data?.time_bins
     y_coords = hdf5Data?.counts
@@ -21,7 +21,7 @@ export function IntensityChart() {
       const request: Intensity_Req ={
         upload_id:"70cc3a45-de95-4e27-8f5f-3907aaa13b54",
         measurement_id:currentMeasurement,
-        bin_size_ms:10,
+        bin_size_ms: Number(bin),
       }
       const response = await intensityAnalysis(request)
       setHdf5Data(response)
@@ -35,7 +35,7 @@ export function IntensityChart() {
   
     useEffect(()=>{
       fetchIntensityTrace()
-      },[currentMeasurement]);
+      },[currentMeasurement, bin]);
 
   useEffect(()=>{
 
