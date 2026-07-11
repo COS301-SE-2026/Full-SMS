@@ -89,7 +89,7 @@ class TauData:
         ta_file, tb_file = self._tau_files[confidence]
 
         # Load tau data from package resources
-        tau_data_dir = files("legacy.data") / "tau_data"
+        tau_data_dir = files("api.legacy.data") / "tau_data"
         ta_path = tau_data_dir / ta_file
         tb_path = tau_data_dir / tb_file
 
@@ -492,6 +492,7 @@ def find_change_points(
         >>> for level in result.levels:
         ...     print(f"Level {level.id}: {level.intensity_cps:.0f} cps")
     """
+    print(f"INSIDE FIND CHANGE POINTS")
     # Convert float confidence to enum
     if isinstance(confidence, float):
         confidence_map = {
