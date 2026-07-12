@@ -2,6 +2,7 @@ import gzip
 import json
 import tempfile
 import os
+import zipfile
 import numpy as np
 from pathlib import Path
 from api.models.export_request import ExportRequest
@@ -48,3 +49,13 @@ def export_data(request: ExportRequest, user_id: str) -> Path:
             outputPaths.append(output_path)
         else:
             raise NotImplementedError("levels/groups export to be wired")
+        
+    if len(outputPaths) == 1 :
+        return outputPaths[0]
+        
+    zip_filedescr,zip_path = tempfile.mkstemp(suffix=".zip")
+    os.close(zip_filedescr)
+    with zipfile.ZipFile(zip_path, "w") as zf:
+        for path in outputPaths:
+            zf.write(path,arcname=Path(path).name)
+    return Path(zip_path)
