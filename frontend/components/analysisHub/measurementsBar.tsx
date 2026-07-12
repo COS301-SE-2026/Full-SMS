@@ -1,11 +1,7 @@
 'use client';
 
 
-import {  ChevronDown,
-  ChevronRight,
-  FileText,
-  Radio,
-} from 'lucide-react';
+import {FileText} from 'lucide-react';
 import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils';
 import { UploadMetadata, UploadResultRecord } from '@/types/hdf5';
@@ -68,7 +64,7 @@ export function MeasurementsBar() {
             className="flex items-center gap-1.5 px-3.5 py-1 hover:bg-card cursor-pointer"
             onClick={()=>onClickMeasurement(i)}
             role='button'
-            tabIndex={1}
+            tabIndex={0}
             >
 
               <FileText size={12} className="text-foreground/70" />

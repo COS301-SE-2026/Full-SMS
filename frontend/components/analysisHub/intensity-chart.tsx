@@ -4,9 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { colors } from '@/lib/tokens';
 import { intensityAnalysis, Intensity_Req } from '@/services/analysisServices';
 import { useHdf5Data } from '@/contexts/Hdf5DataContext';
-import { UploadResultRecord } from '@/types/hdf5';
-import { getHdf5UploadResult } from '@/services/hdf5services';
-import { ChangePointResult } from '@/types/intensity';
 
 export function IntensityChart() {
   let x_coords: number[] = []
