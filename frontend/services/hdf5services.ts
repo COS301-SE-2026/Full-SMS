@@ -16,7 +16,7 @@ export const computeSHA256 = async(hdf5_file: File): Promise<string>=>{
 
 export const initHdf5Upload = async (payload:{
   filename: string;
-  workspace_id: string
+  workspace_id: string | null
   size_bytes: number;
   content_type: string;
   sha256: string;

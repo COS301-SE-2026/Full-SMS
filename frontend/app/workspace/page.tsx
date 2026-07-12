@@ -59,9 +59,9 @@ export default function WorkspacePage() {
         </Modal>
         <div className='flex justify-center'>
             {
-                isLoading ? (<Loader centered={true}/>): (
+                (isLoading && data) ? (<Loader centered={true}/>): (
                 <div className='p-16'>
-                    <h1 className='font-bold'>{(data?.name).toUpperCase()}</h1>
+                    <h1 className='font-bold'>{data?.name?.toUpperCase()}</h1>
                     <p>{data?.description}</p>
                     <Badge variant="success" className='mt-2'>{data?.status}</Badge>
 

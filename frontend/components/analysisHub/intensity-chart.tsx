@@ -13,9 +13,9 @@ export function IntensityChart() {
   let x_coords: number[] = []
   let y_coords: number[] = []
   const {setHdf5Data,hdf5Data, currentMeasurement, bin, cpaData, currentUpload} = useHdf5Data();
-  if(hdf5Data?.counts.length !== 0 && hdf5Data?.time_bins.length !== 0){
-    x_coords = hdf5Data?.time_bins
-    y_coords = hdf5Data?.counts
+  if(hdf5Data && hdf5Data?.counts.length !== 0 && hdf5Data?.time_bins.length !== 0){
+    x_coords = hdf5Data.time_bins
+    y_coords = hdf5Data.counts
   }
 
     const fetchIntensityTrace= async ()=>{

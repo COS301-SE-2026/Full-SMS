@@ -34,7 +34,7 @@ interface Hdf5DataContextType {
   currentMeasurement: string,
   setCurrentMeasurement: (measurement_id: string) => void,
   setHdf5Metadata: (metadata: UploadMetadata)=> void,
-  hdf5Metadata: UploadMetadata
+  hdf5Metadata: UploadMetadata | undefined
   bin: number,
   setBin: (bin: number)=>void
   confidence: Confidence
@@ -42,7 +42,7 @@ interface Hdf5DataContextType {
   cpaData: ChangePointResult | undefined
   setCpaData: (data: ChangePointResult)=>void
   setCurrentWorkspaceId: (id: string)=>void,
-  currentWorkspaceId: string
+  currentWorkspaceId: string | null
 }
 
 const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(undefined)
@@ -50,7 +50,7 @@ const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(undefined
 export function Hdf5DataProvider({ children }: { children: ReactNode }) {
   const [hdf5Data, setHdf5Data] = useState<Hdf5Response>({time_bins:[],counts:[],intensity_cps:[]})
   const [cpaData, setCpaData] = useState<ChangePointResult>()
-  const [hdf5Metadata, setHdf5Metadata] = useState()
+  const [hdf5Metadata, setHdf5Metadata] = useState<UploadMetadata | undefined>()
   const [isParsing, setIsParsing] = useState<boolean>(true);
   const [currentUpload, setCurrentUpload] = useState<string>("70cc3a45-de95-4e27-8f5f-3907aaa13b54");
   const [currentMeasurement, setCurrentMeasurement] = useState<string>("0")
