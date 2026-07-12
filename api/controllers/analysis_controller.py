@@ -1,8 +1,10 @@
 from fastapi import HTTPException
-from api.models.analysis_models import CpaReq, IntensityReq, IntensityRes
+from api.models.analysis_models import ClusteringReq, CpaReq, IntensityReq, IntensityRes
+from api.services.analysis_services.clustering import execute_clustering
 from api.services.analysis_services.intensity import intensity_analysis
 from api.services.analysis_services.change_point_analysis import resolve_current_measurement
 
+## intensity analysis
 def intensity_analysis_controller(req: IntensityReq) -> IntensityRes:
     """
     Controller for Intensity analysis
@@ -24,4 +26,16 @@ def change_point_analysis_controller(req: CpaReq):
         return response
     except Exception:
         raise HTTPException(status_code=500, detail=str("Could not complete Change Point Analysis:"))
-    
+
+##Clustering/Grouping
+def clustering_analysis_controller(req: ClusteringReq):
+    """
+    Controller for Grouping/Clustering analysis
+    """
+    try:
+        response = execute_clustering(req)
+        return response
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Could not complete Clustering Analysis: {str(e)}")
