@@ -1,6 +1,6 @@
 import { Card } from '../ui/Card';
 import Plot from 'react-plotly.js'
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { colors } from '@/lib/tokens';
 import { intensityAnalysis, Intensity_Req } from '@/services/analysisServices';
 import { useHdf5Data } from '@/contexts/Hdf5DataContext';

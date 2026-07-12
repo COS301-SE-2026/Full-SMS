@@ -60,11 +60,9 @@ export function MeasurementsBar() {
       <div className="flex flex-col mt-1 overflow-y-auto flex-1">
         {measurements.map((m, i) => (
           <div key={m.name} className={cn((i+1).toString()===currentMeasurement ? "bg-card" : "")}>
-            <div 
+            <button 
             className="flex items-center gap-1.5 px-3.5 py-1 hover:bg-card cursor-pointer"
             onClick={()=>onClickMeasurement(i)}
-            role='button'
-            tabIndex={0}
             >
 
               <FileText size={12} className="text-foreground/70" />
@@ -76,7 +74,7 @@ export function MeasurementsBar() {
               >
                 {m.name}
               </span>
-            </div>
+            </button>
           </div>
         ))}
       </div>
