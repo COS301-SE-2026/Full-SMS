@@ -68,6 +68,7 @@ export function MeasurementsBar() {
             className="flex items-center gap-1.5 px-3.5 py-1 hover:bg-card cursor-pointer"
             onClick={()=>onClickMeasurement(i)}
             role='button'
+            tabIndex={1}
             >
 
               <FileText size={12} className="text-foreground/70" />

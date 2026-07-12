@@ -47,6 +47,7 @@ import { useHdf5Data } from "@/contexts/Hdf5DataContext";
       }
     } catch (error: unknown) {
       console.error(errorContext, error);
+      console.error(errorFallback)
       errorToast(getErrorMessage(error, errorContext));
     } finally {
       setLoading(false);
@@ -135,7 +136,7 @@ export default function DashboardPage() {
   const handleCreateWorkspace = async (name: string, description?: string) => {
     await runWorkspaceAction({
       action: () => workspaceService.createWorkspace({ name, description }),
-      onSuccess: (response) => {
+      onSuccess: () => {
         fetchWorkspaces();
         setIsCreateModalOpen(false);
       },
