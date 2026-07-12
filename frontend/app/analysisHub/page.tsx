@@ -16,8 +16,7 @@ import { UploadMetadata, UploadResultRecord } from '@/types/hdf5';
 
 export default function App() {
     const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
-    const {currentWorkspaceId} = useHdf5Data();
-    console.log("HUB: ", currentWorkspaceId)
+    const {currentWorkspaceId, currentUpload} = useHdf5Data();
   return (
     <div className="size-full flex flex-col bg-background text-foreground h-screen">
       <MenuBar onOpenFileUpload={() => setFileUploadModalOpen(true)} />

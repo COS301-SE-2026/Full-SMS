@@ -10,9 +10,12 @@ import { UploadRecord } from '@/types/hdf5'
 import { PlusCircle } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import UploadPage from '../upload/page'
+import { useRouter} from 'next/navigation'
 
 export default function WorkspacePage() {
-    const {currentWorkspaceId} = useHdf5Data()
+    const router = useRouter()
+    const {currentWorkspaceId, setCurrentUpload} = useHdf5Data()
+
     const [isLoading, setIsLoading] = useState(true)
     console.log(currentWorkspaceId)
     const [data, setData] = useState<Workspace>()
@@ -36,7 +39,10 @@ export default function WorkspacePage() {
         }
     }
     
-    
+    const handleUploadOpen = (upload_id: string) =>{
+        setCurrentUpload(upload_id)
+        router.push('/analysisHub')
+    }
 
     useEffect(() => {   
         if (currentWorkspaceId) {
@@ -53,7 +59,7 @@ export default function WorkspacePage() {
         </Modal>
         <div className='flex justify-center'>
             {
-                isLoading ? (<Loader/>): (
+                isLoading ? (<Loader centered={true}/>): (
                 <div className='p-16'>
                     <h1 className='font-bold'>{(data?.name).toUpperCase()}</h1>
                     <p>{data?.description}</p>
@@ -69,7 +75,7 @@ export default function WorkspacePage() {
                             </div>
                         ) : (
                         uploads.map((upload, index) => (
-                            <Card key={upload.id || index} className="upload-item w-[70vw] mt-4">
+                            <Card key={upload.id || index} className="upload-item w-[70vw] mt-4" onClick={()=>{handleUploadOpen(upload.id)}}>
                                 <CardHeader className='font-bold'>{upload.filename}</CardHeader>
                                 <CardContent>{((upload.size_bytes)/(1024*1024)).toPrecision(2) } MB</CardContent>
                             </Card>

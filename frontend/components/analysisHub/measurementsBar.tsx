@@ -22,10 +22,9 @@ export function MeasurementsBar() {
   const [measurementItems, setMeasurementItems] = useState <Measurement[]>()
   const [state, setState] = useState<Record<string, { checked: boolean; expanded: boolean }>>({})
   const [num_measurements, setNum_measurements] = useState<number>(0)
-  const {currentMeasurement, setCurrentMeasurement} = useHdf5Data();
+  const {currentMeasurement, setCurrentMeasurement, currentUpload} = useHdf5Data();
   const fetchUploadResult = async ()=>{
-      const response: UploadResultRecord = await getHdf5UploadResult("70cc3a45-de95-4e27-8f5f-3907aaa13b54")
-      console.log(response)
+      const response: UploadResultRecord = await getHdf5UploadResult(currentUpload)
       return response
     }
   

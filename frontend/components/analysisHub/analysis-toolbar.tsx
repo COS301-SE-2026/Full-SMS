@@ -119,7 +119,7 @@ export function AnalysisToolbar() {
       <Button
         size="sm"
         variant="primary"
-        leftIcon={(isLoading ? (<Loader size="sm"/>):(<Play size={14} fill="currentColor" />))}
+        leftIcon={(isLoading ? (<Loader size="sm" variant='dark'/>):(<Play size={14} fill="currentColor" />))}
         className="min-h-[28px] px-3"
         onClick={()=>OnResolveClick()}
       >
