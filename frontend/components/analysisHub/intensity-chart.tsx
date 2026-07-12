@@ -10,8 +10,8 @@ import { getHdf5UploadResult } from '@/services/hdf5services';
 import { ChangePointResult } from '@/types/intensity';
 
 export function IntensityChart() {
-  var x_coords: number[] = []
-  var y_coords: number[] = []
+  let x_coords: number[] = []
+  let y_coords: number[] = []
   const {setHdf5Data,hdf5Data, currentMeasurement, bin, cpaData, currentUpload} = useHdf5Data();
   if(hdf5Data?.counts.length !== 0 && hdf5Data?.time_bins.length !== 0){
     x_coords = hdf5Data?.time_bins

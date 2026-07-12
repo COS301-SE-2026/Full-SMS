@@ -56,14 +56,11 @@ export function Hdf5DataProvider({ children }: { children: ReactNode }) {
   const [currentMeasurement, setCurrentMeasurement] = useState<string>("0")
   const [bin, setBin] = useState<number>(10)
   const [confidence, setConfidence] = useState<Confidence>(90)
-  const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string>("")
-
-  useEffect(() => {
-    const savedWorkspaceId = localStorage.getItem("currentWorkspaceId");
-    if (savedWorkspaceId) {
-      setCurrentWorkspaceId(savedWorkspaceId);
-    }
-  }, []);
+  const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string | null>(()=>{
+    if(typeof window !=='undefined')
+        return localStorage.getItem("currentWorkspaceId") || null
+      return null
+  })
 
   useEffect(() => {
     if (currentWorkspaceId) {

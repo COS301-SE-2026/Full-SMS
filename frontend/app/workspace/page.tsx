@@ -22,22 +22,6 @@ export default function WorkspacePage() {
     const [uploads,setUploads] = useState<UploadRecord[]>()
     const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
 
-    const fetchWorkspace = async ()=>{
-        const workspaceData = await workspaceService.getWorkspace(currentWorkspaceId)
-        if(workspaceData.success){
-            setData(workspaceData.workspace)
-            setIsLoading(false)
-        }
-        console.log(workspaceData);
-    }
-
-    const fetchWorspaceUploads = async ()=>{
-        const uploads = await workspaceService.getWorkspaceUploads(currentWorkspaceId)
-        if(uploads.success){
-            console.log(uploads)
-            setUploads(uploads.uploads)            
-        }
-    }
     
     const handleUploadOpen = (upload_id: string) =>{
         setCurrentUpload(upload_id)
@@ -46,6 +30,22 @@ export default function WorkspacePage() {
 
     useEffect(() => {   
         if (currentWorkspaceId) {
+            const fetchWorkspace = async ()=>{
+                const workspaceData = await workspaceService.getWorkspace(currentWorkspaceId)
+                if(workspaceData.success){
+                    setData(workspaceData.workspace)
+                    setIsLoading(false)
+                }
+                console.log(workspaceData);
+            }
+
+            const fetchWorspaceUploads = async ()=>{
+                const uploads = await workspaceService.getWorkspaceUploads(currentWorkspaceId)
+                if(uploads.success){
+                    console.log(uploads)
+                    setUploads(uploads.uploads)            
+                }
+            }        
             fetchWorkspace()
             fetchWorspaceUploads()
         }

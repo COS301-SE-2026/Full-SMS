@@ -45,7 +45,7 @@ export function MeasurementsBar() {
 
     
 
-  var measurements: Measurement[] = []
+  const measurements: Measurement[] = []
   
   for(let i: number =1; i <= num_measurements; i++){
     const element:Measurement ={name: `Measurement ${i}`,checked:i==1}
