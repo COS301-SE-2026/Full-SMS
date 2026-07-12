@@ -47,7 +47,7 @@ interface Hdf5DataContextType {
 
 const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(undefined)
 
-export function Hdf5DataProvider({ children }: { children: ReactNode }) {
+export function Hdf5DataProvider({ children }: { readonly children: ReactNode }) {
   const [hdf5Data, setHdf5Data] = useState<Hdf5Response>({time_bins:[],counts:[],intensity_cps:[]})
   const [cpaData, setCpaData] = useState<ChangePointResult>()
   const [hdf5Metadata, setHdf5Metadata] = useState<UploadMetadata | undefined>()

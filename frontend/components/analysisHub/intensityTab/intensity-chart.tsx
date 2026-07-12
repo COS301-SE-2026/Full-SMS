@@ -1,4 +1,4 @@
-import { Card } from '../ui/Card';
+import { Card } from '../../ui/Card';
 import Plot from 'react-plotly.js'
 import { useEffect, useMemo } from 'react';
 import { colors } from '@/lib/tokens';
