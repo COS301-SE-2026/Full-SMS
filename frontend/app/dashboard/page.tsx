@@ -218,60 +218,6 @@ export default function DashboardPage() {
     if (loading) {
       return (
         <div className="flex flex-col flex-1 p-6 overflow-auto">
-          <div className="mb-6">
-            <h1 className="text-2xl font-semibold text-foreground mb-1">
-              Workspaces
-            </h1>
-            <p className="text-foreground/60 text-sm">
-              Manage your spectroscopy analysis workspaces
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/40" />
-              <input
-                type="text"
-                placeholder="Search workspaces..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-13 pl-10 pr-4 py-2 bg-card border border-border rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <StatusFilterButton
-                label="Active"
-                value="active"
-                currentFilter={statusFilter}
-                onClick={setStatusFilter}
-                count={workspaces.filter((w) => w.status === "active").length}
-              />
-              <StatusFilterButton
-                label="Archived"
-                value="archived"
-                currentFilter={statusFilter}
-                onClick={setStatusFilter}
-                count={workspaces.filter((w) => w.status === "archived").length}
-              />
-              <StatusFilterButton
-                label="All"
-                value="all"
-                currentFilter={statusFilter}
-                onClick={setStatusFilter}
-                count={workspaces.length}
-              />
-            </div>
-
-            <Button
-              variant="primary"
-              size="sm"
-              leftIcon={<FolderPlus className="h-5 w-4" />}
-              onClick={() => setIsCreateModalOpen(true)}
-              className="ml-auto"
-            >
-              New Workspace
-            </Button>
-          </div>
           <div className="flex-1 flex items-center justify-center">
            < Loader centered size="lg" label="Loading workspaces..."/>
           </div>
