@@ -3,7 +3,7 @@ import Plot from 'react-plotly.js'
 import { useEffect, useMemo } from 'react';
 import { colors } from '@/lib/tokens';
 import { intensityAnalysis, Intensity_Req } from '@/services/analysisServices';
-import { useHdf5Data } from '@/contexts/Hdf5DataContext';
+import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext';
 
 export function IntensityChart() {
   let x_coords: number[] = []

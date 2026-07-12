@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Play, Maximize2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { cn } from '@/lib/utils';
-import { useHdf5Data } from '@/contexts/Hdf5DataContext';
+import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext';
 import { changePointAnalysis, changePoint_Req } from '@/services/analysisServices';
 import { Loader } from '../ui';
 

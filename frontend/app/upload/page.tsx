@@ -5,7 +5,7 @@ import { FileUploadZone, FileList } from '@/components/upload';
 import type { SelectedFile } from '@/components/upload';
 import { initHdf5Upload, uploadToSignedUrl, completeHdf5Upload, computeSHA256} from "@/services/hdf5services";
 import { Button } from '@/components/ui';
-import { useHdf5Data } from '@/contexts/Hdf5DataContext';
+import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext';
 import {supabase} from '@/lib/supabase/supabaseConfig'
 import { InitUploadResponse } from '@/types/hdf5';
 import { Intensity_Req, intensityAnalysis } from '@/services/analysisServices';

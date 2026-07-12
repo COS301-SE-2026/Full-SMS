@@ -3,7 +3,7 @@ import "./globals.css";
 import ClientLayout from "@/components/auth/ClientLayout";
 import { AuthProvider } from "@/contexts/authContext/AuthContext";
 import { ToastProvider } from "@/contexts/toastContext/ToastContext";
-import { Hdf5DataProvider } from "@/contexts/Hdf5DataContext";
+import { Hdf5DataProvider } from "@/contexts/hdf5Context/Hdf5DataContext";
 
 const publicSans = Public_Sans({
   subsets: ["latin"],
