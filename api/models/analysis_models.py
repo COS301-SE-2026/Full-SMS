@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
-
+import numpy as np
 class LifetimeReq(BaseModel):
     upload_id: str
     measurement_id: str
@@ -23,3 +23,8 @@ class IntensityRes(BaseModel):
     time_bins: List[float]       # X-axis ( time in milliseconds)
     counts: List[int]            # Y-axis (Raw photon counts per bin)
     intensity_cps: List[float]
+
+class CpaReq(BaseModel):
+    upload_id: str
+    measurement_id: str
+    confidence: int

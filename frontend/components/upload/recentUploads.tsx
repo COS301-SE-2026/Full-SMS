@@ -19,9 +19,7 @@ export default function RecentUploads() {
     const uploads = await getUserHdf5Uploads()
     if(uploads){
       setUserUploads(uploads)
-      setIsLoading(false)
-      console.log(uploads)
-    }
+      setIsLoading(false)    }
     if(uploads?.data.length === 0){
       return console.error("User uploads not found")
     }

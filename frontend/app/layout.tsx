@@ -29,7 +29,7 @@ export default function RootLayout({
       lang="en"
       className={`${publicSans.variable} ${jetbrainsMono.variable}`}
     >
-      <body>
+      <body >
         <ToastProvider>
           <AuthProvider>
             <Hdf5DataProvider>
