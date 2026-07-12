@@ -19,6 +19,21 @@ export type changePoint_Req = {
     confidence: number
 }
 
+export type ClusteringReq={
+    levels: LevelData[]
+} 
+
+export type LevelData = {
+    start_index: number
+    end_index: number
+    start_time_ns: number
+    end_time_ns: number
+    num_photons: number
+    intensity_cps: number
+    group_id?: number[]
+}
+
+
 export const intensityAnalysis = async (payload: Intensity_Req)=>{    
    const {data} = await axiosInstance.post('api/py/analysis/intensity', payload);
    return data;
@@ -28,5 +43,11 @@ export const changePointAnalysis = async (payload: changePoint_Req) =>{
     console.log("cpa payload", payload);
     
     const {data} = await axiosInstance.post('api/py/analysis/change-point-analysis', payload)
+    console.log("change_point_data: " ,data)
+    return data
+}
+
+export const getClusteringLevels = async (payload:ClusteringReq) =>{
+    const {data} = await axiosInstance.post('api/py/analysis/group-current', payload)
     return data
 }

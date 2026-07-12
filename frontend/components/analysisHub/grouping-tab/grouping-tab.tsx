@@ -1,7 +1,12 @@
 import React from 'react'
+import GroupingToolbar from './grouping-toolbar'
+import GroupingCharts from './grouping-charts'
 
 export default function GroupingTab() {
   return (
-    <div>GroupingTab</div>
+    <div>
+      <GroupingToolbar/>
+      <GroupingCharts/>
+    </div>
   )
 }
