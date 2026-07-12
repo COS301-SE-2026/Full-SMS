@@ -1,9 +1,8 @@
 import { Card } from '../ui/Card';
-import intensityPoints from '@/app/demo-data/intensity_points';
 import Plot from 'react-plotly.js'
 import { useEffect, useMemo, useState } from 'react';
 import { colors } from '@/lib/tokens';
-import { intensityAnalysis, Intensity_Req, Intensity_Res } from '@/services/analysisServices';
+import { intensityAnalysis, Intensity_Req } from '@/services/analysisServices';
 import { useHdf5Data } from '@/contexts/Hdf5DataContext';
 import { UploadResultRecord } from '@/types/hdf5';
 import { getHdf5UploadResult } from '@/services/hdf5services';
@@ -31,11 +30,6 @@ export function IntensityChart() {
 
     }
   
-    const fetchUploadResult = async ()=>{
-      const response: UploadResultRecord = await getHdf5UploadResult("70cc3a45-de95-4e27-8f5f-3907aaa13b54")
-      return response
-    }
-  
   
     useEffect(()=>{
       fetchIntensityTrace()
@@ -54,10 +48,8 @@ export function IntensityChart() {
           const start = level.start_time_ns / million
           const end = level.end_time_ns / million
 
-          x_axis.push(start)
-          x_axis.push(end)
-          y_axis.push((level.intensity_cps)*(bin/1000))
-          y_axis.push((level.intensity_cps)*(bin/1000))
+          x_axis.push(start, end)
+          y_axis.push((level.intensity_cps)*(bin/1000), (level.intensity_cps)*(bin/1000))
 
         }
         return {x: x_axis, y:y_axis}

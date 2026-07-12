@@ -64,7 +64,7 @@ export default function DashboardPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] =
     useState<WorkspaceFilterStatus>("active");
-  const {setCurrentWorkspaceId, currentWorkspaceId} = useHdf5Data()
+  const {setCurrentWorkspaceId} = useHdf5Data()
   const filteredWorkspaces = useMemo(() => {
     return workspaces.filter((workspace) => {
       if (statusFilter !== "all" && workspace.status !== statusFilter) {

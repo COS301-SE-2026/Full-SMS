@@ -1,12 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Play, Maximize2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { cn } from '@/lib/utils';
 import { useHdf5Data } from '@/contexts/Hdf5DataContext';
-import { resolve } from 'path';
 import { changePointAnalysis, changePoint_Req } from '@/services/analysisServices';
-import { ChangePointResult } from '@/types/intensity';
-import { log } from 'console';
 import { Loader } from '../ui';
 
 function NumberField({
@@ -56,9 +53,9 @@ function ConfidenceField({
   value,
   onChange,
 }: {
-  label: string;
-  value: Confidence;
-  onChange: (v: Confidence) => void;
+  readonly label: string;
+  readonly value: Confidence;
+  readonly onChange: (v: Confidence) => void;
 }) {
   const choices: Confidence[] =[69, 90, 95, 99];
 
@@ -82,7 +79,7 @@ function ConfidenceField({
 
 
 export function AnalysisToolbar() {
-  const {bin, setBin, confidence, setConfidence, currentUpload, currentMeasurement, setCpaData, cpaData} = useHdf5Data()
+  const {bin, setBin, confidence, setConfidence, currentUpload, currentMeasurement, setCpaData} = useHdf5Data()
   const [scope, setScope] = useState<'selected' | 'all'>('selected');
   const [isLoading, setIsLoading] = useState(false)
 
@@ -100,8 +97,8 @@ export function AnalysisToolbar() {
   }
 
   const OnResolveClick = () =>{
-    if(!(currentMeasurement === "0")){
-      const cpa = resolveCurrent()
+    if((currentMeasurement !== "0")){
+      resolveCurrent()
       setIsLoading(true)      
     }
     else{

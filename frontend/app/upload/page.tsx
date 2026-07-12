@@ -105,7 +105,7 @@ useEffect (()=>{
                         
                         
                       } catch (error) {
-                        
+                        console.error(error)
                       }
                     }
                   }

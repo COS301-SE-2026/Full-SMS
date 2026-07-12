@@ -15,7 +15,6 @@ def intensity_analysis(payload: IntensityReq) -> IntensityRes:
     """
     upload_id= payload.upload_id
     measurement_id = payload.measurement_id
-    print(f"\n\n\n\n\nfinding in cache\n\n\n\n\n")
 
     cached_data = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
     if not cached_data:

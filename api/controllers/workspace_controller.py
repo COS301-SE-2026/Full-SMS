@@ -101,7 +101,6 @@ def unarchive_workspace_controller(workspace_id: str, user_id: str) -> dict:
 
 def get_workspace_uploads_controller(workspace_id: str, user_id: str) -> dict:
     try:
-        print(f"\n\n\n\nUSER ID: {user_id}\n\n\n\n\n")
         response = get_workspace_uploads(workspace_id=workspace_id, user_id=user_id)
         return {"success": True, "message": "Worspace uploads found successfullt", "uploads": response}
     except ValueError as valerror:

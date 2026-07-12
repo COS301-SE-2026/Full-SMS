@@ -8,7 +8,7 @@ import {
   useMemo,
   useEffect
 } from "react";
-import { UploadMetadata, UploadResultRecord } from "@/types/hdf5";
+import { UploadMetadata } from "@/types/hdf5";
 import { ChangePointResult } from "@/types/intensity";
 
 // class IntensityRes(BaseModel):
@@ -59,7 +59,7 @@ export function Hdf5DataProvider({ children }: { children: ReactNode }) {
   const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string | null>(()=>{
     if(typeof window !=='undefined')
         return localStorage.getItem("currentWorkspaceId") || null
-      return null
+    return null
   })
 
   useEffect(() => {

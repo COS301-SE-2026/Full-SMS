@@ -492,7 +492,6 @@ def find_change_points(
         >>> for level in result.levels:
         ...     print(f"Level {level.id}: {level.intensity_cps:.0f} cps")
     """
-    print(f"INSIDE FIND CHANGE POINTS")
     # Convert float confidence to enum
     if isinstance(confidence, float):
         confidence_map = {

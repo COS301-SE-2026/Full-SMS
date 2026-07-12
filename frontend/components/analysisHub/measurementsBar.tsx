@@ -6,11 +6,10 @@ import {  ChevronDown,
   FileText,
   Radio,
 } from 'lucide-react';
-import { use, useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils';
 import { UploadMetadata, UploadResultRecord } from '@/types/hdf5';
 import { useHdf5Data } from '@/contexts/Hdf5DataContext'
-import { Loader } from '../ui';
 import { getHdf5UploadResult } from '@/services/hdf5services';
 
 export interface Measurement{
@@ -19,8 +18,6 @@ checked?:boolean
 }
 
 export function MeasurementsBar() {
-  const [measurementItems, setMeasurementItems] = useState <Measurement[]>()
-  const [state, setState] = useState<Record<string, { checked: boolean; expanded: boolean }>>({})
   const [num_measurements, setNum_measurements] = useState<number>(0)
   const {currentMeasurement, setCurrentMeasurement, currentUpload} = useHdf5Data();
   const fetchUploadResult = async ()=>{
@@ -52,23 +49,7 @@ export function MeasurementsBar() {
     measurements.push(element)
   }
 
-  const toggleCheck = (i: number) => {
-    const name = measurements[i]?.name
-    if (!name) return
-    setState((prev) => ({
-      ...prev,
-      [name]: { checked: !prev[name]?.checked, expanded: prev[name]?.expanded ?? false },
-    }))
-  }
 
-  const toggleExpand = (i: number) => {
-    const name = measurements[i]?.name
-    if (!name) return
-    setState((prev) => ({
-      ...prev,
-      [name]: { checked: prev[name]?.checked ?? false, expanded: !prev[name]?.expanded },
-    }))
-  }
 
   const onClickMeasurement = (id: number) => {
     setCurrentMeasurement((id+1).toString())
@@ -82,17 +63,13 @@ export function MeasurementsBar() {
       </div>
       <div className="flex flex-col mt-1 overflow-y-auto flex-1">
         {measurements.map((m, i) => (
-          <div key={i} className={cn((i+1).toString()===currentMeasurement ? "bg-card" : "")}>
+          <div key={m.name} className={cn((i+1).toString()===currentMeasurement ? "bg-card" : "")}>
             <div 
             className="flex items-center gap-1.5 px-3.5 py-1 hover:bg-card cursor-pointer"
             onClick={()=>onClickMeasurement(i)}
+            role='button'
             >
-              <input
-                type="checkbox"
-                checked={m.checked}
-                onChange={() => toggleCheck(i)}
-                className="accent-primary w-3 h-3"
-              />
+
               <FileText size={12} className="text-foreground/70" />
               <span
                 className={cn(

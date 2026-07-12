@@ -8,13 +8,11 @@ def intensity_analysis_controller(req: IntensityReq) -> IntensityRes:
     Controller for Intensity analysis
     Connects HTTP/Websocket requests into calls to the Intensity analysis service
     """
-    print(f"\n\n\n\nEntering controller\n\n\n\n\n")
-    print(f"\n\n\n{req}\n\n\n")
     try:
         response = intensity_analysis(req)
         return response
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Could not complete Intensity Analysis: {e}")
+        raise HTTPException(status_code=500, detail=str({e}))
     
 def change_point_analysis_controller(req: CpaReq):
     """
@@ -24,6 +22,6 @@ def change_point_analysis_controller(req: CpaReq):
     try:
         response = resolve_current_measurement(req)
         return response
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Could not complete Change Point Analysis")
+    except Exception:
+        raise HTTPException(status_code=500, detail=str("Could not complete Change Point Analysis:"))
     
