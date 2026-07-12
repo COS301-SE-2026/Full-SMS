@@ -17,7 +17,7 @@ type UploadPageProps = {
 
 export default function UploadPage({ onComplete }: UploadPageProps) {
   const [queue, setQueue] = useState<SelectedFile[]>([]);
-  const {setIsParsing, setCurrentUpload, currentUpload } = useHdf5Data()
+  const {setIsParsing, setCurrentUpload, currentUpload, currentWorkspaceId } = useHdf5Data()
   const [uploadId, setUploadId] = useState<string>("");
   const updateItem = (id: string, patch: Partial<SelectedFile>) => {
   setQueue((prev) =>
@@ -38,6 +38,7 @@ const handleOpen = async () => {
       
       const initialize: InitUploadResponse = await initHdf5Upload({
         filename: item.name,
+        workspace_id: currentWorkspaceId,
         size_bytes: item.sizeBytes,
         content_type: item.file.type,
         sha256: sha256_hash,

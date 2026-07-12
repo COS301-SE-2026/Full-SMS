@@ -17,6 +17,7 @@ import { FolderPlus, Search } from "lucide-react";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { workspaceService } from "@/services/workspaceServices";
 import { getErrorMessage } from "@/utils/dashboard";
+import { useHdf5Data } from "@/contexts/Hdf5DataContext";
 
   async function runWorkspaceAction<T>({
     action,
@@ -63,7 +64,7 @@ export default function DashboardPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] =
     useState<WorkspaceFilterStatus>("active");
-
+  const {setCurrentWorkspaceId, currentWorkspaceId} = useHdf5Data()
   const filteredWorkspaces = useMemo(() => {
     return workspaces.filter((workspace) => {
       if (statusFilter !== "all" && workspace.status !== statusFilter) {
@@ -126,9 +127,11 @@ export default function DashboardPage() {
   }, [fetchWorkspaces]);
 
   const handleOpenWorkspace = (workspaceId: string) => {
-    router.push("/analysisHub");
+    console.log(workspaceId);
+    setCurrentWorkspaceId(workspaceId)
+    router.push("/workspace");
   };
-
+  
   const handleCreateWorkspace = async (name: string, description?: string) => {
     await runWorkspaceAction({
       action: () => workspaceService.createWorkspace({ name, description }),

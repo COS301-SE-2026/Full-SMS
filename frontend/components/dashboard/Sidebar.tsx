@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { User, Puzzle, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,14 @@ export default function Sidebar({
 }: Readonly<DashboardSidebarProps>) {
   const { signOut } = useAuth();
   const router = useRouter();
+
+  const pathname = usePathname();
+
+  const excludedRoutes = ["/login", "/signup", "/analysisHub"];
+
+  if (excludedRoutes.includes(pathname)) {
+    return null; 
+  }
 
   const navItems: NavItem[] = [
     {
