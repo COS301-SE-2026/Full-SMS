@@ -22,7 +22,7 @@ def validate_upload_request(filename: str, size_bytes: int) -> None:
 
 
 
-def create_upload_record(user_id: str, filename: str, size_bytes: int, sha256: str) -> dict:
+def create_upload_record(user_id: str, filename: str, workspace_id: str, size_bytes: int, sha256: str) -> dict:
     """
     Create a record for a new file upload.
 
@@ -43,6 +43,7 @@ def create_upload_record(user_id: str, filename: str, size_bytes: int, sha256: s
             "id": upload_id,
             "user_id": user_id,
             "filename": filename,
+            "workspace_id": workspace_id,
             "size_bytes": size_bytes,
             "storage_key": storage_key,
             "sha256": sha256,
