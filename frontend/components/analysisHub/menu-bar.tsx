@@ -2,7 +2,7 @@ import Link from "next/link";
 
 
 interface MenuBarProps {
-  onOpenFileUpload: () => void;
+  readonly onOpenFileUpload: () => void;
 }
 
 export function MenuBar({ onOpenFileUpload }: MenuBarProps) {

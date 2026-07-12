@@ -11,7 +11,7 @@ export default function Hero() {
             <div className="max-w-prose text-left">
             <h1 className="text-4xl font-bold sm:text-5xl">
                Single-Molecule Analysis, 
-               <strong className="text-bold"> Unchained </strong> 
+               <strong className="text-bold text-primary/70"> Unchained </strong> 
                from the Desktop.
             </h1>
 
