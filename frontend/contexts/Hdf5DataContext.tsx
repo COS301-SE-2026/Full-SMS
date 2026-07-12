@@ -6,6 +6,7 @@ import {
   useState,
   ReactNode,
   useMemo,
+  useEffect
 } from "react";
 import { UploadMetadata, UploadResultRecord } from "@/types/hdf5";
 import { ChangePointResult } from "@/types/intensity";
@@ -40,6 +41,8 @@ interface Hdf5DataContextType {
   setConfidence: (conf: Confidence)=> void
   cpaData: ChangePointResult | undefined
   setCpaData: (data: ChangePointResult)=>void
+  setCurrentWorkspaceId: (id: string)=>void,
+  currentWorkspaceId: string
 }
 
 const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(undefined)
@@ -53,6 +56,22 @@ export function Hdf5DataProvider({ children }: { children: ReactNode }) {
   const [currentMeasurement, setCurrentMeasurement] = useState<string>("0")
   const [bin, setBin] = useState<number>(10)
   const [confidence, setConfidence] = useState<Confidence>(90)
+  const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string>("")
+
+  useEffect(() => {
+    const savedWorkspaceId = localStorage.getItem("currentWorkspaceId");
+    if (savedWorkspaceId) {
+      setCurrentWorkspaceId(savedWorkspaceId);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (currentWorkspaceId) {
+      localStorage.setItem("currentWorkspaceId", currentWorkspaceId);
+    } else {
+      localStorage.removeItem("currentWorkspaceId");
+    }
+  }, [currentWorkspaceId]);
 
 
   const contextValue = useMemo(()=>({
@@ -71,8 +90,10 @@ export function Hdf5DataProvider({ children }: { children: ReactNode }) {
     confidence, 
     setConfidence,
     setCpaData,
-    cpaData
-  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin, confidence,cpaData])
+    cpaData,
+    setCurrentWorkspaceId,
+    currentWorkspaceId
+  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin, confidence,cpaData, currentWorkspaceId])
   
   return (
     <Hdf5DataContext.Provider value={contextValue}>
