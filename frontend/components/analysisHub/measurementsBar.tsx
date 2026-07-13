@@ -17,24 +17,27 @@ export function MeasurementsBar() {
   const [num_measurements, setNum_measurements] = useState<number>(0)
   const {currentMeasurement, setCurrentMeasurement, currentUpload} = useHdf5Data();
   const fetchUploadResult = async ()=>{
-      const response: UploadResultRecord = await getHdf5UploadResult(currentUpload)
-      return response
+      if(currentUpload){
+        console.log("CURRENT UPLOAD:", currentUpload);
+        const response: UploadResultRecord = await getHdf5UploadResult(currentUpload)
+        return response}
+
     }
   
-  const x = 1
     useEffect(()=>{
       const loadData = async () => {
         try {
           const record = await fetchUploadResult();
+          if(record){
           const metadata: UploadMetadata = record.metadata_json;
-          setNum_measurements(metadata.num_measurements)
+          setNum_measurements(metadata.num_measurements)}
         } catch (error) {
           console.error("Failed to fetch or parse upload result:", error);
         }
       };
   
       loadData();
-    },[x])
+    },[currentUpload])
 
     
 

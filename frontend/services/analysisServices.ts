@@ -1,37 +1,5 @@
 import axiosInstance from "@/lib/api/axiosInstance";
-
-export type Intensity_Req = {
-    upload_id: string;
-    measurement_id: string;
-    bin_size_ms: number
-}
-
-export type Intensity_Res = {
-    time_bins: Float64Array;
-    counts: Int8Array;  
-    intensity_cps: Float64Array
-}
-
-
-export type changePoint_Req = {
-    upload_id: string
-    measurement_id: string
-    confidence: number
-}
-
-export type ClusteringReq={
-    levels: LevelData[]
-} 
-
-export type LevelData = {
-    start_index: number
-    end_index: number
-    start_time_ns: number
-    end_time_ns: number
-    num_photons: number
-    intensity_cps: number
-    group_id?: number[]
-}
+import { changePoint_Req, ClusteringReq, Intensity_Req } from "@/types/analysis";
 
 
 export const intensityAnalysis = async (payload: Intensity_Req)=>{    

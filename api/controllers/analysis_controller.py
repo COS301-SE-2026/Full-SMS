@@ -1,9 +1,10 @@
 from fastapi import HTTPException
 from api.models.analysis_models import ClusteringReq, CpaReq, IntensityReq, IntensityRes
 from api.services.analysis_services.clustering import execute_clustering
+from api.services.analysis_services.clustering_job_service import clustering_job
 from api.services.analysis_services.intensity import intensity_analysis
 from api.services.analysis_services.change_point_analysis import resolve_current_measurement
-
+from celery.result import AsyncResult
 ## intensity analysis
 def intensity_analysis_controller(req: IntensityReq) -> IntensityRes:
     """
@@ -28,14 +29,27 @@ def change_point_analysis_controller(req: CpaReq):
         raise HTTPException(status_code=500, detail=str("Could not complete Change Point Analysis:"))
 
 ##Clustering/Grouping
-def clustering_analysis_controller(req: ClusteringReq):
+def init_clustering_analysis_controller(req: ClusteringReq):
     """
-    Controller for Grouping/Clustering analysis
+    Controller for starting the clustering job, sending it to the celery task queue
     """
     try:
-        response = execute_clustering(req)
-        return response
-    except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))
+        job = clustering_job.delay(req.levels)
+        return {"task_id": job.id, "status": "executing"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Could not complete Clustering Analysis: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Could not queue job: {str(e)}")
+    
+def get_clustering_job_status(task_id: str):
+    """
+    Let's the rest of the sysytem knoe when a job is compelete
+    """
+    try:
+        job = AsyncResult(task_id)
+        if job.ready() :
+            if job.successful():
+                return {"status": "completed", "result": job.result}
+            else:
+                return {"status": "failed", "error": str(job.result)}
+        return {"status":"processing"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
