@@ -11,7 +11,10 @@ def clustering_job(levels: list[dict]):
     """
     levels_dict =[]
     for level in levels:
-        levels.append(LevelData(**level))
+        if(isinstance(level, dict)):
+            levels_dict.append(LevelData(**level))
+        else:
+            levels_dict.append(level)
 
     clustering_response = cluster_levels(levels=levels_dict)
 

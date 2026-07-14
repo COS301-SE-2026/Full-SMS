@@ -35,7 +35,6 @@ def init_clustering_analysis_controller(req: ClusteringReq):
     """
     Controller for starting the clustering job, sending it to the celery task queue
     """
-    print(f"\n\n\ninit controller\n\n\n")
     try:
         json_serializable_levels = [asdict(levels) for levels in req.levels]
         job = clustering_job.delay(json_serializable_levels)
