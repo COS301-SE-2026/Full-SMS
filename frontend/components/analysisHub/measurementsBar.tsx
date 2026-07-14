@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 import { UploadMetadata, UploadResultRecord } from '@/types/hdf5';
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { getHdf5UploadResult } from '@/services/hdf5services';
+import { Intensity_Req } from '@/types/analysis';
+import { intensityAnalysis } from '@/services/analysisServices';
 
 export interface Measurement{
 name: string
@@ -15,7 +17,7 @@ checked?:boolean
 
 export function MeasurementsBar() {
   const [num_measurements, setNum_measurements] = useState<number>(0)
-  const {currentMeasurement, setCurrentMeasurement, currentUpload} = useHdf5Data();
+  const {currentMeasurement, setCurrentMeasurement, currentUpload, setHdf5Data, bin} = useHdf5Data();
   const fetchUploadResult = async ()=>{
       if(currentUpload){
         console.log("CURRENT UPLOAD:", currentUpload);
@@ -24,6 +26,24 @@ export function MeasurementsBar() {
 
     }
   
+  const fetchIntensityTrace= async ()=>{
+      if(currentUpload){
+        const request: Intensity_Req ={
+        upload_id:currentUpload,
+        measurement_id:currentMeasurement,
+        bin_size_ms: Number(bin),
+      }
+      const response = await intensityAnalysis(request)
+      setHdf5Data(response)
+      }
+
+    }
+  
+  
+    useEffect(()=>{
+      fetchIntensityTrace()
+      },[currentMeasurement, bin, currentUpload]);
+
     useEffect(()=>{
       const loadData = async () => {
         try {

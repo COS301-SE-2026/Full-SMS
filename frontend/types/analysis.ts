@@ -48,6 +48,7 @@ export interface GroupData {
     intensity_cps: number;
 }
 export interface ClusteringStep {
+    bic:number,
     groups: GroupData[];
     level_group_assignments: number[];
     num_groups: number;
@@ -55,7 +56,9 @@ export interface ClusteringStep {
 
 export type ClusteringRes ={
     steps: ClusteringStep[],
-
+    optimal_step_index: number,
+    selected_step_index: number,
+    num_original_levels: number
 }
 
 export type LevelData = {

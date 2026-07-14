@@ -9,8 +9,7 @@ import {
   useEffect
 } from "react";
 import { UploadMetadata } from "@/types/hdf5";
-import { ChangePointResult } from "@/types/analysis";
-import { ClusteringRes } from "@/services/analysisServices";
+import { ChangePointResult, ClusteringRes } from "@/types/analysis";
 
 // class IntensityRes(BaseModel):
 //     time_bins: List[float]       # X-axis ( time in milliseconds)

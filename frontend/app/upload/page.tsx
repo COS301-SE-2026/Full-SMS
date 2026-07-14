@@ -8,7 +8,8 @@ import { Button } from '@/components/ui';
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext';
 import {supabase} from '@/lib/supabase/supabaseConfig'
 import { InitUploadResponse } from '@/types/hdf5';
-import { Intensity_Req, intensityAnalysis } from '@/services/analysisServices';
+import { Intensity_Req } from '@/types/analysis';
+import { intensityAnalysis } from '@/services/analysisServices';
 
 
 type UploadPageProps = {

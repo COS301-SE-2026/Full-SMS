@@ -4,7 +4,7 @@ import {
     useCallback,
     useRef
 } from 'react'
-import { ClusteringReq, ClusteringRes } from '@/services/analysisServices'
+import { ClusteringReq, ClusteringRes } from '@/types/analysis'
 
 interface UseCeleryPollingOpts<ClusteringRes>{
     interval_ms?: number
@@ -51,6 +51,7 @@ export function UseCeleryPolling<ClusteringReq, ClusteringRes>(
     }
 
     setJob_id(data.task_id); // useEffect below picks this up and starts polling the AHCA job
+
     } catch (err: any) {
         setError(err.message);
         setIsProcessing(false);
@@ -88,7 +89,7 @@ export function UseCeleryPolling<ClusteringReq, ClusteringRes>(
         }
         };
 
-    pollIntervalRef.current = setInterval(checkStatus, options.interval_ms || 1000);
+    pollIntervalRef.current = setInterval(checkStatus, options.interval_ms || 3000);
 
     // don't leave the interval running if its unmounted during polling
     return () => clearPolling();

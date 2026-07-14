@@ -2,7 +2,8 @@ import { Card } from '../../ui/Card';
 import Plot from 'react-plotly.js'
 import { useEffect, useMemo } from 'react';
 import { colors } from '@/lib/tokens';
-import { intensityAnalysis, Intensity_Req } from '@/services/analysisServices';
+import { Intensity_Req } from '@/types/analysis';
+import { intensityAnalysis } from '@/services/analysisServices';
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext';
 
 export function IntensityChart() {

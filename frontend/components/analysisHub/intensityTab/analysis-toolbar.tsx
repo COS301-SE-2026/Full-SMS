@@ -3,7 +3,8 @@ import { Play, Maximize2 } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { cn } from '@/lib/utils';
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext';
-import { changePointAnalysis, changePoint_Req } from '@/services/analysisServices';
+import {changePoint_Req } from '@/types/analysis';
+import { changePointAnalysis } from '@/services/analysisServices';
 import { Loader } from '../../ui';
 
 function NumberField({
@@ -79,7 +80,7 @@ function ConfidenceField({
 
 
 export function AnalysisToolbar() {
-  const {bin, setBin, confidence, setConfidence, currentUpload, currentMeasurement, setCpaData, setLevels} = useHdf5Data()
+  const {bin, setBin, confidence, setConfidence, currentUpload, currentMeasurement, setCpaData} = useHdf5Data()
   const [scope, setScope] = useState<'selected' | 'all'>('selected');
   const [isLoading, setIsLoading] = useState(false)
 
@@ -93,7 +94,7 @@ export function AnalysisToolbar() {
     const response =  await changePointAnalysis(request);
     console.log(response);
     setCpaData(response)
-    setLevels(response.levels)
+    // setLevels(response.levels)
     setIsLoading(false);
   }
 
