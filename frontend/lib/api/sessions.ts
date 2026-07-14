@@ -20,4 +20,14 @@ export const getSessions = async(userId: string) =>{
     }
 }
 
+//get sessions by id
+export const getSessionsById = async(userId: string, sessionId: string) =>{
+    try{
+        const response = await axiosInstance.get(`/api/py/sessions/${sessionId}`, {params: {user_id: userId, session_id: sessionId}})
+        return response.data
+    }catch(error){
+        throw error
+    }
+}
+
 
