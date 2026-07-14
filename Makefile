@@ -44,3 +44,7 @@ frontend-check:
 backend-test: setup-backend
 	python -m pip install pytest
 	cd api && python -m pytest -q
+
+# the solo tag is for windows devices
+run-celery:
+	celery -A api.workers.celery_app.celery_app worker --loglevel=info -P solo
