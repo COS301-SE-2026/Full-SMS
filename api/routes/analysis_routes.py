@@ -27,7 +27,4 @@ def get_clustering_status(task_id:str):
 def init_clustering(req: ClusteringReq):
     return init_clustering_analysis_controller(req=req)
 
-# @router.post("/group-current", response_model=ClusteringResult)
-# def get_clustering_levels(req: ClusteringReq):
-#     return clustering_analysis_controller(req)
 

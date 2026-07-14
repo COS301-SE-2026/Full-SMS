@@ -3,7 +3,6 @@ import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { Card } from '@/components/ui'
 import Plot from 'react-plotly.js'
 import { colors } from '@/lib/tokens'
-import { title } from 'process'
 
 export default function GroupingCharts() {
     let x_coords_intensity: number[] = []
