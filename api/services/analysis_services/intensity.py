@@ -13,15 +13,15 @@ def intensity_analysis(payload: IntensityReq) -> IntensityRes:
     Returns:
         response (IntensityRes): Object containing time_bins, counts and intesity_cps
     """
-    upload_id= payload.uplod_id
-    measurement_id = payload.upload_id
+    upload_id= payload.upload_id
+    measurement_id = payload.measurement_id
 
     cached_data = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
     if not cached_data:
         raise ValueError("Raw data not in cache.")
 
-    raw_data = json.load(cached_data)
-    abstimes = np.array(raw_data["channel"]["abstimes"], dtype=np.float64)
+    raw_data = json.loads(cached_data)
+    abstimes = np.array(raw_data["channel1"]["abstimes"], dtype=np.float64)
 
     times_ms, counts = bin_photons(abstimes=abstimes, bin_size_ms=payload.bin_size_ms)
     intensity_cps = compute_intensity_cps(counts=counts, bin_size_ms=payload.bin_size_ms)

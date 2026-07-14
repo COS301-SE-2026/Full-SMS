@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Play, Maximize2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { cn } from '@/lib/utils';
+import { useHdf5Data } from '@/contexts/Hdf5DataContext';
+import { changePointAnalysis, changePoint_Req } from '@/services/analysisServices';
+import { Loader } from '../ui';
 
 function NumberField({
   label,
@@ -9,39 +12,113 @@ function NumberField({
   onChange,
 }: {
   label: string;
-  value: string;
-  onChange: (v: string) => void;
+  value: number;
+  onChange: (v: number) => void;
 }) {
   return (
     <div className="flex items-center gap-2">
-      <label className="text-xs text-foreground/70 whitespace-nowrap">{label}</label>
-      <input
+      <label className="text-xs text-foreground/70 whitespace-nowrap">
+        {label}
+      </label>
+            <input
+        type="range"
+        min={0.1}
+        max={1000}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-16 h-7 px-2 rounded bg-card border border-border text-xs text-foreground text-right font-mono focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-24 h-1.5 rounded-lg appearance-none bg-border cursor-pointer accent-primary "
       />
+
+      <input
+        type="number"
+        min={1}
+        max={1000}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-16 h-7 px-2 rounded bg-card border border-border 
+        text-xs text-foreground text-right font-mono focus-visible:outline-none 
+        focus-visible:ring-1 focus-visible:ring-primary 
+        [appearance:textfield] 
+        [&::-webkit-outer-spin-button]:appearance-none and 
+        [&::-webkit-inner-spin-button]:appearance-none
+        [&::-webkit-inner-spin-button]:m-0"
+      />
+    </div>
+  );
+}
+
+type Confidence = 69 | 90 | 95 | 99
+function ConfidenceField({
+  label,
+  value,
+  onChange,
+}: {
+  readonly label: string;
+  readonly value: Confidence;
+  readonly onChange: (v: Confidence) => void;
+}) {
+  const choices: Confidence[] =[69, 90, 95, 99];
+
+  return (
+    <div className="flex items-center gap-2">
+      <label className="text-xs text-foreground/70 whitespace-nowrap">{label}</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value) as Confidence)}
+        className="w-20 h-7 px-2 rounded bg-card border border-border text-xs text-foreground text-right font-mono focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary appearance-none cursor-pointer"
+      >
+        {choices.map((num) => (
+          <option key={num} value={num}>
+            {num}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
 
 
 export function AnalysisToolbar() {
-  const [bin, setBin] = useState('10');
-  const [confidence, setConfidence] = useState('99');
+  const {bin, setBin, confidence, setConfidence, currentUpload, currentMeasurement, setCpaData} = useHdf5Data()
   const [scope, setScope] = useState<'selected' | 'all'>('selected');
+  const [isLoading, setIsLoading] = useState(false)
+
+  const resolveCurrent= async ()=>{
+    const request: changePoint_Req ={
+      upload_id: currentUpload,
+      measurement_id:currentMeasurement,
+      confidence: confidence
+    }
+
+    const response =  await changePointAnalysis(request);
+    console.log(response);
+    setCpaData(response)
+    setIsLoading(false);
+  }
+
+  const OnResolveClick = () =>{
+    if((currentMeasurement !== "0")){
+      resolveCurrent()
+      setIsLoading(true)      
+    }
+    else{
+      console.log("No measurement selected")
+    }
+  }
 
   return (
     <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap">
       <h3 className="text-foreground">Intensity Analysis</h3>
 
       <NumberField label="Bin (ms)" value={bin} onChange={setBin} />
-      <NumberField label="Confidence %" value={confidence} onChange={setConfidence} />
+      <ConfidenceField label="Confidence %" value={confidence} onChange={setConfidence} />
 
       <Button
         size="sm"
         variant="primary"
-        leftIcon={<Play size={14} fill="currentColor" />}
+        leftIcon={(isLoading ? (<Loader size="sm" variant='dark'/>):(<Play size={14} fill="currentColor" />))}
         className="min-h-[28px] px-3"
+        onClick={()=>OnResolveClick()}
       >
         Resolve Current
       </Button>

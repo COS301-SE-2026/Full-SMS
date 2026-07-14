@@ -17,7 +17,7 @@ def init_hdf5_upload(payload: dict, current_user: dict) -> dict:
     """
 
     hdf5_upload_service.validate_upload_request(payload["filename"], payload["size_bytes"])
-    hdf5_upload_record = hdf5_upload_service.create_upload_record(user_id=current_user["user"]["id"], filename=payload["filename"], size_bytes=payload["size_bytes"], sha256=payload["sha256"])
+    hdf5_upload_record = hdf5_upload_service.create_upload_record(user_id=current_user["user"]["id"], filename=payload["filename"],workspace_id=payload["workspace_id"] ,size_bytes=payload["size_bytes"], sha256=payload["sha256"])
     print(f"Created upload record: {hdf5_upload_record}")
     hdf5_upload_url = storage_service.create_signed_upload_url(hdf5_upload_record["storage_key"])
 

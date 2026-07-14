@@ -16,6 +16,7 @@ export const computeSHA256 = async(hdf5_file: File): Promise<string>=>{
 
 export const initHdf5Upload = async (payload:{
   filename: string;
+  workspace_id: string | null
   size_bytes: number;
   content_type: string;
   sha256: string;
@@ -54,7 +55,6 @@ export const getHdf5UploadResult = async (upload_id: string)=>{
 
 export const getUserHdf5Uploads = async () =>{
   const {data}  = await axiosInstance.get(`api/py/hdf5/user-uploads`);
-  console.log(data)
   return data;
 }
 

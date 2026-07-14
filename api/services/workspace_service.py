@@ -161,3 +161,13 @@ def archive_workspace(workspace_id: str, user_id: str) -> dict:
 
 def unarchive_workspace(workspace_id: str, user_id: str) -> dict:
     return update_workspace(workspace_id, user_id, workspace_status="active")
+
+def get_workspace_uploads(workspace_id: str, user_id: str) -> dict:
+    supabase = get_supabase_admin()
+    response = (supabase.table("hdf5_uploads")
+                .select("*")
+                .eq("workspace_id", workspace_id)
+                .eq("user_id", user_id)
+                .execute()
+                )
+    return response.data

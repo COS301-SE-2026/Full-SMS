@@ -8,7 +8,13 @@ export interface LoaderProps {
   label?: string
   /** Centers the loader in its container */
   centered?: boolean
+  variant?: 'default' | 'dark'
   className?: string
+}
+
+const variants = {
+  default: 'border-foreground/20 border-t-primary',
+  dark: 'border-black/20 border-t-black',
 }
 
 const sizes = {
@@ -17,7 +23,7 @@ const sizes = {
   lg: 'w-11 h-11 border-[3px]',
 }
 
-export const Loader = ({ size = 'md', label = 'Loading...', centered, className }: LoaderProps) => (
+export const Loader = ({ size = 'md', label = 'Loading...', centered, className , variant = "default"}: LoaderProps) => (
   <div
     className={cn(
       'inline-flex items-center justify-center',
@@ -30,7 +36,8 @@ export const Loader = ({ size = 'md', label = 'Loading...', centered, className 
     <div
       className={cn(
         'rounded-full border-foreground/20 border-t-primary animate-spin',
-        sizes[size]
+        sizes[size],
+        variants[variant]
       )}
     />
   </div>

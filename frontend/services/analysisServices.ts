@@ -12,7 +12,21 @@ export type Intensity_Res = {
     intensity_cps: Float64Array
 }
 
-export const intensityAnalysis = async (payload: Intensity_Req)=>{
+
+export type changePoint_Req = {
+    upload_id: string
+    measurement_id: string
+    confidence: number
+}
+
+export const intensityAnalysis = async (payload: Intensity_Req)=>{    
    const {data} = await axiosInstance.post('api/py/analysis/intensity', payload);
    return data;
+}
+
+export const changePointAnalysis = async (payload: changePoint_Req) =>{
+    console.log("cpa payload", payload);
+    
+    const {data} = await axiosInstance.post('api/py/analysis/change-point-analysis', payload)
+    return data
 }

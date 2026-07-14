@@ -28,7 +28,6 @@ const getFormattedCurrentDate = (): string => {
 export default function FileList({ files, onRemove }: FileListProps) {
   const {isParsing } = useHdf5Data()
   useEffect(()=>{
-    console.log("isParsing: ", isParsing);
   },[isParsing])
   
   if (files.length === 0) return null;
