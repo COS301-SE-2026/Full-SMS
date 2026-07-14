@@ -5,6 +5,8 @@ from api.services.analysis_services.clustering_job_service import clustering_job
 from api.services.analysis_services.intensity import intensity_analysis
 from api.services.analysis_services.change_point_analysis import resolve_current_measurement
 from celery.result import AsyncResult
+from dataclasses import asdict
+
 ## intensity analysis
 def intensity_analysis_controller(req: IntensityReq) -> IntensityRes:
     """
@@ -33,8 +35,10 @@ def init_clustering_analysis_controller(req: ClusteringReq):
     """
     Controller for starting the clustering job, sending it to the celery task queue
     """
+    print(f"\n\n\ninit controller\n\n\n")
     try:
-        job = clustering_job.delay(req.levels)
+        json_serializable_levels = [asdict(levels) for levels in req.levels]
+        job = clustering_job.delay(json_serializable_levels)
         return {"task_id": job.id, "status": "executing"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Could not queue job: {str(e)}")
