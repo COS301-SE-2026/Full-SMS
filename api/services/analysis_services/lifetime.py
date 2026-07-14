@@ -1,6 +1,7 @@
 from api.legacy.analysis.lifetime import fit_decay
 from api.legacy.analysis.histograms import build_decay_histogram
 from api.models.analysis_models import LifetimeReq, LifetimeRes
+from api.services.analysis_services.cache_fallback import cache_fallback_service
 from api.services.hdf5_services import read_hdf5
 from api.services.storage_service import download_to_temp
 from api.utils.redis_Client import redisClient
@@ -15,23 +16,7 @@ def lifetime_analysis(payload: LifetimeReq) -> LifetimeRes:
     cached_data = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
 
     if not cached_data:
-        temp_hdf5_path = None
-        storage_key=supabaseClient.table("hdf5_uploads").eq("id", upload_id).select("storage_key").execute()
-        temp_hdf5_path = download_to_temp(storage_key, ".hdf5")
-
-        read_result = read_hdf5(temp_hdf5_path)
-        result_metadata: dict = read_result["metadata"]
-        print(f"\n\nParsed metadata: {result_metadata}\n\n")
-        result_measurements = read_result["measurements"] # returns a list of dicts!!
-
-        #save data to cache before compressing and sending to supabase
-        #
-        for measurement_data in result_measurements:
-            measurement_id= measurement_data.get("id")
-            key= f"raw_data:{upload_id}:{measurement_id}"
-            redisClient.set(key, json.dumps(measurement_data))
-            
-        cached_data = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
+        cached_data = cache_fallback_service(upload_id)
 
     raw_data = json.loads(cached_data)
     microtimes = raw_data["channel1"]["microtimes"]
