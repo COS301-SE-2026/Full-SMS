@@ -1,5 +1,6 @@
 import axiosInstance from "@/lib/api/axiosInstance";
 import { changePoint_Req, ClusteringReq, Intensity_Req } from "@/types/analysis";
+import axios from "axios";
 
 
 export const intensityAnalysis = async (payload: Intensity_Req)=>{    
@@ -17,5 +18,10 @@ export const changePointAnalysis = async (payload: changePoint_Req) =>{
 
 export const getClusteringLevels = async (payload:ClusteringReq) =>{
     const {data} = await axiosInstance.post('api/py/analysis/group-current', payload)
+    return data
+}
+
+export const getRasterData = async (payload: any) =>{
+    const {data} = await axiosInstance.get('api/py/analysis/raster-scan', payload)
     return data
 }

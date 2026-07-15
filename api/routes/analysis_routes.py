@@ -28,6 +28,6 @@ def init_clustering(req: ClusteringReq):
     return init_clustering_analysis_controller(req=req)
 
 
-@router.get("/raster_scan")
+@router.get("/raster-scan")
 def get_raster_scan(req: RasterScanReq):
     return get_raster_scan_controller(req)
