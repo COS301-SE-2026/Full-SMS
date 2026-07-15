@@ -1,5 +1,5 @@
 from dataclasses import asdict
-from multiprocessing.pool import AsyncResult
+from celery.result import AsyncResult
 from fastapi import HTTPException
 from api.models.analysis_models import ClusteringReq, CpaReq, IntensityReq, IntensityRes, RasterScanReq
 from api.services.analysis_services.clustering_job_service import clustering_job

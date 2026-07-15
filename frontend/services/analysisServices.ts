@@ -1,6 +1,5 @@
 import axiosInstance from "@/lib/api/axiosInstance";
 import { changePoint_Req, ClusteringReq, Intensity_Req } from "@/types/analysis";
-import axios from "axios";
 
 
 export const intensityAnalysis = async (payload: Intensity_Req)=>{    

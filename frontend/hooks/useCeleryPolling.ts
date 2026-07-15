@@ -5,6 +5,7 @@ import {
     useRef
 } from 'react'
 import { ClusteringReq, ClusteringRes } from '@/types/analysis'
+import axiosInstance from '@/lib/api/axiosInstance'
 
 interface UseCeleryPollingOpts<ClusteringRes>{
     interval_ms?: number
@@ -12,12 +13,12 @@ interface UseCeleryPollingOpts<ClusteringRes>{
     onError?: (error: string) => void
 }
 
-export function UseCeleryPolling<ClusteringReq, ClusteringRes>(
+export function UseCeleryPolling<RequestType, ResultType>(
     initUrl: string, getStatusUrl: (job_id: string) =>string, options: UseCeleryPollingOpts<ClusteringRes> = {}
 ){
     const [job_id, setJob_id] = useState<string|null>(null)
-    const [error, setError] = useState<ClusteringRes|null>(null)
-    const [result, setResult] = useState<ClusteringRes| null>(null)
+    const [error, setError] = useState<string|null>(null)
+    const [result, setResult] = useState<ResultType| null>(null)
     const [isProcessing, setIsProcessing] = useState<boolean>(false)
 
     //using a ref to keep the interval ID incase of a rerender or refresh
@@ -36,15 +37,8 @@ export function UseCeleryPolling<ClusteringReq, ClusteringRes>(
     setResult(null);
 
     try {
-        const response = await fetch(initUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) throw new Error('Failed to start grouping analysis');
-
-    const data = await response.json();
+    const response = await axiosInstance.post(initUrl, payload)
+    const data = response.data
 
     if (!data.task_id) {
         throw new Error('No task_id returned from api');
@@ -65,8 +59,8 @@ export function UseCeleryPolling<ClusteringReq, ClusteringRes>(
 
     const checkStatus = async () => {
         try {
-            const response = await fetch(getStatusUrl(job_id));
-            const data = await response.json();
+            const response = await axiosInstance.get(getStatusUrl(job_id))
+            const data = response.data
 
         if (data.status === 'completed') {
             setResult(data.result);
