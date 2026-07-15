@@ -1,9 +1,10 @@
-import { Card } from '../ui/Card';
+import { Card } from '../../ui/Card';
 import Plot from 'react-plotly.js'
 import { useEffect, useMemo } from 'react';
 import { colors } from '@/lib/tokens';
-import { intensityAnalysis, Intensity_Req } from '@/services/analysisServices';
-import { useHdf5Data } from '@/contexts/Hdf5DataContext';
+import { Intensity_Req } from '@/types/analysis';
+import { intensityAnalysis } from '@/services/analysisServices';
+import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext';
 
 export function IntensityChart() {
   let x_coords: number[] = []
@@ -41,14 +42,15 @@ export function IntensityChart() {
         const x_axis = []
         const y_axis = []
         const million = 1000000
-        for(const level of cpaData.levels){
+        if(cpaData?.levels)
+        {for(const level of cpaData.levels){
           const start = level.start_time_ns / million
           const end = level.end_time_ns / million
 
           x_axis.push(start, end)
           y_axis.push((level.intensity_cps)*(bin/1000), (level.intensity_cps)*(bin/1000))
 
-        }
+        }}
         return {x: x_axis, y:y_axis}
     }, [cpaData])
 

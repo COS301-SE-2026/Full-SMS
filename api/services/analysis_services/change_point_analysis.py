@@ -1,6 +1,10 @@
 from api.legacy.analysis.change_point import find_change_points
 from api.models.analysis_models import ( CpaReq)
+from api.services.analysis_services.cache_fallback import cache_fallback_service
+from api.services.hdf5_services import read_hdf5
+from api.services.storage_service import download_to_temp
 from api.utils.redis_Client import redisClient
+from api.utils.supabase_client import supabaseClient
 import json
 import numpy as np
 from api.legacy.analysis.change_point import ChangePointResult
@@ -14,7 +18,7 @@ def resolve_current_measurement(payload: CpaReq) -> dict:
     cached_data = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
 
     if not cached_data:
-        raise ValueError("Raw data not in cache.")
+        cached_data = cache_fallback_service(upload_id)
     
 
     raw_data = json.loads(cached_data)

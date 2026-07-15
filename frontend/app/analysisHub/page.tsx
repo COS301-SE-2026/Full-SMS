@@ -2,16 +2,19 @@
 
 import {MenuBar} from '@/components/analysisHub/menu-bar';
 import {Sidebar} from '@/components/analysisHub/sidebar';
-import {IntensityChart} from '@/components/analysisHub/intensity-chart';
+import {IntensityChart} from '@/components/analysisHub/intensityTab/intensity-chart';
 import {StatusBar} from '@/components/analysisHub/status-bar';
-import { AnalysisToolbar } from '@/components/analysisHub/analysis-toolbar';
+import { AnalysisToolbar } from '@/components/analysisHub/intensityTab/analysis-toolbar';
 import { useState} from 'react';
 import { Modal } from '@/components/ui/Modal';
 import UploadPage from '../upload/page';
+import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsContext';
+import GroupingTab from '@/components/analysisHub/grouping-tab/grouping-tab';
 
 
 export default function App() {
     const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
+    const {activeTab} = useAnalysisTab()
   return (
     <div className="size-full flex flex-col bg-background text-foreground h-screen">
       <MenuBar onOpenFileUpload={() => setFileUploadModalOpen(true)} />
@@ -20,12 +23,18 @@ export default function App() {
       </Modal>
       <div className="flex flex-1 min-h-0">
         <Sidebar />
-        <div className="flex flex-col flex-1 min-w-0">
+        {activeTab==="intensity" && (<div className="flex flex-col flex-1 min-w-0">
           <AnalysisToolbar />
           <div className="flex flex-1 gap-3 p-3 min-h-0">
             <IntensityChart />
           </div>
-        </div>
+        </div>)}
+        {
+          activeTab==="grouping" &&(<div className="flex flex-col flex-1 min-w-0">
+          <div className="flex flex-1 gap-3 p-3 min-h-0">
+            <GroupingTab />
+          </div>
+        </div>)}
       </div>
       <StatusBar />
     </div>

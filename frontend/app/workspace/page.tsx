@@ -1,6 +1,6 @@
 'use client'
 
-import { useHdf5Data } from '@/contexts/Hdf5DataContext'
+import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import React, { useEffect, useState } from 'react'
 import { workspaceService } from '@/services/workspaceServices'
 import { Workspace } from '@/types/workspace'

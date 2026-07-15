@@ -11,14 +11,15 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MeasurementsBar } from './measurementsBar';
+import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsContext';
 
 const navItems = [
   { icon: Activity, label: 'Intensity', key: 'intensity' },
-
+  {icon: Layers, label: 'Grouping', key:'grouping'}
 ];
 
 export function Sidebar() {
-  const [active, setActive] = useState('intensity');
+  const {activeTab, setActiveTab} = useAnalysisTab();
   return (
     <aside className="flex flex-col w-[195px] shrink-0 border-r border-border bg-background">
       {/* Header */}
@@ -31,15 +32,13 @@ export function Sidebar() {
           <ChevronLeft size={16} />
         </button>
       </div>
-
-      {/* Navigation */}
       <nav className="flex flex-col py-1">
         {navItems.map(({ icon: Icon, label, key }) => {
-          const isActive = key === active;
+          const isActive = key === activeTab;
           return (
             <button
               key={key}
-              onClick={() => setActive(key)}
+              onClick={() => setActiveTab(key)}
               className={cn(
                 'flex items-center gap-2.5 px-3.5 py-2 text-sm transition-colors',
                 isActive
@@ -53,8 +52,6 @@ export function Sidebar() {
           );
         })}
       </nav>
-
-      {/* Measurements */}
       <MeasurementsBar />
     </aside>
   );

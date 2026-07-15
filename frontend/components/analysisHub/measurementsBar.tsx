@@ -5,8 +5,10 @@ import {FileText} from 'lucide-react';
 import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils';
 import { UploadMetadata, UploadResultRecord } from '@/types/hdf5';
-import { useHdf5Data } from '@/contexts/Hdf5DataContext'
+import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { getHdf5UploadResult } from '@/services/hdf5services';
+import { Intensity_Req } from '@/types/analysis';
+import { intensityAnalysis } from '@/services/analysisServices';
 
 export interface Measurement{
 name: string
@@ -15,26 +17,47 @@ checked?:boolean
 
 export function MeasurementsBar() {
   const [num_measurements, setNum_measurements] = useState<number>(0)
-  const {currentMeasurement, setCurrentMeasurement, currentUpload} = useHdf5Data();
+  const {currentMeasurement, setCurrentMeasurement, currentUpload, setHdf5Data, bin} = useHdf5Data();
   const fetchUploadResult = async ()=>{
-      const response: UploadResultRecord = await getHdf5UploadResult(currentUpload)
-      return response
+      if(currentUpload){
+        console.log("CURRENT UPLOAD:", currentUpload);
+        const response: UploadResultRecord = await getHdf5UploadResult(currentUpload)
+        return response}
+
     }
   
-  const x = 1
+  const fetchIntensityTrace= async ()=>{
+      if(currentUpload){
+        const request: Intensity_Req ={
+        upload_id:currentUpload,
+        measurement_id:currentMeasurement,
+        bin_size_ms: Number(bin),
+      }
+      const response = await intensityAnalysis(request)
+      setHdf5Data(response)
+      }
+
+    }
+  
+  
+    useEffect(()=>{
+      fetchIntensityTrace()
+      },[currentMeasurement, bin, currentUpload]);
+
     useEffect(()=>{
       const loadData = async () => {
         try {
           const record = await fetchUploadResult();
+          if(record){
           const metadata: UploadMetadata = record.metadata_json;
-          setNum_measurements(metadata.num_measurements)
+          setNum_measurements(metadata.num_measurements)}
         } catch (error) {
           console.error("Failed to fetch or parse upload result:", error);
         }
       };
   
       loadData();
-    },[x])
+    },[currentUpload])
 
     
 

@@ -17,7 +17,7 @@ import { FolderPlus, Search } from "lucide-react";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { workspaceService } from "@/services/workspaceServices";
 import { getErrorMessage } from "@/utils/dashboard";
-import { useHdf5Data } from "@/contexts/Hdf5DataContext";
+import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 
   async function runWorkspaceAction<T>({
     action,

@@ -36,14 +36,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth_router, prefix="/api/py")
-app.include_router(hdf5_router, prefix="/api/py")
-app.include_router(profile_router, prefix="/api/py")
-app.include_router(upload_router, prefix="/api/py")
-app.include_router(session_router, prefix="/api/py")
-app.include_router(workspace_router, prefix="/api/py")
-app.include_router(export_router, prefix="/api/py")
-app.include_router(analysis_router, prefix="/api/py")
+prefix:str = '/api/py'
+app.include_router(auth_router, prefix=prefix)
+app.include_router(hdf5_router, prefix=prefix)
+app.include_router(profile_router, prefix=prefix)
+app.include_router(upload_router, prefix=prefix)
+app.include_router(session_router, prefix=prefix)
+app.include_router(workspace_router, prefix=prefix)
+app.include_router(analysis_router, prefix=prefix)
 
 
 @app.on_event("startup")

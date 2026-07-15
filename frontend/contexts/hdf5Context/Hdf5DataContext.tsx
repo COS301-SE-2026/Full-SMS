@@ -9,7 +9,7 @@ import {
   useEffect
 } from "react";
 import { UploadMetadata } from "@/types/hdf5";
-import { ChangePointResult } from "@/types/intensity";
+import { ChangePointResult, ClusteringRes } from "@/types/analysis";
 
 // class IntensityRes(BaseModel):
 //     time_bins: List[float]       # X-axis ( time in milliseconds)
@@ -43,24 +43,30 @@ interface Hdf5DataContextType {
   setCpaData: (data: ChangePointResult)=>void
   setCurrentWorkspaceId: (id: string)=>void,
   currentWorkspaceId: string | null
+  groupingData: ClusteringRes | undefined,
+  setGroupingData:(data: ClusteringRes) => void
+  currentUploadName:string
+  setCurrentUploadName: (name: string)=>void
 }
 
 const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(undefined)
 
-export function Hdf5DataProvider({ children }: { children: ReactNode }) {
-  const [hdf5Data, setHdf5Data] = useState<Hdf5Response>({time_bins:[],counts:[],intensity_cps:[]})
-  const [cpaData, setCpaData] = useState<ChangePointResult>()
-  const [hdf5Metadata, setHdf5Metadata] = useState<UploadMetadata | undefined>()
-  const [isParsing, setIsParsing] = useState<boolean>(true);
-  const [currentUpload, setCurrentUpload] = useState<string>("70cc3a45-de95-4e27-8f5f-3907aaa13b54");
-  const [currentMeasurement, setCurrentMeasurement] = useState<string>("0")
-  const [bin, setBin] = useState<number>(10)
-  const [confidence, setConfidence] = useState<Confidence>(90)
+export function Hdf5DataProvider({ children }: { readonly children: ReactNode }) {
+  const [hdf5Data, setHdf5Data] = useState<Hdf5Response>({time_bins:[],counts:[],intensity_cps:[]})// holds data for intensity graph plotting
+  const [cpaData, setCpaData] = useState<ChangePointResult>() // holds data for levlels plotting ("Resolve")
+  const [hdf5Metadata, setHdf5Metadata] = useState<UploadMetadata | undefined>() // holds the metadata of an hdf5 file name, number of measurements etc
+  const [isParsing, setIsParsing] = useState<boolean>(true); // boolean for when an hdf5 is being parsed through or not
+  const [currentUpload, setCurrentUpload] = useState<string>("");// lets the analysis hub the current_upload id so the api knows which data to pull from the redis cache or db
+  const [currentMeasurement, setCurrentMeasurement] = useState<string>("0")// holds the id of the current selected measurement in the measurementbar/tree, so the right measurement is fetched from the cache or db
+  const [bin, setBin] = useState<number>(10)// set by the bin slider in the intensity toolbar, sent in the intensity analysis payload
+  const [confidence, setConfidence] = useState<Confidence>(90)// set by the confidence input in the analysis toolbar, sent in the Resolve levels payload
+  const [groupingData, setGroupingData] = useState<ClusteringRes>()
+  const [currentUploadName, setCurrentUploadName] = useState<string>("")
   const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string | null>(()=>{
     if(typeof window !=='undefined')
         return localStorage.getItem("currentWorkspaceId") || null
     return null
-  })
+  }) ///the id of the current workspace so the uploads associated with that workspace are fetched, or to associate a new upload with the current workspace
 
   useEffect(() => {
     if (currentWorkspaceId) {
@@ -89,8 +95,12 @@ export function Hdf5DataProvider({ children }: { children: ReactNode }) {
     setCpaData,
     cpaData,
     setCurrentWorkspaceId,
-    currentWorkspaceId
-  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin, confidence,cpaData, currentWorkspaceId])
+    currentWorkspaceId,
+    groupingData,
+    setGroupingData,
+    currentUploadName,
+    setCurrentUploadName
+  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin, confidence,cpaData, currentWorkspaceId, groupingData, currentUploadName])
   
   return (
     <Hdf5DataContext.Provider value={contextValue}>

@@ -1,6 +1,6 @@
 import tempfile
 import os
-from celery import Celery
+from celery import Celery, shared_task
 import json
 from api.services.hdf5_upload_service import save_parse_result, set_status
 from api.services.storage_service import download_to_temp, build_storage_key
@@ -9,9 +9,6 @@ from api.utils.redis_Client import redisClient
 from api.services.hdf5_services import read_hdf5
 import traceback
 import gzip
-
-
-app = Celery('hdf5_job_service', broker=os.environ.get("CELERY_BROKER_URL"), backend=os.environ.get("CELERY_RESULT_BACKEND"))
 
 def enqueue_parse(upload_id: str, user_id: str, storage_key: str) -> None:
     """
@@ -25,7 +22,7 @@ def enqueue_parse(upload_id: str, user_id: str, storage_key: str) -> None:
     # places the parsing task in the queue (SHOULD BE CALLED AFTER UPLOAD IS DONE AND WITH AN await )
     parse_upload_job.delay(upload_id, user_id, storage_key)
 
-@app.task
+@shared_task(name="parse_hdf5_file")
 def parse_upload_job(upload_id: str, user_id: str, storage_key: str) -> None:
     """
     Parse an HDF5 file upload.
