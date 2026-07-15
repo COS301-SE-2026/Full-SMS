@@ -125,7 +125,7 @@ export function AnalysisToolbar() {
         Resolve Current
       </Button>
 
-      <div className="flex rounded overflow-hidden border border-border">
+      {/* <div className="flex rounded overflow-hidden border border-border">
         <button
           onClick={() => setScope('selected')}
           className={cn(
@@ -150,7 +150,7 @@ export function AnalysisToolbar() {
         </button>
       </div>
 
-      <span className="text-xs text-foreground/70">Show levels</span>
+      <span className="text-xs text-foreground/70">Show levels</span> */}
 
       <div className="ml-auto">
         <Button

@@ -1,6 +1,7 @@
 from api.utils.redis_Client import redisClient
 from api.utils.supabase_client import supabaseClient
 from api.models.analysis_models import RasterScanReq
+import json
 
 def get_raster_scan_data(payload: RasterScanReq):
 
