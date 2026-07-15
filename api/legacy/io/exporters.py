@@ -959,3 +959,25 @@ def export_batch(
 
     logger.info(f"Batch export complete: {len(all_files)} files to {output_dir}")
     return all_files
+
+
+# stubs used for export tab while real logic is still being moved from the desktop version
+
+def export_spectra(
+        output_path: Path,
+        fmt : ExportFormat = ExportFormat.CSV,
+        measurement_name: str= "",
+) -> Path: raise NotImplementedError("spectra export not migrated yet")
+
+
+def export_raster_scan(
+        output_path: Path,
+        fmt : ExportFormat = ExportFormat.CSV,
+        measurement_name: str= "",
+) -> Path: raise NotImplementedError("raster scan export not migrated yet")
+
+def export_antibunching(
+        output_path: Path,
+        fmt : ExportFormat = ExportFormat.CSV,
+        measurement_name: str= "",
+) -> Path: raise NotImplementedError("antibunching export not migrated yet")
