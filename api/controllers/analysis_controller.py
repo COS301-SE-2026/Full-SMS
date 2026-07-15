@@ -1,11 +1,11 @@
+from dataclasses import asdict
+from multiprocessing.pool import AsyncResult
 from fastapi import HTTPException
-from api.models.analysis_models import ClusteringReq, CpaReq, IntensityReq, IntensityRes
-from api.services.analysis_services.clustering import execute_clustering
+from api.models.analysis_models import ClusteringReq, CpaReq, IntensityReq, IntensityRes, RasterScanReq
 from api.services.analysis_services.clustering_job_service import clustering_job
 from api.services.analysis_services.intensity import intensity_analysis
 from api.services.analysis_services.change_point_analysis import resolve_current_measurement
-from celery.result import AsyncResult
-from dataclasses import asdict
+from api.services.analysis_services.raster_scan import get_raster_scan_data
 
 ## intensity analysis
 def intensity_analysis_controller(req: IntensityReq) -> IntensityRes:
@@ -29,6 +29,13 @@ def change_point_analysis_controller(req: CpaReq):
         return response
     except Exception:
         raise HTTPException(status_code=500, detail=str("Could not complete Change Point Analysis:"))
+
+def get_raster_scan_controller(req: RasterScanReq):
+    try:
+        response = get_raster_scan_data(req)
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 ##Clustering/Grouping
 def init_clustering_analysis_controller(req: ClusteringReq):

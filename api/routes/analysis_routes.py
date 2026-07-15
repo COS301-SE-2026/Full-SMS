@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 from api.legacy.models.group import ClusteringResult
 from api.models.analysis_models import (ClusteringReq, CpaReq, IntensityReq, IntensityRes, LifetimeReq, LifetimeRes)
-from api.controllers.analysis_controller import (init_clustering_analysis_controller, intensity_analysis_controller, change_point_analysis_controller)
+from api.controllers.analysis_controller import (get_clustering_job_status, init_clustering_analysis_controller, intensity_analysis_controller, change_point_analysis_controller, get_raster_scan_controller)
+from api.models.analysis_models import (CpaReq, IntensityReq, IntensityRes, LifetimeReq, LifetimeRes, RasterScanReq)
 from api.legacy.analysis.change_point import ChangePointResult
-from api.controllers.analysis_controller import init_clustering_analysis_controller, get_clustering_job_status
 
 
 router = APIRouter(prefix="/analysis", tags=["Analysis"])
@@ -28,3 +28,6 @@ def init_clustering(req: ClusteringReq):
     return init_clustering_analysis_controller(req=req)
 
 
+@router.get("/raster_scan")
+def get_raster_scan(req: RasterScanReq):
+    return get_raster_scan_controller(req)
