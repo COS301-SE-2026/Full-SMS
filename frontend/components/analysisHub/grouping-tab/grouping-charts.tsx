@@ -15,8 +15,8 @@ export default function GroupingCharts() {
     }
 
     //BIC optimization graph data
-    let BIC: number[] = [] //y-axis
-    let num_of_groups: number[] = []//x-axis
+    const BIC: number[] = [] //y-axis
+    const num_of_groups: number[] = []//x-axis
     
     if(groupingData){
        for(const step of groupingData.steps){
@@ -140,7 +140,7 @@ export default function GroupingCharts() {
                     </thead>
                     <tbody>
                         {
-                            groupingData.steps[groupingData.optimal_step_index].groups.map((group)=>(
+                            groupingData?.steps[groupingData?.optimal_step_index].groups.map((group)=>(
                                 <tr key={group.group_id}>
                                     <td>{group.group_id+1}</td>
                                     <td>{group.level_indices}</td>

@@ -42,14 +42,15 @@ export function IntensityChart() {
         const x_axis = []
         const y_axis = []
         const million = 1000000
-        for(const level of cpaData.levels){
+        if(cpaData?.levels)
+        {for(const level of cpaData.levels){
           const start = level.start_time_ns / million
           const end = level.end_time_ns / million
 
           x_axis.push(start, end)
           y_axis.push((level.intensity_cps)*(bin/1000), (level.intensity_cps)*(bin/1000))
 
-        }
+        }}
         return {x: x_axis, y:y_axis}
     }, [cpaData])
 

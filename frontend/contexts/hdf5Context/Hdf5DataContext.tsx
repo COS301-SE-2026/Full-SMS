@@ -43,8 +43,10 @@ interface Hdf5DataContextType {
   setCpaData: (data: ChangePointResult)=>void
   setCurrentWorkspaceId: (id: string)=>void,
   currentWorkspaceId: string | null
-  groupingData: ClusteringRes,
+  groupingData: ClusteringRes | undefined,
   setGroupingData:(data: ClusteringRes) => void
+  currentUploadName:string
+  setCurrentUploadName: (name: string)=>void
 }
 
 const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(undefined)
@@ -59,6 +61,7 @@ export function Hdf5DataProvider({ children }: { readonly children: ReactNode })
   const [bin, setBin] = useState<number>(10)// set by the bin slider in the intensity toolbar, sent in the intensity analysis payload
   const [confidence, setConfidence] = useState<Confidence>(90)// set by the confidence input in the analysis toolbar, sent in the Resolve levels payload
   const [groupingData, setGroupingData] = useState<ClusteringRes>()
+  const [currentUploadName, setCurrentUploadName] = useState<string>("")
   const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string | null>(()=>{
     if(typeof window !=='undefined')
         return localStorage.getItem("currentWorkspaceId") || null
@@ -94,8 +97,10 @@ export function Hdf5DataProvider({ children }: { readonly children: ReactNode })
     setCurrentWorkspaceId,
     currentWorkspaceId,
     groupingData,
-    setGroupingData
-  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin, confidence,cpaData, currentWorkspaceId, groupingData])
+    setGroupingData,
+    currentUploadName,
+    setCurrentUploadName
+  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin, confidence,cpaData, currentWorkspaceId, groupingData, currentUploadName])
   
   return (
     <Hdf5DataContext.Provider value={contextValue}>
