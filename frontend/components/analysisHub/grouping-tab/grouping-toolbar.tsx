@@ -36,15 +36,12 @@ export default function GroupingToolbar() {
 
     if(groupingData)
       console.log("GROUPING IN STATE:",groupingData);
-      
-
-  
+    
 
 
   return (
     <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
       <h3 className="text-foreground">Grouping</h3>
-
       <Button
         size="sm"
         variant="primary"

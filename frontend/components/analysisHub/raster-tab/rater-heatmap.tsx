@@ -5,7 +5,7 @@ import Plot from 'react-plotly.js';
 
 export function RasterHeatmap() {
     const [rasterData, setRasterData] = useState<any>(null);
-    const { currentMeasurement, currentUpload } = useHdf5Data();
+    const { currentMeasurement, currentUpload, heatMapColor } = useHdf5Data();
     
     const fetchRasterData = async () => {
         // Prevent fetching if we don't have the context IDs yet
@@ -27,7 +27,7 @@ export function RasterHeatmap() {
         fetchRasterData();
     }, [currentMeasurement, currentUpload]);
 
-    if (!rasterData || !rasterData.raster_scan) {
+    if (!rasterData?.raster_scan) {
         return (
             <div className="flex h-full w-full items-center justify-center text-gray-500">
                 Loading Raster Scan...
@@ -50,7 +50,7 @@ export function RasterHeatmap() {
                     {
                         z: raster_scan.data,
                         type: 'heatmap',
-                        colorscale: 'Viridis',
+                        colorscale: heatMapColor,
                         x0: raster_scan.x_start,
                         dx: dx,
                         y0: raster_scan.y_start,
