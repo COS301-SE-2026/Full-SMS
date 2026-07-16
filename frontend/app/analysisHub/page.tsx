@@ -9,9 +9,12 @@ import { AnalysisToolbar } from '@/components/analysisHub/analysis-toolbar';
 import { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import UploadPage from '../upload/page';
+import { useSessionData } from '@/contexts/sessionContext';
 
 export default function App() {
     const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
+    const {chosenSession} = useSessionData()
+    console.log(chosenSession)
   return (
     <div className="size-full flex flex-col bg-background text-foreground h-screen">
       <MenuBar onOpenFileUpload={() => setFileUploadModalOpen(true)} />
