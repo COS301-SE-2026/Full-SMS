@@ -4,6 +4,7 @@ import {useState} from 'react'
 import { useEffect } from 'react';
 import { getSessions } from '@/lib/api/sessions';
 import { supabase } from '@/lib/supabase/supabaseConfig';
+import { useSessionData } from '@/contexts/sessionContext';
 
 interface RecentSessionsProps{
     open: boolean
@@ -13,7 +14,7 @@ interface RecentSessionsProps{
 export function RecentSessionsModal({open, onClose}:RecentSessionsProps){
     const[sessions, setSessions] = useState([])
     const[isFetching, setIsFetching] = useState(false)
-    
+    const {setChosenSession} = useSessionData()
     useEffect(() => {
        const processSessions = async () => {
         setIsFetching(true)
@@ -30,13 +31,21 @@ export function RecentSessionsModal({open, onClose}:RecentSessionsProps){
         <Modal open={open} onClose={onClose}>
             <div>
                 <h3>Recent Sessions</h3>
+                <div className="grid grid-cols-3 border-b pb-2 mb-2 font-semibold text-sm">
+                    <span>Session Name</span>
+                    <span>Dataset Reference</span>
+                    <span>Timestamp</span>
+                </div>
                 {isFetching && <p>Sessions Loading...</p>}
                 {sessions.map((session) => (
-                    <div key={session.id}>
-                        <p>{session.created_at}</p>
-                        <p>{session.user_id}</p>
-                        <p>{session.name}</p>
-                        <p>{session.dataset_ref}</p>
+                    <div key={session.id} className="grid grid-cols-3 p-2 cursor-pointer hover:bg-sky-700 border-b text-sm" onClick={() =>{
+                        setChosenSession(session)
+                        onClose()
+                    }}>
+                        <span>{session.name}</span>
+                        <span>{session.dataset_ref}</span>
+                        <span>{session.created_at}</span>
+                        
                     </div>
                 ))}
             </div>
