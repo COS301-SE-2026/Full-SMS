@@ -57,9 +57,19 @@ export function Hdf5DataProvider({ children }: { readonly children: ReactNode })
   const [hdf5Data, setHdf5Data] = useState<Hdf5Response>({time_bins:[],counts:[],intensity_cps:[]})// holds data for intensity graph plotting
   const [cpaData, setCpaData] = useState<ChangePointResult>() // holds data for levlels plotting ("Resolve")
   const [hdf5Metadata, setHdf5Metadata] = useState<UploadMetadata | undefined>() // holds the metadata of an hdf5 file name, number of measurements etc
-  const [isParsing, setIsParsing] = useState<boolean>(true); // boolean for when an hdf5 is being parsed through or not
-  const [currentUpload, setCurrentUpload] = useState<string>("");// lets the analysis hub the current_upload id so the api knows which data to pull from the redis cache or db
-  const [currentMeasurement, setCurrentMeasurement] = useState<string>("0")// holds the id of the current selected measurement in the measurementbar/tree, so the right measurement is fetched from the cache or db
+  const [isParsing, setIsParsing] = useState<boolean>(true) // boolean for when an hdf5 is being parsed through or not
+  const [currentUpload, setCurrentUpload] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem("currentUpload") || "";
+    }
+    return "";
+  })// lets the analysis hub the current_upload id so the api knows which data to pull from the redis cache or db
+  const [currentMeasurement, setCurrentMeasurement] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem("currentMeasurement") || "0";
+    }
+    return "0";
+  })// holds the id of the current selected measurement in the measurementbar/tree, so the right measurement is fetched from the cache or db
   const [bin, setBin] = useState<number>(10)// set by the bin slider in the intensity toolbar, sent in the intensity analysis payload
   const [confidence, setConfidence] = useState<Confidence>(90)// set by the confidence input in the analysis toolbar, sent in the Resolve levels payload
   const [groupingData, setGroupingData] = useState<ClusteringRes>()
@@ -79,6 +89,21 @@ export function Hdf5DataProvider({ children }: { readonly children: ReactNode })
     }
   }, [currentWorkspaceId]);
 
+  useEffect(() => {
+    if (currentUpload) {
+      localStorage.setItem("currentUpload", currentUpload);
+    } else {
+      localStorage.removeItem("currentUpload");
+    }
+  }, [currentUpload]);
+
+  useEffect(() => {
+    if (currentMeasurement) {
+      localStorage.setItem("currentMeasurement", currentMeasurement);
+    } else {
+      localStorage.setItem("currentMeasurement", "0");
+    }
+  }, [currentMeasurement]);
 
   const contextValue = useMemo(()=>({
     hdf5Data, 
