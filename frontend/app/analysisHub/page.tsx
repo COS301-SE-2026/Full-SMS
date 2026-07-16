@@ -10,6 +10,7 @@ import { Modal } from '@/components/ui/Modal';
 import UploadPage from '../upload/page';
 import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsContext';
 import GroupingTab from '@/components/analysisHub/grouping-tab/grouping-tab';
+import RasterTab from '@/components/analysisHub/raster-tab/raster-tab';
 
 
 export default function App() {
@@ -33,6 +34,12 @@ export default function App() {
           activeTab==="grouping" &&(<div className="flex flex-col flex-1 min-w-0">
           <div className="flex flex-1 gap-3 p-3 min-h-0">
             <GroupingTab />
+          </div>
+        </div>)}
+        {
+          activeTab==="raster" &&(<div className="flex flex-col flex-1 min-w-0">
+          <div className="flex flex-1 gap-3 p-3 min-h-0">
+            <RasterTab />
           </div>
         </div>)}
       </div>

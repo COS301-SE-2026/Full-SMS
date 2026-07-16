@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Play, Maximize2 } from 'lucide-react';
 import { Button } from '../../ui/Button';
-import { cn } from '@/lib/utils';
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext';
 import {changePoint_Req } from '@/types/analysis';
 import { changePointAnalysis } from '@/services/analysisServices';
@@ -81,7 +80,6 @@ function ConfidenceField({
 
 export function AnalysisToolbar() {
   const {bin, setBin, confidence, setConfidence, currentUpload, currentMeasurement, setCpaData} = useHdf5Data()
-  const [scope, setScope] = useState<'selected' | 'all'>('selected');
   const [isLoading, setIsLoading] = useState(false)
 
   const resolveCurrent= async ()=>{
@@ -125,7 +123,7 @@ export function AnalysisToolbar() {
         Resolve Current
       </Button>
 
-      <div className="flex rounded overflow-hidden border border-border">
+      {/* <div className="flex rounded overflow-hidden border border-border">
         <button
           onClick={() => setScope('selected')}
           className={cn(
@@ -150,7 +148,7 @@ export function AnalysisToolbar() {
         </button>
       </div>
 
-      <span className="text-xs text-foreground/70">Show levels</span>
+      <span className="text-xs text-foreground/70">Show levels</span> */}
 
       <div className="ml-auto">
         <Button

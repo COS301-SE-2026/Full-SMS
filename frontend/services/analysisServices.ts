@@ -19,3 +19,8 @@ export const getClusteringLevels = async (payload:ClusteringReq) =>{
     const {data} = await axiosInstance.post('api/py/analysis/group-current', payload)
     return data
 }
+
+export const getRasterData = async (payload: any) =>{
+    const {data} = await axiosInstance.post('api/py/analysis/raster-scan', payload)
+    return data
+}

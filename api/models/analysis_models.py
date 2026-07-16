@@ -40,3 +40,6 @@ class CpaReq(BaseModel):
 
 class ClusteringReq(BaseModel):
     levels: List[LevelData]
+class RasterScanReq(BaseModel):
+    upload_id: str
+    measurement_id:str

@@ -15,7 +15,8 @@ import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsConte
 
 const navItems = [
   { icon: Activity, label: 'Intensity', key: 'intensity' },
-  {icon: Layers, label: 'Grouping', key:'grouping'}
+  {icon: Layers, label: 'Grouping', key:'grouping'},
+  {icon: Grid3x3, label: 'Raster', key: 'raster'}
 ];
 
 export function Sidebar() {

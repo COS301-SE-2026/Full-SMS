@@ -26,26 +26,22 @@ export default function GroupingToolbar() {
         return
       }
       if(cpaData){
-
         if(!cpaData.levels)
           return
         else
+          console.log("ONE LEVEL: " ,cpaData.levels[0])
           execute({levels: cpaData.levels })
-
       }
     }
 
     if(groupingData)
       console.log("GROUPING IN STATE:",groupingData);
-      
-
-  
+    
 
 
   return (
     <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
       <h3 className="text-foreground">Grouping</h3>
-
       <Button
         size="sm"
         variant="primary"

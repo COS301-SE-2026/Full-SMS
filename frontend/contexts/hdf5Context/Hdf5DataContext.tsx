@@ -47,6 +47,8 @@ interface Hdf5DataContextType {
   setGroupingData:(data: ClusteringRes) => void
   currentUploadName:string
   setCurrentUploadName: (name: string)=>void
+  heatMapColor: string
+  setHeatMapColor: (colour: string) =>void
 }
 
 const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(undefined)
@@ -62,6 +64,7 @@ export function Hdf5DataProvider({ children }: { readonly children: ReactNode })
   const [confidence, setConfidence] = useState<Confidence>(90)// set by the confidence input in the analysis toolbar, sent in the Resolve levels payload
   const [groupingData, setGroupingData] = useState<ClusteringRes>()
   const [currentUploadName, setCurrentUploadName] = useState<string>("")
+  const [ heatMapColor, setHeatMapColor] = useState<string>("")
   const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string | null>(()=>{
     if(typeof window !=='undefined')
         return localStorage.getItem("currentWorkspaceId") || null
@@ -99,8 +102,10 @@ export function Hdf5DataProvider({ children }: { readonly children: ReactNode })
     groupingData,
     setGroupingData,
     currentUploadName,
-    setCurrentUploadName
-  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin, confidence,cpaData, currentWorkspaceId, groupingData, currentUploadName])
+    setCurrentUploadName,
+    heatMapColor,
+    setHeatMapColor
+  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin, confidence,cpaData, currentWorkspaceId, groupingData, currentUploadName, heatMapColor])
   
   return (
     <Hdf5DataContext.Provider value={contextValue}>

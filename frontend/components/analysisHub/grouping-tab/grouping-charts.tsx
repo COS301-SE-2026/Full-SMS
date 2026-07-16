@@ -29,20 +29,6 @@ export default function GroupingCharts() {
     index === groupingData?.optimal_step_index ? colors.success : colors.primary
   );
 
-    //Fetching this way caused some kinf od timeout error
-    // const fetchClusteringLevels = async () =>{
-    //     const payload: ClusteringReq = {
-    //         levels: levels
-    //     }
-    //     const response = await getClusteringLevels(payload)
-    //     console.log(response);
-        
-    // }
-    // fetchClusteringLevels()
-
-
-
-
   return (
     <Card className='flex flex-col w-[83vw] h-[85vh] p-2 mt-1'>
         <div className='relative w-full h-[50%] min-w-0 min-h-0 overflow-hidden border border-destructive'>
@@ -144,7 +130,7 @@ export default function GroupingCharts() {
                                 <tr key={group.group_id}>
                                     <td>{group.group_id+1}</td>
                                     <td>{group.level_indices}</td>
-                                    <td>{group.intensity_cps.toPrecision(0)}</td>
+                                    <td>{group.intensity_cps?.toPrecision(1)}</td>
                                     <td>{group.total_dwell_time_s}</td>
                                 </tr>
                             ))
