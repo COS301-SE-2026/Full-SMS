@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React from 'react';
 import {
   Activity,
   Clock,
@@ -16,7 +16,8 @@ import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsConte
 const navItems = [
   { icon: Activity, label: 'Intensity', key: 'intensity' },
   {icon: Layers, label: 'Grouping', key:'grouping'},
-  {icon: Grid3x3, label: 'Raster', key: 'raster'}
+  {icon: Grid3x3, label: 'Raster', key: 'raster'},
+  {icon: Waves, label: "Spectra", key: 'spectra'}
 ];
 
 export function Sidebar() {

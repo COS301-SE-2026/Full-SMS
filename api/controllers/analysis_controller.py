@@ -6,6 +6,7 @@ from api.services.analysis_services.clustering_job_service import clustering_job
 from api.services.analysis_services.intensity import intensity_analysis
 from api.services.analysis_services.change_point_analysis import resolve_current_measurement
 from api.services.analysis_services.raster_scan import get_raster_scan_data
+from api.services.analysis_services.spectra import get_spectra_data
 
 ## intensity analysis
 def intensity_analysis_controller(req: IntensityReq) -> IntensityRes:
@@ -61,5 +62,15 @@ def get_clustering_job_status(task_id: str):
             else:
                 return {"status": "failed", "error": str(job.result)}
         return {"status":"processing"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+def get_spectra_data_controller(req):
+    """
+    returns spectral data for the plotting of the spectral trace
+    """
+    try:
+        response = get_spectra_data(req)
+        return response
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

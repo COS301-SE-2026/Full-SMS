@@ -6,7 +6,6 @@ import {
   useState,
   ReactNode,
   useMemo,
-  useEffect
 } from "react";
 
 interface AnalysisTabContextType {
