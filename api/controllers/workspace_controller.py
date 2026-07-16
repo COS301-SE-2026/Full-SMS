@@ -1,14 +1,15 @@
 from fastapi import HTTPException, status
-from services.workspace_service import (
+from api.services.workspace_service import (
     create_workspace,
     get_user_workspaces,
     get_workspace_by_id,
+    get_workspace_uploads,
     update_workspace,
     delete_workspace,
     archive_workspace,
     unarchive_workspace
 )
-from models.workspace import WorkspaceCreate, WorkspaceUpdate
+from api.models.workspace import WorkspaceCreate, WorkspaceUpdate
 
 
 def get_workspaces_controller(user_id: str):
@@ -97,3 +98,14 @@ def unarchive_workspace_controller(workspace_id: str, user_id: str) -> dict:
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+def get_workspace_uploads_controller(workspace_id: str, user_id: str) -> dict:
+    try:
+        response = get_workspace_uploads(workspace_id=workspace_id, user_id=user_id)
+        return {"success": True, "message": "Worspace uploads found successfullt", "uploads": response}
+    except ValueError as valerror:
+        raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, detail=str(valerror))
+    except Exception as e:
+        raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

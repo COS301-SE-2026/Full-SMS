@@ -29,14 +29,14 @@ run-api: setup-backend
 	@echo "Backend dependencies installed."
 	@echo "Loading local development environment..."
 	@echo "Starting the API server..."
-	cd api && set -a && . ./.env.local && uvicorn main:app --reload --host 0.0.0.0 --port 8000
+	uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 
 run-frontend:
 	cd frontend && npm install && npm run dev
 
 backend-check: setup-backend
 	python -m pip install pytest
-	cd api && python -m pytest -q || [ $$? -eq 5 ]
+	uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 
 frontend-check:
 	cd frontend && npm install && npm run lint && npm run build
@@ -44,3 +44,7 @@ frontend-check:
 backend-test: setup-backend
 	python -m pip install pytest
 	cd api && python -m pytest -q
+
+# the solo tag is for windows devices
+run-celery:
+	celery -A api.workers.celery_app.celery_app worker --loglevel=info -P solo

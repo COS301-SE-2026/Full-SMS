@@ -1,7 +1,7 @@
 #setting up the sessions controller
 from fastapi import HTTPException
-from models.session import SessionCreate
-from services.session_service import save_session, get_sessions, get_session_by_id
+from api.models.session import SessionCreate
+from api.services.session_service import save_session, get_sessions, get_session_by_id
 
 
 #implementing the handle_save_session() function

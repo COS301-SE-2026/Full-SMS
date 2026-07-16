@@ -1,11 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileUploadZone, FileList } from '@/components/upload';
 import type { SelectedFile } from '@/components/upload';
-import { uploadFile, readHdf5 } from "@/services/hdf5services";
+import { initHdf5Upload, uploadToSignedUrl, completeHdf5Upload, computeSHA256} from "@/services/hdf5services";
 import { Button } from '@/components/ui';
-import { useHdf5Data } from '@/contexts/Hdf5DataContext';
+import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext';
+import {supabase} from '@/lib/supabase/supabaseConfig'
+import { InitUploadResponse } from '@/types/hdf5';
+import { Intensity_Req } from '@/types/analysis';
+import { intensityAnalysis } from '@/services/analysisServices';
 
 
 type UploadPageProps = {
@@ -14,8 +18,8 @@ type UploadPageProps = {
 
 export default function UploadPage({ onComplete }: UploadPageProps) {
   const [queue, setQueue] = useState<SelectedFile[]>([]);
-  const { setHdf5Data } = useHdf5Data()
-
+  const {setIsParsing, setCurrentUpload, currentUpload, currentWorkspaceId } = useHdf5Data()
+  const [uploadId, setUploadId] = useState<string>("");
   const updateItem = (id: string, patch: Partial<SelectedFile>) => {
   setQueue((prev) =>
     prev.map((item) => (item.id === id ? { ...item, ...patch } : item))
@@ -29,11 +33,33 @@ const handleOpen = async () => {
   for (const item of items) {
     updateItem(item.id, { status: "pending", progress: 0, errorMessage: undefined })
     try {
-      await uploadFile(item.file, (pct) => updateItem(item.id, { progress: pct }))
-      const parsed = await readHdf5(item.file)
+
+      const sha256_hash = await computeSHA256(item.file)
+
+      
+      const initialize: InitUploadResponse = await initHdf5Upload({
+        filename: item.name,
+        workspace_id: currentWorkspaceId,
+        size_bytes: item.sizeBytes,
+        content_type: item.file.type,
+        sha256: sha256_hash,
+      });
+
+      
+      //get upload_id for status subscription (subscribing?? idk)
+      setUploadId(initialize.upload_id)
+      setCurrentUpload(initialize.upload_id)
+      await uploadToSignedUrl(initialize.upload_url.signed_url, item.file, (pct) => {
+        updateItem(item.id, { progress: pct })
+      });
+
+      await completeHdf5Upload(initialize.upload_id);
+
+      //at this point the celery worker is now parsing the uploaded hdf5/h5 file
+
       updateItem(item.id, { status: "success", progress: 100 })
-      setHdf5Data(parsed)
-      console.log("Parsed HDF5 data:", parsed)
+
+
     } catch (err: any) {
       hadError = true
       updateItem(item.id, {
@@ -43,10 +69,56 @@ const handleOpen = async () => {
     }
   }
 
-  if (!hadError) {
-    onComplete?.()
-  }
 }
+
+useEffect (()=>{
+  if(!uploadId){
+    console.log("No upload_id found")
+    return
+  }
+    console.log(`subbing to updates to upload status - upload_id = ${uploadId}`)
+
+    const sub = supabase.channel(`follow-upload-${uploadId}`)
+                .on(
+                  "postgres_changes",
+                  {
+                    event: "UPDATE",
+                    schema: "public",
+                    table:"hdf5_uploads",
+                    filter:`id=eq.${uploadId}`
+                  },async (payload)=>{
+                    console.log("Realtime Update:", payload);
+                    const recentStatus: string = payload.new.status
+                    console.log("recent status: ",recentStatus);
+                    
+                    if (recentStatus.toLowerCase() === 'parsed') {
+
+                      console.log("Parsing is complete! Fetching final data...");
+                      setIsParsing(false);
+                      try {
+                        const requestPayload: Intensity_Req = {
+                          upload_id: currentUpload,
+                          measurement_id: "1",
+                          bin_size_ms: 10
+                        }
+                        const intensityTraceData = await intensityAnalysis(requestPayload)
+                        console.log(intensityTraceData);
+                        
+                        
+                      } catch (error) {
+                        console.error(error)
+                      }
+                    }
+                  }
+                )
+                .subscribe((status, err) => {
+                  console.log("WebSocket Connection Status:", status);
+                  if (err) console.error("WebSocket Error:", err);
+                });
+    return () =>{
+      supabase.removeChannel(sub);
+    }            
+},[uploadId])
 
   const handleFilesSelected = (newFiles: File[]) => {
     const freshQueueEntries: SelectedFile[] = newFiles.map((file) => ({
@@ -70,54 +142,20 @@ const handleOpen = async () => {
   };
 
   return (
-    <main className="min-h-screen bg-[#0b0b0d] text-zinc-100 font-sans p-4 sm:p-8 flex flex-col items-center justify-start pt-16">
+    <main className=" text-zinc-100 font-sans p-4 sm:p-8 flex flex-col items-center justify-center pt-16">
       <div className="w-full max-w-4xl space-y-8">
-        
-        <div className="w-full rounded-xl border border-[#222226] bg-[#141417] p-6 shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-[#222226] pb-3">
-            <div className="space-y-0.5">
-              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest block">
-                File Picker Dialog
-              </span>
-              <h1 className="text-lg font-medium text-zinc-200 tracking-wide">
-                Open HDF5 Measurement
-              </h1>
-            </div>
-            
-            <button className="text-zinc-500 hover:text-zinc-200 transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Directory Bar */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-zinc-500 tracking-wider">Directory</label>
-            <div className="flex items-center gap-3 w-full bg-[#0d0d0f] border border-[#26262b] rounded-md px-3.5 py-2 text-[13px] font-mono text-zinc-400 shadow-inner">
-              <svg className="w-4 h-4 text-zinc-500 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.34a1.5 1.5 0 01-1.062-.44z" />
-              </svg>
-              <span className="truncate">~/data/SMS/2026/april</span>
-            </div>
-          </div>
-
-          <div className="text-[11.5px] text-zinc-500 font-medium px-0.5 pt-1">
-            Filter: <span className="font-mono text-zinc-400">*.h5, *.hdf5</span>
-          </div>
-        </div>
 
         {/* File upload area */}
         <div className="space-y-2">
-          <label className="text-xs font-semibold text-zinc-500 uppercase tracking-widest px-1">
+          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-widest px-1 text-center block">
             Drop Your Files Here
-          </label>
+          </span>
           <FileUploadZone onFilesSelected={handleFilesSelected} />
         </div>
 
         <FileList files={queue} onRemove={handleRemoveItem} />
 
-        {/* Footer */}
+
         {queue.length > 0 && (
           <div className="flex items-center justify-end gap-3 pt-2 max-w-4xl mx-auto">
             <Button variant="outline" onClick={clearWholeStagingQueue} className="px-5 py-2 text-[13px] font-medium">
