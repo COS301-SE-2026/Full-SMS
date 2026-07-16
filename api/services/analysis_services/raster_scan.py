@@ -1,3 +1,4 @@
+from api.services.analysis_services import cache_fallback
 from api.utils.redis_Client import redisClient
 from api.utils.supabase_client import supabaseClient
 from api.models.analysis_models import RasterScanReq
@@ -10,7 +11,7 @@ def get_raster_scan_data(payload: RasterScanReq):
 
     cached_data = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
     if not cached_data:
-        raise ValueError("Raw data not in cache.")
+       cached_data = cache_fallback(upload_id)
 
     raw_data = json.loads(cached_data)
     raster_scan = raw_data["raster_scan"]

@@ -7,23 +7,24 @@ export function RasterHeatmap() {
     const [rasterData, setRasterData] = useState<any>(null);
     const { currentMeasurement, currentUpload, heatMapColor } = useHdf5Data();
     
-    const fetchRasterData = async () => {
-        // Prevent fetching if we don't have the context IDs yet
-        if (!currentUpload || !currentMeasurement) return;
 
-        const payload = { upload_id: currentUpload, measurement_id: currentMeasurement };
-        console.log("Payload: ", payload);
-        
-        try {
-            const data = await getRasterData(payload);
-            console.log("Fetched Raster Data:", data);
-            setRasterData(data);
-        } catch (error) {
-            console.error("Failed to fetch raster data:", error);
-        }
-    };
 
     useEffect(() => {
+        const fetchRasterData = async () => {
+            // Prevent fetching if we don't have the context IDs yet
+            if (!currentUpload || !currentMeasurement) return;
+
+            const payload = { upload_id: currentUpload, measurement_id: currentMeasurement };
+            console.log("Payload: ", payload);
+            
+            try {
+                const data = await getRasterData(payload);
+                console.log("Fetched Raster Data:", data);
+                setRasterData(data);
+            } catch (error) {
+                console.error("Failed to fetch raster data:", error);
+            }
+        };
         fetchRasterData();
     }, [currentMeasurement, currentUpload]);
 
