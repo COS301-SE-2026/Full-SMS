@@ -70,3 +70,14 @@ export type LevelData = {
     intensity_cps: number
     group_id?: number[]
 }
+
+export type SpectraData = {
+    z: number[][],
+    rows: number ,
+    cols: number,
+    bounds_min :[number, number],
+    bounds_max :[number, number],
+    scale_min :number,
+    scale_max :number,
+    exposure_time: number
+}
