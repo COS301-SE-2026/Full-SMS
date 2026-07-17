@@ -126,10 +126,17 @@ export default function PluginTable({
 
                     {openMenuId === plugin.id && (
                       <div
+                        role="menu"
                         className="absolute right-0 bottom-full mb-1 w-48 bg-card border border-border rounded-lg shadow-lg z-50"
                         onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => {
+                          if (e.key === "Escape") {
+                            setOpenMenuId(null);
+                          }
+                        }}
                       >
                         <button
+                          role="menuitem"
                           onClick={() => handleAction(() => onEdit(plugin))}
                           className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors"
                         >
@@ -138,6 +145,7 @@ export default function PluginTable({
                         </button>
 
                         <button
+                          role="menuitem"
                           onClick={() => handleAction(() => onToggle(plugin))}
                           className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors"
                         >
@@ -155,6 +163,7 @@ export default function PluginTable({
                         </button>
 
                         <button
+                          role="menuitem"
                           onClick={() => handleAction(() => onDelete(plugin))}
                           className="w-full flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
                         >
