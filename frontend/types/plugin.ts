@@ -149,8 +149,8 @@ export interface MeasurementData {
 
 export interface PluginExecutionState {
   status: "idle" | "loading" | "running" | "success" | "error";
-  errorMessstring;
-  results?: Record<strimg, unknown>;
+  errorMessage?: string;
+  results?: Record<string, unknown>;
 }
 
 export const OUTPUT_TYPE_OPTIONS: Array<{

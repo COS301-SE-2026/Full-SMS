@@ -15,7 +15,7 @@ export interface CreateWorkspaceModalProps {
   onCreate: (name: string, description?: string) => void;
 }
 
-export interface StatusFilterButtonProps {
+export interface StatusFilterButtonProps<T extends string> {
   label: string;
   value: T;
   currentFilter: T;
