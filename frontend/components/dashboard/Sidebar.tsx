@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { User, Puzzle, LogOut } from "lucide-react";
+import { FolderOpen, User, Code, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import { cn } from "@/lib/utils";
 import { NavItem, DashboardSidebarProps } from "@/types/dashboard";
@@ -17,17 +17,30 @@ export default function Sidebar({
   const excludedRoutes = ["/login", "/signup", "/analysisHub"];
 
   if (excludedRoutes.includes(pathname)) {
-    return null; 
+    return null;
   }
 
   const navItems: NavItem[] = [
+    {
+      label: "Workspaces",
+      icon: FolderOpen,
+      key: "workspaces",
+      onClick: () => router.push("/dashboard"),
+    },
+    {
+      label: "Plugins",
+      icon: Code,
+      key: "plugins",
+      onClick: () => {
+        router.push("/plugins");
+      },
+    },
     {
       label: "Profile",
       icon: User,
       key: "profile",
       onClick: () => router.push("/profile"),
     },
-    { label: "Plugins", icon: Puzzle, key: "puzzles", onClick: () => {} },
   ];
 
   const handleSignOut = async () => {

@@ -15,11 +15,11 @@ export interface CreateWorkspaceModalProps {
   onCreate: (name: string, description?: string) => void;
 }
 
-export interface StatusFilterButtonProps {
+export interface StatusFilterButtonProps<T extends string> {
   label: string;
-  value: WorkspaceFilterStatus;
-  currentFilter: WorkspaceFilterStatus;
-  onClick: (value: WorkspaceFilterStatus) => void;
+  value: T;
+  currentFilter: T;
+  onClick: (value: T) => void;
   count: number;
 }
 export type WorkspaceFilterStatus = "all" | "active" | "archived";

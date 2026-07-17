@@ -12,7 +12,7 @@ import { WorkspaceTableRow } from "@/types/workspace";
 import { WorkspaceFilterStatus } from "@/types/dashboard";
 import EmptyWorkspaceState from "@/components/dashboard/EmptyWorkspaceState";
 import CreateWorkspaceModal from "@/components/dashboard/CreateWorkspaceModal";
-import StatusFilterButton from "@/components/dashboard/StatusFilterButton";
+import StatusFilterButton from "@/components/ui/StatusFilterButton";
 import { FolderPlus, Search } from "lucide-react";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { workspaceService } from "@/services/workspaceServices";
