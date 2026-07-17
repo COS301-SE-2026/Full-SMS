@@ -1,0 +1,6 @@
+[run]
+omit =
+    */api/legacy/*
+    */api/tests/*
+    */tests/*
+    */.venv/*
