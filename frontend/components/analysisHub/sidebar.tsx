@@ -17,7 +17,8 @@ const navItems = [
   { icon: Activity, label: 'Intensity', key: 'intensity' },
   {icon: Layers, label: 'Grouping', key:'grouping'},
   {icon: Grid3x3, label: 'Raster', key: 'raster'},
-  {icon: Waves, label: "Spectra", key: 'spectra'}
+  {icon: Waves, label: "Spectra", key: 'spectra'},
+  {icon: Download, label: 'Export', key: 'export'},
 ];
 
 export function Sidebar() {
