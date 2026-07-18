@@ -13,6 +13,13 @@ export function RecentSessionsModal({open, onClose}:RecentSessionsProps){
     const[sessions, setSessions] = useState([])
     const[isFetching, setIsFetching] = useState(false)
     const {setChosenSession} = useSessionData()
+    const keyDown = (event: React.KeyboardEvent, session:any) => {
+        if(event.key === "Enter"){
+            setChosenSession(session)
+            onClose()
+        }
+    };
+
     useEffect(() => {
        const processSessions = async () => {
         setIsFetching(true)
