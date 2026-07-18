@@ -85,9 +85,11 @@ export type SpectraData = {
 }
 
 export type LifetimeReq = {
-    t: Float64Array | number[];
-    counts: BigInt64Array | number[]; // Use BigInt64Array for exact 64-bit ints, or number[] if within safe limits
-    channelwidth: number;
+    upload_id: string,
+    measurement_id: string | string[]
+    times: Float64Array | number[];
+    counts: BigInt64Array | number[] // Use BigInt64Array for exact 64-bit ints, or number[] if within safe limits
+    channelwidth?: number;
     irf?: Float64Array | number[] | null;
     num_exponentials?: number; // Default: 1
     tau_init?: number | number[] | null;
@@ -98,7 +100,7 @@ export type LifetimeReq = {
     shift_bounds?: [number, number] | null;
     start?: number | null;
     end?: number | null;
-    autostart?: StartpointMode; // Default: StartpointMode.MANUAL
+    autostart?: StartpointMode; 
     autoend?: boolean; // Default: false
     background?: number | null;
     irf_background?: number | null;
@@ -108,12 +110,35 @@ export type LifetimeReq = {
     irf_fwhm_bounds?: [number, number] | null;
 }
 
+export type LifetimeRes ={
+    times: number[];
+    counts: number[];
+    tau: number[];
+    tau_std: number[];
+    amplitude: number[];
+    amplitude_std: number[];
+    shift: number;
+    shift_std: number;
+    chi_squared: number;
+    durbin_watson: number;
+    dw_bounds: number[] | null;
+    residuals: number[];
+    fitted_curve: number[];
+    fit_start_index: number;
+    fit_end_index: number;
+    background: number;
+    num_exponentials: number;
+    average_lifetime: number;
+    fitted_irf_fwhm: number | null;
+    fitted_irf_fwhm_std: number | null;
+}
+
 export enum StartpointMode {
-  MANUAL = "Manual",
-  CLOSE_TO_MAX = "(Close to) max",
-  RISE_MIDDLE = "Rise middle",
-  RISE_START = "Rise start",
-  SAFE_RISE_START = "Safe rise start",
+    MANUAL = "Manual",
+    CLOSE_TO_MAX = "(Close to) max",
+    RISE_MIDDLE = "Rise middle",
+    RISE_START = "Rise start",
+    SAFE_RISE_START = "Safe rise start",
 }
 
 export type FitSettings = {

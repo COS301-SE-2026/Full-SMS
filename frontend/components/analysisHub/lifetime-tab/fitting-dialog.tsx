@@ -4,6 +4,8 @@ import { Button, Card, CardContent, CardFooter, CardHeader, Toggle } from '@/com
 import React, { useState } from 'react'
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsContext'
+import { LifetimeReq, StartpointMode } from '@/types/analysis'
+import { getLifetimeData } from '@/services/analysisServices'
 
 export default function FittingDialog() {
     const [background, setBackground] = useState<boolean>(true)
@@ -27,11 +29,32 @@ export default function FittingDialog() {
     const [endChannel, setEndChannel] = useState<number>(4096) // only send this in the request if auto detect is set to false
     const [backgroundValue, setBackgroundValue] = useState<number>(0)
 
-    const {setFittingDialogOpen} = useAnalysisTab()
-    const {hdf5Data, currentMeasurement, currentUpload} = useHdf5Data()
+    const {setFittingDialogOpen, decayCounts, decayTimes, setFitResult} = useAnalysisTab()
+    const {currentMeasurement, currentUpload} = useHdf5Data()
 
-    const counts = hdf5Data?.counts
-    const times = hdf5Data?.time_bins
+    const fetchLifetimeFitting = async ()=>{
+        const request: LifetimeReq = {
+            upload_id: currentUpload,
+            measurement_id: currentMeasurement,
+            times: decayTimes,
+            counts: decayCounts,
+            num_exponentials: numExponents,
+            tau_init: tauInit,
+            tau_bounds: [boundsMin, boundsMax],
+            autostart: StartpointMode.CLOSE_TO_MAX,
+            autoend: detectEndpoint,
+            fit_irf_fwhm: useSimulatedIRF,
+            irf_fwhm_init: useSimulatedIRF && fitFWHM ? fhwm : null,
+            irf_fwhm_bounds: useSimulatedIRF && fitFWHM ? [fwhmBoundsMin, fwhmBoundsMax] : null,
+        }
+        const response = await getLifetimeData(request);
+        setFitResult(response)
+    }
+
+    const handleFit = (()=>{
+        fetchLifetimeFitting();
+        setFittingDialogOpen(false)
+    })
 
   return (
     <Card className='flex flex-col content-center w-[40vw] text-sm border border-0'>
@@ -307,7 +330,7 @@ export default function FittingDialog() {
             }
         </div>
         <CardFooter className='flex flex-row'>
-            <Button variant="primary" className='mr-2 px-10'>
+            <Button variant="primary" className='mr-2 px-10 z-100' onClick={()=>handleFit()}> 
                 Fit
             </Button>
             <Button variant="outline" onClick={()=>setFittingDialogOpen(false)}>

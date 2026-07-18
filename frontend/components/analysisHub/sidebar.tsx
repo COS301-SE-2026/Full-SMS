@@ -27,9 +27,9 @@ const navItems = [
 export function Sidebar() {
   const {activeTab, setActiveTab} = useAnalysisTab();
   return (
-    <aside className="flex flex-col w-[195px] shrink-0 border-r border-border bg-background">
+    <aside className="flex flex-col w-[195px] shrink-0 border-r border-border bg-background z-9">
       {/* Header */}
-      <div className="flex items-center justify-between h-[49px] px-3.5 border-b border-border">
+      <div className="flex items-center justify-between h-[49px] px-3.5 ">
         <h3 className="text-foreground">FullSMS</h3>
         <button
           className="p-1 rounded hover:bg-card text-foreground/70"
@@ -40,7 +40,7 @@ export function Sidebar() {
       </div>
       <Group orientation="vertical">
         <Panel>
-        <nav className="flex flex-col py-1 resize-y">
+        <nav className="flex flex-col py-1">
           {navItems.map(({ icon: Icon, label, key }) => {
             const isActive = key === activeTab;
             return (
