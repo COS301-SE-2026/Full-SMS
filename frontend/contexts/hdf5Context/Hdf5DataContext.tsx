@@ -49,6 +49,10 @@ interface Hdf5DataContextType {
   setCurrentUploadName: (name: string)=>void
   heatMapColor: string
   setHeatMapColor: (colour: string) =>void
+  selectedMeasurements: Set<string>
+  toggleSelectedmeasurement: (measurement_id: string) => void
+  selectAllmeasurements: (total: number) => void
+  clearSelectedMeasurements: () => void 
 }
 
 const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(undefined)
@@ -81,6 +85,7 @@ export function Hdf5DataProvider({ children }: { readonly children: ReactNode })
     return null
   }) ///the id of the current workspace so the uploads associated with that workspace are fetched, or to associate a new upload with the current workspace
 
+  
   useEffect(() => {
     if (currentWorkspaceId) {
       localStorage.setItem("currentWorkspaceId", currentWorkspaceId);
