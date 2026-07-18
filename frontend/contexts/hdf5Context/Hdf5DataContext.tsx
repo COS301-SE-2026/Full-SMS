@@ -161,8 +161,12 @@ export function Hdf5DataProvider({ children }: { readonly children: ReactNode })
     currentUploadName,
     setCurrentUploadName,
     heatMapColor,
-    setHeatMapColor
-  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin, confidence,cpaData, currentWorkspaceId, groupingData, currentUploadName, heatMapColor])
+    setHeatMapColor,
+    selectedMeasurements,
+    toggleSelectedmeasurement,
+    selectAllmeasurements,
+    clearSelectedMeasurements,
+  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin, confidence,cpaData, currentWorkspaceId, groupingData, currentUploadName, heatMapColor, selectedMeasurements])
   
   return (
     <Hdf5DataContext.Provider value={contextValue}>
