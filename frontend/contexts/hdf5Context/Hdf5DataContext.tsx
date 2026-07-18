@@ -108,6 +108,10 @@ export function Hdf5DataProvider({ children }: { readonly children: ReactNode })
     setSelectedMeasurements(all)
   }
 
+  function clearSelectedMeasurements() {
+    setSelectedMeasurements(new Set())
+  }
+
 
   useEffect(() => {
     if (currentWorkspaceId) {
