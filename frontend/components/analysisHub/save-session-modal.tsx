@@ -3,9 +3,9 @@ import { Button } from '../ui';
 import {useState} from 'react'
 
 interface SaveSessionProps{
-    open: boolean
-    controlSave: (name: string) => void
-    controlClose: () => void
+    readonly open: boolean
+    readonly controlSave: (name: string) => void
+    readonly controlClose: () => void
 }
 
 export function SaveSessionModal({open, controlSave, controlClose}: SaveSessionProps){

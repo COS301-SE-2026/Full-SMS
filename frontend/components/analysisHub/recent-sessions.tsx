@@ -10,7 +10,7 @@ interface RecentSessionsProps{
 }
 
 export function RecentSessionsModal({open, onClose}:RecentSessionsProps){
-    const[sessions, setSessions] = useState([])
+    const[sessions, setSessions] = useState<any[]>([])
     const[isFetching, setIsFetching] = useState(false)
     const {setChosenSession} = useSessionData()
     const keyDown = (event: React.KeyboardEvent, session:any) => {
