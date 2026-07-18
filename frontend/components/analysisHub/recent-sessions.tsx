@@ -1,8 +1,6 @@
 import {Modal} from '../ui/Modal'
-import { Button } from '../ui';
-import {useState} from 'react'
-import { useEffect } from 'react';
-import { getSessions } from '@/lib/api/sessions';
+import {useState, useEffect} from 'react'
+import { getSessions } from '@/lib/api/sessions'; 
 import { supabase } from '@/lib/supabase/supabaseConfig';
 import { useSessionData } from '@/contexts/sessionContext';
 
@@ -38,10 +36,12 @@ export function RecentSessionsModal({open, onClose}:RecentSessionsProps){
                 </div>
                 {isFetching && <p>Sessions Loading...</p>}
                 {sessions.map((session) => (
-                    <div key={session.id} className="grid grid-cols-3 p-2 cursor-pointer hover:bg-sky-700 border-b text-sm" onClick={() =>{
+                    <div role="button" tabIndex={0} onKeyDown={(k) => keyDown(k, session)} key={session.id} className="grid grid-cols-3 p-2 cursor-pointer hover:bg-sky-700 border-b text-sm" onClick={() =>{
                         setChosenSession(session)
                         onClose()
-                    }}>
+                    }}
+                    
+                    >
                         <span>{session.name}</span>
                         <span>{session.dataset_ref}</span>
                         <span>{session.created_at}</span>
