@@ -5,8 +5,8 @@ import { supabase } from '@/lib/supabase/supabaseConfig';
 import { useSessionData } from '@/contexts/sessionContext';
 
 interface RecentSessionsProps{
-    open: boolean
-    onClose: () => void
+    readonly open: boolean
+    readonly onClose: () => void
 }
 
 export function RecentSessionsModal({open, onClose}:RecentSessionsProps){
