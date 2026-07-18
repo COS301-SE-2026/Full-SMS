@@ -43,17 +43,18 @@ export function RecentSessionsModal({open, onClose}:RecentSessionsProps){
                 </div>
                 {isFetching && <p>Sessions Loading...</p>}
                 {sessions.map((session) => (
-                    <div role="button" tabIndex={0} onKeyDown={(k) => keyDown(k, session)} key={session.id} className="grid grid-cols-3 p-2 cursor-pointer hover:bg-sky-700 border-b text-sm" onClick={() =>{
+                    <button key={session.id} className="grid grid-cols-3 p-2 cursor-pointer hover:bg-sky-700 border-b text-sm w-full text-left"
+                    onClick={() =>{
                         setChosenSession(session)
                         onClose()
                     }}
-                    
+                    onKeyDown={(k) => keyDown(k, session)}
                     >
                         <span>{session.name}</span>
                         <span>{session.dataset_ref}</span>
                         <span>{session.created_at}</span>
                         
-                    </div>
+                    </button>
                 ))}
             </div>
         </Modal>
