@@ -4,6 +4,7 @@ import {
   UpdateWorkspaceRequest,
   WorkspacesResponse,
   WorkspaceResponse,
+  WorkspaceUploadsResponse,
 } from "@/types/workspace";
 
 export const workspaceService = {
@@ -104,4 +105,22 @@ export const workspaceService = {
       );
     }
   },
+
+  
+  getWorkspaceUploads: async (
+    workspaceId: string,
+  ): Promise<WorkspaceUploadsResponse> => {
+    try {
+      const response = await axiosInstance.patch(
+        `/api/py/workspaces/${workspaceId}/uploads`,
+      );
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.detail || "Failed to get workspace uploads",
+      );
+    }
+  },
 };
+
+

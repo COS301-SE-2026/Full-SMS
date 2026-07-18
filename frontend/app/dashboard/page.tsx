@@ -17,6 +17,7 @@ import { FolderPlus, Search } from "lucide-react";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { workspaceService } from "@/services/workspaceServices";
 import { getErrorMessage } from "@/utils/dashboard";
+import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 
   async function runWorkspaceAction<T>({
     action,
@@ -46,6 +47,7 @@ import { getErrorMessage } from "@/utils/dashboard";
       }
     } catch (error: unknown) {
       console.error(errorContext, error);
+      console.error(errorFallback)
       errorToast(getErrorMessage(error, errorContext));
     } finally {
       setLoading(false);
@@ -63,7 +65,7 @@ export default function DashboardPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] =
     useState<WorkspaceFilterStatus>("active");
-
+  const {setCurrentWorkspaceId} = useHdf5Data()
   const filteredWorkspaces = useMemo(() => {
     return workspaces.filter((workspace) => {
       if (statusFilter !== "all" && workspace.status !== statusFilter) {
@@ -126,13 +128,15 @@ export default function DashboardPage() {
   }, [fetchWorkspaces]);
 
   const handleOpenWorkspace = (workspaceId: string) => {
-    router.push("/analysisHub");
+    console.log(workspaceId);
+    setCurrentWorkspaceId(workspaceId)
+    router.push("/workspace");
   };
-
+  
   const handleCreateWorkspace = async (name: string, description?: string) => {
     await runWorkspaceAction({
       action: () => workspaceService.createWorkspace({ name, description }),
-      onSuccess: (response) => {
+      onSuccess: () => {
         fetchWorkspaces();
         setIsCreateModalOpen(false);
       },
@@ -213,9 +217,12 @@ export default function DashboardPage() {
   const renderContent = () => {
     if (loading) {
       return (
-        <div className="flex-1 flex items-center justify-center">
-          <Loader centered size="lg" label="Loading workspaces..." />
+        <div className="flex flex-col flex-1 p-6 overflow-auto">
+          <div className="flex-1 flex items-center justify-center">
+           < Loader centered size="lg" label="Loading workspaces..."/>
+          </div>
         </div>
+
       );
     }
 
