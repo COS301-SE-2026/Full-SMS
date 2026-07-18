@@ -4,9 +4,9 @@ import Image from 'next/image';
 
 export default function Hero() {
   return (
-    <section className="bg-background lg:grid lg:h-screen lg:place-content-center">
+    <section className="bg-background flex flex-col place-content-center">
         <div
-            className="mx-auto w-screen max-w-7xl px-4 py-16 sm:px-6 sm:py-24 md:grid md:grid-cols-2 md:items-center md:gap-4 lg:px-8 lg:py-32"
+            className="mx-auto w-screen max-w-7xl px-4 flex flex-row h-fit justify-center items-center"
         >
             <div className="max-w-prose text-left">
             <h1 className="text-4xl font-bold sm:text-5xl">
@@ -20,7 +20,7 @@ export default function Hero() {
                 Upload your traces directly from the microscope to a secure, browser-based suite built for modern biophysics teams.
             </p>
             </div>
-            <div className='mx-auto'>
+            <div className='mx-auto h-fit hidden md:block'>
                 <Image src={HeroImage} alt="vector image of a scientist looking through a microscope " />
             </div>
         </div>
