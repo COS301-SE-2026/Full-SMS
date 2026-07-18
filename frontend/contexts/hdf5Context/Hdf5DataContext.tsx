@@ -85,7 +85,22 @@ export function Hdf5DataProvider({ children }: { readonly children: ReactNode })
     return null
   }) ///the id of the current workspace so the uploads associated with that workspace are fetched, or to associate a new upload with the current workspace
 
+  const [selectedMeasurements, setSelectedMeasurements] = useState<Set<string>>(new Set())
   
+  function toggleSelectedmeasurement(measurement_id: string) { //clicking checkbxs
+    setSelectedMeasurements((previous) => {
+      const next = new Set(previous)
+      if (next.has(measurement_id)) {
+        next.delete(measurement_id)
+      } else {
+        next.add(measurement_id)
+      }
+      return next
+      
+    })
+  }
+
+
   useEffect(() => {
     if (currentWorkspaceId) {
       localStorage.setItem("currentWorkspaceId", currentWorkspaceId);
