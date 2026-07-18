@@ -11,6 +11,8 @@ import {
 interface AnalysisTabContextType {
     activeTab: string 
     setActiveTab: (tab: string)=> void
+    fittingDialogOpen: boolean
+    setFittingDialogOpen:(open: boolean) => void
 }
 
 const AnalysisTabContext = createContext<AnalysisTabContextType | undefined> (undefined)
@@ -18,11 +20,14 @@ const AnalysisTabContext = createContext<AnalysisTabContextType | undefined> (un
 export function AnalysisTabProvider({children}: {readonly children: ReactNode}){
     
     const [activeTab, setActiveTab] = useState<string>("intensity")
+    const [fittingDialogOpen, setFittingDialogOpen] = useState<boolean>(false)
 
     const contextValue = useMemo(()=>({
         activeTab,
         setActiveTab,
-    }),[activeTab])
+        fittingDialogOpen,
+        setFittingDialogOpen
+    }),[activeTab, fittingDialogOpen])
 
     return (
         <AnalysisTabContext.Provider value={contextValue}>

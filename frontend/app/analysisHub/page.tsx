@@ -12,16 +12,22 @@ import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsConte
 import GroupingTab from '@/components/analysisHub/grouping-tab/grouping-tab';
 import RasterTab from '@/components/analysisHub/raster-tab/raster-tab';
 import SpectraMap from '@/components/analysisHub/spectra-tab/spectra-map';
+import FittingDialog from '@/components/analysisHub/lifetime-tab/fitting-dialog';
+import LifetimeTab from '@/components/analysisHub/lifetime-tab/lifetime-tab';
 
 
 export default function App() {
-    const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
-    const {activeTab} = useAnalysisTab()
+    const [fileUploadModalOpen, setFileUploadModalOpen] = useState<boolean>(false)
+    const {activeTab, fittingDialogOpen, setFittingDialogOpen} = useAnalysisTab()
+
   return (
     <div className="size-full flex flex-col bg-background text-foreground h-screen">
       <MenuBar onOpenFileUpload={() => setFileUploadModalOpen(true)} />
       <Modal open={fileUploadModalOpen} onClose={() => setFileUploadModalOpen(false)}>
         <UploadPage/>
+      </Modal>
+      <Modal open={fittingDialogOpen} onClose={() => setFittingDialogOpen(false)}>
+        <FittingDialog/>
       </Modal>
       <div className="flex flex-1 min-h-0">
         <Sidebar />
@@ -49,6 +55,12 @@ export default function App() {
             <SpectraMap />
           </div>
         </div>)}
+          {
+          activeTab==="lifetime" &&(<div className="flex flex-col flex-1 min-w-0">
+          <div className="flex flex-1 gap-3 p-3 min-h-0">
+            <LifetimeTab />
+          </div>
+        </div>)}     
       </div>
       <StatusBar />
     </div>

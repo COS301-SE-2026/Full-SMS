@@ -3,6 +3,7 @@
 import { Button, Card, CardContent, CardFooter, CardHeader, Toggle } from '@/components/ui'
 import React, { useState } from 'react'
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
+import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsContext'
 
 export default function FittingDialog() {
     const [background, setBackground] = useState<boolean>(true)
@@ -26,20 +27,15 @@ export default function FittingDialog() {
     const [endChannel, setEndChannel] = useState<number>(4096) // only send this in the request if auto detect is set to false
     const [backgroundValue, setBackgroundValue] = useState<number>(0)
 
+    const {setFittingDialogOpen} = useAnalysisTab()
     const {hdf5Data, currentMeasurement, currentUpload} = useHdf5Data()
 
     const counts = hdf5Data?.counts
     const times = hdf5Data?.time_bins
 
-    
-
-    
-
-
-
   return (
-    <Card className='flex flex-col content-center w-[40vw]'>
-        <CardHeader className='border-b bg-primary/60'>Lifetime fitting</CardHeader>
+    <Card className='flex flex-col content-center w-[40vw] text-sm border border-0'>
+        <CardHeader className=' bg-primary text-black text-lg'>Lifetime fitting</CardHeader>
         <CardContent>Fit Target</CardContent>
         <div className='p-4 border-b'>
 
@@ -314,7 +310,7 @@ export default function FittingDialog() {
             <Button variant="primary" className='mr-2 px-10'>
                 Fit
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={()=>setFittingDialogOpen(false)}>
                 Cancel
             </Button>
         </CardFooter>
