@@ -1,3 +1,5 @@
+//data export formats 
+
 export type ExportFormat= "csv" | "parquet" | "excel" | "json" ;
 
 export const FORMAT_OPTIONS: { value: ExportFormat; label: string} [] = [
@@ -7,3 +9,14 @@ export const FORMAT_OPTIONS: { value: ExportFormat; label: string} [] = [
     {value: "json", label: "JSON"},
 ];
 
+
+
+//plot export formats 
+export type PLotFormat = "png" | "pdf" | "svg"
+
+export const Plot_format_options: { value: PLotFormat;  label: string} []=[
+    {value: "pdf", label: "PDF"},
+    {value: "png", label: "PNG"},
+    {value: "svg", label: "SVG"},
+
+];
