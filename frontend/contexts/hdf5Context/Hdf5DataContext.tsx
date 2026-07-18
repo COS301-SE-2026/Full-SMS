@@ -100,6 +100,14 @@ export function Hdf5DataProvider({ children }: { readonly children: ReactNode })
     })
   }
 
+  function selectAllmeasurements(total: number) {
+    const all = new Set<string>()
+    for (let i = 1; i <= total; i++) {
+      all.add(i.toString())
+    }
+    setSelectedMeasurements(all)
+  }
+
 
   useEffect(() => {
     if (currentWorkspaceId) {
