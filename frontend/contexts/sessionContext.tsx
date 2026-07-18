@@ -5,6 +5,7 @@ import{
     useContext,
     useState,
     ReactNode,
+    useMemo,
 } from "react"
 
 type sessionRow = {
@@ -18,18 +19,21 @@ type sessionRow = {
         
 }
 
-interface sessionContextType{
-    chosenSession: sessionRow | null
-    setChosenSession: (session:sessionRow | null) => void
+interface SessionContextType{
+    readonly chosenSession: sessionRow | null
+    readonly setChosenSession: (session:sessionRow | null) => void
 }
 
-const sessionContext = createContext<sessionContextType | undefined>(undefined)
+const sessionContext = createContext<SessionContextType | undefined>(undefined)
 
 export function SessionDataProvider({children}: {children: ReactNode}){
     const [sessionData, setSessionData] = useState<sessionRow | null>(null)
-
+    const value = useMemo(
+        () => ({chosenSession: sessionData, setChosenSession: setSessionData}),
+        [sessionData, setSessionData]
+    )
     return(
-        <sessionContext.Provider value = {{chosenSession:sessionData, setChosenSession:setSessionData}}>
+        <sessionContext.Provider value = {value}>
             {children}
         </sessionContext.Provider>
     )
@@ -37,6 +41,8 @@ export function SessionDataProvider({children}: {children: ReactNode}){
 
 export function useSessionData(){
     const ctx = useContext(sessionContext)
-    if(!ctx) throw new Error("useSessionData must be used within sessiondataprovider")
-        return ctx
+    if(!ctx) {
+        throw new Error("useSessionData must be used within sessionDataProvider")
+    }
+    return ctx
 }
