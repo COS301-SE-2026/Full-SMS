@@ -9,7 +9,7 @@ import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { getHdf5UploadResult } from '@/services/hdf5services';
 import { Intensity_Req } from '@/types/analysis';
 import { intensityAnalysis } from '@/services/analysisServices';
-import { Button, Toggle} from '@/components/ui';
+import { Button, Checkbox} from '@/components/ui';
 
 export interface Measurement{
 name: string
@@ -79,7 +79,12 @@ export function MeasurementsBar() {
     <div className="flex flex-col border-t border-border overflow-hidden">
       <div className="mt-3 px-3.5 flex items-center justify-between">
         <span className="text-xs text-foreground/60 tracking-wider">MEASUREMENTS</span>
-        <button className="text-xs text-foreground/60 hover:text-primary">All</button>
+        <div className='flex items-center gap-1'>
+          <Button variant="ghost" size="sm" 
+          onClick={() => selectAllmeasurements(num_measurements)}>
+            All
+            </Button>
+      </div>
       </div>
       <div className="flex flex-col mt-1 overflow-y-auto flex-1">
         {measurements.map((m, i) => (
