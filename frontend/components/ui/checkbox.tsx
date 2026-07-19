@@ -33,7 +33,7 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
         <div className={cn('flex items-center gap-2', className)}>
             <input ref={internalRef} id={checkboxId} type='checkbox' checked={checked} disabled={disabled} onChange={(e) => onCheckedChange(e.target.checked)}
                 className={cn(
-                    "h-4 w-4 shrink-0 rounded  border-border bg-card accent-primary cursor-pointer",
+                    "h-4 w-4 shrink-0 rounded border border-border bg-card accent-primary cursor-pointer",
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                     "disabled:opacity-40 disabled:cursor-not-allowed"
                  )}
