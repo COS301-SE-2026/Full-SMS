@@ -5,26 +5,35 @@ export interface CheckboxProps {
   label?: string
   checked: boolean
   onCheckedChange: (checked: boolean) => void
+  id?: string
 }
 
-export function Checkbox
-  ({ label, checked, onCheckedChange}:CheckboxProps){
+export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
+  ({ label, checked, onCheckedChange, id}, ref) => {
+    const checkboxId = id ?? React.useId()
+    const internalRef = React.useRef<HTMLInputElement>(null)
+
+    React.useImperativeHandle(
+        ref, 
+        () => internalRef.current as HTMLInputElement
+    )
 
     return (
         <div className={cn('flex items-center gap-2')}>
-            <input type='checkbox' checked={checked} onChange={(e) => onCheckedChange(e.target.checked)}
+            <input ref={internalRef} id={checkboxId} type='checkbox' checked={checked} onChange={(e) => onCheckedChange(e.target.checked)}
                 className={cn(
                     "h-4 w-4 shrink-0 rounded border-border bg-card accent-primary cursor-pointer",
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                    "disabled:opacity-40 disabled:cursor-not-allowed"
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
                  )}
             />
  
 
         {label && (
-        <label className='text-base font-medium text-foreground cursor-pointer'>
-            {label}
-        </label>
-    )}
-</div>
-)}
+            <label htmlFor={checkboxId} className='text-base font-medium text-foreground cursor-pointer'>
+                {label}
+            </label>
+        )}
+    </div>
+    )
+  })
+Checkbox.displayName = "Checkbox"
