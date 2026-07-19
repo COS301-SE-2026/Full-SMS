@@ -81,10 +81,13 @@ export function MeasurementsBar() {
         <span className="text-xs text-foreground/60 tracking-wider">MEASUREMENTS</span>
         <div className='flex items-center gap-1'>
           <Button variant="ghost" size="sm" 
-          onClick={() => selectAllmeasurements(num_measurements)}>
+            onClick={() => selectAllmeasurements(num_measurements)}>
             All
-            </Button>
-      </div>
+          </Button>
+          <Button variant="ghost" size="sm" onClick={clearSelectedMeasurements}>
+            Clear
+          </Button>
+        </div>
       </div>
       <div className="flex flex-col mt-1 overflow-y-auto flex-1">
         {measurements.map((m, i) => (
