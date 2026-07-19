@@ -9,6 +9,7 @@ import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { getHdf5UploadResult } from '@/services/hdf5services';
 import { Intensity_Req } from '@/types/analysis';
 import { intensityAnalysis } from '@/services/analysisServices';
+import { Button, Toggle} from '@/components/ui';
 
 export interface Measurement{
 name: string
@@ -17,7 +18,7 @@ checked?:boolean
 
 export function MeasurementsBar() {
   const [num_measurements, setNum_measurements] = useState<number>(0)
-  const {currentMeasurement, setCurrentMeasurement, currentUpload, setHdf5Data, bin} = useHdf5Data();
+  const {currentMeasurement, setCurrentMeasurement, currentUpload, setHdf5Data, bin, selectedMeasurements, toggleSelectedmeasurement, selectAllmeasurements, clearSelectedMeasurements,} = useHdf5Data();
   const fetchUploadResult = async ()=>{
       if(currentUpload){
         console.log("CURRENT UPLOAD:", currentUpload);
