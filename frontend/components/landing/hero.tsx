@@ -4,10 +4,13 @@ import Image from 'next/image';
 
 export default function Hero() {
   return (
-    <section className="bg-background flex flex-col place-content-center">
+    <section className="bg-transparent flex flex-col place-content-center">
         <div
             className="mx-auto w-screen max-w-7xl px-4 flex flex-row h-fit justify-center items-center"
         >
+            <div className='mx-auto h-fit hidden md:block'>
+                <Image src={HeroImage} alt="vector image of a scientist looking through a microscope " />
+            </div>
             <div className="max-w-prose text-left">
             <h1 className="text-4xl font-bold sm:text-5xl">
                Single-Molecule Analysis, 
@@ -20,9 +23,7 @@ export default function Hero() {
                 Upload your traces directly from the microscope to a secure, browser-based suite built for modern biophysics teams.
             </p>
             </div>
-            <div className='mx-auto h-fit hidden md:block'>
-                <Image src={HeroImage} alt="vector image of a scientist looking through a microscope " />
-            </div>
+
         </div>
     </section>
   )
