@@ -122,6 +122,9 @@ export function MeasurementsBar() {
         )}
         )}
       </div>
+      <p className="px-3.5 py-1.5 text-[11px] text-foreground/50">
+        {selectedMeasurements.size} selected
+      </p>
     </div>
   )
 }
