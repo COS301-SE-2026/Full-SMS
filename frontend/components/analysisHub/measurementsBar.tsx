@@ -89,7 +89,7 @@ export function MeasurementsBar() {
           </Button>
         </div>
       </div>
-      
+
       <div className="flex flex-col mt-1 overflow-y-auto flex-1">
         {measurements.map((m, i) =>{
           const measurementID= (i+1).toString()
@@ -98,7 +98,11 @@ export function MeasurementsBar() {
         
         
          return(
-          <div key={m.name} className={cn((i+1).toString()===currentMeasurement ? "bg-card" : "")}>
+          <div key={m.name} className={cn("flex items-center gap - 1.5 px-3.5 py-1", currentM ? "bg-card" : "")}>
+            <Checkbox checked={MultiSelected}
+              onCheckedChange={()=> toggleSelectedmeasurement(measurementID)}
+              onClick={(e) => e.stopPropagation()} 
+            />
             <button 
             className="flex items-center gap-1.5 px-3.5 py-1 hover:bg-card cursor-pointer"
             onClick={()=>onClickMeasurement(i)}
