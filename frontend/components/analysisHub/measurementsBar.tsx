@@ -81,10 +81,13 @@ export function MeasurementsBar() {
         <span className="text-xs text-foreground/60 tracking-wider">MEASUREMENTS</span>
         <div className='flex items-center gap-1'>
           <Button variant="ghost" size="sm" 
+          disabled={num_measurements === 0}
             onClick={() => selectAllmeasurements(num_measurements)}>
             All
           </Button>
-          <Button variant="ghost" size="sm" onClick={clearSelectedMeasurements}>
+          <Button variant="ghost" size="sm"
+           disabled={num_measurements === 0}
+           onClick={clearSelectedMeasurements}>
             Clear
           </Button>
         </div>
