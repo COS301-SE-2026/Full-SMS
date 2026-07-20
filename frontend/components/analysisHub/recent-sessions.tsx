@@ -1,9 +1,8 @@
 import {Modal} from '../ui/Modal'
 import {useState, useEffect} from 'react'
-import { getSessions } from '@/lib/api/sessions'; 
-import { supabase } from '@/lib/supabase/supabaseConfig';
+import { getSessions } from '@/services/sessionsServices'; 
 import { useSessionData } from '@/contexts/sessionContext';
-
+import { useAuth } from '@/contexts/authContext/AuthContext';
 interface RecentSessionsProps{
     readonly open: boolean
     readonly onClose: () => void
@@ -23,8 +22,8 @@ export function RecentSessionsModal({open, onClose}:RecentSessionsProps){
     useEffect(() => {
        const processSessions = async () => {
         setIsFetching(true)
-        const user = await supabase.auth.getUser()
-        const userId = user.data.user?.id
+        const {user} = useAuth()
+        const userId = user?.id
         if (!userId) return
         const data = await getSessions(userId)
         setSessions(data)
