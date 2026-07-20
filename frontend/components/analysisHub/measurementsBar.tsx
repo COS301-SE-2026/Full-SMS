@@ -89,8 +89,15 @@ export function MeasurementsBar() {
           </Button>
         </div>
       </div>
+      
       <div className="flex flex-col mt-1 overflow-y-auto flex-1">
-        {measurements.map((m, i) => (
+        {measurements.map((m, i) =>{
+          const measurementID= (i+1).toString()
+          const currentM = measurementID === currentMeasurement
+          const MultiSelected = selectedMeasurements.has(measurementID)
+        
+        
+         return(
           <div key={m.name} className={cn((i+1).toString()===currentMeasurement ? "bg-card" : "")}>
             <button 
             className="flex items-center gap-1.5 px-3.5 py-1 hover:bg-card cursor-pointer"
@@ -101,14 +108,15 @@ export function MeasurementsBar() {
               <span
                 className={cn(
                   'text-xs truncate',
-                  m.checked ? 'text-primary' : 'text-foreground'
+                  currentM ? 'text-primary' : 'text-foreground'
                 )}
               >
                 {m.name}
               </span>
             </button>
           </div>
-        ))}
+        )}
+        )}
       </div>
     </div>
   )
