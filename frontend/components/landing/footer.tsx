@@ -8,14 +8,17 @@ export default function Footer() {
     <footer className='flex flex-row justify-space-between max-h-[20vh] mt-16'>
         <Image
         src={UpLogo}
+        alt='university of pretoria logo.'
         className='p-6 object-fit'
         />
         <Image
         src={BioPhysics}
+        alt='University of Pretoria Biophysics research group logo.'
         className='p-6 object-fit'
         />
         <Image
         src={coretech}
+        alt='Team coretech logo.'
         className='object-cover'
         />
 
