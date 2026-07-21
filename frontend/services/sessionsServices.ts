@@ -1,21 +1,40 @@
-import axiosInstance from "./axiosInstance";
+import axiosInstance from "@/lib/api/axiosInstance"
 
-//post for saving a session
-export const saveSession = async(userId: string, sessionData: object) =>{
-    const response = await axiosInstance.post(`/api/py/sessions`,sessionData, {params: {user_id: userId}})
-    return response.data
-}
+export const sessionsService = {
+    saveSession: async(userId: string, sessionData: object) =>{
+        try{
+            const response = await axiosInstance.post(`/api/py/sessions/`,sessionData, {params: {user_id: userId}})
+            return response.data
+        }catch(error: any){
+            throw new Error(
+                error.response?.data?.detail || "Failed to save session",
+            );
+        } 
+    },
 
-//get sessions
-export const getSessions = async(userId: string) =>{
-    const response = await axiosInstance.get(`/api/py/sessions`, {params: {user_id: userId}})
-    return response.data
-}
+    getSessions: async(userId: string) =>{
+        try{
+            const response = await axiosInstance.get(`/api/py/sessions`, {params: {user_id: userId}})
+            return response.data
+        }catch(error: any){
+            throw new Error(
+                error.response?.data?.detail || "Failed to get sessions",
+            );
+        }
+    },
 
-//get sessions by id
-export const getSessionsById = async(userId: string, sessionId: string) =>{
-    const response = await axiosInstance.get(`/api/py/sessions/${sessionId}`, {params: {user_id: userId}})
-    return response.data
+    getSessionsById: async(userId: string, sessionId: string) =>{
+        try{
+            const response = await axiosInstance.get(`/api/py/sessions/${sessionId}`, {params: {user_id: userId}})
+            return response.data
+        }catch(error: any){
+            throw new Error(
+                error.response?.data?.detail || "Failed to fetch session",
+            );
+        }
+
+    },
+
 }
 
 
