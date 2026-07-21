@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import React from 'react'
-import UpLogo from '@/public/UPlogo-bg.png'
-import BioPhysics from'@/public/biophysics_research_group.jpg'
+import UpLogo from '@/public/UPlogo-No-bg.png'
+import BioPhysics_No_Bg from '@/public/biophysicsNo_bg.png'
 import coretech from '@/public/coretech-logo.png'
 export default function Footer() {
   return (
@@ -12,9 +12,9 @@ export default function Footer() {
         className='p-6 object-fit'
         />
         <Image
-        src={BioPhysics}
+        src={BioPhysics_No_Bg}
         alt='University of Pretoria Biophysics research group logo.'
-        className='p-6 object-fit'
+        className='object-fit'
         />
         <Image
         src={coretech}

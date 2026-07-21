@@ -11,7 +11,7 @@ export default function About() {
           <div className='flex flex-col lg:w-[45%] lg:pr-8'>
             <h2 className='text-6xl font-mono'>What is Full SMS?</h2>
             <div className='flex flex-row'>
-              <p className='mt-8 md:text-lg text-left'>
+              <p className='mt-8 md:text-lg text-left z-10'>
                 Full SMS is a comprehensive Single Molecule Spectroscopy (SMS) analysis suite. It analyzes fluorescence measurements from HDF5 files, 
                 performing change point analysis, hierarchical clustering, lifetime fitting, and correlation functions.
               </p>
