@@ -22,8 +22,12 @@ export function useExportform() {
     const [plotIncludeGroups, setPlotIncludeGroups] = useState(false);
     const [BICPlot, setBICPlot] = useState(false);
 
+    const [dataFormat, setFormat] = useState<ExportFormat>("csv");
     const[PlotFormat, setPlotFormat] = useState<PLotFormat>("png");
     const[plotDPI, setPlotDPI] = useState(150);
+
+
+
 
 
 
