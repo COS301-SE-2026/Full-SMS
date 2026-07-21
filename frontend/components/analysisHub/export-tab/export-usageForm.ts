@@ -30,6 +30,9 @@ export function useExportform() {
     const [Binsize, setBinsize] = useState(10.000);
     const binSizeMeasure = useBin? bin : Binsize;
 
+    const[isExporting, setIsExporting] = useState(false);
+    const [statusMsg, setStatusMsg] = useState<string | null> (null);
+    const [errorMsg, setErrorMsg] = useState<string | null> (null);
 
 
 
@@ -63,7 +66,10 @@ export function useExportform() {
         Binsize,
         setBinsize,
         binSizeMeasure,
-
+        isExporting,
+        statusMsg,
+        errorMsg,
+        
     };
 
 }
