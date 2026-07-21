@@ -24,3 +24,8 @@ export const getRasterData = async (payload: any) =>{
     const {data} = await axiosInstance.post('api/py/analysis/raster-scan', payload)
     return data
 }
+
+export const getSpectraData = async (payload: any) =>{
+    const {data} = await axiosInstance.post('api/py/analysis/spectra', payload)
+    return data
+}

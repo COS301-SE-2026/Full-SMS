@@ -6,7 +6,8 @@ import json
 
 def cache_fallback_service(upload_id: str ):
     temp_hdf5_path = None
-    storage_key=supabaseClient.table("hdf5_uploads").eq("id", upload_id).select("storage_key").execute()
+    get_storage_key = supabaseClient.table("hdf5_uploads").select("storage_key").eq("id", upload_id).execute()
+    storage_key = get_storage_key.data[0]['storage_key']
     temp_hdf5_path = download_to_temp(storage_key, ".hdf5")
 
     read_result = read_hdf5(temp_hdf5_path)
@@ -14,7 +15,7 @@ def cache_fallback_service(upload_id: str ):
     print(f"\n\nParsed metadata: {result_metadata}\n\n")
     result_measurements = read_result["measurements"] # returns a list of dicts!!
 
-    #save data to cache before compressing and sending to supabase
+    #save data to cache
     #
     for measurement_data in result_measurements:
         measurement_id= measurement_data.get("id")

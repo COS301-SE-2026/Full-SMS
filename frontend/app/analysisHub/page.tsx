@@ -11,6 +11,7 @@ import UploadPage from '../upload/page';
 import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsContext';
 import GroupingTab from '@/components/analysisHub/grouping-tab/grouping-tab';
 import RasterTab from '@/components/analysisHub/raster-tab/raster-tab';
+import SpectraMap from '@/components/analysisHub/spectra-tab/spectra-map';
 
 
 export default function App() {
@@ -40,6 +41,12 @@ export default function App() {
           activeTab==="raster" &&(<div className="flex flex-col flex-1 min-w-0">
           <div className="flex flex-1 gap-3 p-3 min-h-0">
             <RasterTab />
+          </div>
+        </div>)}
+        {
+          activeTab==="spectra" &&(<div className="flex flex-col flex-1 min-w-0">
+          <div className="flex flex-1 gap-3 p-3 min-h-0">
+            <SpectraMap />
           </div>
         </div>)}
       </div>
