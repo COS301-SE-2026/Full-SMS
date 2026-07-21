@@ -11,11 +11,10 @@ interface MenuBarProps {
 
 export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
   const [saveModalOpen, setSaveModalOpen] = useState(false)
-  const {currentUploadName, cpaData, groupingData} = useHdf5Data()
   const {currentUploadName, cpaData, groupingData, bin, confidence, currentUpload} = useHdf5Data()
   const {user} = useAuth()
   const callSave = async (name: string) => {
-    await sessionsService.saveSession(user?.id || 'anonymous', {name: name, dataset_ref: currentUpload, parameters: {bin_size: bin, confidence: confidence}, results: {levels: cpaData, groups:groupingData}})
+    await sessionsService.saveSession(user?.id || 'anonymous', {name: name, dataset_ref: currentUpload, dataset_name: currentUploadName, parameters: {bin_size: bin, confidence: confidence}, results: {levels: cpaData, groups:groupingData}})
     setSaveModalOpen(false)
   }
   const [recentSessionsModalOpen, setRecentSessionsModalOpen] = useState(false)

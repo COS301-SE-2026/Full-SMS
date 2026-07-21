@@ -59,7 +59,7 @@ export function RecentSessionsModal({open, onClose}:RecentSessionsProps){
                     onKeyDown={(k) => keyDown(k, session)}
                     >
                         <span>{session.name}</span>
-                        <span>{session.dataset_ref}</span>
+                        <span>{session.dataset_name}</span>
                         <span>{session.created_at}</span>
                         
                     </Button>
