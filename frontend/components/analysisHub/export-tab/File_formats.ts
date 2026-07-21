@@ -18,5 +18,4 @@ export const Plot_format_options: { value: PLotFormat;  label: string} []=[
     {value: "pdf", label: "PDF"},
     {value: "png", label: "PNG"},
     {value: "svg", label: "SVG"},
-
 ];
