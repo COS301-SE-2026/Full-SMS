@@ -1,19 +1,20 @@
 import Link from "next/link";
 import { SaveSessionModal } from "./save-session-modal";
 import { useState } from "react";
-import { saveSession } from "@/lib/api/sessions";
-import { supabase } from "@/lib/supabase/supabaseConfig";
+import { sessionsService } from "@/services/sessionsServices";
+import { useAuth } from "@/contexts/authContext/AuthContext";
 import { RecentSessionsModal } from "./recent-sessions";
-
+import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 interface MenuBarProps {
   onOpenFileUpload: () => void;
 }
 
 export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
   const [saveModalOpen, setSaveModalOpen] = useState(false)
+  const {currentUploadName, cpaData, groupingData} = useHdf5Data()
+  const {user} = useAuth()
   const callSave = async (name: string) => {
-    const {data: {user}} = await supabase.auth.getUser()
-    await saveSession(user?.id || 'anonymous', {name: name, dataset_ref: '', parameters: {}, results: {}})
+    await sessionsService.saveSession(user?.id || 'anonymous', {name: name, dataset_ref: currentUploadName, parameters: {}, results: {levels: cpaData, groups:groupingData}})
     setSaveModalOpen(false)
   }
   const [recentSessionsModalOpen, setRecentSessionsModalOpen] = useState(false)

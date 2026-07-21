@@ -5,7 +5,7 @@ import { AuthProvider } from "@/contexts/authContext/AuthContext";
 import { ToastProvider } from "@/contexts/toastContext/ToastContext";
 import { Hdf5DataProvider } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { AnalysisTabProvider } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
-import { SessionDataProvider } from "@/contexts/sessionContext";
+import { SessionDataProvider } from "@/contexts/sessionsContext/sessionContext";
 
 const publicSans = Public_Sans({
   subsets: ["latin"],
