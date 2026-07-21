@@ -17,6 +17,16 @@ export function useExportform() {
     const [exportLevels, setLevels] = useState(true);
     const [exportGroups, setGroups] = useState(true);
 
+    const [plotIntensity, setPlotIntensity] = useState(true);
+    const [plotIncludeLevels, setPlotIncludeLevels] = useState(true);
+    const [plotIncludeGroups, setPlotIncludeGroups] = useState(false);
+    const [BICPlot, setBICPlot] = useState(false);
+
+    const[PlotFormat, setPlotFormat] = useState<PLotFormat>("png");
+    const[plotDPI, setPlotDPI] = useState(150);
+
+
+
 
     return {
         selectedMeasurements,
@@ -28,6 +38,16 @@ export function useExportform() {
         setLevels,
         exportGroups,
         setGroups,
+        plotIntensity,
+        setPlotIntensity,
+        plotIncludeLevels,
+        setPlotIncludeLevels,
+        plotIncludeGroups,
+        setPlotIncludeGroups,
+        BICPlot,
+        setBICPlot,
+        plotDPI,
+        setPlotDPI,
     };
 
 }
