@@ -26,6 +26,10 @@ export function useExportform() {
     const[PlotFormat, setPlotFormat] = useState<PLotFormat>("png");
     const[plotDPI, setPlotDPI] = useState(150);
 
+    const [useBin, setUseBin] = useState(true);
+    const [Binsize, setBinsize] = useState(10.000);
+    const binSizeMeasure = useBin? bin : Binsize;
+
 
 
 
@@ -52,6 +56,14 @@ export function useExportform() {
         setBICPlot,
         plotDPI,
         setPlotDPI,
+        dataFormat,
+        setFormat,
+        useBin,
+        setUseBin,
+        Binsize,
+        setBinsize,
+        binSizeMeasure,
+
     };
 
 }
