@@ -12,6 +12,7 @@ export function useExportform() {
         selectedMeasurements,
         selectAllmeasurements,
         clearSelectedMeasurements,
+        hdf5Metadata,
     } = useHdf5Data();
 
     const [exportIntensity, setExportIntensity] = useState(true);
@@ -54,8 +55,7 @@ export function useExportform() {
                 return;
             }
             exportMeasurements = Array.from(selectedMeasurements);
-        }
-    }
+        } 
 
 
 
