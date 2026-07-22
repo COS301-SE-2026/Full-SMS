@@ -23,7 +23,7 @@ export function useExportform() {
     const [BICPlot, setBICPlot] = useState(false);
 
     const [dataFormat, setFormat] = useState<ExportFormat>("csv");
-    const[PlotFormat, setPlotFormat] = useState<PLotFormat>("png");
+    const[PlotfileFormat, setPlotFormat] = useState<PLotFormat>("png");
     const[plotDPI, setPlotDPI] = useState(150);
 
     const [useBin, setUseBin] = useState(true);
@@ -34,7 +34,12 @@ export function useExportform() {
     const [statusMsg, setStatusMsg] = useState<string | null> (null);
     const [errorMsg, setErrorMsg] = useState<string | null> (null);
 
-
+    async function startExporting(mode: "current" | "selected" | "all") {
+        if (!currentUpload) {
+            setErrorMsg("Upload a file before exporting");
+            return;
+        }
+    }
 
 
 
