@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { ExportFormat, PLotFormat } from "./File_formats";
-import { FileMinus } from "lucide-react";
 
 
 export function useExportform() {
@@ -73,7 +72,7 @@ export function useExportform() {
         setStatusMsg( `Exporting ${exportMeasurements.length} measurement(s)...`);
 
         const selections = exportMeasurements.map((measurementID) => ({
-            measurement_id: Number(measurementID), channel: 1
+            measurement_id: measurementID, channel: 1
         }));
 
         const requestbody = {
