@@ -67,6 +67,9 @@ export function useExportform() {
                 exportMeasurements.push(i.toString()); 
             }
         }
+        setErrorMsg(null);
+        setIsExporting(true);
+        setStatusMsg( `Exporting ${exportMeasurements.length} measurement(s)...`);
     }
      
 
