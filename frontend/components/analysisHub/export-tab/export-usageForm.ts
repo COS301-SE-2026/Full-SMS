@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { ExportFormat, PLotFormat } from "./File_formats";
-import { measureMemory } from "vm";
+
 
 export function useExportform() {
     const {
@@ -70,6 +70,11 @@ export function useExportform() {
         setErrorMsg(null);
         setIsExporting(true);
         setStatusMsg( `Exporting ${exportMeasurements.length} measurement(s)...`);
+
+        const selections = exportMeasurements.map((measurementID) => ({
+            measurement_id: Number(measurementID), channel: 1
+        }));
+
     }
      
 
