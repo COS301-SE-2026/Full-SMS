@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/authContext/AuthContext";
 import { ToastProvider } from "@/contexts/toastContext/ToastContext";
 import { Hdf5DataProvider } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { AnalysisTabProvider } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
+import { BrandStyleProvider } from "@/contexts/brandStyleContext/brandStyleContext";
 
 const publicSans = Public_Sans({
   subsets: ["latin"],
@@ -32,13 +33,15 @@ export default function RootLayout({
     >
       <body >
         <ToastProvider>
-          <AuthProvider>
-            <Hdf5DataProvider>
-              <AnalysisTabProvider>
-                <ClientLayout>{children}</ClientLayout>
-              </AnalysisTabProvider>
-            </Hdf5DataProvider>
-          </AuthProvider>
+          <BrandStyleProvider>
+              <AuthProvider>
+                <Hdf5DataProvider>
+                  <AnalysisTabProvider>
+                      <ClientLayout>{children}</ClientLayout>
+                  </AnalysisTabProvider>
+                </Hdf5DataProvider>
+            </AuthProvider>
+          </BrandStyleProvider>
         </ToastProvider>
       </body>
     </html>
