@@ -100,6 +100,18 @@ export function useExportform() {
                 body: JSON.stringify(requestbody),
             });
 
+            if(!response.ok) {
+                if(response.status === 501) {
+                    throw new Error("Something in this selection is not available on the server yet.");
+
+                }
+                if(response.status === 400) {
+                    throw new Error("Select at least one export option before exporting.");
+
+                } 
+                throw new Error("Export failed. Please try again.");               
+            }
+
             const BlobforFile = await response.blob();
             const downloadURL = URL.createObjectURL(BlobforFile);
 
@@ -111,8 +123,11 @@ export function useExportform() {
             URL.revokeObjectURL(downloadURL);
 
             setStatusMsg("Done");
-        } catch {
-            setErrorMsg("Something went wrong.");
+        } catch (error){
+            if(error instanceof Error) {
+                setErrorMsg(error.message);
+            } else{ setErrorMsg("Something went wrong.");}
+          setStatusMsg(null);
         } finally{
             setIsExporting(false);
         }
