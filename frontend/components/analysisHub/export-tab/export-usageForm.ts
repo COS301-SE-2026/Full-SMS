@@ -112,12 +112,16 @@ export function useExportform() {
                 throw new Error("Export failed. Please try again.");               
             }
 
+            const dispose = response.headers.get("Content-Disposition");
+            const filenameMatch = dispose?.match(/filename="?([^"]+)"?/);
+            const downloadFilename = filenameMatch?.[1] ?? "export";
+
             const BlobforFile = await response.blob();
             const downloadURL = URL.createObjectURL(BlobforFile);
 
             const link = document.createElement("a");
             link.href = downloadURL;
-            link.download = "export";
+            link.download = downloadFilename;
             link.click();
 
             URL.revokeObjectURL(downloadURL);
