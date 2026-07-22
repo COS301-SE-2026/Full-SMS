@@ -1,9 +1,12 @@
 from pydantic import BaseModel
 from api.legacy.io.exporters import ExportFormat
 
+class Selection(BaseModel):
+    measurement_id: str
+    channel: int =1
 class ExportRequest(BaseModel):
     upload_id: str
-    measurement_ids: list[str]
+    selections: list[Selection]
     channel: int = 1
     export_levels: bool = False
     export_groups: bool= False
