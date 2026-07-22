@@ -5,7 +5,7 @@ import { ArrowRight, Download } from "lucide-react";
 
 export default function Buttons() {
   return (
-    <div className="h-full mt-16">
+    <div className="h-full mt-16 mb-4">
       <h2>Buttons</h2>
       <p className="text-foreground/60">
         There are 5 buttom variants and 3 sizes

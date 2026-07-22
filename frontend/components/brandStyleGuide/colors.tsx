@@ -48,15 +48,15 @@ export default function Colors() {
   return (
     <div className='h-full mt-16'>
         <h2>Colors</h2>
-        <p>All colors are registered as Tailwind classes and CSS variables. <br/>Use class names in JSX, CSS variables in custom CSS, and raw values from <span className='text-primary'>lib/tokens.ts </span> in JS/TS</p>
+        <p>All colors are registered as Tailwind classes and CSS variables. <br/>Use class names in JSX, CSS variables in custom CSS, <br/>and raw values from <span className='text-primary'>lib/tokens.ts </span> in JS/TS</p>
         <p className='text-border mt-8'>COLOUR PALETTE</p>
-        <Card className='mt-4'>
-            <CardContent  className='grid grid-cols-4 gap-4'>
+        <Card className='mt-4 mb-4'>
+            <CardContent  className='grid grid-cols-4 gap-2'>
                 {
                     paletteItems.map((item)=>(
-                        <Card className='flex flex-col' key={item.hex}>
+                        <Card className='flex flex-col' key={item.name}>
                             <CardContent>
-                                <div className={`bg-${item.class} rounded-md h-24 w-full`}></div>
+                                <div className={`bg-${(item.class).toLowerCase()} rounded-md h-24 w-full border border-border`}></div>
                                 <p>{item.name}</p>
                                 <p>{item.hex}</p>
                                 <p className={`text-${item.class}`}>bg-{item.class}</p>
