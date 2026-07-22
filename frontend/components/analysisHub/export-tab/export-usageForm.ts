@@ -55,7 +55,20 @@ export function useExportform() {
                 return;
             }
             exportMeasurements = Array.from(selectedMeasurements);
-        } 
+        }else{
+            const totalMeasurements = hdf5Metadata?.num_measurements ?? 0;
+
+            if(totalMeasurements === 0) {
+                setErrorMsg("No measurements found in this upload.");
+                return;
+            }
+            exportMeasurements = [];
+            for (let i =1; i <= totalMeasurements; i++){
+                exportMeasurements.push(i.toString()); 
+            }
+        }
+    }
+     
 
 
 
