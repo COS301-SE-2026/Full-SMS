@@ -75,6 +75,23 @@ export function useExportform() {
             measurement_id: Number(measurementID), channel: 1
         }));
 
+        const requestbody = {
+            upload_id: currentUpload,
+            selections: selections,
+            format: dataFormat,
+            bin_size_ms: binSizeMeasure,
+            export_intensity: exportIntensity,
+            export_levels: exportLevels,
+            export_groups: exportGroups,
+
+            plot_format: PlotfileFormat,
+            plot_dpi: plotDPI,
+            plot_intensity: plotIntensity,
+            plotIntensity_levels: plotIncludeLevels,
+            plotIntensity_groups: plotIncludeGroups,
+            plot_bic: BICPlot,
+        };
+
     }
      
 
