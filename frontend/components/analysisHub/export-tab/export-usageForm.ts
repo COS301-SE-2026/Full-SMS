@@ -48,6 +48,12 @@ export function useExportform() {
                 return;
             }
             exportMeasurements = [currentMeasurement];
+        }else if(mode === "selected") {
+            if(selectedMeasurements.size === 0) {
+                setErrorMsg("Select at least one measurement from the sidebar.");
+                return;
+            }
+            exportMeasurements = Array.from(selectedMeasurements);
         }
     }
 
