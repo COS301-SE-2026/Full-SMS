@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { ExportFormat, PLotFormat } from "./File_formats";
+import { FileMinus } from "lucide-react";
 
 
 export function useExportform() {
@@ -91,6 +92,31 @@ export function useExportform() {
             plotIntensity_groups: plotIncludeGroups,
             plot_bic: BICPlot,
         };
+
+        try {
+            const response = await fetch("/api/export", {
+                method: "POST",
+                headers: { "Content-Type": "application/json"},
+                body: JSON.stringify(requestbody),
+            });
+
+            const BlobforFile = await response.blob();
+            const downloadURL = URL.createObjectURL(BlobforFile);
+
+            const link = document.createElement("a");
+            link.href = downloadURL;
+            link.download = "export";
+            link.click();
+
+            URL.revokeObjectURL(downloadURL);
+
+            setStatusMsg("Done");
+        } catch {
+            setErrorMsg("Something went wrong.");
+        } finally{
+            setIsExporting(false);
+        }
+        
 
     }
      
