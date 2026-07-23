@@ -35,6 +35,7 @@ export function useExportform() {
     const[isExporting, setIsExporting] = useState(false);
     const [statusMsg, setStatusMsg] = useState<string | null> (null);
     const [errorMsg, setErrorMsg] = useState<string | null> (null);
+    const totalMeasurements = hdf5Metadata?.num_measurements ?? 0;
 
     async function startExporting(mode: "current" | "selected" | "all") {
         if (!currentUpload) {
@@ -93,7 +94,7 @@ export function useExportform() {
         };
 
         try {
-            const response = await fetch("/api/export", {
+            const response = await fetch("http://localhost:8000/api/py/export/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json"},
                 body: JSON.stringify(requestbody),
@@ -173,6 +174,7 @@ export function useExportform() {
         statusMsg,
         errorMsg,
         startExporting,
+        totalMeasurements,
         
     };
 
