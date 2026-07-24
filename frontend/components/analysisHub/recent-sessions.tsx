@@ -19,7 +19,7 @@ export function RecentSessionsModal({open, onClose}:RecentSessionsProps){
     const {setChosenSession} = useSessionData()
     const {user} = useAuth()
     const {errorToast} = useToast()
-    const {setCurrentUpload, setCurrentUploadName, setBin, setConfidence, setCpaData, setGroupingData, setHdf5Data, setHdf5Metadata, setCurrentMeasurement, setCurrentWorkspaceId, setHeatMapColor} = useHdf5Data()
+    const {setCurrentUpload, setCurrentUploadName, setBin, setConfidence, setCpaData, setGroupingData, setHdf5Data, setHdf5Metadata, setCurrentMeasurement, setCurrentWorkspaceId, setHeatMapColor, setSpectraHeatMapColor} = useHdf5Data()
     const {setActiveTab} = useAnalysisTab()
 
     const keyDown = (event: React.KeyboardEvent, session:any) => {
@@ -37,6 +37,7 @@ export function RecentSessionsModal({open, onClose}:RecentSessionsProps){
             setCurrentWorkspaceId(session.results?.currentWorkspaceId)
             setActiveTab(session.results?.activeTab)
             setHeatMapColor(session.results?.heatMapColor)
+            setSpectraHeatMapColor(session.results?.spectraHeatMapColor)
             onClose()
         }
     };
@@ -83,6 +84,7 @@ export function RecentSessionsModal({open, onClose}:RecentSessionsProps){
                         setCurrentWorkspaceId(session.results?.currentWorkspaceId)
                         setActiveTab(session.results?.activeTab)
                         setHeatMapColor(session.results?.heatMapColor)
+                        setSpectraHeatMapColor(session.results?.spectraHeatMapColor)
                         onClose()
                     }}
                     onKeyDown={(k) => keyDown(k, session)}     
