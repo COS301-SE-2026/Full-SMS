@@ -47,6 +47,7 @@ app.include_router(session_router, prefix=prefix)
 app.include_router(workspace_router, prefix=prefix)
 app.include_router(analysis_router, prefix=prefix)
 app.include_router(plugin_router, prefix=prefix)
+app.include_router(export_router, prefix=prefix)
 
 @app.on_event("startup")
 async def startup_event():
