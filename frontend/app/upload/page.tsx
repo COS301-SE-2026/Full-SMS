@@ -18,7 +18,7 @@ type UploadPageProps = {
 
 export default function UploadPage({ onComplete }: UploadPageProps) {
   const [queue, setQueue] = useState<SelectedFile[]>([]);
-  const {setIsParsing, setCurrentUpload, currentUpload, currentWorkspaceId } = useHdf5Data()
+  const {setIsParsing, setCurrentUpload, currentUpload, currentWorkspaceId, setCurrentUploadName } = useHdf5Data()
   const [uploadId, setUploadId] = useState<string>("");
   const updateItem = (id: string, patch: Partial<SelectedFile>) => {
   setQueue((prev) =>
@@ -49,6 +49,7 @@ const handleOpen = async () => {
       //get upload_id for status subscription (subscribing?? idk)
       setUploadId(initialize.upload_id)
       setCurrentUpload(initialize.upload_id)
+      setCurrentUploadName(item.name)
       await uploadToSignedUrl(initialize.upload_url.signed_url, item.file, (pct) => {
         updateItem(item.id, { progress: pct })
       });
