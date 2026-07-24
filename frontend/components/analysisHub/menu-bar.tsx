@@ -68,6 +68,16 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
           </Button>
       </Link>
 
+         <Link href="/help">
+          <Button
+            variant = "ghost"
+            onClick={onOpenFileUpload}
+            className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
+          >
+            Help
+          </Button>
+      </Link>
+
     </div>
     <SaveSessionModal
         open={saveModalOpen}
