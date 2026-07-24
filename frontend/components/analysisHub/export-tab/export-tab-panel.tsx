@@ -127,13 +127,13 @@ export default function ExportPanel() {
                             Export Current
                         </Button>
                 </div>
-                    <div className="mt-2 text-sm">
-                        {form.errorMsg && (
-                            <span className="text-destructive" role="alert">{form.errorMsg}</span>
-                        )}
-                        {!form.errorMsg && form.statusMsg && (
-                            <span className="text-foreground/60">{form.statusMsg}</span>
-                        )}
+                <div className="mt-4 text-right text-sm mr-3">
+                    {form.errorMsg && (
+                        <span className="text-destructive" role="alert">{form.errorMsg}</span>
+                    )}
+                    {!form.errorMsg && form.statusMsg && (
+                        <span className="text-foreground/60">{form.statusMsg}</span>
+                    )}
                 </div>
             </main>
         </div>
