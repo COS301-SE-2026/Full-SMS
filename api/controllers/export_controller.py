@@ -9,7 +9,7 @@ async def handle_export(request: ExportRequest, background_tasks: BackgroundTask
     if not any([request.export_intensity, request.export_levels, request.export_groups]):
         raise HTTPException(status_code = 400, detail= "No export category selected.")
     
-    if not request.measurement_ids:
+    if not request.selections:
         raise HTTPException(status_code=400, detail="No measurements selected.")
     
     try:
