@@ -165,6 +165,8 @@ export function useExportform() {
         setPlotDPI,
         dataFormat,
         setFormat,
+        PlotfileFormat,
+        setPlotFormat,
         useBin,
         setUseBin,
         Binsize,
