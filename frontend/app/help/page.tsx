@@ -3,15 +3,17 @@
 import { Button } from "@/components/ui"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent} from "@/components/ui/Card"
 import { icons, BookOpen, ChartColumn, FileSearchCorner, Download, CircleQuestionMark, Save, Phone } from "lucide-react"
+import { MenuBar } from "@/components/analysisHub/menu-bar"
 
 export default function HelpMenuPage(){
     return(
         <main>
-            <div>
-                <h3>How can we help you?</h3>
+            <MenuBar />
+            <div style={{display: 'flex',  justifyContent:'center', alignItems:'center', height: '100vh'}}>
+                <h1 style={{color: "#00e5ff"}} className="text-4xl md:text-6xl font-bold">How can we help you?</h1>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-                <Card>
+            <div className="grid grid-cols-3 gap-4">
+                <Card  >
                     <CardHeader>
                         <BookOpen color="#00e5ff" />
                         <CardTitle>Getting Started</CardTitle>
@@ -41,7 +43,7 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card >
                     <CardHeader>
                         <ChartColumn color="#00e5ff" />
                         <CardTitle>Analysis Features</CardTitle>
@@ -97,6 +99,30 @@ export default function HelpMenuPage(){
                     <CardHeader>
                         <Phone color="#00e5ff" />
                         <CardTitle>Contact support</CardTitle>
+                        <CardDescription>Reach out to the dev team</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ul>
+                            <li>Contact email</li>
+                        </ul>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <Phone color="#00e5ff" />
+                        <CardTitle>Plugin</CardTitle>
+                        <CardDescription>Reach out to the dev team</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ul>
+                            <li>Contact email</li>
+                        </ul>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <Phone color="#00e5ff" />
+                        <CardTitle>Reset Password</CardTitle>
                         <CardDescription>Reach out to the dev team</CardDescription>
                     </CardHeader>
                     <CardContent>
