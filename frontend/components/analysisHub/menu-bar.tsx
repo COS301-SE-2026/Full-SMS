@@ -25,6 +25,7 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
       setSaveModalOpen(false)
     }catch(error){
       errorToast("Session not saved!")
+      console.error("Failed to save session", error)
     }
   }
   const [recentSessionsModalOpen, setRecentSessionsModalOpen] = useState(false)
