@@ -93,3 +93,19 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
+                <Card>
+                    <CardHeader>
+                        <Phone color="#00e5ff" />
+                        <CardTitle>Contact support</CardTitle>
+                        <CardDescription>Reach out to the dev team</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ul>
+                            <li>Contact email</li>
+                        </ul>
+                    </CardContent>
+                </Card>
+            </div>
+        </main>
+    )
+}
