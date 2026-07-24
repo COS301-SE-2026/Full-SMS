@@ -26,7 +26,7 @@ interface SessionContextType{
 
 const sessionContext = createContext<SessionContextType | undefined>(undefined)
 
-export function SessionDataProvider({children}: {children: ReactNode}){
+export function SessionDataProvider({children}: {readonly children: ReactNode}){
     const [sessionData, setSessionData] = useState<sessionRow | null>(null)
     const value = useMemo(
         () => ({chosenSession: sessionData, setChosenSession: setSessionData}),
