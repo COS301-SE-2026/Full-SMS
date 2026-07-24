@@ -68,3 +68,16 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
+                <Card>
+                    <CardHeader>
+                        <Download color="#00e5ff"/>
+                        <CardTitle>Export</CardTitle>
+                        <CardDescription>Learn how to export</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ul>
+                            <li>How to export results</li>
+                            <li>Supported export formats</li>
+                        </ul>
+                    </CardContent>
+                </Card>
