@@ -41,3 +41,17 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
+                <Card>
+                    <CardHeader>
+                        <ChartColumn color="#00e5ff" />
+                        <CardTitle>Analysis Features</CardTitle>
+                        <CardDescription>Learn what each analysis feature does</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ul>
+                            <li>What Change Point Analysis does</li>
+                            <li>What Clustering/Grouping does</li>
+                            <li>How to adjust bin size and confidence</li>
+                        </ul>
+                    </CardContent>
+                </Card>
