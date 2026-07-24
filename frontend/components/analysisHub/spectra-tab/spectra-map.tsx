@@ -6,9 +6,8 @@ import React, { useEffect, useMemo, useState } from 'react'
 import Plot from 'react-plotly.js'
 
 export default function SpectraMap() {
-  const {currentUpload, currentMeasurement} = useHdf5Data()
+  const {currentUpload, currentMeasurement, spectraHeatMapColor, setSpectraHeatMapColor} = useHdf5Data()
   const [spectraData, setSpectraData] = useState<SpectraData>()
-      const [heatMapColor, setHeatMapColor] = useState<string>("Viridis")
       const colourmaps = ["Plasma","Viridis", "Inferno", "Hot", "Cool", "Twilight"]
 
   useEffect(()=>{ 
@@ -46,8 +45,8 @@ export default function SpectraMap() {
           <div className="flex items-center gap-2">
             <label className="text-xs text-foreground/70 whitespace-nowrap">Colormap</label>
                 <select
-                value={heatMapColor}
-                onChange={(e) =>(setHeatMapColor(e.target.value))}
+                value={spectraHeatMapColor}
+                onChange={(e) =>(setSpectraHeatMapColor(e.target.value))}
                 className="w-20 h-7 px-2 rounded bg-card border border-border text-xs text-foreground text-right font-mono focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary appearance-none cursor-pointer"
                 >
                 {colourmaps.map((map) => (
@@ -69,7 +68,7 @@ export default function SpectraMap() {
           dy: plotData?.dwl,
           zmin: plotData?.scale_min,
           zmax: plotData?.scale_max,
-          colorscale: heatMapColor,
+          colorscale: spectraHeatMapColor,
           colorbar: { 
             title: 'Intensity',
             tickfont: { color: colors.foreground },
