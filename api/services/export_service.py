@@ -30,7 +30,9 @@ def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> d
 
 def export_data(request: ExportRequest, user_id: str) -> Path:
     outputPaths =[]
-    for measurement_id in request.measurement_ids:
+    for selection in request.selections:
+        measurement_id = selection.measurement_id
+        channel = selection.channel
         data = _get_measurement_data(request.upload_id, measurement_id, user_id)
         
         if request.export_intensity:
