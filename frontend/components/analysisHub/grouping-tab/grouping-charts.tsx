@@ -119,7 +119,7 @@ export default function GroupingCharts() {
                     <thead>
                         <tr>
                             <th>Group</th>
-                            <th>Levlels</th>
+                            <th>Levels</th>
                             <th>Int cps</th>
                             <th> Dwell (s)</th>
                         </tr>

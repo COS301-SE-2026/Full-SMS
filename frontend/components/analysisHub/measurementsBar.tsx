@@ -82,9 +82,9 @@ export function MeasurementsBar() {
       </div>
       <div className="flex flex-col mt-1 overflow-y-auto flex-1">
         {measurements.map((m, i) => (
-          <div key={m.name} className={cn((i+1).toString()===currentMeasurement ? "bg-card" : "")}>
+          <div key={m.name} className={cn((i+1).toString()===currentMeasurement ? "bg-card" : "hover:bg-card")}>
             <button 
-            className="flex items-center gap-1.5 px-3.5 py-1 hover:bg-card cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-1 cursor-pointer"
             onClick={()=>onClickMeasurement(i)}
             >
 
@@ -92,7 +92,7 @@ export function MeasurementsBar() {
               <span
                 className={cn(
                   'text-xs truncate',
-                  m.checked ? 'text-primary' : 'text-foreground'
+                  (i+1).toString()===currentMeasurement ? 'text-primary' : 'text-foreground'
                 )}
               >
                 {m.name}
