@@ -29,3 +29,15 @@ export default function HelpMenuPage(){
                 </Card>
                 <Card>
                     <CardHeader>
+                        <Save color="#00e5ff" />
+                        <CardTitle>Save and Load session</CardTitle>
+                        <CardDescription>Learn how to save and load a session.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ul>
+                            <li>How to save a session</li>
+                            <li>How to load a recent session</li>
+                            <li>What gets saved in a session</li>
+                        </ul>
+                    </CardContent>
+                </Card>
