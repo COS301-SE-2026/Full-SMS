@@ -55,3 +55,16 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
+                <Card>
+                    <CardHeader>
+                        <FileSearchCorner color="#00e5ff"/>
+                        <CardTitle>File formats</CardTitle>
+                        <CardDescription>What file formats are supported</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ul>
+                            <li>Supported file types and what they are</li>
+                            <li>Where files come from</li>
+                        </ul>
+                    </CardContent>
+                </Card>
