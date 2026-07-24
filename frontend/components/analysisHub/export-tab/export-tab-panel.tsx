@@ -1,7 +1,8 @@
 "use client";
 
 import { useExportform } from "./export-usageForm";
-import { Button } from "@/components/ui";
+import { Button, Card, CardHeader, CardTitle, CardContent, Checkbox } from "@/components/ui";
+
 
 export default function ExportPanel() {
     const form = useExportform();
@@ -21,6 +22,20 @@ export default function ExportPanel() {
                             Clear 
                         </Button>
                     </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <Card>
+
+                    <CardHeader>
+                        <CardTitle>Data Export</CardTitle>
+                    </CardHeader>
+
+                    <CardContent className="flex flex-col gap-3">
+                        <Checkbox label= "Intensity Plot Data" checked={form.exportIntensity} onCheckedChange={form.setExportIntensity} />
+                        <Checkbox label= "Levels (change points)" checked={form.exportLevels} onCheckedChange={form.setLevels} />
+                        <Checkbox label= "Groups (clusters)" checked={form.exportGroups} onCheckedChange={form.setGroups} />
+                        </CardContent>
+                    </Card>
                 </div>
             </main>
         </div>
