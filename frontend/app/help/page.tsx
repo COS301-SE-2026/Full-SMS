@@ -81,3 +81,15 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
+                <Card>
+                    <CardHeader>
+                        <CircleQuestionMark color="#00e5ff" />
+                        <CardTitle>FAQs</CardTitle>
+                        <CardDescription>Frequently asked questions</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ul>
+                            <li></li>
+                        </ul>
+                    </CardContent>
+                </Card>
