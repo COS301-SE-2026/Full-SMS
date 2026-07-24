@@ -169,8 +169,9 @@ export default function PluginEditor({
           />
         </div>
         <div className="flex gap-2 border-b border-border">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => setActiveTab("code")}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               activeTab === "code"
@@ -180,9 +181,10 @@ export default function PluginEditor({
           >
             <Code className="h-4 w-4" />
             Code
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => setActiveTab("config")}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               activeTab === "config"
@@ -192,7 +194,7 @@ export default function PluginEditor({
           >
             <Settings className="h-4 w-4" />
             Configuration
-          </button>
+          </Button>
         </div>
         {activeTab === "code" && (
           <div>
@@ -225,7 +227,7 @@ export default function PluginEditor({
                   type="button"
                   variant="secondary"
                   size="sm"
-                  leftIcon={<Plus className="h-3 w-3" />}
+                  leftIcon={<Plus className="h-4 w-4" />}
                   onClick={() => {
                     const newParam: PluginParameter = {
                       id: `param_${Date.now()}`,
@@ -297,8 +299,10 @@ export default function PluginEditor({
                           </option>
                         ))}
                       </select>
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => {
                           const updated = formik.values.parameters.filter(
                             (_, i) => i !== index,
@@ -308,7 +312,7 @@ export default function PluginEditor({
                         className="p-1 hover:bg-destructive/10 rounded"
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
-                      </button>
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -316,13 +320,13 @@ export default function PluginEditor({
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-center mb-2 mt-8">
                 <h4 className="text-sm font-medium text-foreground">Outputs</h4>
                 <Button
                   type="button"
                   variant="secondary"
                   size="sm"
-                  leftIcon={<Plus className="h-3 w-3" />}
+                  leftIcon={<Plus className="h-4 w-4" />}
                   onClick={() => {
                     const newOutput: PluginOutput = {
                       id: `output_${Date.now()}`,
@@ -385,8 +389,10 @@ export default function PluginEditor({
                         </option>
                       ))}
                     </select>
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => {
                         const updated = formik.values.outputs.filter(
                           (_, i) => i !== index,
@@ -403,14 +409,14 @@ export default function PluginEditor({
                             : "text-destructive"
                         }`}
                       />
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
             </div>
           </div>
         )}
-        <div className="flex justify-end gap-3 pt-4 border-t border-border">
+        <div className="flex justify-end gap-3 pt-4 ">
           <Button
             type="button"
             variant="secondary"
