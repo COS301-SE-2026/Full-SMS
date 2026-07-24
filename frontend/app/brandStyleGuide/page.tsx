@@ -1,10 +1,12 @@
 'use client'
+import Accessibility from "@/components/brandStyleGuide/accessibility"
 import Badges from "@/components/brandStyleGuide/badges"
 import Buttons from "@/components/brandStyleGuide/buttons"
 import Card from "@/components/brandStyleGuide/card"
 import Colors from "@/components/brandStyleGuide/colors"
 import Inputs from "@/components/brandStyleGuide/inputs"
 import Loaders from "@/components/brandStyleGuide/loader"
+import LogosAndIcons from "@/components/brandStyleGuide/logos-and-icons"
 import TabNav from "@/components/brandStyleGuide/tabNav"
 import Tokens from "@/components/brandStyleGuide/tokens"
 import Typography from "@/components/brandStyleGuide/typography"
@@ -58,6 +60,16 @@ export default function BrandStyleGuide() {
                 {
                     activeTab==='tokens' && (
                         <Tokens/>
+                    )
+                }
+                                {
+                    activeTab==='accessibility' && (
+                        <Accessibility/>
+                    )
+                }
+                {
+                    activeTab ==='logos and icons' &&(
+                        <LogosAndIcons/>
                     )
                 }
             </div>
