@@ -49,7 +49,7 @@ export default function Colors() {
     <div className='h-full mt-16'>
         <h2>Colors</h2>
         <p>All colors are registered as Tailwind classes and CSS variables. <br/>Use class names in JSX, CSS variables in custom CSS, <br/>and raw values from <span className='text-primary'>lib/tokens.ts </span> in JS/TS</p>
-        <p className='text-border mt-8'>COLOUR PALETTE</p>
+        <p className=' mt-8'>Color palette</p>
         <Card className='mt-4 mb-4'>
             <CardContent  className='grid grid-cols-4 gap-2'>
                 {
