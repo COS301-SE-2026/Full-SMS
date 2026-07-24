@@ -6,6 +6,9 @@ import { useAuth } from "@/contexts/authContext/AuthContext";
 import { RecentSessionsModal } from "./recent-sessions";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { useAnalysisTab } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
+import { useToast } from "@/contexts/toastContext/ToastContext";
+import { authService } from "@/services/authServices";
+import { error } from "console";
 interface MenuBarProps {
   onOpenFileUpload: () => void;
 }
@@ -15,11 +18,15 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
   const {currentUploadName, cpaData, groupingData, bin, confidence, currentUpload, hdf5Data, hdf5Metadata, currentMeasurement, currentWorkspaceId, heatMapColor} = useHdf5Data()
   const {user} = useAuth()
   const {activeTab} = useAnalysisTab()
+  const {successToast, errorToast} = useToast()
   const callSave = async (name: string) => {
-    console.log('currentUploadName:', currentUploadName)
-    console.log('currentUpload:', currentUpload)
-    await sessionsService.saveSession(user?.id || 'anonymous', {name: name, dataset_ref: currentUpload, dataset_name: currentUploadName, parameters: {bin_size: bin, confidence: confidence}, results: {levels: cpaData, groups:groupingData, hdf5Data: hdf5Data, hdf5Metadata: hdf5Metadata, currentMeasurement: currentMeasurement, currentWorkspaceId: currentWorkspaceId, activeTab: activeTab, heatMapColor: heatMapColor}})
-    setSaveModalOpen(false)
+    try{
+      await sessionsService.saveSession(user?.id || 'anonymous', {name: name, dataset_ref: currentUpload, dataset_name: currentUploadName, parameters: {bin_size: bin, confidence: confidence}, results: {levels: cpaData, groups:groupingData, hdf5Data: hdf5Data, hdf5Metadata: hdf5Metadata, currentMeasurement: currentMeasurement, currentWorkspaceId: currentWorkspaceId, activeTab: activeTab, heatMapColor: heatMapColor}})
+      successToast("Session has been saved")
+      setSaveModalOpen(false)
+    }catch(error){
+      errorToast("Session not saved!")
+    }
   }
   const [recentSessionsModalOpen, setRecentSessionsModalOpen] = useState(false)
 
