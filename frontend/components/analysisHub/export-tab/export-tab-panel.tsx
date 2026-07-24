@@ -1,7 +1,8 @@
 "use client";
 
 import { useExportform } from "./export-usageForm";
-import { Button, Card, CardHeader, CardTitle, CardContent, Checkbox } from "@/components/ui";
+import { Button, Card, CardHeader, CardTitle, CardContent, Checkbox, Toggle, Input } from "@/components/ui";
+import { FORMAT_OPTIONS, Plot_format_options } from "./File_formats";
 
 
 export default function ExportPanel() {
@@ -52,8 +53,75 @@ export default function ExportPanel() {
 
                         </CardContent>
                     </Card>  
+
+                    <Card className="md:col-span-2">
+                    <CardHeader>
+                        <CardTitle>Output settings</CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 items-end">
+                        <div className="flex flex-col gap-1">
+                            <label className="text-base font-medium text-foreground">Data Format</label>
+                            <select value={form.dataFormat}
+                                onChange={(e) => form.setFormat(e.target.value as typeof form.dataFormat)}
+                                className="min-h-[44px] px-3 py-2 rounded bg-card border border-border text-base text-foreground">
+                                    {FORMAT_OPTIONS.map((option) => ( 
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                        ))}
+                                </select>
+                        </div>
+
+                         <div className="flex flex-col gap-1">
+                            <label className="text-base font-medium text-foreground">Plot Format</label>
+                            <select value={form.PlotfileFormat}
+                                onChange={(e) => form.setPlotFormat(e.target.value as typeof form.PlotfileFormat)}
+                                className="min-h-[44px] px-3 py-2 rounded bg-card border border-border text-base text-foreground">
+                                    {Plot_format_options.map((option) => ( 
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                        ))}
+                                </select>
+                        </div>
+
+                        <Input
+                            label = "Plot DPI"
+                            type="number"
+                            value={form.plotDPI}
+                            disabled={form.PlotfileFormat !== "png"}
+                            onChange={(e) => form.setPlotDPI(Number(e.target.value))}
+                            helperText={form.PlotfileFormat !== "png" ? "Only used for PNG" : undefined}
+                            className="w-28"/>
+                        
+                        <div className="flex items-end gap-4 ml-35">
+                            <div className="flex flex-col gap-1 mb-2">
+                                <Toggle 
+                                    label = "Use bin size from Intensity tab"
+                                    checked={form.useBin}
+                                    onCheckedChange={form.setUseBin}
+                                    className="whitespace-nowrap min-h-[44px] flex items-center"/>
+
+                            </div>
+                                
+                            <Input
+                                label = "Bin Size (ms)"
+                                type="number"
+                                value={form.useBin ? form.binSizeMeasure : form.Binsize}
+                                disabled={form.useBin}
+                                onChange={(e) => form.setBinsize(Number(e.target.value))}
+                                className="w-28"/>
+
+                                
+
+
+                        </div>
+                    </CardContent>
+                </Card>
+
+
                 </div>
             </main>
         </div>
     ); 
-}
+} 
