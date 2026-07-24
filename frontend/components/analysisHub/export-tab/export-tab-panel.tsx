@@ -1,5 +1,5 @@
 "use client";
-
+import {Download} from "lucide-react";
 import { useExportform } from "./export-usageForm";
 import { Button, Card, CardHeader, CardTitle, CardContent, Checkbox, Toggle, Input } from "@/components/ui";
 import { FORMAT_OPTIONS, Plot_format_options } from "./File_formats";
@@ -111,16 +111,22 @@ export default function ExportPanel() {
                                 disabled={form.useBin}
                                 onChange={(e) => form.setBinsize(Number(e.target.value))}
                                 className="w-28"/>
-
-                                
-
-
                         </div>
                     </CardContent>
                 </Card>
-
-
                 </div>
+                <div className="flex gap-2 justify-end w-full mt-15">
+                    <Button variant="secondary" onClick={() => form.startExporting("selected")} disabled={form.isExporting}>
+                        Export selected ({form.selectedMeasurements.size})
+                    </Button>
+                    <Button 
+                        variant="primary" 
+                        loading={form.isExporting} 
+                        leftIcon={<Download size={16} />} 
+                        onClick={() => form.startExporting("current")}>
+                            Export Current
+                        </Button>
+                    </div>
             </main>
         </div>
     ); 
