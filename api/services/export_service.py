@@ -36,7 +36,7 @@ def export_data(request: ExportRequest, user_id: str) -> Path:
         data = _get_measurement_data(request.upload_id, measurement_id, user_id)
         
         if request.export_intensity:
-            channel_key = f"channel{request.channel}"
+            channel_key = f"channel{channel}"
             abstimes=np.array(data[channel_key]["abstimes"], dtype=np.uint64)
 
             fd, temp_path = tempfile.mkstemp()
