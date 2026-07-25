@@ -33,6 +33,7 @@ def _get_Saved_Analysis(upload_id: str, measurement_id:str, user_id:str) -> dict
     if not match:
         raise NotImplementedError("NO saved session for this upload. Run and save analysis first.")
 
+    match.sort(key=lambda s: s.get("created_at", ""), reverse=True)
     latest = match[0]
     results = latest.get("results", {})
     levels = results.get("levels")
