@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { ExportFormat, PLotFormat } from "./File_formats";
-
+import axios from "axios";
+import axiosInstance from "@/lib/api/axiosInstance";
 
 export function useExportform() {
     const {
@@ -94,30 +95,16 @@ export function useExportform() {
         };
 
         try {
-            const response = await fetch("http://localhost:8000/api/py/export/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json"},
-                body: JSON.stringify(requestbody),
+            const response = await axiosInstance.post("/api/py/export/", requestbody, {
+                responseType:"blob",
             });
 
-            if(!response.ok) {
-                if(response.status === 501) {
-                    throw new Error("Something in this selection is not available on the server yet.");
 
-                }
-                if(response.status === 400) {
-                    throw new Error("Select at least one export option before exporting.");
-
-                } 
-                throw new Error("Export failed. Please try again.");               
-            }
-
-            const dispose = response.headers.get("Content-Disposition");
+            const dispose = response.headers["content-disposition"];
             const filenameMatch = dispose?.match(/filename="?([^"]+)"?/);
             const downloadFilename = filenameMatch?.[1] ?? "export";
 
-            const BlobforFile = await response.blob();
-            const downloadURL = URL.createObjectURL(BlobforFile);
+            const downloadURL = URL.createObjectURL(response.data);
 
             const link = document.createElement("a");
             link.href = downloadURL;
@@ -128,10 +115,19 @@ export function useExportform() {
 
             setStatusMsg("Done");
         } catch (error){
-            if(error instanceof Error) {
-                setErrorMsg(error.message);
-            } else{ setErrorMsg("Something went wrong.");}
-          setStatusMsg(null);
+            if(axios.isAxiosError(error)){
+                const status = error.response?.status;
+                if(status === 501) {
+                    setErrorMsg("Something in this selection is not available on the server yet.");
+                } else if(status === 400) {
+                    setErrorMsg("Select at least one export option before exporting.");
+                } else{
+                    setErrorMsg("Export failed. Please try again.");
+                }
+            } else {
+                    setErrorMsg("Something went wrong.");
+                }
+                setStatusMsg(null);
         } finally{
             setIsExporting(false);
         }
