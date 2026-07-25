@@ -10,7 +10,8 @@ from api.legacy.io import exporters
 from api.utils.redis_Client import redisClient
 from api.services.storage_service import build_storage_key, download_to_temp
 from api.services.session_service import get_sessions
-
+from api.legacy.models.level import LevelData
+from api.legacy.models.group import GroupData
 
 def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> dict :
     cashedData = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
@@ -27,7 +28,7 @@ def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> d
         raise ValueError(f"measurement {measurement_id} not found in backup")
 
 
-def _get_Saved_Analysis(upload_id: str, measurement_id:str, user_id:str) -> dict:
+def _get_saved_analysis(upload_id: str, measurement_id:str, user_id:str) -> dict:
     sessions = get_sessions(user_id)
     match = [ s for s in sessions if s.get("dataset_ref") == upload_id]
     if not match:
@@ -44,12 +45,13 @@ def _get_Saved_Analysis(upload_id: str, measurement_id:str, user_id:str) -> dict
     return {"levels": levels, "groups":groups}
 
 
-def export_data(request: ExportRequest, user_id: str) -> Path:
+def export_data(request: ExportRequest, user_id: str) -> tuple[Path, str]:
     outputPaths =[]
     for selection in request.selections:
         measurement_id = selection.measurement_id
         channel = selection.channel
         data = _get_measurement_data(request.upload_id, measurement_id, user_id)
+        measurement_name = data.get("name", f"measurement_{measurement_id}").replace(" ", "_")
         
         if request.export_intensity:
             channel_key = f"channel{channel}"
@@ -65,15 +67,40 @@ def export_data(request: ExportRequest, user_id: str) -> Path:
                 measurement_name=data.get("name", ""),
             
             )
-            measurement_name = data.get("name", f"measurement_{measurement_id}").replace(" ", "_")
             normalName = f"{measurement_name}_intensity{output_path.suffix}"
             
         
 
             outputPaths.append((output_path, normalName))
-        else:
-            raise NotImplementedError("levels/groups export to be wired")
-        
+        if request.export_levels or request.export_groups:
+            analysis = _get_saved_analysis(request.upload_id, measurement_id, user_id)
+
+            if request.export_levels and analysis["levels"]:
+                levelsList = [LevelData(**lvl) for lvl in analysis["levels"]["levels"]]
+                fd, temp_path = tempfile.mkstemp()
+                os.close(fd)
+                output_path=exporters.export_levels(
+                    levels = levelsList,
+                    output_path=Path(temp_path),
+                    fmt=request.format,
+                    measurement_name=data.get("name", ""),
+                )
+                outputPaths.append((output_path, f"{measurement_name}_levels{output_path.suffix}"))
+
+            if request.export_groups and analysis["groups"]:
+                selected_step =analysis["groups"]["selected_step_index"]
+                groups_raw = analysis["groups"]["steps"][selected_step]["groups"]
+                groupsList = [GroupData(**grp) for grp in groups_raw]
+                fd, temp_path = tempfile.mkstemp()
+                os.close(fd)
+                output_path=exporters.export_groups(
+                    groups = groupsList,
+                    output_path=Path(temp_path),
+                    fmt=request.format,
+                    measurement_name=data.get("name", ""),
+                )
+                outputPaths.append((output_path, f"{measurement_name}_groups{output_path.suffix}"))
+                
     if len(outputPaths) == 1 :
         path, normalName = outputPaths[0]
         return path, normalName
