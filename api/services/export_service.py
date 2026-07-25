@@ -48,16 +48,23 @@ def export_data(request: ExportRequest, user_id: str) -> Path:
                 measurement_name=data.get("name", ""),
             
             )
-            outputPaths.append(output_path)
+            measurement_name = data.get("name", f"measurement_{measurement_id}").replace(" ", "_")
+            normalName = f"{measurement_name}_intensity{output_path.suffix}"
+            
+
+            outputPaths.append((output_path, normalName))
         else:
             raise NotImplementedError("levels/groups export to be wired")
         
     if len(outputPaths) == 1 :
-        return outputPaths[0]
+        path, normalName = outputPaths[0]
+        return path, normalName
         
     zip_filedescr,zip_path = tempfile.mkstemp(suffix=".zip")
     os.close(zip_filedescr)
     with zipfile.ZipFile(zip_path, "w") as zf:
-        for path in outputPaths:
-            zf.write(path,arcname=Path(path).name)
-    return Path(zip_path)
+        for path, normalName in outputPaths:
+            zf.write(path,arcname=normalName)
+
+    normalName_zip = f"export_{request.upload_id}.zip"
+    return Path(zip_path), normalName_zip
