@@ -9,7 +9,7 @@ from api.models.export_request import ExportRequest
 from api.legacy.io import exporters
 from api.utils.redis_Client import redisClient
 from api.services.storage_service import build_storage_key, download_to_temp
-
+from api.services.session_service import get_sessions
 
 
 def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> dict :
@@ -26,6 +26,21 @@ def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> d
                 return measurement
         raise ValueError(f"measurement {measurement_id} not found in backup")
 
+
+def _get_Saved_Analysis(upload_id: str, measurement_id:str, user_id:str) -> dict:
+    sessions = get_sessions(user_id)
+    match = [ s for s in sessions if s.get("dataset_ref") == upload_id]
+    if not match:
+        raise NotImplementedError("NO saved session for this upload. Run and save analysis first.")
+
+    latest = match[0]
+    results = latest.get("results", {})
+    levels = results.get("levels")
+    groups = results.get("groups")
+
+    if levels and levels.get("measurement_id") != measurement_id:
+        raise NotImplementedError("Saved session does not match this measurement.")
+    return {"levels": levels, "groups":groups}
 
 
 def export_data(request: ExportRequest, user_id: str) -> Path:
@@ -45,12 +60,14 @@ def export_data(request: ExportRequest, user_id: str) -> Path:
                 abstimes=abstimes,
                 output_path=Path(temp_path),
                 fmt=request.format,
+                bin_size_ms = request.bin_size_ms,
                 measurement_name=data.get("name", ""),
             
             )
             measurement_name = data.get("name", f"measurement_{measurement_id}").replace(" ", "_")
             normalName = f"{measurement_name}_intensity{output_path.suffix}"
             
+        
 
             outputPaths.append((output_path, normalName))
         else:
