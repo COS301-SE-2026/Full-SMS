@@ -104,6 +104,17 @@ def export_data(request: ExportRequest, user_id: str) -> tuple[Path, str]:
     if len(outputPaths) == 1 :
         path, normalName = outputPaths[0]
         return path, normalName
+
+    categories = []
+    if request.export_intensity:
+        categories.append("intensity")
+    if request.export_levels:
+        categories.append("levels")
+    if request.export_groups:
+        categories.append("groups")
+    categoryStr = "-".join(categories) if categories else "export"
+
+    measurementIds_str = "-".join(sel.measurement_id for sel in request.selections)
         
     zip_filedescr,zip_path = tempfile.mkstemp(suffix=".zip")
     os.close(zip_filedescr)
@@ -111,5 +122,5 @@ def export_data(request: ExportRequest, user_id: str) -> tuple[Path, str]:
         for path, normalName in outputPaths:
             zf.write(path,arcname=normalName)
 
-    normalName_zip = f"export_{request.upload_id}.zip"
+    normalName_zip = f"export_{request.upload_id}_{measurementIds_str}_{categoryStr}.zip"
     return Path(zip_path), normalName_zip
