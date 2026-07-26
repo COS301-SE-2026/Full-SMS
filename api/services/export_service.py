@@ -11,7 +11,6 @@ from api.utils.redis_Client import redisClient
 from api.services.storage_service import build_storage_key, download_to_temp
 from api.services.session_service import get_sessions
 from api.legacy.models.level import LevelData
-from api.legacy.models.group import GroupData
 from api.legacy.io import plot_exporters
 from api.legacy.models.group import GroupData, ClusteringResult, ClusteringStep
 
@@ -119,6 +118,24 @@ def export_data(request: ExportRequest, user_id: str) -> tuple[Path, str]:
                     measurement_name=data.get("name", ""),
                 )
                 outputPaths.append((output_path, f"{measurement_name}_groups{output_path.suffix}"))
+
+        if request.plot_intensity:
+                    channel_key = f"channel{channel}"
+                    abstimes=np.array(data[channel_key]["abstimes"], dtype=np.uint64)
+
+        
+                    fd, temp_path = tempfile.mkstemp()
+                    os.close(fd)
+                    output_path=plot_exporters.export_intensity_plot(
+                        abstimes=abstimes,
+                        output_path=Path(temp_path),
+                        fmt=request.plot_format,
+                        dpi=request.plot_dpi,
+                        bin_size_ms = request.bin_size_ms,
+                        measurement_name=data.get("name", ""),
+                    
+                    )
+                    outputPaths.append((output_path, f"{measurement_name}_intensity_plot{output_path.suffix}"))
                 
     if len(outputPaths) == 1 :
         path, normalName = outputPaths[0]
