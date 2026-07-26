@@ -117,8 +117,18 @@ export function useExportform() {
         } catch (error){
             if(axios.isAxiosError(error)){
                 const status = error.response?.status;
+                let detail:string | undefined;
+
+                if(error.response?.data instanceof Blob) {
+                    try {
+                        const text = await error.response.data.text();
+                        detail = JSON.parse(text)?.detail;
+                    } catch {
+                        detail = undefined;
+                    }
+                }
                 if(status === 501) {
-                    setErrorMsg("Something in this selection is not available on the server yet.");
+                    setErrorMsg(detail || "Something in this selection is not available yet.");
                 } else if(status === 400) {
                     setErrorMsg("Select at least one export option before exporting.");
                 } else{
