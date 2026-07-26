@@ -57,7 +57,11 @@ def clustering_result(analysis: dict) -> ClusteringResult:
         )
         for step in groups["steps"]
     )
-   
+    return ClusteringResult(
+           steps=steps,
+           optimal_step_index=groups["optimal_step_index"],
+           selected_step_index=groups["selected_step_index"],
+    )
 
 
 def export_data(request: ExportRequest, user_id: str) -> tuple[Path, str]:
