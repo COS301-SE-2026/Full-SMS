@@ -43,10 +43,10 @@ export default function ExportPanel() {
                             <CardTitle>Plot Export</CardTitle>
                         </CardHeader>
                         <CardContent className="flex flex-col gap-3">
-                            <Checkbox label= "Intensity plot" checked={form.plotIntensity} onCheckedChange={form.setPlotIntensity} />
+                            <Checkbox label= "Intensity Plot" checked={form.plotIntensity} onCheckedChange={form.setPlotIntensity} />
                             <div className="ml-6 flex flex-col gap-2">
                                 <Checkbox label= "Include Levels" checked={form.plotIncludeLevels} onCheckedChange={form.setPlotIncludeLevels} disabled={!form.plotIntensity}/>
-                                <Checkbox label= "Include Groups" checked={form.plotIncludeGroups} onCheckedChange={form.setPlotIncludeGroups} disabled={!form.plotIntensity}/>
+                                <Checkbox label= "Include Groups With Level Boundaries" checked={form.plotIncludeGroups} onCheckedChange={form.setPlotIncludeGroups} disabled={!form.plotIntensity}/>
                             </div>
 
                             <Checkbox label= "BIC Plot" checked={form.BICPlot} onCheckedChange={form.setBICPlot} />
