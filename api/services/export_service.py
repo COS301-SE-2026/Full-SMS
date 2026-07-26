@@ -127,7 +127,7 @@ def export_data(request: ExportRequest, user_id: str) -> tuple[Path, str]:
             plot_groups = None
             if request.plotIntensity_levels or request.plotIntensity_groups:
                 analysis = _get_saved_analysis(request.upload_id, measurement_id, user_id)
-                if request.plotIntensity_levels and analysis["levels"]:
+                if analysis["levels"] and (request.plotIntensity_levels or request.plotIntensity_groups ):
                     plotlevels = [LevelData(**lvl) for lvl in analysis["levels"]["levels"]]
                 if request.plotIntensity_groups and analysis["groups"]:
                     selected_step = analysis["groups"]["selected_step_index"]
@@ -142,10 +142,10 @@ def export_data(request: ExportRequest, user_id: str) -> tuple[Path, str]:
                 fmt=request.plot_format,
                 dpi=request.plot_dpi,
                 bin_size_ms = request.bin_size_ms,
-                measurement_name=data.get("name", ""),
+                title=data.get("name", ""),
                 levels=plotlevels,
                 groups=plot_groups,
-                show_levels=bool(plotlevels),
+                show_levels=request.plotIntensity_levels,
                 show_groups=bool(plot_groups),
             )
             outputPaths.append((output_path, f"{measurement_name}_intensity_plot{output_path.suffix}"))
