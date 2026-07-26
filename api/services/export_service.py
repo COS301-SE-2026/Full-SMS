@@ -60,6 +60,7 @@ def clustering_result(analysis: dict) -> ClusteringResult:
            steps=steps,
            optimal_step_index=groups["optimal_step_index"],
            selected_step_index=groups["selected_step_index"],
+           num_original_levels=groups["num_original_levels"],
     )
 
 
@@ -149,6 +150,24 @@ def export_data(request: ExportRequest, user_id: str) -> tuple[Path, str]:
                 show_groups=bool(plot_groups),
             )
             outputPaths.append((output_path, f"{measurement_name}_intensity_plot{output_path.suffix}"))
+
+
+        if request.plot_bic:
+            analysis = _get_saved_analysis(request.upload_id, measurement_id, user_id)
+            if analysis["groups"]:
+                result = clustering_result(analysis)
+
+                fd, temp_path = tempfile.mkstemp()
+                os.close(fd)
+                output_path=plot_exporters.export_bic_plot(
+                    clustering_result = result,
+                    output_path=Path(temp_path),
+                    fmt=request.plot_format,
+                    dpi = request.plot_dpi,
+                    title=data.get("name", ""),
+                )
+                outputPaths.append((output_path, f"{measurement_name}_bic_plot{output_path.suffix}"))
+            
                 
     if len(outputPaths) == 1 :
         path, normalName = outputPaths[0]
