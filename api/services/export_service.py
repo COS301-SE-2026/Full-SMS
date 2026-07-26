@@ -12,6 +12,8 @@ from api.services.storage_service import build_storage_key, download_to_temp
 from api.services.session_service import get_sessions
 from api.legacy.models.level import LevelData
 from api.legacy.models.group import GroupData
+from api.legacy.io import plot_exporters
+from api.legacy.models.group import GroupData, ClusteringResult, ClusteringStep
 
 def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> dict :
     cashedData = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
@@ -43,6 +45,19 @@ def _get_saved_analysis(upload_id: str, measurement_id:str, user_id:str) -> dict
     if levels and levels.get("measurement_id") != measurement_id:
         raise NotImplementedError("Saved session does not match this measurement.")
     return {"levels": levels, "groups":groups}
+
+def clustering_result(analysis: dict) -> ClusteringResult:
+    groups = analysis["groups"]
+    steps = tuple(
+        ClusteringStep(
+            groups=[GroupData(**g) for g in step["groups"]],
+            level_group_assignments=step["level_group_assignments"],
+            bic=step["bic"],
+            num_groups=step["num_groups"],
+        )
+        for step in groups["steps"]
+    )
+   
 
 
 def export_data(request: ExportRequest, user_id: str) -> tuple[Path, str]:
