@@ -120,22 +120,35 @@ def export_data(request: ExportRequest, user_id: str) -> tuple[Path, str]:
                 outputPaths.append((output_path, f"{measurement_name}_groups{output_path.suffix}"))
 
         if request.plot_intensity:
-                    channel_key = f"channel{channel}"
-                    abstimes=np.array(data[channel_key]["abstimes"], dtype=np.uint64)
+            channel_key = f"channel{channel}"
+            abstimes=np.array(data[channel_key]["abstimes"], dtype=np.uint64)
 
+            plotlevels = None
+            plot_groups = None
+            if request.plotIntensity_levels or request.plotIntensity_groups:
+                analysis = _get_saved_analysis(request.upload_id, measurement_id, user_id)
+                if request.plotIntensity_levels and analysis["levels"]:
+                    plotlevels = [LevelData(**lvl) for lvl in analysis["levels"]["levels"]]
+                if request.plotIntensity_groups and analysis["groups"]:
+                    selected_step = analysis["groups"]["selected_step_index"]
+                    groups_raw = analysis["groups"]["steps"][selected_step]["groups"]
+                    plot_groups= [GroupData(**grp) for grp in groups_raw]    
         
-                    fd, temp_path = tempfile.mkstemp()
-                    os.close(fd)
-                    output_path=plot_exporters.export_intensity_plot(
-                        abstimes=abstimes,
-                        output_path=Path(temp_path),
-                        fmt=request.plot_format,
-                        dpi=request.plot_dpi,
-                        bin_size_ms = request.bin_size_ms,
-                        measurement_name=data.get("name", ""),
-                    
-                    )
-                    outputPaths.append((output_path, f"{measurement_name}_intensity_plot{output_path.suffix}"))
+            fd, temp_path = tempfile.mkstemp()
+            os.close(fd)
+            output_path=plot_exporters.export_intensity_plot(
+                abstimes=abstimes,
+                output_path=Path(temp_path),
+                fmt=request.plot_format,
+                dpi=request.plot_dpi,
+                bin_size_ms = request.bin_size_ms,
+                measurement_name=data.get("name", ""),
+                levels=plotlevels,
+                groups=plot_groups,
+                show_levels=bool(plotlevels),
+                show_groups=bool(plot_groups),
+            )
+            outputPaths.append((output_path, f"{measurement_name}_intensity_plot{output_path.suffix}"))
                 
     if len(outputPaths) == 1 :
         path, normalName = outputPaths[0]
