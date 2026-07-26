@@ -12,6 +12,7 @@ import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsConte
 import GroupingTab from '@/components/analysisHub/grouping-tab/grouping-tab';
 import RasterTab from '@/components/analysisHub/raster-tab/raster-tab';
 import SpectraMap from '@/components/analysisHub/spectra-tab/spectra-map';
+import { Card } from '@/components/ui';
 
 
 export default function App() {
@@ -23,8 +24,12 @@ export default function App() {
       <Modal open={fileUploadModalOpen} onClose={() => setFileUploadModalOpen(false)}>
         <UploadPage/>
       </Modal>
-      <div className="flex flex-1 min-h-0">
+          <Card className='inline-flex md: hidden'>
+          Please use analysis hub from the desktop version.
+        </Card>
+      <div className="flex flex-1 min-h-0 hidden md:inline-flex">
         <Sidebar />
+
         {activeTab==="intensity" && (<div className="flex flex-col flex-1 min-w-0">
           <AnalysisToolbar />
           <div className="flex flex-1 gap-3 p-3 min-h-0">
