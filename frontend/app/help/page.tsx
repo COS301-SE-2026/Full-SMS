@@ -26,12 +26,10 @@ export default function HelpMenuPage(){
                         <CardDescription>Are you new to FullSMS? This is for you.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <ul>
-                            <li>How to upload a file</li>
-                            <span>Create a workspace in the Workspace Dashboard page. Click into it and navigate to the File Upload Page. Upload your file then select "Open" to start your file analysis session.
-                                 Pick your measurements and navigate to the analysis tab you need.</span>
-                            <li>How to navigate the tabs</li>
-                            <p>All analysis tabs are in the side menu. You can navigate to the intensity, grouping, spectra and raster.</p>
+                        <ul className="list-none space-y-1">
+                            <li className="flex items-center gap-1">How to create a workspace</li>
+                            <li className="flex items-center gap-1">How to upload a file for analysis</li>
+                            <li className="flex items-center gap-1">How to navigate the Analysis Hub page</li>
                         </ul>
                     </CardContent>
                 </Card>
