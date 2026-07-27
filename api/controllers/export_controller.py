@@ -13,7 +13,7 @@ async def handle_export(request: ExportRequest, background_tasks: BackgroundTask
         raise HTTPException(status_code=400, detail="No measurements selected.")
     
     try:
-        output_path, normalName = export_service.export_data(request, user_id)
+        output_path, normal_name = export_service.export_data(request, user_id)
     except NotImplementedError as e:
         raise HTTPException(status_code=501, detail=str(e))
     except Exception as e:
@@ -22,6 +22,6 @@ async def handle_export(request: ExportRequest, background_tasks: BackgroundTask
     background_tasks.add_task(os.remove, output_path)
     return FileResponse(
         path=output_path,
-        filename=normalName,
+        filename=normal_name,
         media_type="application/octet-stream",
     )

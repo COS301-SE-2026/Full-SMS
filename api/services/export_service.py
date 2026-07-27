@@ -15,13 +15,13 @@ from api.legacy.io import plot_exporters
 from api.legacy.models.group import GroupData, ClusteringResult, ClusteringStep
 
 def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> dict :
-    cashedData = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
-    if cashedData:
-        return json.loads(cashedData)
+    cached_data = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
+    if cached_data:
+        return json.loads(cached_data)
     
     storage_key = build_storage_key(user_id, upload_id, "measurements.json.gz")
-    temporaryPath = download_to_temp(storage_key, file_extension=".json.gz")
-    with gzip.open(temporaryPath, "rt", encoding="utf-8") as f:
+    temporary_path = download_to_temp(storage_key, file_extension=".json.gz")
+    with gzip.open(temporary_path, "rt", encoding="utf-8") as f:
         measurements = json.load(f)
         for measurement in measurements:
             if measurement.get("id") == measurement_id:
@@ -65,7 +65,7 @@ def clustering_result(analysis: dict) -> ClusteringResult:
 
 
 def export_data(request: ExportRequest, user_id: str) -> tuple[Path, str]:
-    outputPaths =[]
+    output_paths =[]
     for selection in request.selections:
         measurement_id = selection.measurement_id
         channel = selection.channel
@@ -86,39 +86,39 @@ def export_data(request: ExportRequest, user_id: str) -> tuple[Path, str]:
                 measurement_name=data.get("name", ""),
             
             )
-            normalName = f"{measurement_name}_intensity{output_path.suffix}"
+            normal_name = f"{measurement_name}_intensity{output_path.suffix}"
             
         
 
-            outputPaths.append((output_path, normalName))
+            output_paths.append((output_path, normal_name))
         if request.export_levels or request.export_groups:
             analysis = _get_saved_analysis(request.upload_id, measurement_id, user_id)
 
             if request.export_levels and analysis["levels"]:
-                levelsList = [LevelData(**lvl) for lvl in analysis["levels"]["levels"]]
+                level_list = [LevelData(**lvl) for lvl in analysis["levels"]["levels"]]
                 fd, temp_path = tempfile.mkstemp()
                 os.close(fd)
                 output_path=exporters.export_levels(
-                    levels = levelsList,
+                    levels = level_list,
                     output_path=Path(temp_path),
                     fmt=request.format,
                     measurement_name=data.get("name", ""),
                 )
-                outputPaths.append((output_path, f"{measurement_name}_levels{output_path.suffix}"))
+                output_paths.append((output_path, f"{measurement_name}_levels{output_path.suffix}"))
 
             if request.export_groups and analysis["groups"]:
                 selected_step =analysis["groups"]["selected_step_index"]
                 groups_raw = analysis["groups"]["steps"][selected_step]["groups"]
-                groupsList = [GroupData(**grp) for grp in groups_raw]
+                groups_list = [GroupData(**grp) for grp in groups_raw]
                 fd, temp_path = tempfile.mkstemp()
                 os.close(fd)
                 output_path=exporters.export_groups(
-                    groups = groupsList,
+                    groups = groups_list,
                     output_path=Path(temp_path),
                     fmt=request.format,
                     measurement_name=data.get("name", ""),
                 )
-                outputPaths.append((output_path, f"{measurement_name}_groups{output_path.suffix}"))
+                output_paths.append((output_path, f"{measurement_name}_groups{output_path.suffix}"))
 
         if request.plot_intensity:
             channel_key = f"channel{channel}"
@@ -149,7 +149,7 @@ def export_data(request: ExportRequest, user_id: str) -> tuple[Path, str]:
                 show_levels=request.plotIntensity_levels,
                 show_groups=bool(plot_groups),
             )
-            outputPaths.append((output_path, f"{measurement_name}_intensity_plot{output_path.suffix}"))
+            output_paths.append((output_path, f"{measurement_name}_intensity_plot{output_path.suffix}"))
 
 
         if request.plot_bic:
@@ -166,12 +166,12 @@ def export_data(request: ExportRequest, user_id: str) -> tuple[Path, str]:
                     dpi = request.plot_dpi,
                     title=data.get("name", ""),
                 )
-                outputPaths.append((output_path, f"{measurement_name}_bic_plot{output_path.suffix}"))
+                output_paths.append((output_path, f"{measurement_name}_bic_plot{output_path.suffix}"))
             
                 
-    if len(outputPaths) == 1 :
-        path, normalName = outputPaths[0]
-        return path, normalName
+    if len(output_paths) == 1 :
+        path, normal_name = output_paths[0]
+        return path, normal_name
 
     categories = []
     if request.export_intensity:
@@ -180,15 +180,15 @@ def export_data(request: ExportRequest, user_id: str) -> tuple[Path, str]:
         categories.append("levels")
     if request.export_groups:
         categories.append("groups")
-    categoryStr = "-".join(categories) if categories else "export"
+    category_str = "-".join(categories) if categories else "export"
 
-    measurementIds_str = "-".join(sel.measurement_id for sel in request.selections)
+    measurement_ids_str = "-".join(sel.measurement_id for sel in request.selections)
         
     zip_filedescr,zip_path = tempfile.mkstemp(suffix=".zip")
     os.close(zip_filedescr)
     with zipfile.ZipFile(zip_path, "w") as zf:
-        for path, normalName in outputPaths:
-            zf.write(path,arcname=normalName)
+        for path, normal_name in output_paths:
+            zf.write(path,arcname=normal_name)
 
-    normalName_zip = f"export_{request.upload_id}_{measurementIds_str}_{categoryStr}.zip"
-    return Path(zip_path), normalName_zip
+    normal_name_zip = f"export_{request.upload_id}_{measurement_ids_str}_{category_str}.zip"
+    return Path(zip_path), normal_name_zip
