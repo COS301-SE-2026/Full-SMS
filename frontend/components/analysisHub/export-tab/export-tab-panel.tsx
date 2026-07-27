@@ -60,8 +60,10 @@ export default function ExportPanel() {
                     </CardHeader>
                     <CardContent className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 items-end">
                         <div className="flex flex-col gap-1">
-                            <label className="text-base font-medium text-foreground">Data Format</label>
-                            <select value={form.dataFormat}
+                            <label htmlFor="data-format-select" className="text-base font-medium text-foreground">Data Format</label>
+                            <select 
+                                id="data-format-select"
+                                value={form.dataFormat}
                                 onChange={(e) => form.setFormat(e.target.value as typeof form.dataFormat)}
                                 className="min-h-[44px] px-3 py-2 rounded bg-card border border-border text-base text-foreground">
                                     {FORMAT_OPTIONS.map((option) => ( 
@@ -73,8 +75,10 @@ export default function ExportPanel() {
                         </div>
 
                          <div className="flex flex-col gap-1">
-                            <label className="text-base font-medium text-foreground">Plot Format</label>
-                            <select value={form.PlotfileFormat}
+                            <label htmlFor="plot-format-select" className="text-base font-medium text-foreground">Plot Format</label>
+                            <select 
+                                id="plot-format-select"
+                                value={form.PlotfileFormat}
                                 onChange={(e) => form.setPlotFormat(e.target.value as typeof form.PlotfileFormat)}
                                 className="min-h-[44px] px-3 py-2 rounded bg-card border border-border text-base text-foreground">
                                     {Plot_format_options.map((option) => ( 
