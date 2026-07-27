@@ -148,6 +148,72 @@ export default function HelpMenuPage(){
                     </CardContent>
                 </Card>
             </div>
+
+            <section className="pt-1 pb-1 bg-card/10">
+                <span className="text-sm uppercase tracking-wide block text-primary/70">
+                    TECHNOLOGIES USED
+                </span>
+                <div className="flex gap-2 flex-wrap">
+                    <div className="overflow-hidden">
+                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
+                        Next.JS
+                    </div>
+
+                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
+                        FastAPI
+                    </div>
+
+                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
+                        Axios
+                    </div>
+
+                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
+                        Supabase
+                    </div>
+
+                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
+                        Docker
+                    </div>
+
+                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
+                        TypeScript
+                    </div>
+
+                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
+                        Pyodide
+                    </div>
+
+                     <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
+                        Next.JS
+                    </div>
+
+                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
+                        FastAPI
+                    </div>
+
+                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
+                        Axios
+                    </div>
+
+                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
+                        Supabase
+                    </div>
+
+                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
+                        Docker
+                    </div>
+
+                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
+                        TypeScript
+                    </div>
+
+                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
+                        Pyodide
+                    </div>
+                    </div>
+                </div>
+                
+            </section>
         </main>
     )
 }
