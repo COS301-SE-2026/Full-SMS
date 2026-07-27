@@ -2,20 +2,26 @@
 
 import { Button } from "@/components/ui"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent} from "@/components/ui/Card"
-import { icons, BookOpen, ChartColumn, FileSearchCorner, Download, CircleQuestionMark, Save, Phone } from "lucide-react"
+import { Rocket, ChartColumn, FileSearchCorner, Download, CircleQuestionMark, Save, Phone, RotateCcw, Puzzle } from "lucide-react"
 import { MenuBar } from "@/components/analysisHub/menu-bar"
 
 export default function HelpMenuPage(){
     return(
         <main>
-            <MenuBar />
-            <div style={{display: 'flex',  justifyContent:'center', alignItems:'center', height: '100vh'}}>
-                <h1 style={{color: "#00e5ff"}} className="text-4xl md:text-6xl font-bold">How can we help you?</h1>
+            <MenuBar  onOpenFileUpload={()=>{}}/> 
+            <div className="flex flex-col items-center justify-center text-center py-24">
+                <span className="text-sm uppercase tracking-wide block text-primary/70">
+                    FULL SMS Guide
+                </span>
+                <h1 className="text-primary text-4xl md:text-6xl font-bold">How can we help you?</h1>
+                <div className="flex flex-row items-center justify-center text-center gap-1">
+                    <p className="text-foreground/60">Learn the basics of FULLSMS, saving a session, exporting files, adding your plugin algorithms and more.</p>
+                </div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
-                <Card  >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-6 max-w-7xl mx-auto">
+                <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
-                        <BookOpen color="#00e5ff" />
+                        <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><Rocket /></div>
                         <CardTitle>Getting Started</CardTitle>
                         <CardDescription>Are you new to FullSMS? This is for you.</CardDescription>
                     </CardHeader>
@@ -29,10 +35,11 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
-                <Card>
+
+                <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
-                        <Save color="#00e5ff" />
-                        <CardTitle>Save and Load session</CardTitle>
+                        <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><Save /></div>
+                        <CardTitle>Saving and Loading a Session</CardTitle>
                         <CardDescription>Learn how to save and load a session.</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -43,9 +50,10 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
-                <Card >
+
+                <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
-                        <ChartColumn color="#00e5ff" />
+                        <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><ChartColumn /></div>
                         <CardTitle>Analysis Features</CardTitle>
                         <CardDescription>Learn what each analysis feature does</CardDescription>
                     </CardHeader>
@@ -57,22 +65,39 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
-                <Card>
+
+                <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
-                        <FileSearchCorner color="#00e5ff"/>
+                        <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><FileSearchCorner /></div>
                         <CardTitle>File formats</CardTitle>
                         <CardDescription>What file formats are supported</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ul>
-                            <li>Supported file types and what they are</li>
-                            <li>Where files come from</li>
+                            <li>Supported file types</li>
+                            <li>How they can be used</li>
                         </ul>
                     </CardContent>
                 </Card>
-                <Card>
+
+                <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
-                        <Download color="#00e5ff"/>
+                        <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><Puzzle /></div>
+                        <CardTitle>Plugin</CardTitle>
+                        <CardDescription>Learn how to add a new analysis algorithm as a plugin</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ul>
+                            <li>How to add a plugin</li>
+                            <li>How to use it</li>
+                            <li>Format of your Python script</li>
+                        </ul>
+                    </CardContent>
+                </Card>
+
+                  <Card className="group hover:-translate-y-2 transition-transform duration-300">
+                    <CardHeader>
+                       <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><Download /></div>
                         <CardTitle>Export</CardTitle>
                         <CardDescription>Learn how to export</CardDescription>
                     </CardHeader>
@@ -83,51 +108,44 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
-                <Card>
+
+                <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
-                        <CircleQuestionMark color="#00e5ff" />
+                        <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><CircleQuestionMark /></div>
                         <CardTitle>FAQs</CardTitle>
                         <CardDescription>Frequently asked questions</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ul>
-                            <li></li>
+                            <li>What is a plugin and how is it used?</li>
+                            <li>Can I upload multiple files at once and have multiple simulations happening at the same time?</li>
                         </ul>
                     </CardContent>
                 </Card>
-                <Card>
+
+                <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
-                        <Phone color="#00e5ff" />
-                        <CardTitle>Contact support</CardTitle>
-                        <CardDescription>Reach out to the dev team</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ul>
-                            <li>Contact email</li>
-                        </ul>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <Phone color="#00e5ff" />
-                        <CardTitle>Plugin</CardTitle>
-                        <CardDescription>Reach out to the dev team</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ul>
-                            <li>Contact email</li>
-                        </ul>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader>
-                        <Phone color="#00e5ff" />
+                        <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><RotateCcw /></div>
                         <CardTitle>Reset Password</CardTitle>
-                        <CardDescription>Reach out to the dev team</CardDescription>
+                        <CardDescription>Learn how to reset your password</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ul>
-                            <li>Contact email</li>
+                            <li>How to reset your password</li>
+                            <li>Security concerns regarding your password</li>
+                        </ul>
+                    </CardContent>
+                </Card>
+
+                <Card className="group hover:-translate-y-2 transition-transform duration-300">
+                    <CardHeader>
+                        <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><Phone /></div>
+                        <CardTitle>Contact support</CardTitle>
+                        <CardDescription>Reach out to the development team for additional help</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ul>
+                            <li>Contact email: coretech.capstone@gmail.com</li>
                         </ul>
                     </CardContent>
                 </Card>
