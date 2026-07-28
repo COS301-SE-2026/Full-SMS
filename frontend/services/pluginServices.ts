@@ -102,10 +102,10 @@ export const pluginService = {
 
   executePlugin: async (
     pluginId: string,
-    pluginData: any,
-  ): Promise<PluginResponse> => {
+    pluginData: ExecutePluginRequest,
+  ): Promise<ExecutePluginResponse> => {
     try {
-      const response = await axiosInstance.post<PluginResponse>(
+      const response = await axiosInstance.post<ExecutePluginResponse>(
         `/api/py/plugins/${pluginId}/execute`,
         pluginData,
       );
@@ -118,9 +118,9 @@ export const pluginService = {
   },
   validatePlugin: async (
     data: ValidatePluginRequest,
-  ): Promise<PluginResponse> => {
+  ): Promise<ValidatePluginResponse> => {
     try {
-      const response = await axiosInstance.post<PluginResponse>(
+      const response = await axiosInstance.post<ValidatePluginResponse>(
         `/api/py/plugins/validate`,
         data,
       );
