@@ -6,8 +6,6 @@ import {
   UpdatePluginRequest,
   ExecutePluginRequest,
   ExecutePluginResponse,
-  ValidatePluginRequest,
-  ValidatePluginResponse,
 } from "@/types/plugin";
 
 export const pluginService = {
@@ -115,20 +113,5 @@ export const pluginService = {
         error instanceof Error ? error.message : "Failed to execute plugin";
       throw new Error(message);
     }
-  },
-  validatePlugin: async (
-    data: ValidatePluginRequest,
-  ): Promise<ValidatePluginResponse> => {
-    try {
-      const response = await axiosInstance.post<ValidatePluginResponse>(
-        `/api/py/plugins/validate`,
-        data,
-      );
-      return response.data;
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : "Failed to validate plugin";
-      throw new Error(message);
-    }
-  },
+  }
 };

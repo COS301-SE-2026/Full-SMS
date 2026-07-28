@@ -184,12 +184,3 @@ export interface ExecutePluginResponse {
   message?: string;
   error?: string;
 }
-
-export interface ValidatePluginRequest {
-  script: string;
-}
-
-export interface ValidatePluginResponse {
-  valid: boolean;
-  message?: string;
-}
