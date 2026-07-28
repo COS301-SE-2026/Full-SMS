@@ -1,9 +1,7 @@
 import React, { useEffect } from "react";
 import {
   Activity,
-  Clock,
   Layers,
-  GitCompare,
   Waves,
   Grid3x3,
   Download,
@@ -109,7 +107,7 @@ export function Sidebar() {
           </>
         )}
       </nav>
-      <MeasurementsBar />
+      <MeasurementsBar showSelectionCheckboxes={activeTab=== "export"} />
     </aside>
   );
 }

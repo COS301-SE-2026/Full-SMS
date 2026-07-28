@@ -16,7 +16,11 @@ name: string
 checked?:boolean
 }
 
-export function MeasurementsBar() {
+export interface MeasurementsBarProps {
+  readonly showSelectionCheckboxes?: boolean
+}
+
+export function MeasurementsBar({showSelectionCheckboxes= false} : MeasurementsBarProps) {
   const [num_measurements, setNum_measurements] = useState<number>(0)
   const {currentMeasurement, setCurrentMeasurement, currentUpload, setHdf5Data, setHdf5Metadata, bin, selectedMeasurements, toggleSelectedmeasurement, selectAllmeasurements, clearSelectedMeasurements,} = useHdf5Data();
   const fetchUploadResult = async ()=>{
@@ -81,6 +85,8 @@ export function MeasurementsBar() {
     <div className="flex flex-col border-t border-border overflow-hidden">
       <div className="mt-3 px-3.5 flex items-center justify-between">
         <span className="text-xs text-foreground/60 tracking-wider">MEASUREMENTS</span>
+        
+        {showSelectionCheckboxes && (
         <div className='flex items-center gap-1'>
           <Button variant="ghost" size="sm" 
           disabled={num_measurements === 0}
@@ -93,8 +99,9 @@ export function MeasurementsBar() {
             Clear
           </Button>
         </div>
+      )}
       </div>
-
+    
       <div className="flex flex-col mt-1 overflow-y-auto flex-1">
         {measurements.map((m, i) =>{
           const measurementID= (i+1).toString()
@@ -103,11 +110,13 @@ export function MeasurementsBar() {
         
         
          return(
-          <div key={m.name} className={cn("flex items-center gap - 1.5 px-3.5 py-1", currentM ? "bg-card" : "")}>
+          <div key={m.name} className={cn("flex items-center gap-1.5 px-3.5 py-1", currentM ? "bg-card" : "")}>
+            {showSelectionCheckboxes && (
             <Checkbox checked={MultiSelected}
               onCheckedChange={()=> toggleSelectedmeasurement(measurementID)}
               onClick={(e) => e.stopPropagation()} 
             />
+          )}
             <button 
             className="flex items-center gap-1.5 px-3.5 py-1 hover:bg-card cursor-pointer"
             onClick={()=>onClickMeasurement(i)}
