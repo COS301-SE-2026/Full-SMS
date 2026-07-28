@@ -12,16 +12,16 @@ def make_request(**overrides):
         export_groups=False,
         export_intensity=False,
     )
-    defaults.updates(overrides)
+    defaults.update(overrides)
     return ExportRequest(**defaults)
 
 def make_test_output(tmp_path, name="temp_output.csv", content=b"col1,col2\n1,2\n"):
     path=tmp_path / name
-    path.writes_bytes(content)
+    path.write_bytes(content)
     return path
 
 class TestPackageOutputs:
-    def single_output_unzipped(self, tmp_path):
+    def test_single_output_unzipped(self, tmp_path):
         path= make_test_output(tmp_path)
         request = make_request()
         output_paths = [(path, "temp_output.csv")]
@@ -29,9 +29,9 @@ class TestPackageOutputs:
         result_path, result_name = _package_outputs(output_paths, request)
 
         assert result_path == path
-        assert result_path == "temp_output.csv"
+        assert result_name == "temp_output.csv"
 
-    def multiple_outputs_zipped(self, tmp_path) :
+    def test_multiple_outputs_zipped(self, tmp_path) :
         path1= make_test_output(tmp_path, name="first.csv")
         path2= make_test_output(tmp_path, name="second.csv")
 
@@ -39,7 +39,7 @@ class TestPackageOutputs:
 
         output_paths = [ (path1, "first.csv"), (path2, "second.csv"),]
 
-        _, result_path, result_name = _package_outputs(output_paths, request)
+        result_path, result_name = _package_outputs(output_paths, request)
 
         assert result_path.suffix == ".zip"
         assert result_name.endswith(".zip")
@@ -50,7 +50,7 @@ class TestPackageOutputs:
             assert "second.csv" in names
 
 
-    def zip_filename_contents(self, tmp_path) :
+    def test_zip_filename_contents(self, tmp_path) :
             path1= make_test_output(tmp_path, name="first.csv")
             path2= make_test_output(tmp_path, name="second.csv")
     
@@ -71,7 +71,7 @@ class TestPackageOutputs:
             assert "intensity" in result_name
             assert result_name.endswith(".zip")
     
-    def _unselected_exportCategories_exclusion(self, tmp_path) :
+    def test_unselected_exportCategories_exclusion(self, tmp_path) :
                 path1= make_test_output(tmp_path, name="first.csv")
                 path2= make_test_output(tmp_path, name="second.csv")
         
@@ -84,4 +84,5 @@ class TestPackageOutputs:
                 assert "groups" in result_name
                 assert "intensity" not in result_name
                 assert "levels" not in result_name
+
     
