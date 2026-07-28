@@ -19,3 +19,14 @@ def make_test_output(tmp_path, name="temp_output.csv", content=b"col1,col2\n1,2\
     path=tmp_path / name
     path.writes_bytes(content)
     return path
+
+class TestPackageOutputs:
+    def single_output_unzipped(self, tmp_path):
+        path= make_test_output(tmp_path)
+        request = make_request()
+        output_paths = [(path, "temp_output.csv")]
+
+        result_path, result_name = _package_outputs(output_paths, request)
+
+        assert result_path == path
+        assert result_path == "temp_output.csv"
