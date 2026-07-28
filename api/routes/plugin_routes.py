@@ -7,19 +7,29 @@ from api.controllers.plugin_controller import (
     create_plugin_controller,
     update_plugin_controller,
     toggle_plugin_controller,
-    delete_plugin_controller,)
-from api.models.plugin import PluginCreate, PluginUpdate, PluginToggle
+    delete_plugin_controller,
+    execute_plugin_controller,
+)
+from api.models.plugin import (
+    PluginCreate,
+    PluginUpdate,
+    PluginToggle,
+    PluginExecute,
+)
 from typing import Annotated
 
 router = APIRouter(prefix="/plugins", tags=["Plugins"])
 bearer_scheme = HTTPBearer()
 
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+):
     result = verify_token_controller(credentials.credentials)
     return result["user"]
 
-CurrentUser = Annotated[dict,Depends(get_current_user)]
+
+CurrentUser = Annotated[dict, Depends(get_current_user)]
 
 
 @router.get("", summary="Get all plugins for the current user")
@@ -50,3 +60,8 @@ def toggle_plugin(plugin_id: str, request: PluginToggle, current_user: CurrentUs
 @router.delete("/{plugin_id}", summary="Delete a plugin")
 def delete_plugin(plugin_id: str, current_user: CurrentUser):
     return delete_plugin_controller(plugin_id, current_user["id"])
+
+
+@router.post("/{plugin_id}/execute", summary="Execute a plugin")
+def execute_plugin(plugin_id: str, request: PluginExecute, current_user: CurrentUser):
+    return execute_plugin_controller(plugin_id, request, current_user["id"])
