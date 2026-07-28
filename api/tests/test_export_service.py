@@ -7,7 +7,7 @@ from models.export_request import ExportRequest, Selection
 def make_request(**overrides):
     defaults = dict(
         upload_id= "upload123",
-        Selections = [Selection(measurement_id="m1", channel=1)],
+        selections = [Selection(measurement_id="m1", channel=1)],
         export_levels=False,
         export_groups=False,
         export_intensity=False,
@@ -31,7 +31,7 @@ class TestPackageOutputs:
         assert result_path == path
         assert result_path == "temp_output.csv"
 
-    def muliple_outputs_zipped(self, tmp_path) :
+    def multiple_outputs_zipped(self, tmp_path) :
         path1= make_test_output(tmp_path, name="first.csv")
         path2= make_test_output(tmp_path, name="second.csv")
 
@@ -39,7 +39,7 @@ class TestPackageOutputs:
 
         output_paths = [ (path1, "first.csv"), (path2, "second.csv"),]
 
-        result_path, result_name = _package_outputs(output_paths, request)
+        _, result_path, result_name = _package_outputs(output_paths, request)
 
         assert result_path.suffix == ".zip"
         assert result_name.endswith(".zip")
@@ -49,4 +49,27 @@ class TestPackageOutputs:
             assert "first.csv" in names
             assert "second.csv" in names
 
+
+    def zip_filename_contents(self, tmp_path) :
+            path1= make_test_output(tmp_path, name="first.csv")
+            path2= make_test_output(tmp_path, name="second.csv")
+    
+            request = make_request(
+                 upload_id="upload123",
+                 export_intensity=True, 
+                 selections=[
+                      Selection(measurement_id="m4", channel=1,)
+                 ],
+                )
+    
+            output_paths = [ (path1, "first.csv"), (path2, "second.csv"),]
+    
+            _, result_name= _package_outputs(output_paths, request)
+
+            assert "upload123" in result_name
+            assert "m4" in result_name
+            assert "intensity" in result_name
+            assert result_name.endswith(".zip")
+    
+           
     
