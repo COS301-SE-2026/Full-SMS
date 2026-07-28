@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plugin, PluginExecuteState, PluginTabProps } from "@/types/plugin";
+import { Plugin, PluginExecutionState, PluginTabProps } from "@/types/plugin";
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -28,7 +28,7 @@ export default function PluginTab({ plugin }: PluginTabProps) {
   const [params, setParams] = useState<Record<string, unknown>>(
     getDefaultValues(plugin),
   );
-  const [execution, setExecution] = useState<PluginExecuteState>({
+  const [execution, setExecution] = useState<PluginExecutionState>({
     status: "idle",
   });
   const [executionTime, setExecutionTime] = useState<number | null>(null);
@@ -42,44 +42,6 @@ export default function PluginTab({ plugin }: PluginTabProps) {
     setExecutionTime(null);
     setLastExecutedAt(null);
   }, [plugin.id]);
-
-  useEffect(() => {
-    const loadPreviousResult = async () => {
-      if (!currentMeasurement || !currentWorkspaceId) return;
-
-      try {
-        setExecution({ status: "loading" });
-        const response = await pluginService.getLatestExecution(
-          plugin.id,
-          currentWorkspaceId,
-          currentMeasurement,
-        );
-
-        if (response?.execution?.status === "success") {
-          setExecution({
-            status: "success",
-            results: response.execution.results,
-            isPreviousResult: true,
-          });
-          setExecutionTime(response.execution.execution_time);
-          setLastExecutedAt(response.execution.created_at);
-          if (response.execution.parameters) {
-            setParams((prev) => ({
-              ...prev,
-              ...response.execution!.parameters,
-            }));
-          }
-        } else {
-          setExecution({ status: "idle" });
-        }
-      } catch (error) {
-        setExecution({ status: "error" });
-        console.error("Error fetching latest execution:", error);
-        errorToast("Failed to fetch latest execution");
-      }
-    };
-    loadPreviousResult();
-  }, [plugin.id, currentWorkspaceId, currentMeasurement]);
 
   const handleRun = async () => {
     setExecution({ status: "running" });
