@@ -15,6 +15,8 @@ import SpectraMap from "@/components/analysisHub/spectra-tab/spectra-map";
 import PluginTab from "@/components/analysisHub/plugin-tab/PluginTab";
 import { pluginService } from "@/services/pluginServices";
 import { Plugin } from "@/types/plugin";
+import ExportPanel from '@/components/analysisHub/export-tab/export-tab-panel';
+
 
 export default function App() {
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
@@ -111,7 +113,13 @@ export default function App() {
               <p className="text-foreground/40">Plugin not found</p>
             </div>
           </div>
-        )}
+        </div>)}
+                {
+          activeTab==="export" &&(<div className="flex flex-col flex-1 min-w-0">
+          <div className="flex flex-1 gap-3 p-3 min-h-0">
+            <ExportPanel />
+          </div>
+        </div>)}
       </div>
       <StatusBar />
     </div>

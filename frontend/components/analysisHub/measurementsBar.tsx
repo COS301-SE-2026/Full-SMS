@@ -9,15 +9,20 @@ import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { getHdf5UploadResult } from '@/services/hdf5services';
 import { Intensity_Req } from '@/types/analysis';
 import { intensityAnalysis } from '@/services/analysisServices';
+import { Button, Checkbox} from '@/components/ui';
 
 export interface Measurement{
 name: string
 checked?:boolean
 }
 
-export function MeasurementsBar() {
+export interface MeasurementsBarProps {
+  readonly showSelectionCheckboxes?: boolean
+}
+
+export function MeasurementsBar({showSelectionCheckboxes= false} : MeasurementsBarProps) {
   const [num_measurements, setNum_measurements] = useState<number>(0)
-  const {currentMeasurement, setCurrentMeasurement, currentUpload, setHdf5Data, bin} = useHdf5Data();
+  const {currentMeasurement, setCurrentMeasurement, currentUpload, setHdf5Data, setHdf5Metadata, bin, selectedMeasurements, toggleSelectedmeasurement, selectAllmeasurements, clearSelectedMeasurements,} = useHdf5Data();
   const fetchUploadResult = async ()=>{
       if(currentUpload){
         console.log("CURRENT UPLOAD:", currentUpload);
@@ -50,7 +55,9 @@ export function MeasurementsBar() {
           const record = await fetchUploadResult();
           if(record){
           const metadata: UploadMetadata = record.metadata_json;
-          setNum_measurements(metadata.num_measurements)}
+          setNum_measurements(metadata.num_measurements);
+          setHdf5Metadata(metadata);
+          }
         } catch (error) {
           console.error("Failed to fetch or parse upload result:", error);
         }
@@ -78,11 +85,38 @@ export function MeasurementsBar() {
     <div className="flex flex-col border-t border-border overflow-hidden">
       <div className="mt-3 px-3.5 flex items-center justify-between">
         <span className="text-xs text-foreground/60 tracking-wider">MEASUREMENTS</span>
-        <button className="text-xs text-foreground/60 hover:text-primary">All</button>
+        
+        {showSelectionCheckboxes && (
+        <div className='flex items-center gap-1'>
+          <Button variant="ghost" size="sm" 
+          disabled={num_measurements === 0}
+            onClick={() => selectAllmeasurements(num_measurements)}>
+            All
+          </Button>
+          <Button variant="ghost" size="sm"
+           disabled={num_measurements === 0}
+           onClick={clearSelectedMeasurements}>
+            Clear
+          </Button>
+        </div>
+      )}
       </div>
+    
       <div className="flex flex-col mt-1 overflow-y-auto flex-1">
-        {measurements.map((m, i) => (
-          <div key={m.name} className={cn((i+1).toString()===currentMeasurement ? "bg-card" : "hover:bg-card")}>
+        {measurements.map((m, i) =>{
+          const measurementID= (i+1).toString()
+          const currentM = measurementID === currentMeasurement
+          const MultiSelected = selectedMeasurements.has(measurementID)
+        
+        
+         return(
+          <div key={m.name} className={cn("flex items-center gap-1.5 px-3.5 py-1", currentM ? "bg-card" : "")}>
+            {showSelectionCheckboxes && (
+            <Checkbox checked={MultiSelected}
+              onCheckedChange={()=> toggleSelectedmeasurement(measurementID)}
+              onClick={(e) => e.stopPropagation()} 
+            />
+          )}
             <button 
             className="flex items-center gap-1.5 px-3.5 py-1 cursor-pointer"
             onClick={()=>onClickMeasurement(i)}
@@ -92,15 +126,21 @@ export function MeasurementsBar() {
               <span
                 className={cn(
                   'text-xs truncate',
-                  (i+1).toString()===currentMeasurement ? 'text-primary' : 'text-foreground'
+                  currentM ? 'text-primary' : 'text-foreground'
                 )}
               >
                 {m.name}
               </span>
             </button>
           </div>
-        ))}
+        )}
+        )}
       </div>
+      {num_measurements>0 && (
+      <p className="px-3.5 py-1.5 text-[11px] text-foreground/50">
+        {selectedMeasurements.size} selected
+      </p>
+      )}
     </div>
   )
 }

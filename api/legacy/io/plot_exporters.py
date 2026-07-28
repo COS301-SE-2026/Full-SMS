@@ -220,7 +220,7 @@ def _draw_level_overlays(
 
             # Draw horizontal band
             color = band_colors[i % len(band_colors)]
-            ax.axhspan(lower_bound, upper_bound, alpha=0.2, color=color, linewidth=0, zorder=1)
+            ax.axhspan(lower_bound, upper_bound, alpha=1, color=color, linewidth=0, zorder=1)
 
             # Draw dashed line at group average intensity
             ax.axhline(
