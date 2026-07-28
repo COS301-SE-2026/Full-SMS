@@ -3,13 +3,14 @@ import numpy as np
 from unittest.mock import MagicMock, patch, ANY
 from api.services.analysis_services.change_point_analysis import resolve_current_measurement
 import pytest
-from api.models.analysis_models import ClusteringReq, CpaReq, IntensityReq, IntensityRes, RasterScanReq
+from api.models.analysis_models import ClusteringReq, CpaReq, IntensityReq, IntensityRes, LifetimeReq, LifetimeRes, RasterScanReq
 from api.services.analysis_services.intensity import intensity_analysis
 from api.services.analysis_services.raster_scan import get_raster_scan_data
 from dataclasses import dataclass
 from api.services.analysis_services.clustering_job_service import clustering_job
 from api.legacy.models.level import LevelData
 from api.services.analysis_services.clustering import execute_clustering
+from api.services.analysis_services.lifetime import lifetime_analysis
 
 @patch("api.services.analysis_services.intensity.redisClient")
 @patch("api.services.analysis_services.intensity.bin_photons")
@@ -293,9 +294,8 @@ def test_resolve_current_measurement_cache_hit(mock_find_change_points, mock_cac
 @patch("api.services.analysis_services.change_point_analysis.cache_fallback_service")
 @patch("api.services.analysis_services.change_point_analysis.find_change_points")
 def test_resolve_current_measurement_cache_miss(mock_find_change_points, mock_cache_fallback, mock_redis):
-    upload_uuid = "123e4567-e89b-12d3-a456-426614174000"
     mock_request = CpaReq(
-        upload_id=upload_uuid,
+        upload_id="123e4567-e89b-12d3-a456-426614174000",
         measurement_id="1",
         confidence=99.0
     )
@@ -313,10 +313,83 @@ def test_resolve_current_measurement_cache_miss(mock_find_change_points, mock_ca
 
     response = resolve_current_measurement(mock_request)
 
-    mock_redis.get.assert_called_once_with(f"raw_data:{upload_uuid}:1")
-    mock_cache_fallback.assert_called_once_with(upload_uuid)
+    mock_redis.get.assert_called_once_with(f"raw_data:123e4567-e89b-12d3-a456-426614174000:1")
+    mock_cache_fallback.assert_called_once_with("123e4567-e89b-12d3-a456-426614174000")
 
     mock_find_change_points.assert_called_once_with(
         abstimes=ANY, 
         confidence=0.99
     )
+    
+@patch("api.services.analysis_services.lifetime.redisClient")
+@patch("api.services.analysis_services.lifetime.cache_fallback_service")
+@patch("api.services.analysis_services.lifetime.build_decay_histogram")
+@patch("api.services.analysis_services.lifetime.fit_decay")
+def test_lifetime_analysis_cache_hit_with_fitting(
+    mock_fit_decay, 
+    mock_build_histogram, 
+    mock_cache_fallback, 
+    mock_redis
+):
+
+    mock_request = LifetimeReq(upload_id= "123e4567-e89b-12d3-a456-426614174000", measurement_id="1", bin_size=1.0, fitting_model="mono_exponential"
+    )
+
+    mock_cached_dict = {
+        "channel1": {"microtimes": [10, 20, 30]},
+        "channelWidth": 0.05
+    }
+    mock_redis.get.return_value = json.dumps(mock_cached_dict)
+
+    time_bins = np.array([0.0, 0.1, 0.2])
+    histogram = np.array([100, 50, 25])
+    fit_curve = np.array([99.9, 50.1, 24.8])
+    fit_params = {"tau": 2.5, "amp": 100}
+    mock_build_histogram.return_value = (time_bins, histogram)
+    mock_fit_decay.return_value = (fit_curve, fit_params)
+
+    response = lifetime_analysis(mock_request)
+
+    assert isinstance(response, LifetimeRes)
+    assert response.time_bins == time_bins.tolist()
+    assert response.histogram == histogram.tolist()
+    assert response.fit_curve == fit_curve.tolist()
+    assert response.fit_params == fit_params
+    mock_redis.get.assert_called_once_with(f"raw_data:123e4567-e89b-12d3-a456-426614174000:1")
+    mock_cache_fallback.assert_not_called()
+    mock_build_histogram.assert_called_once_with(microtimes=[10, 20, 30], channelwidth=0.05)
+    
+    mock_fit_decay.assert_called_once_with(t=ANY, counts=ANY, channelwidth=0.05)
+    
+
+@patch("api.services.analysis_services.lifetime.redisClient")
+@patch("api.services.analysis_services.lifetime.cache_fallback_service")
+@patch("api.services.analysis_services.lifetime.build_decay_histogram")
+@patch("api.services.analysis_services.lifetime.fit_decay")
+def test_lifetime_analysis_cache_miss_no_fitting(mock_fit_decay, mock_build_histogram, mock_cache_fallback, mock_redis):
+    upload_uuid = "123e4567-e89b-12d3-a456-426614174000"
+    mock_request = LifetimeReq(
+        upload_id="123e4567-e89b-12d3-a456-426614174000",
+        measurement_id="1",
+        bin_size=1.0,
+        fitting_model="" 
+    )
+
+    mock_redis.get.return_value = None
+
+    mock_cached_dict = {
+        "channel1": {"microtimes": [5, 15, 25]},
+        "channelWidth": 0.05
+    }
+    mock_cache_fallback.return_value = json.dumps(mock_cached_dict)
+
+    time_bins = np.array([0.0, 0.1, 0.2])
+    histogram = np.array([100, 50, 25])
+    mock_build_histogram.return_value = (time_bins, histogram)
+
+    response = lifetime_analysis(mock_request)
+    assert response.fit_curve is None
+    assert response.fit_params is None
+    mock_redis.get.assert_called_once_with(f"raw_data:123e4567-e89b-12d3-a456-426614174000:1")
+    mock_cache_fallback.assert_called_once_with("123e4567-e89b-12d3-a456-426614174000")  
+    mock_fit_decay.assert_not_called()
