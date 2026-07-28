@@ -71,5 +71,17 @@ class TestPackageOutputs:
             assert "intensity" in result_name
             assert result_name.endswith(".zip")
     
-           
+    def _unselected_exportCategories_exclusion(self, tmp_path) :
+                path1= make_test_output(tmp_path, name="first.csv")
+                path2= make_test_output(tmp_path, name="second.csv")
+        
+                request = make_request(export_groups=True)
+        
+                output_paths = [ (path1, "first.csv"), (path2, "second.csv"),]
+        
+                _, result_name= _package_outputs(output_paths, request)
+    
+                assert "groups" in result_name
+                assert "intensity" not in result_name
+                assert "levels" not in result_name
     
