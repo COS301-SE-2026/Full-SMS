@@ -1,7 +1,8 @@
 import json
 import numpy as np
-from unittest.mock import MagicMock, patch, ANY
+from unittest.mock import MagicMock, call, patch, ANY
 from api.routes.analysis_routes import get_spectra_data
+from api.services.analysis_services.cache_fallback import cache_fallback_service
 from api.services.analysis_services.change_point_analysis import resolve_current_measurement
 import pytest
 from api.models.analysis_models import ClusteringReq, CpaReq, IntensityReq, IntensityRes, LifetimeReq, LifetimeRes, RasterScanReq
@@ -485,4 +486,97 @@ def test_spectra_analysis_cache_miss(mock_cache_fallback, mock_redis):
     assert response["exposure_time"] == 0.0
     mock_redis.get.assert_called_once_with("raw_data:123e4567-e89b-12d3-a456-676767676767:1")
     mock_cache_fallback.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767")
+
+@patch("api.services.analysis_services.cache_fallback.redisClient")
+@patch("api.services.analysis_services.cache_fallback.read_hdf5")
+@patch("api.services.analysis_services.cache_fallback.download_to_temp")
+@patch("api.services.analysis_services.cache_fallback.supabaseClient")
+def test_cache_fallback_service_success(
+    mock_supabase, 
+    mock_download, 
+    mock_read_hdf5, 
+    mock_redis
+):
+    upload_id = "123e4567-e89b-12d3-a456-676767676767"
+    expected_storage_key = "123e4567-e89b-12d3-a456-676767676767/user47/file.hdf5"
+    expected_temp_path = "/tmp/power_study.hdf5"
+
+    mock_execute = MagicMock()
+    mock_execute.data = [{"storage_key": expected_storage_key}]
+    mock_eq = MagicMock()
+    mock_eq.execute.return_value = mock_execute
+    mock_select = MagicMock()
+    mock_select.eq.return_value = mock_eq
+    mock_table = MagicMock()
+    mock_table.select.return_value = mock_select
+    
+    mock_supabase.table.return_value = mock_table
+    mock_download.return_value = expected_temp_path
+    
+    measurement_data = {
+        "id": "1", 
+        "name": "Ms1",
+        "channelWidth": 0.0122,
+        "description": "CLH [-5], in HEPES buffer @ pH 8.0",
+        "channel1": {
+            "abstimes": [1e6, 2e6, 3e6]
+        }
+    }
+
+    mock_hdf5_data = {
+        "metadata": {"name": "power_study.h5", "has_spectra": True, "has_raster": True},
+        "measurements": [measurement_data]
+    }
+    mock_read_hdf5.return_value = mock_hdf5_data
+
+    expected_cached_result = json.dumps(measurement_data)
+    mock_redis.get.return_value = expected_cached_result
+
+    result = cache_fallback_service(upload_id)
+
+    assert result == expected_cached_result
+
+    mock_supabase.table.assert_called_once_with("hdf5_uploads")
+    mock_table.select.assert_called_once_with("storage_key")
+    mock_select.eq.assert_called_once_with("id", upload_id)
+    mock_download.assert_called_once_with(expected_storage_key, ".hdf5")
+    mock_read_hdf5.assert_called_once_with(expected_temp_path)
+
+    expected_redis_calls = [
+        call(f"raw_data:{upload_id}:1", expected_cached_result)
+    ]
+    mock_redis.set.assert_has_calls(expected_redis_calls, any_order=False)
+    mock_redis.get.assert_called_once_with(f"raw_data:{upload_id}:1")
+    
+@patch("api.services.analysis_services.cache_fallback.redisClient")
+@patch("api.services.analysis_services.cache_fallback.read_hdf5")
+@patch("api.services.analysis_services.cache_fallback.download_to_temp")
+@patch("api.services.analysis_services.cache_fallback.supabaseClient")
+def test_cache_fallback_service_upload_not_found(
+    mock_supabase, 
+    mock_download, 
+    mock_read_hdf5, 
+    mock_redis
+):
+    upload_id = "fake-fugazi-does-not-exist"
+    mock_execute = MagicMock()
+    mock_execute.data = []  #empty
+    
+    
+    mock_eq = MagicMock()
+    mock_eq.execute.return_value = mock_execute
+    mock_select = MagicMock()
+    mock_select.eq.return_value = mock_eq
+    mock_table = MagicMock()
+    mock_table.select.return_value = mock_select
+    mock_supabase.table.return_value = mock_table
+
+    #should raise an IndexError on data[0]
+    with pytest.raises(IndexError):
+        cache_fallback_service(upload_id)
+
+    mock_download.assert_not_called()
+    mock_read_hdf5.assert_not_called()
+    mock_redis.set.assert_not_called()
+    mock_redis.get.assert_not_called()
     
