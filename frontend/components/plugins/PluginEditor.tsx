@@ -12,51 +12,11 @@ import {
 } from "@/types/plugin";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Plus, Trash2, Code, Settings, Save } from "lucide-react";
+import { Plus, Trash2, Code, Settings, Save, HelpCircle } from "lucide-react";
 import { useFormik, FieldArray, FormikProvider } from "formik";
 import * as Yup from "yup";
-
-const DEFAULT_SCRIPT = `def run(data, params):
-    """
-    Plugin entry point for custom analysis.
-
-    Args:
-        data: dict containing:
-            - microtimes: Microtime (TCSPC) arrival times in nanoseconds
-            - abstimes: Absolute photon arrival times in nanoseconds
-            - channel: Channel number
-            - metadata: File metadata dict
-        params: dict with user-configured parameter values
-
-    Returns:
-        dict mapping output IDs to result values
-    """
-    import numpy as np
-
-    microtimes = np.array(data['microtimes'])
-    bin_width = params.get('bin_width', 0.1)
-
-    if len(microtimes) == 0:
-        return {'decay_histogram': {'bins': [], 'counts': []}}
-
-    # Build decay histogram from microtimes
-    tmin = np.min(microtimes)
-    tmax = np.max(microtimes)
-    bin_edges = np.arange(tmin, tmax + bin_width, bin_width)
-
-    counts, edges = np.histogram(microtimes, bins=bin_edges)
-    t = edges[:-1]
-
-    return {
-        'decay_histogram': {
-            'bins': t.tolist(),
-            'counts': counts.tolist(),
-            'xlabel': 'Time (ns)',
-            'ylabel': 'Counts',
-            'title': 'Decay Histogram'
-        }
-    }
-`;
+import CodeEditor from "./CodeEditor";
+import { DEFAULT_SCRIPT, SCRIPT_HELP_TEXT } from "./constants";
 
 const PluginSchema = Yup.object({
   name: Yup.string()
@@ -95,6 +55,7 @@ export default function PluginEditor({
   onCancel,
 }: PluginEditorProps) {
   const [activeTab, setActiveTab] = useState<"code" | "config">("code");
+  const [showHelp, setShowHelp] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -197,23 +158,143 @@ export default function PluginEditor({
           </Button>
         </div>
         {activeTab === "code" && (
-          <div>
-            <label
-              htmlFor="plugin-script"
-              className="block text-sm font-medium text-foreground mb-1.5"
-            >
-              Python Script
-            </label>
-            <textarea
-              id="plugin-script"
-              className="w-full h-64 px-4 py-3 bg-background border border-border rounded-lg text-foreground font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
-              spellCheck={false}
-              {...formik.getFieldProps("script")}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium text-foreground">
+                Python Script
+              </label>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                leftIcon={<HelpCircle className="h-4.5 w-4.5" />}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowHelp(!showHelp);
+                }}
+              >
+                {showHelp ? "Hide Guide" : "Script Guide"}
+              </Button>
+            </div>
+
+            {showHelp && (
+              <div className="p-4 bg-card border border-border rounded-lg text-xs text-foreground/80 space-y-3 max-h-[400px] overflow-y-auto">
+                <div>
+                  <strong className="text-foreground text-sm">
+                    How to Write a Plugin Script
+                  </strong>
+                  <p className="mt-1 text-foreground/60">
+                    Your script uses predefined helper functions below all you
+                    have to do is write code that uses these functions
+                  </p>
+                </div>
+
+                <div>
+                  <strong className="text-foreground">
+                    Available Functions:
+                  </strong>
+                  <ul className="mt-1 space-y-1 ml-2">
+                    <li>
+                      <code className="text-primary">
+                        get_parameter(name,default)
+                      </code>
+                      <span className="text-foreground/50">
+                        {" "}
+                        - Get a parameter value (you can use int() or float() to
+                        covert)
+                      </span>
+                    </li>
+                    <li>
+                      <code className="text-primary">get_microtimes()</code>
+                      <span className="text-foreground/50">
+                        {" "}
+                        -Returns numpy array of microtime values (ns)
+                      </span>
+                    </li>
+                    <li>
+                      <code className="text-primary">get_abstimes()</code>
+                      <span className="text-foreground/50">
+                        {" "}
+                        - Returns numpy array of absolute arrival times (ns)
+                      </span>
+                    </li>
+                    <li>
+                      <code className="text-primary">get_data()</code>
+                      <span className="text-foreground/50">
+                        {" "}
+                        - Returns dict with microtimes, abstimes,channel,
+                        metadata
+                      </span>
+                    </li>
+                    <li>
+                      <code className="text-primary">
+                        set_output(id, value)
+                      </code>
+                      <span className="text-foreground/50">
+                        {" "}
+                        - Set an output value (id must match your configured
+                        outputs)
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div>
+                  <strong className="text-foreground">Example Script:</strong>
+                  <pre className="mt-1 p-2 bg-background rounded text-[10px] overflow-x-auto">
+                    {SCRIPT_HELP_TEXT}
+                  </pre>
+                </div>
+
+                <div>
+                  <strong className="text-foreground">
+                    Output Formats by Type:
+                  </strong>
+                  <ul className="mt-1 space-y-1 ml-2">
+                    <li>
+                      <strong className="text-primary">histogram:</strong>{" "}
+                      <code>{`{bins: [], counts: [], title?, xlabel?, ylabel?}`}</code>
+                    </li>
+                    <li>
+                      <strong className="text-primary">plot:</strong>{" "}
+                      <code>{`{x: [], y: [], title?, xlabel?, ylabel?, type?: "line"|"scatter"}`}</code>
+                    </li>
+                    <li>
+                      <strong className="text-primary">heatmap:</strong>{" "}
+                      <code>{`{values: [[]], title?, xlabel?, ylabel?, colorScale?: "viridis"|"plasma"}`}</code>
+                    </li>
+                    <li>
+                      <strong className="text-primary">table:</strong>{" "}
+                      <code>{`{columns: ["col1", "col2"], rows: [["a", 1], ["b", 2]]}`}</code>
+                    </li>
+                    <li>
+                      <strong className="text-primary">value:</strong>{" "}
+                      <code>number | string | boolean</code>
+                    </li>
+                  </ul>
+                </div>
+
+                <div>
+                  <strong className="text-foreground">
+                    Available Packages:
+                  </strong>
+                  <p className="mt-1">
+                    <code className="text-primary">numpy</code>,{" "}
+                    <code className="text-primary">scipy</code>,{" "}
+                    <code className="text-primary">pandas</code>,{" "}
+                    <code className="text-primary">matplotlib</code>,{" "}
+                    <code className="text-primary">h5py</code>
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <CodeEditor
+              value={formik.values.script}
+              onChange={(value) => formik.setFieldValue("script", value)}
+              height="320px"
             />
-            <p className="text-xs text-foreground/40 mt-1">
-              Define a run(data, params) function that returns a dict with
-              output values.
-            </p>
           </div>
         )}
         {activeTab === "config" && (
@@ -256,7 +337,7 @@ export default function PluginEditor({
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {formik.values.parameters.map((param, index) => (
                     <div
-                      key={param.id}
+                      key={index}
                       className="flex items-center gap-2 p-2 bg-card border border-border rounded-lg"
                     >
                       <input
@@ -346,7 +427,7 @@ export default function PluginEditor({
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {formik.values.outputs.map((output, index) => (
                   <div
-                    key={output.id}
+                    key={index}
                     className="flex items-center gap-2 p-2 bg-card border border-border rounded-lg"
                   >
                     <input
@@ -429,7 +510,7 @@ export default function PluginEditor({
             type="submit"
             variant="primary"
             loading={formik.isSubmitting}
-            leftIcon={<Save className="h-4 w-4" />}
+            leftIcon={<Save className="h-4.5 w-4.5" />}
             disabled={!formik.isValid || formik.isSubmitting}
           >
             {plugin ? "Update Plugin" : "Create Plugin"}
