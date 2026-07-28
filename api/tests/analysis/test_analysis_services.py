@@ -41,11 +41,9 @@ def test_intensity_analysis_cache_hit(mock_compute_intensity, mock_bin_photons, 
 
     assert isinstance(response, IntensityRes)
     assert response.time_bins == times.tolist()
+    assert response.intensity_cps == intensity_cps.tolist() 
     assert response.counts == counts.tolist()
-    assert response.intensity_cps == intensity_cps.tolist()
-    
     mock_redis.get.assert_called_once_with("raw_data:123e4567-e89b-12d3-a456-676767676767:1")
-    
     mock_bin_photons.assert_called_once_with(
         abstimes=ANY, 
         bin_size_ms=10.0
@@ -76,21 +74,16 @@ def test_intensity_analysis_cache_miss(mock_compute_intensity, mock_bin_photons,
     mock_redis.get.return_value = None
     
     mock_cache_fallback.return_value = json.dumps(mock_cached_dict)
-
     times = np.array([0, 1, 2])
     counts = np.array([2, 5, 8])
     intensity_cps = np.array([200, 500, 800])
-
     mock_bin_photons.return_value = (times, counts)
     mock_compute_intensity.return_value = intensity_cps
-
     response = intensity_analysis(mock_request)
-
     assert isinstance(response, IntensityRes)
     assert response.time_bins == times.tolist()
     assert response.counts == counts.tolist()
     assert response.intensity_cps == intensity_cps.tolist() 
-    
     mock_redis.get.assert_called_once_with("raw_data:123e4567-e89b-12d3-a456-676767676767:1")
     mock_cache_fallback.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767")
     
