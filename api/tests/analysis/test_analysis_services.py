@@ -411,10 +411,8 @@ def test_spectra_analysis_cache_hit(mock_cache_fallback, mock_redis):
     }
     
     mock_redis.get.return_value = json.dumps(mock_cached_spectra_data)
-    
     response = get_spectra_data(mock_spectra_request)
-    
-    expected_z = [
+    expected_z_matrix = [
         [59.0, 60.0, 61.0],
         [78.0, 79.0, 80.0],
         [67.5, 63.5, 65.5],
@@ -422,14 +420,15 @@ def test_spectra_analysis_cache_hit(mock_cache_fallback, mock_redis):
     ]
     
     assert isinstance(response, dict)
-    assert response["z"] == expected_z
+    assert response["z"] == expected_z_matrix
     assert response["rows"] == 4
     assert response["cols"] == 3
-    assert response["bounds_min"] == (4.005799770355225, 832.6071450173359)
-    assert response["bounds_max"] == (8.01159954071045, 833.4079)
     assert response["scale_min"] == 59.0
     assert response["scale_max"] == 80.0
     assert response["exposure_time"] == 0.0
+    assert response["bounds_min"] == (4.005799770355225, 832.6071450173359)
+    assert response["bounds_max"] == (8.01159954071045, 833.4079)
+
     mock_redis.get.assert_called_once_with("raw_data:123e4567-e89b-12d3-a456-676767676767:1")
     mock_cache_fallback.assert_not_called()
     
@@ -456,18 +455,14 @@ def test_spectra_analysis_cache_miss(mock_cache_fallback, mock_redis):
             "exposure_time": 0.0
         }
     }
-    
     mock_cache_fallback.return_value = json.dumps(mock_cached_spectra_data)
-    
     response = get_spectra_data(mock_spectra_request)
-    
     expected_z = [
         [59.0, 60.0, 61.0],
         [78.0, 79.0, 80.0],
         [67.5, 63.5, 65.5],
         [71.5, 71.5, 71.5]
     ]
-    
     assert isinstance(response, dict)
     assert response["z"] == expected_z
     assert response["rows"] == 4
