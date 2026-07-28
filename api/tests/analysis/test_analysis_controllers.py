@@ -52,39 +52,6 @@ def test_intensity_analysis_missing_bin_size(mock_intensity):
     response = client.post('api/py/analysis/intensity', json=test_payload)
     assert response.status_code == 422
 
-@patch("api.controllers.analysis_controller.resolve_current_meaurement")
-def change_point_analysis_ok(mock_change_point):
-    test_payload ={
-        "upload_id":"aba01010-6767-8989-abab-acacacacaca",
-        "measurement_id":"29",
-        "confidence": 99
-    }
-
-    cpa_response = {
-        "measurement_id": test_payload["measurement_id"],
-        "num_change_points": 20,
-        "change_point_indices":[1,2,3,5,6,7,8,8],
-        "confidence_regions": [
-            [1,2],[3,4]
-        ],
-        "levels": [
-            {
-                "start_index": 0,
-                "end_index": 10,
-                "start_time_ns": 590873,
-                "end_time_ns": 1014576,
-                "num_photons": 67000,
-                "intensity_cps": 126.1,
-                "group_id": 1
-            }
-        ]
-    }
-
-    response = client.post('api/py/analysis/change-point-analysis', json=test_payload)
-    assert response.status_code == 200
-    assert response.json() == cpa_response
-    mock_change_point.assert_called_once()
-
 
 @patch("api.controllers.analysis_controller.resolve_current_meaurement")
 def change_point_analysis_ok(mock_change_point):
