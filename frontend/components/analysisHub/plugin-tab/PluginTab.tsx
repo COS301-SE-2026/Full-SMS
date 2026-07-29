@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plugin, PluginExecutionState, PluginTabProps } from "@/types/plugin";
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card } from "@/components/ui/Card";
 import { Loader } from "@/components/ui/Loader";
-import { AlertCircle, Play, History, CheckCircle, Clock } from "lucide-react";
+import { Play, History, CheckCircle, Clock } from "lucide-react";
 import ParameterForm from "@/components/plugins/ParameterForm";
 import ResultsRenderer from "@/components/plugins/renderers/ResultsRenderer";
 import { pluginService } from "@/services/pluginServices";
@@ -36,13 +36,6 @@ export default function PluginTab({ plugin }: PluginTabProps) {
   const { currentWorkspaceId, currentUpload, currentMeasurement } =
     useHdf5Data();
 
-  useEffect(() => {
-    setParams(getDefaultValues(plugin));
-    setExecution({ status: "idle" });
-    setExecutionTime(null);
-    setLastExecutedAt(null);
-  }, [plugin.id]);
-
   const handleRun = async () => {
     setExecution({ status: "running" });
     setExecutionTime(null);
@@ -68,7 +61,7 @@ export default function PluginTab({ plugin }: PluginTabProps) {
           results: response.results,
           isPreviousResult: false,
         });
-        setExecutionTime(response.execution_time_ms || null);
+        setExecutionTime(response.execution_time || null);
         setLastExecutedAt(new Date().toISOString());
         successToast("Plugin executed successfully");
       } else {
