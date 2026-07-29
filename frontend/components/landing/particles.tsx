@@ -3,6 +3,7 @@
 import type React from "react"
 import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
+import { colors } from "@/lib/tokens"
 
 interface MousePosition {
   x: number
@@ -64,11 +65,11 @@ export const Particles: React.FC<ParticlesProps> = ({
   className,
   children,
   quantity = 100,
-  staticity = 50,
-  ease = 50,
-  size = 0.4,
+  staticity = 80,
+  ease = 90,
+  size = 0.8,
   refresh = false,
-  color = "#ffffff",
+  color = colors.primary,
   vx = 0,
   vy = 0,
 }) => {
