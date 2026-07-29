@@ -122,19 +122,20 @@ export default function HelpMenuPage(){
                     </CardContent>
                 </Card>
 
-                <Card className="group hover:-translate-y-2 transition-transform duration-300">
-                    <CardHeader>
-                        <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><RotateCcw /></div>
-                        <CardTitle>Reset Password</CardTitle>
-                        <CardDescription>Learn how to reset your password</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ul>
-                            <li>How to reset your password</li>
-                            <li>Security concerns regarding your password</li>
-                        </ul>
-                    </CardContent>
-                </Card>
+                <Link href="/profile" className="contents">
+                    <Card className="group hover:-translate-y-2 transition-transform duration-300">
+                        <CardHeader>
+                            <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><RotateCcw /></div>
+                            <CardTitle>Reset Password</CardTitle>
+                            <CardDescription>Learn how to reset your password</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <ul>
+                                <li>How to reset your password</li>
+                            </ul>
+                        </CardContent>
+                    </Card>
+                </Link>
 
                 <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
