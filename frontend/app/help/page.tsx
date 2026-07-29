@@ -1,8 +1,9 @@
 "use client"
 
+import Link from "next/link";
 import { Button } from "@/components/ui"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent} from "@/components/ui/Card"
-import { Rocket, ChartColumn, FileSearchCorner, Download, CircleQuestionMark, Save, Phone, RotateCcw, Puzzle } from "lucide-react"
+import { Rocket, ChartColumn, FileSearchCorner, Download, CircleQuestionMark, Save, RotateCcw, Puzzle, Mail } from "lucide-react"
 import { MenuBar } from "@/components/analysisHub/menu-bar"
 
 export default function HelpMenuPage(){
@@ -18,7 +19,7 @@ export default function HelpMenuPage(){
                     <p className="text-foreground/60">Learn the basics of FULLSMS, saving a session, exporting files, adding your plugin algorithms and more.</p>
                 </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-6 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-6 max-w-7xl mx-auto pb-10">
                 <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
                         <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><Rocket /></div>
@@ -137,83 +138,22 @@ export default function HelpMenuPage(){
 
                 <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
-                        <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><Phone /></div>
+                        <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><Mail /></div>
                         <CardTitle>Contact support</CardTitle>
                         <CardDescription>Reach out to the development team for additional help</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ul>
-                            <li>Contact email: coretech.capstone@gmail.com</li>
+                            <li>Send us a detailed ticket and we will get back to you as soon as possible.</li>
                         </ul>
+                        <Link href="/help/contacts"> 
+                            <Button variant="secondary" className="mt-2">
+                                Submit a ticket
+                            </Button>
+                        </Link>
                     </CardContent>
                 </Card>
             </div>
-
-            <section className="pt-1 pb-1 bg-card/10">
-                <span className="text-sm uppercase tracking-wide block text-primary/70">
-                    TECHNOLOGIES USED
-                </span>
-                <div className="flex gap-2 flex-wrap">
-                    <div className="overflow-hidden">
-                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
-                        Next.JS
-                    </div>
-
-                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
-                        FastAPI
-                    </div>
-
-                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
-                        Axios
-                    </div>
-
-                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
-                        Supabase
-                    </div>
-
-                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
-                        Docker
-                    </div>
-
-                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
-                        TypeScript
-                    </div>
-
-                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
-                        Pyodide
-                    </div>
-
-                     <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
-                        Next.JS
-                    </div>
-
-                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
-                        FastAPI
-                    </div>
-
-                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
-                        Axios
-                    </div>
-
-                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
-                        Supabase
-                    </div>
-
-                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
-                        Docker
-                    </div>
-
-                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
-                        TypeScript
-                    </div>
-
-                    <div className="flex items-center gap-2 p-sm border bg-card rounded-md">
-                        Pyodide
-                    </div>
-                    </div>
-                </div>
-                
-            </section>
         </main>
     )
 }
