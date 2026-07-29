@@ -4,6 +4,14 @@ import pytest
 from services.export_service import _package_outputs
 from models.export_request import ExportRequest, Selection
 
+import services.export_service as export_service
+from services.export_service import (
+      _export_intensity_data,
+      _export_levels_data,
+      _export_groups_data,
+      _
+)
+
 def make_request(**overrides):
     defaults = dict(
         upload_id= "upload123",
@@ -20,6 +28,32 @@ def make_test_output(tmp_path, name="temp_output.csv", content=b"col1,col2\n1,2\
     path.write_bytes(content)
     return path
 
+
+class TestExportIntensityData:
+
+    def test_uncheckedBox_intensity_data(self):
+        intensity_request = make_request(export_intensity=False) 
+        assert _export_intensity_data(intensity_request, {}, 1, "m1") is None
+
+
+class TestExportLevelsData:
+
+    def test_uncheckedBox_levels_data(self):
+        levels_request = make_request(export_levels=False)
+        analysis = {"levels": {"levels": [{"id": 1}]}} 
+        assert _export_levels_data(levels_request, analysis, "m1") is None
+
+
+class TestExportGroupsData:
+    def test_uncheckedBox_groups_data(self):
+        groups_request = make_request(export_groups=False)
+        analysis = {"groups": {"selected_step_index": 0, "steps": [{"groups": []}]}} 
+        assert _export_groups_data(groups_request, analysis, "m1") is None
+
+
+   
+    
+    
 class TestPackageOutputs:
     def test_single_output_unzipped(self, tmp_path):
         path= make_test_output(tmp_path)
