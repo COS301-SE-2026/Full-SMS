@@ -49,6 +49,7 @@ export default function NavBar() {
                     <Link
                     className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
                     href="https://github.com/COS301-SE-2026/Full-SMS"
+                    target="_blank" rel="noopener noreferrer"
                     >
                     Github
                     </Link>
