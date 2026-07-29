@@ -16,6 +16,7 @@ import PluginTab from "@/components/analysisHub/plugin-tab/PluginTab";
 import { pluginService } from "@/services/pluginServices";
 import { Plugin } from "@/types/plugin";
 import ExportPanel from "@/components/analysisHub/export-tab/export-tab-panel";
+import { Card } from '@/components/ui'
 
 export default function App() {
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
@@ -59,7 +60,10 @@ export default function App() {
       >
         <UploadPage />
       </Modal>
-      <div className="flex flex-1 min-h-0">
+          <Card className='inline-flex md: hidden'>
+          Please use analysis hub from the desktop version.
+        </Card>
+      <div className="flex flex-1 min-h-0 hidden md:inline-flex">
         <Sidebar />
         {activeTab === "intensity" && (
           <div className="flex flex-col flex-1 min-w-0">
