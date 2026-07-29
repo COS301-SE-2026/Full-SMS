@@ -6,7 +6,6 @@ from api.models.session import SessionCreate
 
 #Load environment variables from .env file
 load_dotenv()
-load_dotenv()
 
 SUPABASE_URL = os.getenv('SUPABASE_URL')
 SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY')
