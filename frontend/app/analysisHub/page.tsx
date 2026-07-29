@@ -12,7 +12,7 @@ import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsConte
 import GroupingTab from '@/components/analysisHub/grouping-tab/grouping-tab';
 import RasterTab from '@/components/analysisHub/raster-tab/raster-tab';
 import SpectraMap from '@/components/analysisHub/spectra-tab/spectra-map';
-
+import ExportPanel from '@/components/analysisHub/export-tab/export-tab-panel';
 
 export default function App() {
     const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
@@ -47,6 +47,12 @@ export default function App() {
           activeTab==="spectra" &&(<div className="flex flex-col flex-1 min-w-0">
           <div className="flex flex-1 gap-3 p-3 min-h-0">
             <SpectraMap />
+          </div>
+        </div>)}
+                {
+          activeTab==="export" &&(<div className="flex flex-col flex-1 min-w-0">
+          <div className="flex flex-1 gap-3 p-3 min-h-0">
+            <ExportPanel />
           </div>
         </div>)}
       </div>

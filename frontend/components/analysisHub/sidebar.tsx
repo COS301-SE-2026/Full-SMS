@@ -1,9 +1,7 @@
 import React, { useEffect } from "react";
 import {
   Activity,
-  Clock,
   Layers,
-  GitCompare,
   Waves,
   Grid3x3,
   Download,
@@ -19,9 +17,10 @@ import { useToast } from "@/contexts/toastContext/ToastContext";
 
 const navItems = [
   { icon: Activity, label: "Intensity", key: "intensity" },
-  { icon: Layers, label: "Grouping", key: "grouping" },
-  { icon: Grid3x3, label: "Raster", key: "raster" },
-  { icon: Waves, label: "Spectra", key: "spectra" },
+  {icon: Layers, label: "Grouping", key:"grouping"},
+  {icon: Grid3x3, label: "Raster", key: "raster"},
+  {icon: Waves, label: "Spectra", key: "spectra"},
+  {icon: Download, label: "Export", key: "export"},
 ];
 
 export function Sidebar() {
@@ -108,7 +107,7 @@ export function Sidebar() {
           </>
         )}
       </nav>
-      <MeasurementsBar />
+      <MeasurementsBar showSelectionCheckboxes={activeTab=== "export"} />
     </aside>
   );
 }

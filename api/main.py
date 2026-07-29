@@ -37,6 +37,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition"],
 )
 
 prefix:str = '/api/py'
@@ -49,6 +50,7 @@ app.include_router(workspace_router, prefix=prefix)
 app.include_router(analysis_router, prefix=prefix)
 app.include_router(plugin_router, prefix=prefix)
 app.include_router(support_router, prefix=prefix)
+app.include_router(export_router, prefix=prefix)
 
 @app.on_event("startup")
 async def startup_event():
