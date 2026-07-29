@@ -54,7 +54,7 @@ class TestExportIntensityData:
             export_service.exporters.export_intensity_trace = original
 
         assert path == outpt_file
-
+        assert name == "m1_intensity.csv"
 
 
 class TestExportLevelsData:
@@ -71,7 +71,7 @@ class TestExportLevelsData:
     
     def test_levels_data(self,tmp_path):
         levels_request = make_request(export_levels=True) 
-        analysis = {"levels": {"levels": [{"start":0, "end": 10}]}}
+        analysis = {"levels": {"levels": [{"start_index":0, "end_index": 10, "start_time_ns":0, "end_time_ns": 1_000_000, "num_photons": 5, "intensity_cps": 50.0,}]}}
         outpt_file = tmp_path / "levels.csv"
         outpt_file.write_text("fake")
 
@@ -82,9 +82,12 @@ class TestExportLevelsData:
         export_service.exporters.export_levels = fake_export_levels
 
         try:
-            _export_levels_data(levels_request, analysis, "m1")
+            path, name = _export_levels_data(levels_request, analysis, "m1")
         finally:
             export_service.exporters.export_levels = original_exporter
+
+        assert path == outpt_file
+        assert name == "m1_levels.csv"
 
 
 
@@ -98,6 +101,34 @@ class TestExportGroupsData:
         analysis = {"groups": {"selected_step_index": 0, "steps": [{"groups": []}]}} 
         assert _export_groups_data(groups_request, analysis, "m1") is None
 
+
+    def test_groups_data(self, tmp_path):
+        groups_request = make_request(export_groups= True)
+        analysis = {
+            "groups" :{
+                "selected_step_index": 1,
+                "steps" : [
+                    {"groups": [{"wrong": "step"}]},
+                    {"groups": [{"group_id": 1, "total_photons": 10, "total_dwell_time_s": 1.0, "intensity_cps": 100.0, "level_indices": [0,1],}]},
+                ],
+            }
+         }
+        outpt_file = tmp_path / "groups.csv"
+
+        def fake_export_groups(groups, output_path, fmt, measurement_name):
+            assert groups[0].group_id == 1
+            return outpt_file
+
+        original = export_service.exporters.export_groups
+        export_service.exporters.export_groups = fake_export_groups
+        try:
+            path, name = _export_groups_data(groups_request, analysis, "m1")
+        finally:
+            export_service.exporters.export_groups = original
+
+        assert path == outpt_file
+        assert name == "m1_groups.csv"
+        
 
    
     
