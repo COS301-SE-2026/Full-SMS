@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/analysisHub/sidebar";
 import { IntensityChart } from "@/components/analysisHub/intensityTab/intensity-chart";
 import { StatusBar } from "@/components/analysisHub/status-bar";
 import { AnalysisToolbar } from "@/components/analysisHub/intensityTab/analysis-toolbar";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/Modal";
 import UploadPage from "../upload/page";
 import { useAnalysisTab } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
@@ -21,36 +21,35 @@ import ExportPanel from '@/components/analysisHub/export-tab/export-tab-panel';
 export default function App() {
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
   const { activeTab } = useAnalysisTab();
-  const [currentPlugin, setCurrentPlugin] = useState<string | null>(null);
-  const [loadingPlugin, setLoadingPlugin] = useState<boolean>(false);
+  const [currentPlugin, setCurrentPlugin] = useState<Plugin | null>(null);
 
   const isPluginTab = activeTab.startsWith("plugin:");
   const pluginId = isPluginTab ? activeTab.replace("plugin:", "") : null;
 
-  const fetchPlugin = useCallback(async (id: string) => {
-    try {
-      setLoadingPlugin(true);
-      const response = await pluginService.getPlugin(id);
-      if (response.success && response.plugin) {
-        setCurrentPlugin(response.plugin);
-      } else {
-        setCurrentPlugin(null);
-      }
-    } catch (err) {
-      console.error("Failed to fetch plugin:", err);
-      setCurrentPlugin(null);
-    } finally {
-      setLoadingPlugin(false);
-    }
-  }, []);
+  const isLoadingPlugin = isPluginTab && currentPlugin?.id !== pluginId;
 
   useEffect(() => {
-    if (pluginId) {
-      fetchPlugin(pluginId);
-    } else {
-      setCurrentPlugin(null);
+    if (!pluginId) {
+      return;
     }
-  }, [pluginId, fetchPlugin]);
+
+    let cancelled = false;
+
+    pluginService
+      .getPlugin(pluginId)
+      .then((response) => {
+        if (!cancelled) {
+          setCurrentPlugin(response.plugin ?? null);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setCurrentPlugin(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pluginId]);
 
   return (
     <div className="size-full flex flex-col bg-background text-foreground h-screen">
@@ -93,7 +92,7 @@ export default function App() {
           </div>
         )}
 
-        {isPluginTab && loadingPlugin && (
+        {isPluginTab && isLoadingPlugin && (
           <div className="flex flex-col flex-1 min-w-0 p-4">
             <div className="flex items-center justify-center h-full">
               <p className="text-foreground/40">Loading plugin...</p>
@@ -101,13 +100,13 @@ export default function App() {
           </div>
         )}
 
-        {isPluginTab && !loadingPlugin && currentPlugin && (
+        {isPluginTab && !isLoadingPlugin && currentPlugin && (
           <div className="flex flex-col flex-1 min-w-0">
-            <PluginTab plugin={currentPlugin} />
+            <PluginTab plugin={currentPlugin} key={currentPlugin.id} />
           </div>
         )}
 
-        {isPluginTab && !loadingPlugin && !currentPlugin && (
+        {isPluginTab && !isLoadingPlugin && !currentPlugin && (
           <div className="flex flex-col flex-1 min-w-0 p-4">
             <div className="flex items-center justify-center h-full bg-card border border-border rounded-lg">
               <p className="text-foreground/40">Plugin not found</p>
