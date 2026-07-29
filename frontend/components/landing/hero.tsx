@@ -8,8 +8,8 @@ export default function Hero() {
         <div
             className="mx-auto w-screen max-w-7xl px-4 flex flex-row h-fit justify-center items-center"
         >
-            <div className='mx-auto h-fit hidden md:block'>
-                <Image src={HeroImage} alt="vector image of a scientist looking through a microscope " />
+            <div className='mx-auto h-fit hidden md:block rounded-md'>
+                <Image src={HeroImage} alt="vector image of a scientist looking through a microscope " className='rounded-lg'/>
             </div>
             <div className="max-w-prose text-left">
             <h1 className="text-4xl font-bold sm:text-5xl">
