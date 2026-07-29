@@ -73,3 +73,6 @@ response.txt
 
 #temp files
 api/tmp/*
+.venv/
+venv/
+ENV/

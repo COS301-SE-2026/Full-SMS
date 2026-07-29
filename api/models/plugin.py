@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Dict
 
 
 class PluginToggle(BaseModel):
@@ -42,4 +42,22 @@ class PluginCreate(BaseModel):
     description: Optional[str] = Field(None, max_length=1000)
     version: str = Field(default="1.0.0", max_length=50)
     config: PluginConfig
+    script: str = Field(..., min_length=1)
+
+
+class MeasurementData(BaseModel):
+    microtimes: List[float]
+    abstimes: List[float]
+    channel: Optional[int] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class PluginExecute(BaseModel):
+    workspace_id: Optional[str] = None
+    measurement_id: Optional[str] = None
+    parameters: Dict[str, Any] = None
+    measurement_data: Optional[MeasurementData] = None
+    upload_id: Optional[str] = None
+
+class PluginValidate(BaseModel):
     script: str = Field(..., min_length=1)
