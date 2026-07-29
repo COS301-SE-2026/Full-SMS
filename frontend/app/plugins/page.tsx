@@ -92,6 +92,8 @@ export default function PluginsPage() {
           editingPlugin.id,
           data,
         );
+        console.log("Updating plugin response:", response);
+
         if (response?.success && response?.plugin) {
           const updatedPlugin = response.plugin;
           setPlugins((prev) =>
