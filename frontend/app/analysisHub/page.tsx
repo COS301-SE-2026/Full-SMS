@@ -1,22 +1,22 @@
 "use client"
 
-import {MenuBar} from '@/components/analysisHub/menu-bar';
-import {Sidebar} from '@/components/analysisHub/sidebar';
-import {IntensityChart} from '@/components/analysisHub/intensityTab/intensity-chart';
-import {StatusBar} from '@/components/analysisHub/status-bar';
-import { AnalysisToolbar } from '@/components/analysisHub/intensityTab/analysis-toolbar';
-import { useState} from 'react';
-import { Modal } from '@/components/ui/Modal';
+import {MenuBar} from '@/components/analysisHub/menu-bar'
+import {Sidebar} from '@/components/analysisHub/sidebar'
+import {IntensityChart} from '@/components/analysisHub/intensityTab/intensity-chart'
+import {StatusBar} from '@/components/analysisHub/status-bar'
+import { AnalysisToolbar } from '@/components/analysisHub/intensityTab/analysis-toolbar'
+import { useState} from 'react'
+import { Modal } from '@/components/ui/Modal'
 import UploadPage from '../upload/page';
-import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsContext';
-import GroupingTab from '@/components/analysisHub/grouping-tab/grouping-tab';
-import RasterTab from '@/components/analysisHub/raster-tab/raster-tab';
-import SpectraMap from '@/components/analysisHub/spectra-tab/spectra-map';
-import { Card } from '@/components/ui';
-import ExportPanel from '@/components/analysisHub/export-tab/export-tab-panel';
+import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsContext'
+import GroupingTab from '@/components/analysisHub/grouping-tab/grouping-tab'
+import RasterTab from '@/components/analysisHub/raster-tab/raster-tab'
+import SpectraMap from '@/components/analysisHub/spectra-tab/spectra-map'
+import { Card } from '@/components/ui'
+import ExportPanel from '@/components/analysisHub/export-tab/export-tab-panel'
 
 export default function App() {
-    const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
+    const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false)
     const {activeTab} = useAnalysisTab()
   return (
     <div className="size-full flex flex-col bg-background text-foreground h-screen">
