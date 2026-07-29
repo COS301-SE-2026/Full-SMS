@@ -10,7 +10,7 @@ import Footer from '@/components/landing/footer'
 
 export default function Landing() {
   return (
-    <Particles>
+    <Particles className='scroll-smooth'>
         <NavBar/>
         <Hero/>
         <About/>

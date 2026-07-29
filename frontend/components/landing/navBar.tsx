@@ -9,7 +9,7 @@ export default function NavBar() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const {user} = useAuth();
   return (
-    <header className="z-100">
+    <header className="z-100 ">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-8 px-2 sm:px-4 lg:px-6">
             <Link className="block text-primary text-xl dark:text-primary hover:animate-pulse" href="#">
                 <span className='hover:animate-bounce font-mono font-bold text-3xl '>Full SMS</span>
@@ -21,7 +21,7 @@ export default function NavBar() {
                 <li>
                     <Link
                     className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                    href="#"
+                    href="#about"
                     >
                     About
                     </Link>
@@ -30,20 +30,20 @@ export default function NavBar() {
                 <li>
                     <Link
                     className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                    href="#"
+                    href="#features"
                     >
                     Features
                     </Link>
                 </li>
 
-                <li>
+                {/* <li>
                     <Link
                     className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
                     href="#"
                     >
                     Documentation
                     </Link>
-                </li>
+                </li> */}
 
                 <li>
                     <Link
