@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from api.controllers.auth_controller import verify_token_controller
 from api.controllers.workspace_controller import (
+    get_workspace_uploads_controller,
     get_workspaces_controller,
     get_workspace_controller,
     create_workspace_controller,
@@ -56,3 +57,7 @@ def archive_workspace(workspace_id: str, current_user: CurrentUser):
 @router.patch("/{workspace_id}/unarchive", summary="Unarchive a workspace")
 def unarchive_workspace(workspace_id: str, current_user: CurrentUser):
     return unarchive_workspace_controller(workspace_id, current_user["id"])
+
+@router.patch("/{workspace_id}/uploads", summary="Get workspace uploads")
+def get_worspace_uploads(workspace_id: str, current_user: CurrentUser):
+    return get_workspace_uploads_controller(workspace_id, current_user["id"])

@@ -1,13 +1,14 @@
 # services
 from jose import JWTError
 from jose.exceptions import ExpiredSignatureError
-from jose import jwt, jwk
-from jose.backends import ECKey
+from jose import jwt
 import os
 import json
 
 SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
 SUPABASE_JWK = os.getenv("SUPABASE_JWK")
+
+ALLOWED_ALGORITHMS = ["HS256", "ES256"]
 
 
 def verify_token(token: str) -> dict:
@@ -16,41 +17,30 @@ def verify_token(token: str) -> dict:
     Raises ValueError with a descriptive message if invalid.
     """
     try:
-        # Decode without verification first to check the algorithm
-        unverified_header = jwt.get_unverified_header(token)
-        algorithm = unverified_header.get("alg", "HS256")
+        if SUPABASE_JWK:
+            try:
+                jwk_data = json.loads(SUPABASE_JWK)
+                public_key = jwk_data["keys"][0]
 
-        # Handle ES256 tokens with JWK
-        if algorithm == "ES256":
-            if not SUPABASE_JWK:
-                raise RuntimeError(
-                    "SUPABASE_JWK is not set for ES256 verification")
+                payload = jwt.decode(
+                    token,
+                    public_key,
+                    algorithms=["ES256"],
+                    options={"verify_aud": False},
+                )
+                return payload
+            except JWTError:
+                pass
 
-            jwk_data = json.loads(SUPABASE_JWK)
-            # Get the first key from the keys array
-            public_key = jwk_data["keys"][0]
-
-            # Verify the token using JWK
-            payload = jwt.decode(
-                token,
-                public_key,
-                algorithms=["ES256"],
-                options={"verify_aud": False, "verify_signature": True},
-            )
-        else:
-            # Handle HS256 tokens with secret
-            if not SUPABASE_JWT_SECRET:
-                raise RuntimeError(
-                    "SUPABASE_JWT_SECRET is not set for HS256 verification")
-
+        if SUPABASE_JWT_SECRET:
             payload = jwt.decode(
                 token,
                 SUPABASE_JWT_SECRET,
                 algorithms=["HS256"],
-                options={"verify_aud": False, "verify_signature": True},
+                options={"verify_aud": False},
             )
-
-        return payload
+            return payload
+        raise RuntimeError("No JWT verification credentials configured")
 
     except ExpiredSignatureError:
         raise ValueError("Token has expired")

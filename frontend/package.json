@@ -12,11 +12,13 @@
     "test:integration": "jest --testMatch='**/__tests__/integration/**/*.test.[jt]s?(x)' --runInBand"
   },
   "dependencies": {
-    "@heroicons/react": "^2.2.0",
+    "@monaco-editor/react": "^4.7.0",
     "@supabase/supabase-js": "^2.105.4",
+    "@types/d3-scale-chromatic": "^3.1.0",
     "axios": "^1.16.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "d3-scale-chromatic": "^3.1.0",
     "formik": "^2.4.9",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
@@ -39,6 +41,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cypress": "^14.5.4",
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",

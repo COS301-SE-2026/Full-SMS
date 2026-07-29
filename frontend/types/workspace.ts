@@ -1,3 +1,5 @@
+import { UploadRecord } from "./hdf5";
+
 export type WorkspaceStatus = "active" | "archived";
 
 export interface Workspace {
@@ -61,4 +63,10 @@ export interface WorkspaceTableProps {
   onDelete: (workspaceId: string) => void;
   onArchive: (workspaceId: string) => void;
   onUnarchive: (workspaceId: string) => void;
+}
+
+export interface WorkspaceUploadsResponse {
+  success: boolean;
+  uploads?: UploadRecord[];
+  message?: string;
 }

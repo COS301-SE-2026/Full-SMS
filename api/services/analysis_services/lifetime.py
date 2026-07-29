@@ -1,19 +1,24 @@
 from api.legacy.analysis.lifetime import fit_decay
 from api.legacy.analysis.histograms import build_decay_histogram
 from api.models.analysis_models import LifetimeReq, LifetimeRes
+from api.services.analysis_services.cache_fallback import cache_fallback_service
+from api.services.hdf5_services import read_hdf5
+from api.services.storage_service import download_to_temp
 from api.utils.redis_Client import redisClient
+from api.utils.supabase_client import supabaseClient
 import json
 
 def lifetime_analysis(payload: LifetimeReq) -> LifetimeRes:
-
     upload_id = payload.upload_id
 
-    try:   
-        data_from_cache = redisClient.get(f"raw_data:{upload_id}:{payload.measurement_id}")
-    except Exception as e:
-        print(f"Data not found in cache: {e}")
+    measurement_id = payload.measurement_id
 
-    raw_data = json.loads(data_from_cache)
+    cached_data = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
+
+    if not cached_data:
+        cached_data = cache_fallback_service(upload_id)
+
+    raw_data = json.loads(cached_data)
     microtimes = raw_data["channel1"]["microtimes"]
     channel_width = raw_data["channelWidth"]
 

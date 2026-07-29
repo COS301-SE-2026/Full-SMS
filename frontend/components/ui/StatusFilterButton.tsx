@@ -1,14 +1,13 @@
 "use client";
-
 import { StatusFilterButtonProps } from "@/types/dashboard";
 
-export default function StatusFilterButton({
+export default function StatusFilterButton<T extends string>({
   label,
   value,
   currentFilter,
   onClick,
   count,
-}: Readonly<StatusFilterButtonProps>) {
+}: Readonly<StatusFilterButtonProps<T>>) {
   const isActive = currentFilter === value;
 
   return (
