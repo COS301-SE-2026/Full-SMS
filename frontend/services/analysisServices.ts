@@ -1,18 +1,31 @@
 import axiosInstance from "@/lib/api/axiosInstance";
+import { changePoint_Req, ClusteringReq, Intensity_Req } from "@/types/analysis";
 
-export type Intensity_Req = {
-    upload_id: string;
-    measurement_id: string;
-    bin_size_ms: number
-}
 
-export type Intensity_Res = {
-    time_bins: Float64Array;
-    counts: Int8Array;  
-    intensity_cps: Float64Array
-}
-
-export const intensityAnalysis = async (payload: Intensity_Req)=>{
+export const intensityAnalysis = async (payload: Intensity_Req)=>{    
    const {data} = await axiosInstance.post('api/py/analysis/intensity', payload);
    return data;
+}
+
+export const changePointAnalysis = async (payload: changePoint_Req) =>{
+    console.log("cpa payload", payload);
+    
+    const {data} = await axiosInstance.post('api/py/analysis/change-point-analysis', payload)
+    console.log("change_point_data: " ,data)
+    return data
+}
+
+export const getClusteringLevels = async (payload:ClusteringReq) =>{
+    const {data} = await axiosInstance.post('api/py/analysis/group-current', payload)
+    return data
+}
+
+export const getRasterData = async (payload: any) =>{
+    const {data} = await axiosInstance.post('api/py/analysis/raster-scan', payload)
+    return data
+}
+
+export const getSpectraData = async (payload: any) =>{
+    const {data} = await axiosInstance.post('api/py/analysis/spectra', payload)
+    return data
 }

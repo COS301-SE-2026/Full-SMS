@@ -1,4 +1,8 @@
+from api.services.analysis_services.cache_fallback import cache_fallback_service
+from api.services.hdf5_services import read_hdf5
+from api.services.storage_service import download_to_temp
 from api.utils.redis_Client import redisClient
+from api.utils.supabase_client import supabaseClient
 from api.models.analysis_models import IntensityReq, IntensityRes
 import json
 import numpy as np 
@@ -13,15 +17,17 @@ def intensity_analysis(payload: IntensityReq) -> IntensityRes:
     Returns:
         response (IntensityRes): Object containing time_bins, counts and intesity_cps
     """
-    upload_id= payload.uplod_id
-    measurement_id = payload.upload_id
+    upload_id = payload.upload_id
+
+    measurement_id = payload.measurement_id
 
     cached_data = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
-    if not cached_data:
-        raise ValueError("Raw data not in cache.")
 
-    raw_data = json.load(cached_data)
-    abstimes = np.array(raw_data["channel"]["abstimes"], dtype=np.float64)
+    if not cached_data:
+        cached_data = cache_fallback_service(upload_id)
+
+    raw_data = json.loads(cached_data)
+    abstimes = np.array(raw_data["channel1"]["abstimes"], dtype=np.float64)
 
     times_ms, counts = bin_photons(abstimes=abstimes, bin_size_ms=payload.bin_size_ms)
     intensity_cps = compute_intensity_cps(counts=counts, bin_size_ms=payload.bin_size_ms)

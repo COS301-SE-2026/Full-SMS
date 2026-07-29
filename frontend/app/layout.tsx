@@ -3,7 +3,9 @@ import "./globals.css";
 import ClientLayout from "@/components/auth/ClientLayout";
 import { AuthProvider } from "@/contexts/authContext/AuthContext";
 import { ToastProvider } from "@/contexts/toastContext/ToastContext";
-import { Hdf5DataProvider } from "@/contexts/Hdf5DataContext";
+import { Hdf5DataProvider } from "@/contexts/hdf5Context/Hdf5DataContext";
+import { AnalysisTabProvider } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
+import { SessionDataProvider } from "@/contexts/sessionsContext/sessionContext";
 
 const publicSans = Public_Sans({
   subsets: ["latin"],
@@ -29,11 +31,15 @@ export default function RootLayout({
       lang="en"
       className={`${publicSans.variable} ${jetbrainsMono.variable}`}
     >
-      <body>
+      <body >
         <ToastProvider>
           <AuthProvider>
             <Hdf5DataProvider>
-              <ClientLayout>{children}</ClientLayout>
+              <AnalysisTabProvider>
+                <SessionDataProvider>
+                  <ClientLayout>{children}</ClientLayout>
+                </SessionDataProvider>
+              </AnalysisTabProvider>
             </Hdf5DataProvider>
           </AuthProvider>
         </ToastProvider>
