@@ -69,6 +69,23 @@ class TestExportLevelsData:
         assert _export_levels_data(levels_request, {"levels": None}, "m1") is None
 
     
+    def test_levels_data(self,tmp_path):
+        levels_request = make_request(export_levels=True) 
+        analysis = {"levels": {"levels": [{"start":0, "end": 10}]}}
+        outpt_file = tmp_path / "levels.csv"
+        outpt_file.write_text("fake")
+
+        def fake_export_levels(levels, output_path, fmt, measurement_name):
+            return outpt_file
+
+        original_exporter = export_service.exporters.export_levels 
+        export_service.exporters.export_levels = fake_export_levels
+
+        try:
+            _export_levels_data(levels_request, analysis, "m1")
+        finally:
+            export_service.exporters.export_levels = original_exporter
+
 
 
 
