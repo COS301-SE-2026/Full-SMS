@@ -34,7 +34,7 @@ const secondaryFeatures = [
     {
     icon: Download,
     tagline: "Result Exporting",
-    title: "Export your analysis result to various formats",
+    title: "Export analysis results and publication ready visualizations",
     description:
       "Export your analysis results, fittings and plots to CSV, XSLS, Parquet and PNG",
   },
