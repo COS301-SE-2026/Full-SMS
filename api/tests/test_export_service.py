@@ -6,11 +6,11 @@ from models.export_request import ExportRequest, Selection
 
 import services.export_service as export_service
 from services.export_service import (
-      _export_intensity_data,
-      _export_levels_data,
-      _export_groups_data,
-      
+    _export_intensity_data,
+    _export_levels_data,
+    _export_groups_data,
 )
+from legacy.models.level import LevelData
 
 def make_request(**overrides):
     defaults = dict(
@@ -63,6 +63,13 @@ class TestExportLevelsData:
         levels_request = make_request(export_levels=False)
         analysis = {"levels": {"levels": [{"id": 1}]}} 
         assert _export_levels_data(levels_request, analysis, "m1") is None
+
+    def test_noLevels_in_analysis(self):
+        levels_request = make_request(export_levels=True)
+        assert _export_levels_data(levels_request, {"levels": None}, "m1") is None
+
+    
+
 
 
    
