@@ -1,39 +1,39 @@
-import React, { useMemo, useState } from "react";
-import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
-import { Card } from "@/components/ui";
-import Plot from "react-plotly.js";
-import { colors } from "@/lib/tokens";
+import React, { useMemo, useState } from "react"
+import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext"
+import { Card } from "@/components/ui"
+import Plot from "react-plotly.js"
+import { colors } from "@/lib/tokens"
 
 export default function GroupingCharts() {
-  let x_coords_intensity: number[] = [];
-  let y_coords_intensity: number[] = [];
-  const [selectedGroup, setSelectedGroup] = useState<number>();
+  let x_coords_intensity: number[] = []
+  let y_coords_intensity: number[] = []
+  const [selectedGroup, setSelectedGroup] = useState<number>()
   const { hdf5Data, groupingData, cpaData, bin, currentMeasurement } =
-    useHdf5Data();
+    useHdf5Data()
 
   if (
     hdf5Data &&
     hdf5Data?.counts.length !== 0 &&
     hdf5Data?.time_bins.length !== 0
   ) {
-    x_coords_intensity = hdf5Data.time_bins;
-    y_coords_intensity = hdf5Data.counts;
+    x_coords_intensity = hdf5Data.time_bins
+    y_coords_intensity = hdf5Data.counts
   }
 
   //BIC optimization graph data
-  const BIC: number[] = []; //y-axis
-  const num_of_groups: number[] = []; //x-axis
+  const BIC: number[] = [] //y-axis
+  const num_of_groups: number[] = [] //x-axis
 
   if (groupingData) {
     for (const step of groupingData.steps) {
       BIC.push(step.bic);
-      num_of_groups.push(step.groups.length);
+      num_of_groups.push(step.groups.length)
     }
   }
 
   const CpaLevels = useMemo(() => {
     if (!cpaData) {
-      return { x: [], y: [] };
+      return { x: [], y: [] }
     }
 
     const x_axis = [];
@@ -51,7 +51,7 @@ export default function GroupingCharts() {
         );
       }
     }
-    return { x: x_axis, y: y_axis };
+    return { x: x_axis, y: y_axis }
   }, [cpaData]);
 
   const groupingOverlays = useMemo(() => {
@@ -63,7 +63,7 @@ export default function GroupingCharts() {
       selectedGroup !== undefined
         ? selectedGroup
         : groupingData.optimal_step_index;
-    const currentStep = groupingData.steps[currentStepidx];
+    const currentStep = groupingData.steps[currentStepidx]
 
     const sortedStepGroups = [...currentStep.groups].sort(
       (a, b) => a.intensity_cps - b.intensity_cps,
@@ -75,15 +75,15 @@ export default function GroupingCharts() {
 
     const max_y = Math.max(...y_coords_intensity);
     for (let i = 0; i < sortedStepGroups.length; i++) {
-      const groupIntensity = groupIntensities[i];
+      const groupIntensity = groupIntensities[i]
 
       const floor =
-        i === 0 ? 0 : groupIntensities[i - 1] + groupIntensities[i] / 2;
+        i === 0 ? 0 : groupIntensities[i - 1] + groupIntensities[i] / 2
 
       const ceiling =
         i === sortedStepGroups.length - 1
           ? max_y * 1.1
-          : groupIntensities[i] + groupIntensities[i + 1] / 2;
+          : groupIntensities[i] + groupIntensities[i + 1] / 2
 
       overlays.push({
         type: "rect",
@@ -111,25 +111,25 @@ export default function GroupingCharts() {
           dash: "dash",
         },
         layer: "below",
-      });
+      })
     }
 
-    return overlays;
-  }, [groupingData, selectedGroup, y_coords_intensity, bin]);
+    return overlays
+  }, [groupingData, selectedGroup, y_coords_intensity, bin])
 
   const markerColors = num_of_groups.map((_, index) => {
     if (index === selectedGroup) {
-      return colors.destructive;
+      return colors.destructive
     }
     return index === groupingData?.optimal_step_index
       ? colors.success
-      : colors.primary;
+      : colors.primary
   });
 
   const handleGroupSelect = (e: any) => {
     if (e.points && e.points.length > 0) {
       const groupIdx = e.points[0].pointIndex;
-      setSelectedGroup(groupIdx);
+      setSelectedGroup(groupIdx)
     }
   };
 
