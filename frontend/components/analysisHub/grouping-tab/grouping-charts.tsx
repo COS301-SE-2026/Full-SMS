@@ -126,7 +126,7 @@ export default function GroupingCharts() {
       : colors.primary;
   });
 
-  const handleGroupSelect = (e) => {
+  const handleGroupSelect = (e: any) => {
     if (e.points && e.points.length > 0) {
       const groupIdx = e.points[0].pointIndex;
       setSelectedGroup(groupIdx);
