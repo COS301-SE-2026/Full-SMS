@@ -3,7 +3,7 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent} from "@/components/ui/Card"
 import { MenuBar } from "@/components/analysisHub/menu-bar"
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, CircleCheckBig } from "lucide-react";
 import { Button } from "@/components/ui";
 
 export default function FAQPage(){
@@ -24,7 +24,7 @@ export default function FAQPage(){
             <section className="px-4 mx-auto max-w-3xl py-2">
                 <div className="space-y-4">
                     <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
+                    <CardHeader className="flex flex-row items-center justify-between bg-primary/10">
                         <div>
                             <CardTitle>1. Will I lose my analysis if I close the browser without saving?</CardTitle>
                         </div>
@@ -48,7 +48,7 @@ export default function FAQPage(){
                 </Card>
 
                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
+                    <CardHeader className="flex flex-row items-center justify-between bg-primary/10">
                         <div>
                             <CardTitle>2. Do I need to know Python to write a plugin?</CardTitle>
                         </div>
@@ -70,7 +70,7 @@ export default function FAQPage(){
                 </Card>
 
                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
+                    <CardHeader className="flex flex-row items-center justify-between bg-primary/10">
                         <div>
                             <CardTitle>3. I forgot my password, how do I reset it?</CardTitle>
                         </div>
@@ -93,7 +93,7 @@ export default function FAQPage(){
                 </Card>
 
                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
+                    <CardHeader className="flex flex-row items-center justify-between bg-primary/10">
                         <div>
                             <CardTitle>4. How do I load my previous sessions?</CardTitle>
                         </div>

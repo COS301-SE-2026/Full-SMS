@@ -83,7 +83,7 @@ export default function FAQPage(){
                     {openQuestion === 1 && (
                         <CardContent>
                             <p>You can export your file to the following formats:</p>
-                            <ul>
+                            <ul className="space-y-2 list-none pl-0">
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>PDF</li>
                                 <li className="flex items-start gap-2">

@@ -72,7 +72,7 @@ export default function FAQPage(){
 
                     {openQuestion === 1 && (
                         <CardContent>
-                            <ul>
+                            <ul className="space-y-2 list-none pl-0">
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>You can upload your valid spectroscopy file in the File Upload Page.</li>
                                 <li className="flex items-start gap-2">
