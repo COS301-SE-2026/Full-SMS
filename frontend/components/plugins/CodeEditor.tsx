@@ -28,6 +28,7 @@ export default function CodeEditor({
         options={{
           readOnly,
           minimap: { enabled: false },
+          fontFamily: "'JetBrains Mono', monospace",
           fontSize: 13,
           lineNumbers: "on",
           scrollBeyondLastLine: false,
