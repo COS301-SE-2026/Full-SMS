@@ -6,9 +6,14 @@ import { Mail } from "lucide-react"
 import { Modal } from "@/components/ui/Modal";
 import { MenuBar } from "@/components/analysisHub/menu-bar"
 import { useState } from "react";
+import { useAuth } from "@/contexts/authContext/AuthContext";
+import { supportService } from "@/services/supportServices";
+import { useToast } from "@/contexts/toastContext/ToastContext";
 
 export default function ContactSupport(){
     const[message,setMessage] = useState('')
+    const { errorToast, successToast} = useToast()
+    const {user} = useAuth()
     return(
         <main>
             <MenuBar  onOpenFileUpload={()=>{}}/> 
@@ -38,7 +43,16 @@ export default function ContactSupport(){
                     className="w-full border border-border rounded px-3 py-2 text-sm bg-card text-foreground focus:outline-none focus:ring-1 focus:ring-primary"/>
 
                     <div className="flex flex-row gap-2">
-                        <Button variant="primary" className="px-3 py-2">
+                        <Button onClick={async () => {
+                            if (!user?.email) {return}
+                            try{
+                                await supportService.sendEmail(user?.email, message)
+                                successToast("Ticket sent successfully!")
+                                setMessage('')
+                            }catch(error){
+                                errorToast("Failed to send ticket")
+                            }}}
+                             variant="primary" className="px-3 py-2" >
                             Submit a ticket
                         </Button>
                         <Button variant="secondary" className="">
