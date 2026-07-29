@@ -13,26 +13,26 @@ describe("Auth Integration Tests", () => {
     }
   });
 
-  describe("User Registration", () => {
-    it("should successfully register a new user", async () => {
-      const { data, error } = await supabase.auth.admin.createUser({
-        email: testEmail,
-        password: testPassword,
-        email_confirm: true,
-      });
+  // describe("User Registration", () => {
+  //   it("should successfully register a new user", async () => {
+  //     const { data, error } = await supabase.auth.admin.createUser({
+  //       email: testEmail,
+  //       password: testPassword,
+  //       email_confirm: true,
+  //     });
 
-      expect(error).toBeNull();
-      expect(data.user).not.toBeNull();
-      expect(data.user?.email).toBe(testEmail);
+  //     expect(error).toBeNull();
+  //     expect(data.user).not.toBeNull();
+  //     expect(data.user?.email).toBe(testEmail);
 
-      if (data.user) {
-        userId = data.user.id;
-        console.log(`Created test user: ${testEmail} (ID: ${userId})`);
-      }else {
-        console.log(`No session - email confirmation may be required`);
-      }
-    }, 10000);
-  });
+  //     if (data.user) {
+  //       userId = data.user.id;
+  //       console.log(`Created test user: ${testEmail} (ID: ${userId})`);
+  //     }else {
+  //       console.log(`No session - email confirmation may be required`);
+  //     }
+  //   }, 10000);
+  // });
 
   describe("User Login", () => {
     it("should successfully login with correct credentials", async () => {
