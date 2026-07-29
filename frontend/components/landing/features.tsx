@@ -61,7 +61,7 @@ export default function Features() {
       className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8"
       aria-labelledby="features-heading"
     >
-      <div className="flex flex-col gap-4 border-b border-border pb-10">
+      <div className="flex flex-col gap-4 pb-10">
         <span className="font-mono text-5xl uppercase font-bold">
           Features
         </span>
