@@ -22,7 +22,7 @@ def lifetime_analysis(payload: LifetimeReq) -> LifetimeRes:
     microtimes = raw_data["channel1"]["microtimes"]
     channel_width = raw_data["channelWidth"]
 
-    time_bins, histogram= build_decay_histogram(microtimes=microtimes,channelwidth=channel_width),
+    time_bins, histogram= build_decay_histogram(microtimes=microtimes,channelwidth=channel_width)
 
     fit_curve, fit_params = None, None
     if payload.fitting_model:
@@ -31,7 +31,7 @@ def lifetime_analysis(payload: LifetimeReq) -> LifetimeRes:
     res_data= {
     "time_bins": time_bins.tolist(),
     "histogram": histogram.tolist(),
-    "fit_curve": fit_curve.tolist(),
+    "fit_curve": fit_curve.tolist() if fit_curve is not None else None,
     "fit_params": fit_params
     }
 

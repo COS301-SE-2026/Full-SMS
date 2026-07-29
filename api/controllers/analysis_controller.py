@@ -47,8 +47,12 @@ def init_clustering_analysis_controller(req: ClusteringReq):
         json_serializable_levels = [asdict(levels) for levels in req.levels]
         job = clustering_job.delay(json_serializable_levels)
         return {"task_id": job.id, "status": "executing"}
+    
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Could not queue job: {str(e)}")
+
     
 def get_clustering_job_status(task_id: str):
     """
