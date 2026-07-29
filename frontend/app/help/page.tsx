@@ -20,6 +20,8 @@ export default function HelpMenuPage(){
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-6 max-w-7xl mx-auto pb-10">
+                
+                <Link href="/help/gettingStarted" className="contents">
                 <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
                         <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><Rocket /></div>
@@ -34,7 +36,9 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
+                </Link>
 
+                <Link href="/help/session" className="contents">
                 <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
                         <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><Save /></div>
@@ -49,7 +53,9 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
+                </Link>
 
+                <Link href="/help/analysisFeatures" className="contents">
                 <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
                         <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><ChartColumn /></div>
@@ -64,7 +70,9 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
+                </Link>
 
+                <Link href="/help/fileFormats" className="contents">
                 <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
                         <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><FileSearchCorner /></div>
@@ -78,7 +86,9 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
+                </Link>
 
+                <Link href="/help/plugin" className="contents">
                 <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
                         <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><Puzzle /></div>
@@ -93,7 +103,9 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
+                </Link>
 
+                <Link href="/help/export" className="contents">
                   <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
                        <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><Download /></div>
@@ -107,6 +119,7 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
+                </Link>
 
                 <Link href="/help/faqs" className="contents">
                 <Card className="group hover:-translate-y-2 transition-transform duration-300">
