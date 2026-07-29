@@ -3,25 +3,6 @@ from unittest.mock import MagicMock, patch
 import uuid
 
 
-@pytest.fixture
-def sample_user_id():
-    return str(uuid.uuid4())
-
-
-@pytest.fixture
-def sample_plugin_id():
-    return str(uuid.uuid4())
-
-
-@pytest.fixture
-def sample_plugin_config():
-    return {
-        "parameters": [],
-        "outputs": [{"id": "result", "label": "Result", "type": "value"}],
-        "requiredPackages": [],
-    }
-
-
 class TestCreatePlugin:
 
     def test_create_plugin_success(self, sample_user_id, sample_plugin_config):

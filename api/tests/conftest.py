@@ -39,3 +39,12 @@ def sample_workspace_id():
 @pytest.fixture
 def sample_plugin_id():
     return str(uuid.uuid4())
+
+
+@pytest.fixture
+def sample_plugin_config():
+    return {
+        "parameters": [],
+        "outputs": [{"id": "result", "label": "Result", "type": "value"}],
+        "requiredPackages": [],
+    }
