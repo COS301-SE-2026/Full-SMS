@@ -69,7 +69,7 @@ export default function Features() {
           id="features-heading"
           className="max-w-2xl text-balance font-sans text-3xl font-semibold leading-tight sm:text-4xl"
         >
-          Point to your raw traces, <span className="font-mono text-primary">FullSMS</span> takes it form there
+          Point to your raw traces, <span className="font-mono text-primary">Full SMS</span> takes it form there
         </h2>
       </div>
 
@@ -82,7 +82,7 @@ export default function Features() {
             <div className="items-center gap">
             <IconBadge icon={feature.icon} />
             <span className="font-mono text-2xl tracking-widest text-muted-foreground ml-2">
-              {feature.tagline}
+              {feature.tagline} 
             </span>
             </div>
 
