@@ -108,6 +108,7 @@ export default function HelpMenuPage(){
                     </CardContent>
                 </Card>
 
+                <Link href="/help/faqs" className="contents">
                 <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
                         <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><CircleQuestionMark /></div>
@@ -121,6 +122,7 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
+                </Link>
 
                 <Link href="/profile" className="contents">
                     <Card className="group hover:-translate-y-2 transition-transform duration-300">

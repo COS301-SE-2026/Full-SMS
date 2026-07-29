@@ -1,0 +1,122 @@
+"use client"
+
+import { Card, CardHeader, CardTitle, CardDescription, CardContent} from "@/components/ui/Card"
+import { MenuBar } from "@/components/analysisHub/menu-bar"
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui";
+
+export default function FAQPage(){
+    const [openQuestion, setOpenQuestion] = useState<number | null>(0)
+    return(
+        <main>
+            <MenuBar  onOpenFileUpload={()=>{}}/> 
+                <div className="flex flex-col items-center justify-center text-center py-24">
+                    <span className="text-sm uppercase tracking-wide block text-primary/70">
+                        FULL SMS Guide
+                    </span>
+                    <h1 className="text-primary text-4xl md:text-6xl font-bold">How can we help you?</h1>
+                    <div className="flex flex-row items-center justify-center text-center gap-1">
+                        <p className="text-foreground/60">Learn the basics of FULLSMS, saving a session, exporting files, adding your plugin algorithms and more.</p>
+                    </div>
+                </div>
+
+            <section className="px-4 mx-auto max-w-3xl py-2">
+                <div className="space-y-4">
+                    <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <CardTitle>1. Will I lose my analysis if I close the browser without saving?</CardTitle>
+                        </div>
+                        <Button variant="secondary" size="sm"
+                            onClick={() => {
+                                if (openQuestion === 0) {setOpenQuestion(null)}
+                                else {setOpenQuestion(0)}
+                            }}
+                            className={`transition-transform duration-300 ${openQuestion === 0 ? "rotate-180" : ""}`}>
+                            <ChevronDown />
+                        </Button>
+                    </CardHeader>
+
+                    {openQuestion === 0 && (
+                        <CardContent>
+                            <p>Yes, you will lose your analysis if you close the browser without saving.
+                                Always save your session so you can retrieve it in the sessions list when you get back on the platform.
+                            </p>
+                        </CardContent>
+                    )}
+                </Card>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <CardTitle>2. Do I need to know Python to write a plugin?</CardTitle>
+                        </div>
+                        <Button variant="secondary" size="sm"
+                            onClick={() => {
+                                if (openQuestion === 1) {setOpenQuestion(null)}
+                                else {setOpenQuestion(1)}
+                            }}
+                            className={`transition-transform duration-300 ${openQuestion === 1 ? "rotate-180" : ""}`}>
+                            <ChevronDown />
+                        </Button>
+                    </CardHeader>
+
+                    {openQuestion === 1 && (
+                        <CardContent>
+                            <p>Yes and you have to follow the script provided so that your plugin is valid and gets added to your analysis hub in the "plugins" section.</p>
+                        </CardContent>
+                    )}
+                </Card>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <CardTitle>3. I forgot my password, how do I reset it?</CardTitle>
+                        </div>
+                        <Button variant="secondary" size="sm"
+                            onClick={() => {
+                                if (openQuestion === 2) {setOpenQuestion(null)}
+                                else {setOpenQuestion(2)}
+                            }}
+                            className={`transition-transform duration-300 ${openQuestion === 2 ? "rotate-180" : ""}`}>
+                            <ChevronDown />
+                        </Button>
+                    </CardHeader>
+
+                    {openQuestion === 2 && (
+                        <CardContent>
+                            <p>Go to your Account's page. There will be a Password section and a "Change" button. 
+                                Click that button and complete the necessary steps in order to reset your password.</p>
+                        </CardContent>
+                    )}
+                </Card>
+
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <CardTitle>4. How do I load my previous sessions?</CardTitle>
+                        </div>
+                        <Button variant="secondary" size="sm"
+                            onClick={() => {
+                                if (openQuestion === 3) {setOpenQuestion(null)}
+                                else {setOpenQuestion(3)}
+                            }}
+                            className={`transition-transform duration-300 ${openQuestion === 3 ? "rotate-180" : ""}`}>
+                            <ChevronDown />
+                        </Button>
+                    </CardHeader>
+
+                    {openQuestion === 3 && (
+                        <CardContent>
+                            <p>Click the "Sessions" button. It will show all the sessions you have saved and can be loaded.</p>
+                        </CardContent>
+                    )}
+                </Card>
+
+                </div>
+                
+            </section>
+        </main>
+    )
+}
