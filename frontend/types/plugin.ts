@@ -112,7 +112,7 @@ export interface ResultsRendererProps {
 
 export interface PluginExecutionState {
   status: "idle" | "loading" | "running" | "success" | "error";
-  errorMessage?: string;
+  error?: string;
   results?: Record<string, unknown>;
   isPreviousResult?: boolean;
 }
