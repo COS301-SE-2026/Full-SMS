@@ -20,7 +20,7 @@ export default function HelpMenuPage(){
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-6 max-w-7xl mx-auto pb-10">
-                
+
                 <Link href="/help/gettingStarted" className="contents">
                 <Card className="group hover:-translate-y-2 transition-transform duration-300">
                     <CardHeader>
