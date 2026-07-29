@@ -35,7 +35,7 @@ MOCK_SESSION_LIST = [
 
 class TestSaveSession:
     def test_save_session_success(self):
-        with patch("routes.session_routes.handle_save_session",return_value=MOCK_SESSION):
+        with patch("api.routes.session_routes.handle_save_session",return_value=MOCK_SESSION):
             response = client.post("/api/py/sessions",
                                    json={
                                        "name":'Test Session 0',
@@ -58,21 +58,21 @@ class TestSaveSession:
 
 class TestGetSessions:
     def test_get_sessions_success(self):
-        with patch("routes.session_routes.handle_get_sessions", return_value=MOCK_SESSION_LIST):
+        with patch("api.routes.session_routes.handle_get_sessions", return_value=MOCK_SESSION_LIST):
             response = client.get("/api/py/sessions",params={"user_id":MOCK_USER_ID})
             assert response.status_code == 200
             assert len(response.json()) == 2
             assert response.json()[0]["user_id"] == MOCK_USER_ID
     
     def test_get_sessions_empty_list(self):
-        with patch("routes.session_routes.handle_get_sessions",return_value=[]):
+        with patch("api.routes.session_routes.handle_get_sessions",return_value=[]):
             response = client.get("/api/py/sessions",params={"user_id":MOCK_USER_ID})
             assert response.status_code == 200
             assert response.json() == []
 
 class TestGetSessionsById:
     def test_get_session_by_id_success(self):
-        with patch("routes.session_routes.handle_get_session_by_id",return_value=MOCK_SESSION):
+        with patch("api.routes.session_routes.handle_get_session_by_id",return_value=MOCK_SESSION):
             response = client.get("/api/py/sessions/mock-session-uuid-123",params={'id': 'mock-session-uuid-123',
                                                              'user_id':MOCK_USER_ID})
             assert response.status_code == 200
@@ -80,6 +80,6 @@ class TestGetSessionsById:
             assert response.json()["user_id"] == MOCK_USER_ID
 
     def test_get_session_not_found(self):
-        with patch("routes.session_routes.handle_get_session_by_id",side_effect=HTTPException(status_code=404, detail="Session not found")):
+        with patch("api.routes.session_routes.handle_get_session_by_id",side_effect=HTTPException(status_code=404, detail="Session not found")):
             response = client.get("/api/py/sessions/newSessionId",params={'user_id':MOCK_USER_ID})
             assert response.status_code == 404
