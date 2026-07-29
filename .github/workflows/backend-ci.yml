@@ -2,7 +2,7 @@ name: Backend CI
 #Updated to include Codecov coverage reporting
 on:
     push:
-      branches: [ develop, main, chore/github-actions-ci-cd, chore/codecov-setup ]
+      branches: [ develop, main, chore/github-actions-ci-cd, chore/codecov-setup, chore/backend-ci-update ]
       paths:
         - 'api/**'
         - '.github/workflows/backend-ci.yml'
