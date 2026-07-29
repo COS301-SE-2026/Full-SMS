@@ -1,4 +1,16 @@
 import { supabase } from "@/lib/supabase/supabaseConfig";
+import { createClient } from '@supabase/supabase-js'
+
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const supabaseServiceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY!
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
+
+  export const supabase_for_registration = createClient(supabaseUrl, supabaseServiceRoleKey)
 
 describe("Auth Integration Tests", () => {
   const testEmail = `test-user-${Date.now()}@gmail.com`;
@@ -13,26 +25,26 @@ describe("Auth Integration Tests", () => {
     }
   });
 
-  // describe("User Registration", () => {
-  //   it("should successfully register a new user", async () => {
-  //     const { data, error } = await supabase.auth.admin.createUser({
-  //       email: testEmail,
-  //       password: testPassword,
-  //       email_confirm: true,
-  //     });
+  describe("User Registration", () => {
+    it("should successfully register a new user", async () => {
+      const { data, error } = await supabase_for_registration.auth.admin.createUser({
+        email: testEmail,
+        password: testPassword,
+        email_confirm: true,
+      });
 
-  //     expect(error).toBeNull();
-  //     expect(data.user).not.toBeNull();
-  //     expect(data.user?.email).toBe(testEmail);
+      expect(error).toBeNull();
+      expect(data.user).not.toBeNull();
+      expect(data.user?.email).toBe(testEmail);
 
-  //     if (data.user) {
-  //       userId = data.user.id;
-  //       console.log(`Created test user: ${testEmail} (ID: ${userId})`);
-  //     }else {
-  //       console.log(`No session - email confirmation may be required`);
-  //     }
-  //   }, 10000);
-  // });
+      if (data.user) {
+        userId = data.user.id;
+        console.log(`Created test user: ${testEmail} (ID: ${userId})`);
+      }else {
+        console.log(`No session - email confirmation may be required`);
+      }
+    }, 10000);
+  });
 
   describe("User Login", () => {
     it("should successfully login with correct credentials", async () => {
