@@ -15,6 +15,10 @@ on:
 jobs:
     lint-and-test:
       runs-on: ubuntu-latest
+      env:
+          SUPABASE_URL: "https://placeholder.supabase.co"
+          SUPABASE_KEY: "placeholder-key"
+          SUPABASE_SERVICE_ROLE_KEY: "placeholder-service-key"
 
       steps:
       - uses: actions/checkout@v4
@@ -40,7 +44,6 @@ jobs:
       - name: Run tests with pytest
         run: |
           pytest api/tests/ -v --cov=api --cov-report=term-missing 
-        continue-on-error: true
 
       - name: Upload backend coverage to Codecov
         uses: codecov/codecov-action@v4
