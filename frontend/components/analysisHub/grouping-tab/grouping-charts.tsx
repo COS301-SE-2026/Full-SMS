@@ -247,7 +247,7 @@ export default function GroupingCharts() {
           />
         </div>
         <div className="w-[40%] text-sm font-mono">
-          <table className="table-auto w-full h-full">
+          <table className="table-auto w-full">
             <thead className="bg-border/60">
               <tr>
                 <th>Group</th>
