@@ -29,7 +29,7 @@ const secondaryFeatures = [
     tagline: "Format Consistency",
     title: "Your file's structure stays exactly as attached",
     description:
-      "Nothing gets flattened into a CSV ( unless you want it to ), the hierarchy your scope software wrote is the one we open.",
+      "Nothing gets flattened into a CSV (unless you want it to), the hierarchy your scope software wrote is the one we open.",
   },
     {
     icon: Download,
