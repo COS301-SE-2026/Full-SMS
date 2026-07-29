@@ -18,7 +18,19 @@ jobs:
       env:
           SUPABASE_URL: "https://placeholder.supabase.co"
           SUPABASE_KEY: "placeholder-key"
+          SUPABASE_SERVICE_KEY: "placeholder-service-key"
           SUPABASE_SERVICE_ROLE_KEY: "placeholder-service-key"
+          SUPABASE_JWT_SECRET_KEY: "placeholder-jwt-secret"
+          SUPABASE_JWK: '{"keys": []}'
+          SUPABASE_BUCKET_NAME: "test-bucket"
+          BACKEND_CORS_ORIGINS: "http://localhost:3000"
+          CELERY_BROKER_URL: "redis://localhost:6379/0"
+          CELERY_RESULT_BACKEND: "redis://localhost:6379/0"
+          REDIS_HOST: "localhost"
+          REDIS_PORT: "6379"
+          REDIS_DB: "0"
+          EXECUTION_URL: "http://localhost:8000"
+          EXECUTION_API_KEY: "test-api-key"
 
       steps:
       - uses: actions/checkout@v4
