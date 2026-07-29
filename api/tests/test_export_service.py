@@ -9,7 +9,7 @@ from services.export_service import (
       _export_intensity_data,
       _export_levels_data,
       _export_groups_data,
-      _
+      
 )
 
 def make_request(**overrides):
@@ -35,6 +35,27 @@ class TestExportIntensityData:
         intensity_request = make_request(export_intensity=False) 
         assert _export_intensity_data(intensity_request, {}, 1, "m1") is None
 
+    def test_intensity_data(self,tmp_path):
+        intensity_request = make_request(export_intensity=True, bin_size_ms=10) 
+        raw = {"channel2": {"abstimes": [1,2,3]}, "name": "raw"}
+        outpt_file = tmp_path / "intensity.csv"
+        outpt_file.write_text("fake")
+
+        def fake_trace(abstimes, output_path, fmt, bin_size_ms, measurement_name):
+            assert bin_size_ms == 10
+            return outpt_file
+
+        original = export_service.exporters.export_intensity_trace 
+        export_service.exporters.export_intensity_trace = fake_trace
+
+        try:
+            path, name = _export_intensity_data(intensity_request, raw, 2, "m1")
+        finally:
+            export_service.exporters.export_intensity_trace = original
+
+        assert path == outpt_file
+
+
 
 class TestExportLevelsData:
 
@@ -42,6 +63,9 @@ class TestExportLevelsData:
         levels_request = make_request(export_levels=False)
         analysis = {"levels": {"levels": [{"id": 1}]}} 
         assert _export_levels_data(levels_request, analysis, "m1") is None
+
+
+   
 
 
 class TestExportGroupsData:
