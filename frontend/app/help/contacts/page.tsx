@@ -3,11 +3,11 @@
 import { Button } from "@/components/ui"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent} from "@/components/ui/Card"
 import { Mail } from "lucide-react"
-import { MenuBar } from "@/components/analysisHub/menu-bar"
 import { useState } from "react";
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import { supportService } from "@/services/supportServices";
 import { useToast } from "@/contexts/toastContext/ToastContext";
+import HelpHero from "@/components/help/helpHero"
 
 export default function ContactSupport(){
     const[message,setMessage] = useState('')
@@ -15,17 +15,7 @@ export default function ContactSupport(){
     const {user} = useAuth()
     return(
         <main>
-            <MenuBar  onOpenFileUpload={()=>{}}/> 
-            <div className="flex flex-col items-center justify-center text-center py-24">
-                <span className="text-sm uppercase tracking-wide block text-primary/70">
-                    FULL SMS Guide
-                </span>
-                <h1 className="text-primary text-4xl md:text-6xl font-bold">How can we help you?</h1>
-                <div className="flex flex-row items-center justify-center text-center gap-1">
-                    <p className="text-foreground/60">Learn the basics of FULLSMS, saving a session, exporting files, adding your plugin algorithms and more.</p>
-                </div>
-            </div>
-
+            <HelpHero />
             <section className="px-4 mx-auto max-w-7xl py-2">
                 <Card className="">
                     <CardHeader>

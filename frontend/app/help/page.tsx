@@ -4,21 +4,12 @@ import Link from "next/link";
 import { Button } from "@/components/ui"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent} from "@/components/ui/Card"
 import { Rocket, ChartColumn, FileSearchCorner, Download, CircleQuestionMark, Save, RotateCcw, Puzzle, Mail } from "lucide-react"
-import { MenuBar } from "@/components/analysisHub/menu-bar"
+import HelpHero from "@/components/help/helpHero";
 
 export default function HelpMenuPage(){
     return(
         <main>
-            <MenuBar  onOpenFileUpload={()=>{}}/> 
-            <div className="flex flex-col items-center justify-center text-center py-24">
-                <span className="text-sm uppercase tracking-wide block text-primary/70">
-                    FULL SMS Guide
-                </span>
-                <h1 className="text-primary text-4xl md:text-6xl font-bold">How can we help you?</h1>
-                <div className="flex flex-row items-center justify-center text-center gap-1">
-                    <p className="text-foreground/60">Learn the basics of FULLSMS, saving a session, exporting files, adding your plugin algorithms and more.</p>
-                </div>
-            </div>
+            <HelpHero />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-6 max-w-7xl mx-auto pb-10">
 
                 <Link href="/help/gettingStarted" className="contents">
