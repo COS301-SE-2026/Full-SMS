@@ -51,17 +51,17 @@ export default function FAQPage(){
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Select the Plugins option on the side menu</li>
                                 <li className="flex items-start gap-2">
-                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the "New Plugin" button</li>
+                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the New Plugin button</li>
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Write the name of your Plugin and it's description</li>
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Write the script of your plugin algorithm following the format provided</li>
                                  <li className="flex items-start gap-2">
-                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Select the "Configuration" option next to "Code" </li>
+                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Select the Configuration option next to "Code" </li>
                                  <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Add parameter and output types</li>
                                 <li className="flex items-start gap-2">
-                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the "Create Plugin" button to create your plugin</li>
+                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the Create Plugin button to create your plugin</li>
                             </ul>
                         </CardContent>
                     )}
@@ -88,7 +88,7 @@ export default function FAQPage(){
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Your new plugin will appear on the Plugins page</li>
                                 <li className="flex items-start gap-2">
-                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Select the 3 dots on the "Actions" column to delete, disable or edit your plugin</li>
+                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Select the 3 dots on the Actions column to delete, disable or edit your plugin</li>
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Select the Workspaces page and your workspace</li>
                                 <li className="flex items-start gap-2">

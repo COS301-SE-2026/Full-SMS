@@ -51,11 +51,11 @@ export default function FAQPage(){
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Select the Workspaces option on the side menu</li>
                                 <li className="flex items-start gap-2">
-                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the "New Workspace" button</li>
+                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the New Workspace button</li>
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Write the name of your Workspace and the description</li>
                                 <li className="flex items-start gap-2">
-                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the "Create New Workspace" button and a new workspace will be created</li>
+                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the Create New Workspace button and a new workspace will be created</li>
                             </ul>
                         </CardContent>
                     )}
@@ -82,11 +82,11 @@ export default function FAQPage(){
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Select any of the workspaces you have created</li>
                                 <li className="flex items-start gap-2">
-                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the "Upload File" button</li>
+                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the Upload File button</li>
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Upload valid data files</li>
                                 <li className="flex items-start gap-2">
-                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the "Open" button to start preparing your file for an analysis session</li>
+                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the Open button to start preparing your file for an analysis session</li>
                             </ul>
                         </CardContent>
                     )}

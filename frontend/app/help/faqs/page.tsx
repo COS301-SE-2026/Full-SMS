@@ -64,7 +64,7 @@ export default function FAQPage(){
 
                     {openQuestion === 1 && (
                         <CardContent>
-                            <p>Yes and you have to follow the script provided so that your plugin is valid and gets added to your analysis hub in the "plugins" section.</p>
+                            <p>Yes and you have to follow the script provided so that your plugin is valid and gets added to your analysis hub in the plugins section.</p>
                         </CardContent>
                     )}
                 </Card>
@@ -86,7 +86,7 @@ export default function FAQPage(){
 
                     {openQuestion === 2 && (
                         <CardContent>
-                            <p>Go to your Account's page. There will be a Password section and a "Change" button. 
+                            <p>Go to your Account's page. There will be a Password section and a Change button. 
                                 Click that button and complete the necessary steps in order to reset your password.</p>
                         </CardContent>
                     )}
@@ -109,7 +109,7 @@ export default function FAQPage(){
 
                     {openQuestion === 3 && (
                         <CardContent>
-                            <p>Click the "Sessions" button. It will show all the sessions you have saved and can be loaded.</p>
+                            <p>Click the Sessions button. It will show all the sessions you have saved and can be loaded.</p>
                         </CardContent>
                     )}
                 </Card>

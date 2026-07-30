@@ -97,7 +97,7 @@ export default function FAQPage(){
                         <CardContent>
                             <ul className="space-y-2 list-none pl-0">
                                 <li className="flex items-start gap-2">
-                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Processes grid-based pixel data in geographic information systems (GIS) to evaluate continuous phenomena, perform cell-by-cell math, and model environmental processes.</li>
+                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Processes grid-based pixel data in geographic information systems to evaluate continuous phenomena, perform cell-by-cell math, and model environmental processes.</li>
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/> It examines values assigned to grid cells to study terrain, track environmental changes, and interpret satellite imagery</li>
                             </ul>

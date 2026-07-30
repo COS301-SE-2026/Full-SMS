@@ -47,9 +47,9 @@ export default function FAQPage(){
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Select relevant tabs and parameters for your session</li>
                                 <li className="flex items-start gap-2">
-                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the "Save" button on the menu bar</li>
+                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the Save button on the menu bar</li>
                                 <li className="flex items-start gap-2">
-                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Write your session's name and click "Save"</li>
+                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Write your sessions name and click Save</li>
                             </ul>
                         </CardContent>
                     )}
@@ -76,7 +76,7 @@ export default function FAQPage(){
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Visit the Analysis Hub page</li>
                                 <li className="flex items-start gap-2">
-                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the "Sessions" button on the menu bar</li>
+                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the Sessions button on the menu bar</li>
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Select your desired session in the Recent sessions list</li>
                             </ul>

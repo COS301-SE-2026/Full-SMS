@@ -45,7 +45,7 @@ export default function FAQPage(){
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>
                                     Visit the Analysis Hub Page</li>
                                 <li className="flex items-start gap-2">
-                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the "Export" Tab on your side menu</li>
+                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the Export Tab on your side menu</li>
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Select the type of data you would like to export</li>
                                 <li className="flex items-start gap-2">
@@ -59,7 +59,7 @@ export default function FAQPage(){
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Use the default bin size or change it</li>
                                 <li className="flex items-start gap-2">
-                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the "Export Current" button</li>
+                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the Export Current button</li>
                             </ul>
                         </CardContent>
                     )}
