@@ -1,4 +1,7 @@
 import zipfile
+import gzip
+import json
+import pytest
 from pathlib import Path
 import pytest
 from services.export_service import _package_outputs
@@ -9,6 +12,7 @@ from services.export_service import (
     _export_intensity_data,
     _export_levels_data,
     _export_groups_data,
+    _get_measurement_data,
 )
 from legacy.models.level import LevelData
 
@@ -198,4 +202,20 @@ class TestPackageOutputs:
                 assert "intensity" not in result_name
                 assert "levels" not in result_name
 
-    
+
+class TestGetMeasurementData:
+    def test_cache_returnsData(self):
+        fake_meas= { "id" : "m1", "value":42}
+
+        def redisGetFunc_fake(key):
+            return json.dumps(fake_meas)
+
+        originalRedis = export_service.redisClient.get
+        export_service.redisClient.get = redisGetFunc_fake
+
+        try:
+            result = _get_measurement_data("u1", "m1", "user1")
+
+        finally:
+            export_service.redisClient.get = originalRedis
+        assert result == fake_meas
