@@ -1,5 +1,5 @@
 import pytest
-from pathlib import 
+from pathlib import Path
 from fastapi import HTTPException
 from api.controllers.export_controller import handle_export
 from api.models.export_request import ExportRequest
@@ -36,4 +36,22 @@ def make_request(
     bin_size_ms=bin_size_ms,
 
 )    
+
+def test_noCategory_selected_raise400():
+    request = make_request()
+
+    with pytest.raises(HTTPException) as exc:
+        handle_export(request, None, "user1")
+
+    assert exc.value.status_code == 400
+
+
+def test_noMeas_selections_raise400():
+    request = make_request(export_intensity=True, selections=[])
+
+    with pytest.raises(HTTPException) as exc:
+        handle_export(request, None, "user1")
+
+    assert exc.value.status_code == 400
+
 
