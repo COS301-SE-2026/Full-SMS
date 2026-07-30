@@ -4,18 +4,18 @@ import json
 import pytest
 from pathlib import Path
 import pytest
-from services.export_service import _package_outputs
-from models.export_request import ExportRequest, Selection
+from api.services.export_service import _package_outputs
+from api.models.export_request import ExportRequest, Selection
 
-import services.export_service as export_service
-from services.export_service import (
+import api.services.export_service as export_service
+from api.services.export_service import (
     _export_intensity_data,
     _export_levels_data,
     _export_groups_data,
     _get_measurement_data,
     _get_saved_analysis
 )
-from legacy.models.level import LevelData
+from api.legacy.models.level import LevelData
 
 def make_request(**overrides):
     defaults = dict(
