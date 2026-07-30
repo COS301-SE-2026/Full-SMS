@@ -6,20 +6,25 @@ env:
 
 on:
   push:
-    branches:
-      - main
-      - develop
+    branches: [main, develop, chore/frontend-deployment-v2]
     paths:
       - 'frontend/**'
       - '.github/workflows/vercel-deploy.yml'
 
 jobs:
   # ==========================================
-  # STAGING DEPLOYMENT (develop branch)
+  # STAGING DEPLOYMENT (develop & feature branch)
   # ==========================================
   deploy-staging:
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/chore/frontend-deployment-v2'
     runs-on: ubuntu-latest
+    env:
+      VERCEL_GIT_PROVIDER: github
+      VERCEL_GIT_COMMIT_REF: ${{ github.ref_name }}
+      VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+      VERCEL_GIT_COMMIT_AUTHOR_LOGIN: ${{ github.actor }}
+      VERCEL_GIT_REPO_OWNER: ${{ github.repository_owner }}
+      VERCEL_GIT_REPO_SLUG: ${{ github.event.repository.name }}
     defaults:
       run:
         working-directory: ./frontend
@@ -27,8 +32,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Install Vercel CLI
-        run: npm install --global vercel@34.2.7 --ignore-scripts
+        run: npm install --global vercel@51.8.0 --ignore-scripts
 
       - name: Pull Vercel Environment Information (Preview)
         env:
@@ -40,7 +50,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: vercel build --token=$VERCEL_TOKEN
 
-      - name: Deploy to Vercel (Staging)
+      - name: Deploy to Vercel (Staging/Preview)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: vercel deploy --prebuilt --token=$VERCEL_TOKEN
@@ -51,6 +61,13 @@ jobs:
   deploy-production:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    env:
+      VERCEL_GIT_PROVIDER: github
+      VERCEL_GIT_COMMIT_REF: ${{ github.ref_name }}
+      VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+      VERCEL_GIT_COMMIT_AUTHOR_LOGIN: ${{ github.actor }}
+      VERCEL_GIT_REPO_OWNER: ${{ github.repository_owner }}
+      VERCEL_GIT_REPO_SLUG: ${{ github.event.repository.name }}
     defaults:
       run:
         working-directory: ./frontend
@@ -58,20 +75,28 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Vercel CLI
-        run: npm install --global vercel@34.2.7 --ignore-scripts
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-      - name: Pull Vercel Environment Information (Production)
+      - name: Install Vercel CLI
+        run: npm install --global vercel@51.8.0 --ignore-scripts
+
+      - name: Pull Vercel Environment Information (Preview)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+        run: vercel pull --yes --environment=preview --token=$VERCEL_TOKEN
 
       - name: Build Project Artifacts
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel build --prod --token=$VERCEL_TOKEN
+        run: vercel build --token=$VERCEL_TOKEN
 
-      - name: Deploy to Vercel (Production)
+      - name: Deploy to Vercel (Staging/Preview)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
+        # Explicitly omitting --prod should create a preview deployment
+        run: vercel deploy --prebuilt --token=$VERCEL_TOKEN
+
+        
