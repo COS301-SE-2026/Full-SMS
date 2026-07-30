@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 from api.main import app
 from api.routes.profile_routes import get_current_user 
@@ -5,10 +6,16 @@ from api.routes.profile_routes import get_current_user
 
 client = TestClient(app)
 
-def fake_current_user():
-    return {"user":{"id": "user1"}}
+@pytest.fixture(autouse=True)
+def override_auth():
+    def fake_current_user():
+        return {"user":{"id": "user1"}}
 
-app.dependency_overrides[get_current_user] = fake_current_user
+    app.dependency_overrides[get_current_user] = fake_current_user
+    yield
+    app.dependency_overrides.pop(get_current_user, None)
+
+
 EXPORT_URL = "/api/py/export"
 
 def test_routeReject_unselected_category():
