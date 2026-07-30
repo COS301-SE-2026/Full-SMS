@@ -2,8 +2,8 @@ import { Card } from '@/components/ui'
 import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsContext'
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { colors } from '@/lib/tokens'
-import { getFluorescenceDecay, getLifetimeData } from '@/services/analysisServices'
-import React, { useEffect, useState } from 'react'
+import { getFluorescenceDecay } from '@/services/analysisServices'
+import React, { useEffect } from 'react'
 import Plot from 'react-plotly.js'
 
 export default function LifetimeCharts() {

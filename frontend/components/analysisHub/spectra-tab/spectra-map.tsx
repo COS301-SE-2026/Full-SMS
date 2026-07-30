@@ -68,10 +68,11 @@ export default function SpectraMap() {
       <h3 className="text-foreground">Spectra</h3>
       <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
         <div className="flex items-center gap-2">
-          <label className="text-xs text-foreground/70 whitespace-nowrap">
+          <label className="text-xs text-foreground/70 whitespace-nowrap" htmlFor="heat-map">
             Colormap
           </label>
           <select
+            name="heat-map"
             value={spectraHeatMapColor}
             onChange={(e) => setSpectraHeatMapColor(e.target.value)}
             className="w-20 h-7 px-2 rounded bg-card border border-border text-xs text-foreground text-right font-mono focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary appearance-none cursor-pointer"
