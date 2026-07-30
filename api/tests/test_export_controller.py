@@ -54,25 +54,6 @@ def test_noMeas_selections_raise400():
 
     assert exception.value.status_code == 400
 
-def test_notImplemented_raises501():
-    def fake_export_dataFunc(request, user_id):
-        raise NotImplementedError("no session")
-
-    originalFunc= export_controller.export_service.export_data
-    export_controller.export_service.export_data = fake_export_dataFunc
-
-    try:
-        request = make_request(export_intensity=True)
-
-        with pytest.raises(HTTPException) as exception:
-            handle_export(request, None, "user1")
-
-    finally:
-        export_controller.export_service.export_data = originalFunc
-
-    assert exception.value.status_code == 501
-
-
 def test_notImplemented_returns501():
     def fake_export_dataFunc(request, user_id):
         raise NotImplementedError("no session")
@@ -90,6 +71,8 @@ def test_notImplemented_returns501():
         export_controller.export_service.export_data = originalFunc
 
     assert exception.value.status_code == 501
+
+
 
 def test_generic_error_returns500():
     def fake_export_dataFunc(request, user_id):
