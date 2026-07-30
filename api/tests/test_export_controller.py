@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from fastapi import HTTPException
+from fastapi import HTTPException, BackgroundTasks 
 from api.controllers.export_controller import handle_export
 from api.models.export_request import ExportRequest
 import api.controllers.export_controller as export_controller
@@ -108,6 +108,30 @@ def test_generic_error_returns500():
         export_controller.export_service.export_data = originalFunc
 
     assert exception.value.status_code == 500
+
+def test_successful_export_returnResponse(tmp_path):
+
+    fakefile = tmp_path/ "out.csv"
+    fakefile.write_text("data")
+
+
+    def fake_export_dataFunc(request, user_id):
+        return fakefile, "out.csv"
+
+    originalFunc= export_controller.export_service.export_data
+    export_controller.export_service.export_data = fake_export_dataFunc
+
+    try:
+        request = make_request(export_intensity=True)
+
+        background_tasks = BackgroundTasks()
+        response = handle_export(request, background_tasks, "user1")
+
+    finally:
+        export_controller.export_service.export_data = originalFunc
+
+    assert Path(response.path) == fakefile
+    assert response.filename == "out.csv"
 
 
 
