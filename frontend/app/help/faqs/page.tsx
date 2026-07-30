@@ -1,11 +1,10 @@
 "use client"
 
 import { Card, CardHeader, CardTitle, CardContent} from "@/components/ui/Card"
-import { MenuBar } from "@/components/analysisHub/menu-bar"
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui";
-import HelpHero from "@/components/help/helpHero";
+import HelpHero from "@/components/help/HelpHero";
 
 export default function FAQPage(){
     const [openQuestion, setOpenQuestion] = useState<number | null>(0)

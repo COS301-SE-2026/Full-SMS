@@ -7,7 +7,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import { supportService } from "@/services/supportServices";
 import { useToast } from "@/contexts/toastContext/ToastContext";
-import HelpHero from "@/components/help/helpHero"
+import HelpHero from "@/components/help/HelpHero"
 
 export default function ContactSupport(){
     const[message,setMessage] = useState('')

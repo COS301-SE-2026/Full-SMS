@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent} from "@/components/ui/Card"
 import { Rocket, ChartColumn, FileSearchCorner, Download, CircleQuestionMark, Save, RotateCcw, Puzzle, Mail } from "lucide-react"
-import HelpHero from "@/components/help/helpHero";
+import HelpHero from "@/components/help/HelpHero";
 
 export default function HelpMenuPage(){
     return(

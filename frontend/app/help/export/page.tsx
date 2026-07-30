@@ -5,7 +5,7 @@ import { useState } from "react";
 import { ChevronDown, CircleCheckBig } from "lucide-react";
 import { Button } from "@/components/ui";
 import HelpHero
- from "@/components/help/helpHero";
+ from "@/components/help/HelpHero";
 export default function FAQPage(){
     const [openQuestion, setOpenQuestion] = useState<number | null>(0)
     return(
