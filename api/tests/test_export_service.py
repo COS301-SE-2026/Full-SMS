@@ -13,6 +13,7 @@ from services.export_service import (
     _export_levels_data,
     _export_groups_data,
     _get_measurement_data,
+    _get_saved_analysis
 )
 from legacy.models.level import LevelData
 
@@ -219,3 +220,47 @@ class TestGetMeasurementData:
         finally:
             export_service.redisClient.get = originalRedis
         assert result == fake_meas
+
+
+class TestGetSAvedAnalysis:
+    def test_no_matchingSession_error(self):
+          
+        def fake_session(user_id):
+            return [{"dataset_ref": "other_upload", "created_at": "2026-01-01"}]
+    
+        originalFunc= export_service.get_sessions
+        export_service.get_sessions = fake_session
+    
+        try:
+            with pytest.raises(NotImplementedError):
+                _get_saved_analysis("u1", "m1", "user1")
+    
+    
+        finally:
+            export_service.get_sessions = originalFunc
+
+
+    def test_wrong_measID_error(self):
+              
+        wrngFake_session=[
+            {"dataset_ref": "u1", "created_at": "2026-01-01", 
+                        "results": {"levels": {"measurement_id": "different_measurement"},
+                                    "groups": {},
+                                },
+                            }
+                        ]
+        def fake_sessionList(user_id):
+            return wrngFake_session
+        
+        originalFunc= export_service.get_sessions
+        export_service.get_sessions = fake_sessionList
+    
+        try:
+            with pytest.raises(NotImplementedError):
+                _get_saved_analysis("u1", "m1", "user1")
+    
+    
+        finally:
+            export_service.get_sessions = originalFunc
+
+    
