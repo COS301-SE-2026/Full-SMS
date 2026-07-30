@@ -38,11 +38,8 @@ def lifetime_fitting(payload: LifetimeReq):
         "chi_squared": float(fit_result.chi_squared),
         "durbin_watson": float(fit_result.durbin_watson),
         "dw_bounds": list(fit_result.dw_bounds) if fit_result.dw_bounds else None,
-        
-        # THE MAGIC: .tolist() converts NumPy NDArrays to standard Python lists
         "residuals": fit_result.residuals.tolist(),
         "fitted_curve": fit_result.fitted_curve.tolist(),
-        
         "fit_start_index": int(fit_result.fit_start_index),
         "fit_end_index": int(fit_result.fit_end_index),
         "background": float(fit_result.background),
@@ -52,7 +49,7 @@ def lifetime_fitting(payload: LifetimeReq):
         "fitted_irf_fwhm_std": float(fit_result.fitted_irf_fwhm_std) if fit_result.fitted_irf_fwhm_std else None,
     }
 
-    # 3. Return the fully serialized Pydantic model
+    # fully serialized Pydantic model
     return LifetimeRes(**res_data)
 
 def fluorescence_decay(payload):
