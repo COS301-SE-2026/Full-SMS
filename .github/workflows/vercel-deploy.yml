@@ -6,10 +6,7 @@ env:
 
 on:
   push:
-    branches:
-      - main
-      - develop
-      - chore/frontend-deployment-v2
+    branches: [main, develop, chore/frontend-deployment-v2]
     paths:
       - 'frontend/**'
       - '.github/workflows/vercel-deploy.yml'
