@@ -2,9 +2,9 @@
 
 import { MenuBar } from "@/components/analysisHub/menu-bar";
 import { Sidebar } from "@/components/analysisHub/sidebar";
-import { IntensityChart } from "@/components/analysisHub/intensityTab/intensity-chart";
+import { IntensityChart } from "@/components/analysisHub/intensity-tab/intensity-chart";
 import { StatusBar } from "@/components/analysisHub/status-bar";
-import { AnalysisToolbar } from "@/components/analysisHub/intensityTab/analysis-toolbar";
+import { AnalysisToolbar } from "@/components/analysisHub/intensity-tab/analysis-toolbar";
 import { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/Modal";
 import UploadPage from "../upload/page";

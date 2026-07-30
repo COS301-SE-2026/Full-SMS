@@ -134,8 +134,8 @@ export default function GroupingCharts() {
   };
 
   return (
-    <Card className="flex flex-col w-[83vw] h-[85vh] p-2 mt-1 gap-4">
-      <div className="relative w-full h-[50%] min-w-0 min-h-0 overflow-hidden">
+    <Card className="flex flex-col w-[83vw] h-[85vh] p-2 mt-1 gap-4 font-mono">
+      <div className="relative w-full h-[50%] min-w-0 min-h-0 overflow-hidden font-mono">
         <Plot
           className="controls-above-plot"
           data={[

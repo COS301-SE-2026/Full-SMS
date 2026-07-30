@@ -76,33 +76,3 @@ def fluorescence_decay(payload):
     }
 
 
-# def lifetime_analysis(payload):
-#     upload_id = payload.upload_id
-#     measurement_id = payload.measurement_id
-    
-#     cached_data = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
-
-#     if not cached_data:
-#         cached_data = cache_fallback_service(upload_id)
-
-#     raw_data = json.loads(cached_data)
-    
-#     # 1. Extract all required variables from your raw_data dictionary
-#     microtimes = raw_data["channel1"]["microtimes"]
-#     abstimes = raw_data["channel1"]["abstimes"] # <-- Must define this!
-#     channel_width = raw_data["channelWidth"]
-    
-#     # 2. Use the extracted abstimes and the payload's bin_size_ms
-#     times_ms, counts = bin_photons(
-#         abstimes=abstimes, 
-#         bin_size_ms=payload.bin_size_ms
-#     )
-    
-#     result = fit_decay(
-#         counts=counts,
-#         t=microtimes,
-#         channelwidth=channel_width,
-#     )
-
-#     return result
-

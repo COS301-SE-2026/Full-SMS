@@ -73,6 +73,7 @@ export function Sidebar() {
                 <button
                   key={key}
                   onClick={() => setActiveTab(key)}
+                  type='button'
                   className={cn(
                     'flex items-center gap-2.5 px-3.5 py-2 text-sm transition-colors',
                     isActive

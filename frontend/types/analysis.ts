@@ -7,9 +7,6 @@
 //     intensity_cps: number;
 //     group_id: number | null; 
 // }
-
-import { boolean, number } from "yup";
-
 export interface ChangePointResult {
     measurement_id: string;
     num_change_points: number;

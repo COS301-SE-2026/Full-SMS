@@ -3,13 +3,11 @@ import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsConte
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { colors } from '@/lib/tokens'
 import { getFluorescenceDecay, getLifetimeData } from '@/services/analysisServices'
-import React, { use, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Plot from 'react-plotly.js'
-import { text } from 'stream/consumers'
 
 export default function LifetimeCharts() {
-    const [curveX, setCurveX] = useState<number[]>([])
-    const {hdf5Data, currentMeasurement, currentUpload, hdf5Metadata, bin} = useHdf5Data()
+    const { currentMeasurement, currentUpload, bin} = useHdf5Data()
     const {useLogScale, decayCounts, setDecayCounts, decayTimes, setDecayTimes, fitResult} = useAnalysisTab()
     
 
