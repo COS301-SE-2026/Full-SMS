@@ -53,11 +53,11 @@ export default function FAQPage(){
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Click the New Plugin button</li>
                                 <li className="flex items-start gap-2">
-                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Write the name of your Plugin and it's description</li>
+                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Write the name of your Plugin and it is description</li>
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Write the script of your plugin algorithm following the format provided</li>
                                  <li className="flex items-start gap-2">
-                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Select the Configuration option next to "Code" </li>
+                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Select the Configuration option next to Code </li>
                                  <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Add parameter and output types</li>
                                 <li className="flex items-start gap-2">
@@ -124,7 +124,7 @@ export default function FAQPage(){
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>Your algorithm must be a function named run(data, params)</li>
                                 <li className="flex items-start gap-2">
-                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>data as a parameter provides microtimes, abstimes, channel, metadata. Use only what's needed.</li>
+                                    <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>data as a parameter provides microtimes, abstimes, channel, metadata. Use only what is needed.</li>
                                 <li className="flex items-start gap-2">
                                     <CircleCheckBig className="w-4 h-4 text-primary mt-0.5 shrink-0"/>params holds user settings</li>
                                 <li className="flex items-start gap-2">

@@ -86,7 +86,7 @@ export default function FAQPage(){
 
                     {openQuestion === 2 && (
                         <CardContent>
-                            <p>Go to your Account's page. There will be a Password section and a Change button. 
+                            <p>Go to your Account page. There will be a Password section and a Change button. 
                                 Click that button and complete the necessary steps in order to reset your password.</p>
                         </CardContent>
                     )}
