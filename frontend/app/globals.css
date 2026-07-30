@@ -32,7 +32,10 @@
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
 
-  html { font-size: 14px; }
+  html { 
+    font-size: 14px;
+    scroll-behavior: smooth;
+  }
 
   body {
     background-color: var(--color-background);

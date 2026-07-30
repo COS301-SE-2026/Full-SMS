@@ -1,6 +1,5 @@
 from api.services.analysis_services.cache_fallback import cache_fallback_service
 from api.utils.redis_Client import redisClient
-from api.utils.supabase_client import supabaseClient
 from api.models.analysis_models import RasterScanReq
 import json
 import numpy as np

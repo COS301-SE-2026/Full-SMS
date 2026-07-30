@@ -118,7 +118,7 @@ export function MeasurementsBar({showSelectionCheckboxes= false} : MeasurementsB
             />
           )}
             <button 
-            className="flex items-center gap-1.5 px-3.5 py-1 hover:bg-card cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-1 cursor-pointer"
             onClick={()=>onClickMeasurement(i)}
             >
 

@@ -4,6 +4,8 @@ import {
   PluginsResponse,
   CreatePluginRequest,
   UpdatePluginRequest,
+  ExecutePluginRequest,
+  ExecutePluginResponse,
 } from "@/types/plugin";
 
 export const pluginService = {
@@ -95,4 +97,21 @@ export const pluginService = {
       throw new Error(message);
     }
   },
+
+  executePlugin: async (
+    pluginId: string,
+    pluginData: ExecutePluginRequest,
+  ): Promise<ExecutePluginResponse> => {
+    try {
+      const response = await axiosInstance.post<ExecutePluginResponse>(
+        `/api/py/plugins/${pluginId}/execute`,
+        pluginData,
+      );
+      return response.data;
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Failed to execute plugin";
+      throw new Error(message);
+    }
+  }
 };

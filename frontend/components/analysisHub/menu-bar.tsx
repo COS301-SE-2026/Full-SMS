@@ -9,7 +9,7 @@ import { useAnalysisTab } from "@/contexts/analysisTabsContext/AnalysisTabsConte
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import { Button } from "../ui";
 interface MenuBarProps {
-  onOpenFileUpload: () => void;
+  readonly onOpenFileUpload: () => void;
 }
 
 export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
