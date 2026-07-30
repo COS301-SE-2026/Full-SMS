@@ -15,7 +15,7 @@ export default function About() {
                 Full SMS bridges high-throughput scientific computing with modern web architecture. 
                 Designed for advanced biophysics research, the platform ingests raw TCSPC microtime datasets 
                 from HDF5 containers and executes core physics algorithms. Including Change Point Analysis (CPA), 
-                BIC-driven state clustering, multi-exponential lifetime fitting, and correlation routines—delivering interactive, 
+                BIC-driven state clustering, multi-exponential lifetime fitting, and correlation routines,delivering interactive, 
                 publication-ready visualizations in real time.
               </p>
             </div>
