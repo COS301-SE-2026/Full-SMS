@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardHeader, CardTitle, CardDescription, CardContent} from "@/components/ui/Card"
+import { Card, CardHeader, CardTitle, CardContent} from "@/components/ui/Card"
 import { MenuBar } from "@/components/analysisHub/menu-bar"
 import { useState } from "react";
 import { ChevronDown, CircleCheckBig } from "lucide-react";
