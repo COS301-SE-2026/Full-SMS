@@ -49,7 +49,7 @@ export default function ContactSupport(){
                                 successToast("Ticket sent successfully!")
                                 setMessage('')
                             }catch(error){
-                                throw error
+                                console.error("Failed to send ticket",error);
                                 errorToast("Failed to send ticket")
                             }}}
                              variant="primary" className="px-3 py-2" >
