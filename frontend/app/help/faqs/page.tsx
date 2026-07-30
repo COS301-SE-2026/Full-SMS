@@ -3,7 +3,7 @@
 import { Card, CardHeader, CardTitle, CardContent} from "@/components/ui/Card"
 import { MenuBar } from "@/components/analysisHub/menu-bar"
 import { useState } from "react";
-import { ChevronDown, CircleCheckBig } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui";
 
 export default function FAQPage(){

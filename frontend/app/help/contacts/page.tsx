@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent} from "@/components/ui/Card"
 import { Mail } from "lucide-react"
-import { Modal } from "@/components/ui/Modal";
 import { MenuBar } from "@/components/analysisHub/menu-bar"
 import { useState } from "react";
 import { useAuth } from "@/contexts/authContext/AuthContext";
@@ -50,6 +49,7 @@ export default function ContactSupport(){
                                 successToast("Ticket sent successfully!")
                                 setMessage('')
                             }catch(error){
+                                throw error
                                 errorToast("Failed to send ticket")
                             }}}
                              variant="primary" className="px-3 py-2" >
