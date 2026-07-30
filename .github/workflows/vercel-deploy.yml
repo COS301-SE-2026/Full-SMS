@@ -18,6 +18,13 @@ jobs:
   deploy-staging:
     if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/chore/frontend-deployment-v2'
     runs-on: ubuntu-latest
+    env:
+      VERCEL_GIT_PROVIDER: github
+      VERCEL_GIT_COMMIT_REF: ${{ github.ref_name }}
+      VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+      VERCEL_GIT_COMMIT_AUTHOR_LOGIN: ${{ github.actor }}
+      VERCEL_GIT_REPO_OWNER: ${{ github.repository_owner }}
+      VERCEL_GIT_REPO_SLUG: ${{ github.event.repository.name }}
     defaults:
       run:
         working-directory: ./frontend
@@ -54,6 +61,13 @@ jobs:
   deploy-production:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    env:
+      VERCEL_GIT_PROVIDER: github
+      VERCEL_GIT_COMMIT_REF: ${{ github.ref_name }}
+      VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
+      VERCEL_GIT_COMMIT_AUTHOR_LOGIN: ${{ github.actor }}
+      VERCEL_GIT_REPO_OWNER: ${{ github.repository_owner }}
+      VERCEL_GIT_REPO_SLUG: ${{ github.event.repository.name }}
     defaults:
       run:
         working-directory: ./frontend
