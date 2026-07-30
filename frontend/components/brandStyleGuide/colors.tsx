@@ -56,7 +56,7 @@ export default function Colors() {
                     paletteItems.map((item)=>(
                         <Card className='flex flex-col' key={item.name}>
                             <CardContent>
-                                <div className={`bg-${(item.class).toLowerCase()} rounded-md h-24 w-full border border-border`}></div>
+                                <div className={`bg-${(item.class).toLowerCase()} rounded-md h-24 w-full border border-border z-10`}></div>
                                 <p>{item.name}</p>
                                 <p>{item.hex}</p>
                                 <p className={`text-${item.class}`}>bg-{item.class}</p>

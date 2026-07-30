@@ -31,6 +31,12 @@ const navItems = [
     },
     {
         "name": "LOGOS AND ICONS"
+    },
+    {
+        "name":"VOICE AND TONE"
+    },
+    {
+        "name":"CHANGE LOG"
     }
 ]
 

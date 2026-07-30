@@ -70,7 +70,7 @@ export default function WorkspacePage() {
                     </div>
                         {(!uploads || uploads.length === 0) ? (
                             <div>
-                            <p>Such empty. Upload a file to get started</p>
+                            <p>No workspaces yet. Create your first workspace to begin uploading and analyzing data.</p>
                             </div>
                         ) : (
                         uploads.map((upload, index) => (
