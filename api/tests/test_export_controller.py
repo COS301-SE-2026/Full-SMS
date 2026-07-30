@@ -134,6 +134,24 @@ def test_successful_export_returnResponse(tmp_path):
     assert response.filename == "out.csv"
 
 
+def test_plot_only_selectionIsValid(tmp_path):
+    fakefile = tmp_path/ "plot.png"
+    fakefile.write_text("data")
+    
+    
+    def fake_export_plot(request, user_id):
+        return fakefile, "plot.png"
 
+    originalFunc= export_controller.export_service.export_data
+    export_controller.export_service.export_data = fake_export_plot
 
+    try:
+        request = make_request(plot_intensity=True)
 
+        background_tasks = BackgroundTasks()
+        response = handle_export(request, background_tasks, "user1")
+
+    finally:
+        export_controller.export_service.export_data = originalFunc
+
+    assert response is not None
