@@ -244,11 +244,11 @@ class TestGetSAvedAnalysis:
               
         wrngFake_session=[
             {"dataset_ref": "u1", "created_at": "2026-01-01", 
-                        "results": {"levels": {"measurement_id": "different_measurement"},
-                                    "groups": {},
-                                },
-                            }
-                        ]
+                "results": {"levels": {"measurement_id": "different_measurement"},
+                "groups": {},
+                },
+            }
+        ]
         def fake_sessionList(user_id):
             return wrngFake_session
         
@@ -263,4 +263,38 @@ class TestGetSAvedAnalysis:
         finally:
             export_service.get_sessions = originalFunc
 
-    
+
+
+
+    def test_latestMatching_session_returned(self):
+                
+            oldTOnew_Fake_session=[
+                {"dataset_ref": "u1", "created_at": "2026-01-01", 
+                    "results": {"levels": {"measurement_id": "m1", "data": "old",},
+                    "groups": {"data": "old_groups",},
+                    },
+                },
+                {"dataset_ref": "u1", "created_at": "2026-06-01", 
+                    "results": {"levels": {"measurement_id": "m1", "data": "new",},
+                    "groups": {"data": "new_groups"},
+                    },
+                },                
+            ]
+            def fake_sessionList(user_id):
+                return oldTOnew_Fake_session
+            
+            originalFunc= export_service.get_sessions
+            export_service.get_sessions = fake_sessionList
+        
+            try:
+                result = _get_saved_analysis("u1", "m1", "user1")
+        
+        
+            finally:
+                export_service.get_sessions = originalFunc
+
+            assert result["levels"]["data"] == "new"
+            assert result["groups"]["data"] == "new_groups"
+
+
+        
