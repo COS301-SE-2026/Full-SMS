@@ -29,3 +29,23 @@ def test_routeReject_unselected_category():
         },
     )
     assert response.status_code == 400
+
+
+def test_routeReject_noMeasurement_selected():
+    response = client.post(
+        EXPORT_URL,
+        json={
+            "upload_id": "u1",
+            "selections": [], 
+            "export_intensity": True,
+            "export_levels": False,
+            "export_groups": False,
+            "plot_intensity": False,
+            "plot_bic": False,
+            "format": "csv",
+            "plot_format": "png",
+            "plot_dpi": 150,
+            "bin_size_ms": 10,
+        },
+    )
+    assert response.status_code == 400
