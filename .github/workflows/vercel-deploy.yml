@@ -9,6 +9,7 @@ on:
     branches:
       - main
       - develop
+      - chore/frontend-deployment-v2
     paths:
       - 'frontend/**'
       - '.github/workflows/vercel-deploy.yml'
