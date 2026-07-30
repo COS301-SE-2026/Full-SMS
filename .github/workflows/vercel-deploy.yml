@@ -12,11 +12,11 @@ on:
       - '.github/workflows/vercel-deploy.yml'
 
 jobs:
-  # ==========================================
-  # STAGING DEPLOYMENT (develop branch)
+# ==========================================
+  # STAGING DEPLOYMENT (develop & feature branch)
   # ==========================================
   deploy-staging:
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/chore/frontend-deployment-v2'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -43,7 +43,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: vercel build --token=$VERCEL_TOKEN
 
-      - name: Deploy to Vercel (Staging)
+      - name: Deploy to Vercel (Staging/Preview)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: vercel deploy --prebuilt --token=$VERCEL_TOKEN
