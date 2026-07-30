@@ -83,17 +83,20 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@51.8.0 --ignore-scripts
 
-      - name: Pull Vercel Environment Information (Production)
+      - name: Pull Vercel Environment Information (Preview)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+        run: vercel pull --yes --environment=preview --token=$VERCEL_TOKEN
 
       - name: Build Project Artifacts
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel build --prod --token=$VERCEL_TOKEN
+        run: vercel build --token=$VERCEL_TOKEN
 
-      - name: Deploy to Vercel (Production)
+      - name: Deploy to Vercel (Staging/Preview)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
+        # Explicitly omitting --prod should create a preview deployment
+        run: vercel deploy --prebuilt --token=$VERCEL_TOKEN
+
+        
