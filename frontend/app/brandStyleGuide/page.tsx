@@ -18,10 +18,10 @@ import React from "react"
 export default function BrandStyleGuide() {
     const {activeTab} = useBrandStyle()
   return (
-        <div className="grid h-screen place-items-center mx-40 ">
+        <div className="grid h-screen place-items-center mx-50 ">
             <div >
                 <span className="font-mono text-primary">Full SMS</span>
-                <h1 className="">Design System</h1>
+                <h1 className="">Brand Style Guide</h1>
                 <p>Usage guide for styles, tokens and UI Components</p>
                 <TabNav/>
                 {

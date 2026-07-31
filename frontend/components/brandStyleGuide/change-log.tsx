@@ -9,15 +9,15 @@ export default function Changelog() {
         Explicit breakdown of design and system changes made between Demo 1 and Demo 2.
       </p>
 
-      <p className="mt-8">Format & Delivery</p>
+      <p className="mt-8">Format</p>
       <Card>
         <CardContent className="bg-background/90 p-6">
            <ul className="list-disc pl-5 space-y-2 text-foreground">
             <li>
-              <strong>Change:</strong> Transitioned from a static PDF document to a living, interactive web page deployed alongside the Full SMS Next.js application.
+              <strong>Change:</strong>The once static brad style guide pdf is now a live page in the Full SMS frontend.
             </li>
             <li>
-              <strong>Why?</strong> A deployed design system ensures the style guide remains the single source of truth, allows for real-time interaction with UI components, and prevents drift from the actual production environment.
+              <strong>Why?</strong> A deployed design system easier access to brang guidelines for developers working on Full SMS.
             </li>
           </ul>
         </CardContent>
@@ -28,10 +28,10 @@ export default function Changelog() {
         <CardContent className="bg-background/90 p-6">
            <ul className="list-disc pl-5 space-y-2 text-foreground">
             <li>
-              <strong>Change:</strong> Added comprehensive visual specifications for functional application components including Cards, Modals, and Loaders.
+              <strong>Change:</strong> Added visual specifications for components including Cards, Modals, and Loaders.
             </li>
             <li>
-              <strong>Why?</strong> As the system progressed from wireframes to a fully functional implementation, new standardized components were required to handle complex interactions like data uploads, analytical rendering, and workspace management.
+              <strong>Why?</strong> As the system progressed from wireframes to a fully functional implementation, new standardized components were required to <br/>handle more intricate interactions.
             </li>
           </ul>
         </CardContent>
