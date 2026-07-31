@@ -1,10 +1,11 @@
 from dataclasses import asdict
 from celery.result import AsyncResult
 from fastapi import HTTPException
-from api.models.analysis_models import ClusteringReq, CpaReq, IntensityReq, IntensityRes, RasterScanReq
+from api.models.analysis_models import ClusteringReq, CpaReq, IntensityReq, IntensityRes, RasterScanReq, LifetimeReq
 from api.services.analysis_services.clustering_job_service import clustering_job
 from api.services.analysis_services.intensity import intensity_analysis
 from api.services.analysis_services.change_point_analysis import resolve_current_measurement
+from api.services.analysis_services.lifetime import fluorescence_decay, lifetime_fitting
 from api.services.analysis_services.raster_scan import get_raster_scan_data
 from api.services.analysis_services.spectra import get_spectra_data
 
@@ -69,6 +70,7 @@ def get_clustering_job_status(task_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+##spectra
 def get_spectra_data_controller(req):
     """
     returns spectral data for the plotting of the spectral trace
@@ -76,5 +78,25 @@ def get_spectra_data_controller(req):
     try:
         response = get_spectra_data(req)
         return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+##lifetime
+def get_lifetime_controller(req: LifetimeReq):
+    try:
+        response = lifetime_fitting(req)
+        return response
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+def get_decay_controller(req):
+    try:
+        print(f"{req}")
+        response = fluorescence_decay(req)
+        return response
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

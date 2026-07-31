@@ -41,6 +41,7 @@ Full SMS is a professional single-molecule spectroscopy (SMS) data analysis appl
 - [Brand Style Guide](./docs/demo2/d2-BrandStyleGuide.pdf)
 - [User Manual](./docs/demo2/User%20Manual.pdf)
 
+- [Testing Policy](docs/testing-policy.md)
 
 ## Team Members
 
@@ -71,6 +72,7 @@ Full SMS is a professional single-molecule spectroscopy (SMS) data analysis appl
 **Profile:** Final-year BSc IKS student at the University of Pretoria with a unique blend of creative and technical skills. I specialize in building user-centric software, combining a strong passion for UX/UI design with proficient backend development to deliver functional, high-quality digital experiences.
 
 [LinkedIn Profile](www.linkedin.com/in/carlos-juma-506ab31b3)
+
 
 
 ## Getting Started

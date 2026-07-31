@@ -2,8 +2,6 @@ import axiosInstance from "@/lib/api/axiosInstance";
 import { InitUploadResponse } from "@/types/hdf5";
 
 
-
-
 export const computeSHA256 = async(hdf5_file: File): Promise<string>=>{
   const array = await hdf5_file.arrayBuffer();
   const checksumBuffer = await window.crypto.subtle.digest("SHA-256", array);
@@ -57,33 +55,3 @@ export const getUserHdf5Uploads = async () =>{
   const {data}  = await axiosInstance.get(`api/py/hdf5/user-uploads`);
   return data;
 }
-
-// export const uploadFile = async (
-//   file: File,
-//   onProgress?: (pct: number) => void
-// ) => {
-//   const formData = new FormData();
-//   formData.append("file", file);
-
-//   const response = await axiosInstance.post("/api/py/upload/", formData, {
-//     headers: { "Content-Type": "multipart/form-data" },
-//     onUploadProgress: (evt) => {
-//       if (!evt.total) return;
-//       const pct = Math.round((evt.loaded / evt.total) * 100);
-//       onProgress?.(pct);
-//     },
-//   });
-
-//   return response.data;
-// };
-
-// export const readHdf5 = async (file: File) => {
-//   const formData = new FormData();
-//   formData.append("file", file);
-
-//   const response = await axiosInstance.post("/api/py/hdf5/read", formData, {
-//     headers: { "Content-Type": "multipart/form-data" },
-//   });
-
-//   return response.data;
-// };

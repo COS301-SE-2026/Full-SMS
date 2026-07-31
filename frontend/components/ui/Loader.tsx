@@ -23,7 +23,7 @@ const sizes = {
   lg: 'w-11 h-11 border-[3px]',
 }
 
-export const Loader = ({ size = 'md', label = 'Loading...', centered, className , variant = "default"}: LoaderProps) => (
+export const Loader = ({ size = 'md', label = '', centered, className , variant = "default"}: LoaderProps) => (
   <div
     className={cn(
       'inline-flex items-center justify-center',
@@ -39,7 +39,7 @@ export const Loader = ({ size = 'md', label = 'Loading...', centered, className 
         sizes[size],
         variants[variant]
       )}
-    />
+    /><p className='ml-2 text-center'>{label}</p>
   </div>
 )
 

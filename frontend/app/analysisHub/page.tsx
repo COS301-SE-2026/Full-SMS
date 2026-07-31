@@ -2,9 +2,9 @@
 
 import { MenuBar } from "@/components/analysisHub/menu-bar";
 import { Sidebar } from "@/components/analysisHub/sidebar";
-import { IntensityChart } from "@/components/analysisHub/intensityTab/intensity-chart";
+import { IntensityChart } from "@/components/analysisHub/intensity-tab/intensity-chart";
 import { StatusBar } from "@/components/analysisHub/status-bar";
-import { AnalysisToolbar } from "@/components/analysisHub/intensityTab/analysis-toolbar";
+import { AnalysisToolbar } from "@/components/analysisHub/intensity-tab/analysis-toolbar";
 import { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/Modal";
 import UploadPage from "../upload/page";
@@ -13,14 +13,16 @@ import GroupingTab from "@/components/analysisHub/grouping-tab/grouping-tab";
 import RasterTab from "@/components/analysisHub/raster-tab/raster-tab";
 import SpectraMap from "@/components/analysisHub/spectra-tab/spectra-map";
 import PluginTab from "@/components/analysisHub/plugin-tab/PluginTab";
+import LifetimeTab from '@/components/analysisHub/lifetime-tab/lifetime-tab';
+import FittingDialog from '@/components/analysisHub/lifetime-tab/fitting-dialog'; 
 import { pluginService } from "@/services/pluginServices";
 import { Plugin } from "@/types/plugin";
 import ExportPanel from "@/components/analysisHub/export-tab/export-tab-panel";
-import { Card } from '@/components/ui'
+import { Card } from '@/components/ui';
 
 export default function App() {
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
-  const { activeTab } = useAnalysisTab();
+  const { activeTab, fittingDialogOpen, setFittingDialogOpen } = useAnalysisTab();
   const [currentPlugin, setCurrentPlugin] = useState<Plugin | null>(null);
 
   const isPluginTab = activeTab.startsWith("plugin:");
@@ -54,17 +56,25 @@ export default function App() {
   return (
     <div className="size-full flex flex-col bg-background text-foreground h-screen">
       <MenuBar onOpenFileUpload={() => setFileUploadModalOpen(true)} />
+      
       <Modal
         open={fileUploadModalOpen}
         onClose={() => setFileUploadModalOpen(false)}
       >
         <UploadPage />
       </Modal>
-          <Card className='inline-flex md: hidden'>
-          Please use analysis hub from the desktop version.
-        </Card>
-      <div className="flex flex-1 min-h-0 hidden md:inline-flex">
+
+      <Modal open={fittingDialogOpen} onClose={() => setFittingDialogOpen(false)}>
+        <FittingDialog />
+      </Modal>
+
+      <Card className="inline-flex md:hidden m-4 p-5 border-destructive text-center">
+        Please use analysis hub from the desktop version.
+      </Card>
+
+      <div className="hidden md:flex flex-1 min-h-0">
         <Sidebar />
+        
         {activeTab === "intensity" && (
           <div className="flex flex-col flex-1 min-w-0">
             <AnalysisToolbar />
@@ -73,6 +83,7 @@ export default function App() {
             </div>
           </div>
         )}
+
         {activeTab === "grouping" && (
           <div className="flex flex-col flex-1 min-w-0">
             <div className="flex flex-1 gap-3 p-3 min-h-0">
@@ -80,6 +91,7 @@ export default function App() {
             </div>
           </div>
         )}
+
         {activeTab === "raster" && (
           <div className="flex flex-col flex-1 min-w-0">
             <div className="flex flex-1 gap-3 p-3 min-h-0">
@@ -87,10 +99,19 @@ export default function App() {
             </div>
           </div>
         )}
+
         {activeTab === "spectra" && (
           <div className="flex flex-col flex-1 min-w-0">
             <div className="flex flex-1 gap-3 p-3 min-h-0">
               <SpectraMap />
+            </div>
+          </div>
+        )}
+
+        {activeTab === "lifetime" && (
+          <div className="flex flex-col flex-1 min-w-0">
+            <div className="flex flex-1 gap-3 p-3 min-h-0">
+              <LifetimeTab />
             </div>
           </div>
         )}
@@ -116,6 +137,7 @@ export default function App() {
             </div>
           </div>
         )}
+
         {activeTab === "export" && (
           <div className="flex flex-col flex-1 min-w-0">
             <div className="flex flex-1 gap-3 p-3 min-h-0">
