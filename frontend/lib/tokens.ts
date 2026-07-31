@@ -1,4 +1,4 @@
-// Use these when you need raw values in JS — e.g. Chart.js, D3, canvas.
+// Use these when you need raw values in JS :e.g. Chart.js, D3, canvas.
 // For everything else, use Tailwind classes.
 
 export const colors = {

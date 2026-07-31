@@ -1,8 +1,12 @@
 import { Public_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/contexts/authContext/AuthContext";
 import ClientLayout from "@/components/auth/ClientLayout";
-import { Hdf5DataProvider } from "@/contexts/Hdf5DataContext";
+import { AuthProvider } from "@/contexts/authContext/AuthContext";
+import { ToastProvider } from "@/contexts/toastContext/ToastContext";
+import { Hdf5DataProvider } from "@/contexts/hdf5Context/Hdf5DataContext";
+import { AnalysisTabProvider } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
+import { BrandStyleProvider } from "@/contexts/brandStyleContext/brandStyleContext";
+import { SessionDataProvider } from "@/contexts/sessionsContext/sessionContext";
 
 const publicSans = Public_Sans({
   subsets: ["latin"],
@@ -28,12 +32,20 @@ export default function RootLayout({
       lang="en"
       className={`${publicSans.variable} ${jetbrainsMono.variable}`}
     >
-      <body>
-        <AuthProvider>
-          <Hdf5DataProvider>
-            <ClientLayout>{children}</ClientLayout>
-          </Hdf5DataProvider>
-        </AuthProvider>
+      <body >
+        <ToastProvider>
+          <BrandStyleProvider>
+            <AuthProvider>
+              <Hdf5DataProvider>
+                <AnalysisTabProvider>
+                  <SessionDataProvider>
+                    <ClientLayout>{children}</ClientLayout>
+                  </SessionDataProvider>
+                </AnalysisTabProvider>
+              </Hdf5DataProvider>
+            </AuthProvider>
+          </BrandStyleProvider>
+        </ToastProvider>
       </body>
     </html>
   );

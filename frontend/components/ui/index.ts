@@ -13,4 +13,7 @@ export type { BadgeProps } from './Badge'
 export { Loader } from './Loader'
 export type { LoaderProps } from './Loader'
 
+export { Checkbox } from './checkbox'
+export type { CheckboxProps } from './checkbox'
+
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card'

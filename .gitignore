@@ -39,6 +39,7 @@ out/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*
 
 # IDEs
 .vscode/
@@ -72,3 +73,6 @@ response.txt
 
 #temp files
 api/tmp/*
+.venv/
+venv/
+ENV/

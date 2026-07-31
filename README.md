@@ -36,7 +36,7 @@ Full SMS is a professional single-molecule spectroscopy (SMS) data analysis appl
 
 - [Software Requirements Specification (SRS)](./docs/SRS.pdf)
 - [Project Board](https://github.com/orgs/COS301-SE-2026/projects/57)
-
+- [Testing Policy](docs/testing-policy.md)
 
 ## Team Members
 
@@ -68,15 +68,7 @@ Full SMS is a professional single-molecule spectroscopy (SMS) data analysis appl
 
 [LinkedIn Profile](www.linkedin.com/in/carlos-juma-506ab31b3)
 
-### Thabo Seripe
-**Role:** Software developer
 
-**Profile:** I am a multimedia student at the University of Pretoria with
-a strong interest in game development and interactive design.
-I enjoy combining creativity and technology to build engaging
-digital experiences.
-
-[LinkedIn Profile](www.linkedin.com/in/thabo-seripe-9080703ba)
 
 ## Getting Started
 

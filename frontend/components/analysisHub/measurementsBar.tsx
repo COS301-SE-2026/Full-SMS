@@ -1,113 +1,146 @@
 'use client';
 
 
-import {  ChevronDown,
-  ChevronRight,
-  FileText,
-  Radio,
-} from 'lucide-react';
-import { useMemo, useState } from 'react'
+import {FileText} from 'lucide-react';
+import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils';
-import { Measurement } from '@/types/hdf5';
-import { useHdf5Data } from '@/contexts/Hdf5DataContext'
+import { UploadMetadata, UploadResultRecord } from '@/types/hdf5';
+import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
+import { getHdf5UploadResult } from '@/services/hdf5services';
+import { Intensity_Req } from '@/types/analysis';
+import { intensityAnalysis } from '@/services/analysisServices';
+import { Button, Checkbox} from '@/components/ui';
 
-export function MeasurementsBar() {
-  const { hdf5Data } = useHdf5Data()
-  const [state, setState] = useState<Record<string, { checked: boolean; expanded: boolean }>>({})
-  const baseMeasurements = useMemo(() => {
-    if (!hdf5Data) return []
-    return hdf5Data.measurements.map((x) => ({
-      name: x.name,
-      channels: x.channelWidth > 1
-        ? Array.from({ length: x.channelWidth }, (_, i) => `Channel ${i + 1}`)
-        : undefined,
-    }))
-  }, [hdf5Data])
+export interface Measurement{
+name: string
+checked?:boolean
+}
 
-  const measurements: Measurement[] = useMemo(() => {
-    return baseMeasurements.map((m) => ({
-      ...m,
-      checked: state[m.name]?.checked ?? false,
-      expanded: state[m.name]?.expanded ?? false,
-    }))
-  }, [baseMeasurements, state])
+export interface MeasurementsBarProps {
+  readonly showSelectionCheckboxes?: boolean
+}
 
-  console.log("MeasurementsBar - measurements:", measurements)
+export function MeasurementsBar({showSelectionCheckboxes= false} : MeasurementsBarProps) {
+  const [num_measurements, setNum_measurements] = useState<number>(0)
+  const {currentMeasurement, setCurrentMeasurement, currentUpload, setHdf5Data, setHdf5Metadata, bin, selectedMeasurements, toggleSelectedmeasurement, selectAllmeasurements, clearSelectedMeasurements,} = useHdf5Data();
+  const fetchUploadResult = async ()=>{
+      if(currentUpload){
+        console.log("CURRENT UPLOAD:", currentUpload);
+        const response: UploadResultRecord = await getHdf5UploadResult(currentUpload)
+        return response}
 
-  const toggleCheck = (i: number) => {
-    const name = measurements[i]?.name
-    if (!name) return
-    setState((prev) => ({
-      ...prev,
-      [name]: { checked: !prev[name]?.checked, expanded: prev[name]?.expanded ?? false },
-    }))
+    }
+  
+  const fetchIntensityTrace= async ()=>{
+      if(currentUpload){
+        const request: Intensity_Req ={
+        upload_id:currentUpload,
+        measurement_id:currentMeasurement,
+        bin_size_ms: Number(bin),
+      }
+      const response = await intensityAnalysis(request)
+      setHdf5Data(response)
+      }
+
+    }
+  
+  
+    useEffect(()=>{
+      fetchIntensityTrace()
+      },[currentMeasurement, bin, currentUpload]);
+
+    useEffect(()=>{
+      const loadData = async () => {
+        try {
+          const record = await fetchUploadResult();
+          if(record){
+          const metadata: UploadMetadata = record.metadata_json;
+          setNum_measurements(metadata.num_measurements);
+          setHdf5Metadata(metadata);
+          }
+        } catch (error) {
+          console.error("Failed to fetch or parse upload result:", error);
+        }
+      };
+  
+      loadData();
+    },[currentUpload])
+
+    
+
+  const measurements: Measurement[] = []
+  
+  for(let i: number =1; i <= num_measurements; i++){
+    const element:Measurement ={name: `Measurement ${i}`,checked:i==1}
+    measurements.push(element)
   }
 
-  const toggleExpand = (i: number) => {
-    const name = measurements[i]?.name
-    if (!name) return
-    setState((prev) => ({
-      ...prev,
-      [name]: { checked: prev[name]?.checked ?? false, expanded: !prev[name]?.expanded },
-    }))
-  }
 
+
+  const onClickMeasurement = (id: number) => {
+    setCurrentMeasurement((id+1).toString())
+  }
 
   return (
     <div className="flex flex-col border-t border-border overflow-hidden">
       <div className="mt-3 px-3.5 flex items-center justify-between">
         <span className="text-xs text-foreground/60 tracking-wider">MEASUREMENTS</span>
-        <button className="text-xs text-foreground/60 hover:text-primary">All</button>
+        
+        {showSelectionCheckboxes && (
+        <div className='flex items-center gap-1'>
+          <Button variant="ghost" size="sm" 
+          disabled={num_measurements === 0}
+            onClick={() => selectAllmeasurements(num_measurements)}>
+            All
+          </Button>
+          <Button variant="ghost" size="sm"
+           disabled={num_measurements === 0}
+           onClick={clearSelectedMeasurements}>
+            Clear
+          </Button>
+        </div>
+      )}
       </div>
-
+    
       <div className="flex flex-col mt-1 overflow-y-auto flex-1">
-        {measurements.map((m, i) => (
-          <div key={m.name}>
-            <div className="flex items-center gap-1.5 px-3.5 py-1 hover:bg-card cursor-pointer">
-              {m.channels ? (
-                <button
-                  onClick={() => toggleExpand(i)}
-                  className="text-foreground/60 hover:text-foreground"
-                >
-                  {m.expanded ? (
-                    <ChevronDown size={12} />
-                  ) : (
-                    <ChevronRight size={12} />
-                  )}
-                </button>
-              ) : (
-                <span className="w-3" />
-              )}
-              <input
-                type="checkbox"
-                checked={m.checked}
-                onChange={() => toggleCheck(i)}
-                className="accent-primary w-3 h-3"
-              />
+        {measurements.map((m, i) =>{
+          const measurementID= (i+1).toString()
+          const currentM = measurementID === currentMeasurement
+          const MultiSelected = selectedMeasurements.has(measurementID)
+        
+        
+         return(
+          <div key={m.name} className={cn("flex items-center gap-1.5 px-3.5 py-1", currentM ? "bg-card" : "")}>
+            {showSelectionCheckboxes && (
+            <Checkbox checked={MultiSelected}
+              onCheckedChange={()=> toggleSelectedmeasurement(measurementID)}
+              onClick={(e) => e.stopPropagation()} 
+            />
+          )}
+            <button 
+            className="flex items-center gap-1.5 px-3.5 py-1 cursor-pointer"
+            onClick={()=>onClickMeasurement(i)}
+            >
+
               <FileText size={12} className="text-foreground/70" />
               <span
                 className={cn(
                   'text-xs truncate',
-                  m.checked ? 'text-primary' : 'text-foreground'
+                  currentM ? 'text-primary' : 'text-foreground'
                 )}
               >
                 {m.name}
               </span>
-            </div>
-            {m.expanded &&
-              m.channels?.map((c) => (
-                <div
-                  key={c}
-                  className="flex items-center gap-1.5 pl-9 pr-3.5 py-1 hover:bg-card cursor-pointer"
-                >
-                  <Radio size={12} className="text-foreground/70" />
-                  <span className="text-xs text-foreground flex-1">{c}</span>
-                  <span className="text-xs text-foreground/40">L</span>
-                </div>
-              ))}
+            </button>
           </div>
-        ))}
+        )}
+        )}
       </div>
+      {num_measurements>0 && (
+      <p className="px-3.5 py-1.5 text-[11px] text-foreground/50">
+        {selectedMeasurements.size} selected
+      </p>
+      )}
     </div>
   )
 }
