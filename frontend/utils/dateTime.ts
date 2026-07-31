@@ -1,11 +1,19 @@
-export const formatDate = (dateString: string) => {
+export function formatDate(dateString: string, includeTime = false): string {
   const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
+
+  const options: Intl.DateTimeFormatOptions = {
     year: "numeric",
     month: "short",
     day: "numeric",
-  });
-};
+  };
+
+  if (includeTime) {
+    options.hour = "numeric";
+    options.minute = "2-digit";
+  }
+
+  return date.toLocaleString("en-US", options);
+}
 
 export const formatRelativeTime = (dateString: string) => {
   const date = new Date(dateString);

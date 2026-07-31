@@ -49,6 +49,12 @@ interface Hdf5DataContextType {
   setCurrentUploadName: (name: string)=>void
   heatMapColor: string
   setHeatMapColor: (colour: string) =>void
+  selectedMeasurements: Set<string>
+  toggleSelectedmeasurement: (measurement_id: string) => void
+  selectAllmeasurements: (total: number) => void
+  clearSelectedMeasurements: () => void 
+  spectraHeatMapColor: string,
+  setSpectraHeatMapColor: (colour: string)=> void
 }
 
 const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(undefined)
@@ -75,11 +81,40 @@ export function Hdf5DataProvider({ children }: { readonly children: ReactNode })
   const [groupingData, setGroupingData] = useState<ClusteringRes>()
   const [currentUploadName, setCurrentUploadName] = useState<string>("")
   const [ heatMapColor, setHeatMapColor] = useState<string>("")
+  const [spectraHeatMapColor, setSpectraHeatMapColor] = useState<string>("")
   const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string | null>(()=>{
     if(typeof window !=='undefined')
         return localStorage.getItem("currentWorkspaceId") || null
     return null
   }) ///the id of the current workspace so the uploads associated with that workspace are fetched, or to associate a new upload with the current workspace
+
+  const [selectedMeasurements, setSelectedMeasurements] = useState<Set<string>>(new Set())
+  
+  function toggleSelectedmeasurement(measurement_id: string) { //clicking checkbxs
+    setSelectedMeasurements((previous) => {
+      const next = new Set(previous)
+      if (next.has(measurement_id)) {
+        next.delete(measurement_id)
+      } else {
+        next.add(measurement_id)
+      }
+      return next
+      
+    })
+  }
+
+  function selectAllmeasurements(total: number) {
+    const all = new Set<string>()
+    for (let i = 1; i <= total; i++) {
+      all.add(i.toString())
+    }
+    setSelectedMeasurements(all)
+  }
+
+  function clearSelectedMeasurements() {
+    setSelectedMeasurements(new Set())
+  }
+
 
   useEffect(() => {
     if (currentWorkspaceId) {
@@ -129,8 +164,16 @@ export function Hdf5DataProvider({ children }: { readonly children: ReactNode })
     currentUploadName,
     setCurrentUploadName,
     heatMapColor,
-    setHeatMapColor
-  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin, confidence,cpaData, currentWorkspaceId, groupingData, currentUploadName, heatMapColor])
+    setHeatMapColor,
+    selectedMeasurements,
+    toggleSelectedmeasurement,
+    selectAllmeasurements,
+    clearSelectedMeasurements,
+    spectraHeatMapColor,
+    setSpectraHeatMapColor
+  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin, confidence,cpaData, currentWorkspaceId, groupingData, currentUploadName, heatMapColor, selectedMeasurements, spectraHeatMapColor])
+
+
   
   return (
     <Hdf5DataContext.Provider value={contextValue}>

@@ -42,16 +42,7 @@ export interface Plugin {
   created_at: string;
   updated_at: string;
 }
-export interface PluginResult {
-  id: string;
-  plugin_id: string;
-  workspace_id: string;
-  measurement_id: string;
-  parameters: Record<string, unknown>;
-  results: Record<string, any>;
-  created_at: string;
-  updated_at: string;
-}
+
 export interface PlotData {
   x: number[];
   y: number[];
@@ -98,25 +89,6 @@ export interface PluginsResponse {
   message?: string;
 }
 
-export interface SavePluginResultRequest {
-  workspace_id: string;
-  plugin_id: string;
-  measurement_id: string;
-  parameters: Record<string, unknown>;
-  results: Record<string, any>;
-}
-
-export interface PluginResultResponse {
-  success: boolean;
-  result: PluginResult;
-  message?: string;
-}
-
-export interface PluginManagerModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
 export interface PluginEditorProps {
   plugin?: Plugin;
   onSave: (plugin: CreatePluginRequest) => Promise<void>;
@@ -125,8 +97,6 @@ export interface PluginEditorProps {
 
 export interface PluginTabProps {
   plugin: Plugin;
-  measurement_data: MeasurementData;
-  workspace_id: string;
 }
 
 export interface ParameterFormProps {
@@ -140,17 +110,11 @@ export interface ResultsRendererProps {
   results: Record<string, unknown>;
 }
 
-export interface MeasurementData {
-  micortimes: number[];
-  abstimes: number[];
-  channel: number;
-  metaData: Record<string, unknown>;
-}
-
 export interface PluginExecutionState {
   status: "idle" | "loading" | "running" | "success" | "error";
-  errorMessage?: string;
+  error?: string;
   results?: Record<string, unknown>;
+  isPreviousResult?: boolean;
 }
 
 export const OUTPUT_TYPE_OPTIONS: Array<{
@@ -204,3 +168,19 @@ export interface TableData {
   title?: string;
 }
 export type ValueData = string | number | boolean;
+
+export interface ExecutePluginRequest {
+  parameters: Record<string, unknown>;
+  workspace_id?: string;
+  measurement_id?: string;
+  upload_id?: string;
+}
+
+export interface ExecutePluginResponse {
+  success: boolean;
+  execution_id?: string;
+  results?: Record<string, unknown>;
+  execution_time?: number;
+  message?: string;
+  error?: string;
+}

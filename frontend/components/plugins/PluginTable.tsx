@@ -12,6 +12,7 @@ import {
   Code,
 } from "lucide-react";
 import { useState } from "react";
+import { formatDate } from "@/utils/dateTime";
 
 interface PluginTableProps {
   plugins: Plugin[];
@@ -27,15 +28,6 @@ export default function PluginTable({
   onDelete,
 }: PluginTableProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
 
   const handleMenuToggle = (pluginId: string) => {
     setOpenMenuId(openMenuId === pluginId ? null : pluginId);

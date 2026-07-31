@@ -7,6 +7,7 @@ export default function RasterToolbar() {
 
     return (
     <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
+    <h3 className="text-foreground">Raster</h3>
     <div className="flex items-center gap-2">
         <label className="text-xs text-foreground/70 whitespace-nowrap">Colormap</label>
             <select
