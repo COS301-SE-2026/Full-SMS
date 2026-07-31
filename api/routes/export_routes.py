@@ -8,4 +8,4 @@ router = APIRouter(prefix= "/export", tags=["export"])
 
 @router.post("/")
 async def export_data(request: ExportRequest, background_tasks: BackgroundTasks, current_user: Annotated[dict, Depends(get_current_user)]):
-    return await handle_export(request, background_tasks, current_user["user"]["id"])
+    return  handle_export(request, background_tasks, current_user["user"]["id"])

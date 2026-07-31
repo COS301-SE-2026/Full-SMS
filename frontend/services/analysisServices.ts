@@ -29,3 +29,13 @@ export const getSpectraData = async (payload: any) =>{
     const {data} = await axiosInstance.post('api/py/analysis/spectra', payload)
     return data
 }
+
+export const getLifetimeData = async (payload: any) =>{
+    const {data} = await axiosInstance.post('api/py/analysis/lifetime/fit', payload)
+    return data
+}
+
+export const getFluorescenceDecay = async (payload: any) =>{
+    const {data}= await axiosInstance.post('api/py/analysis/lifetime', payload)
+    return data
+}

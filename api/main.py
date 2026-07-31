@@ -17,6 +17,7 @@ from api.routes.analysis_routes import router as analysis_router
 from api.routes.session_routes import session_router
 from api.routes.export_routes import router as export_router
 from api.routes.plugin_routes import router as plugin_router
+from api.routes.support_routes import support_router
 
 app = FastAPI(
     title="Full-SMS API",
@@ -28,13 +29,15 @@ app = FastAPI(
 )
 
 # CORS configuration - allows frontend to call backend
-origins = os.getenv("BACKEND_CORS_ORIGINS", "http://localhost:3000").split(",")
+origins = [o.strip() for o in os.getenv("BACKEND_CORS_ORIGINS", "http://localhost:3000").split(",")]
+print("CORS origins:", [repr(o) for o in origins])
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition"],
 )
 
 prefix:str = '/api/py'
@@ -46,6 +49,8 @@ app.include_router(session_router, prefix=prefix)
 app.include_router(workspace_router, prefix=prefix)
 app.include_router(analysis_router, prefix=prefix)
 app.include_router(plugin_router, prefix=prefix)
+app.include_router(support_router, prefix=prefix)
+app.include_router(export_router, prefix=prefix)
 
 @app.on_event("startup")
 async def startup_event():

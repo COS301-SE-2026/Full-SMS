@@ -10,7 +10,8 @@ SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
 def get_supabase_admin() -> Client:
     if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
         raise RuntimeError(
-            "Supabase URL or Service Key is not set in environment variables.")
+            "Supabase URL or Service Key is not set in environment variables."
+        )
     return create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
 
@@ -19,7 +20,9 @@ def get_user_plugins(user_id: str) -> List[dict]:
     response = (
         supabase.table("user_plugins")
         .select("*")
-        .eq("user_id", user_id).order("updated_at", desc=True).execute()
+        .eq("user_id", user_id)
+        .order("updated_at", desc=True)
+        .execute()
     )
     return response.data or []
 
@@ -27,8 +30,12 @@ def get_user_plugins(user_id: str) -> List[dict]:
 def get_plugin_by_id(plugin_id: str, user_id: str) -> Optional[dict]:
     supabase = get_supabase_admin()
     response = (
-        supabase.table("user_plugins").select(
-            "*").eq("id", plugin_id).eq("user_id", user_id).single().execute()
+        supabase.table("user_plugins")
+        .select("*")
+        .eq("id", plugin_id)
+        .eq("user_id", user_id)
+        .single()
+        .execute()
     )
 
     if not response.data:
@@ -37,7 +44,14 @@ def get_plugin_by_id(plugin_id: str, user_id: str) -> Optional[dict]:
     return response.data
 
 
-def create_plugin(user_id: str, name: str, config: Dict[str, Any], script: str, description: Optional[str] = None, version: str = "1.0.0") -> dict:
+def create_plugin(
+    user_id: str,
+    name: str,
+    config: Dict[str, Any],
+    script: str,
+    description: Optional[str] = None,
+    version: str = "1.0.0",
+) -> dict:
     supabase = get_supabase_admin()
     if not name or not config or not script:
         raise ValueError("plugin name is a required.")
@@ -48,16 +62,22 @@ def create_plugin(user_id: str, name: str, config: Dict[str, Any], script: str, 
 
     plugin_id = str(uuid.uuid4())
 
-    response = supabase.table("user_plugins").insert({
-        "id": plugin_id,
-        "user_id": user_id,
-        "name": name.strip(),
-        "description": description.strip() if description else None,
-        "config": config,
-        "script": script,
-        "version": version,
-        "enabled": True,
-    }).execute()
+    response = (
+        supabase.table("user_plugins")
+        .insert(
+            {
+                "id": plugin_id,
+                "user_id": user_id,
+                "name": name.strip(),
+                "description": description.strip() if description else None,
+                "config": config,
+                "script": script,
+                "version": version,
+                "enabled": True,
+            }
+        )
+        .execute()
+    )
 
     if not response.data:
         raise RuntimeError("Failed to create plugin")
@@ -65,7 +85,15 @@ def create_plugin(user_id: str, name: str, config: Dict[str, Any], script: str, 
     return response.data[0]
 
 
-def update_plugin(plugin_id: str, user_id: str, name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, config: Optional[Dict[str, Any]] = None, script: Optional[str] = None) -> dict:
+def update_plugin(
+    plugin_id: str,
+    user_id: str,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+    version: Optional[str] = None,
+    config: Optional[Dict[str, Any]] = None,
+    script: Optional[str] = None,
+) -> dict:
     supabase = get_supabase_admin()
     plugin = get_plugin_by_id(plugin_id, user_id)
 
@@ -91,8 +119,13 @@ def update_plugin(plugin_id: str, user_id: str, name: Optional[str] = None, desc
     if not update_data:
         return get_plugin_by_id(plugin_id, user_id)
 
-    response = supabase.table("user_plugins").update(update_data).eq(
-        "id", plugin_id).eq("user_id", user_id).execute()
+    response = (
+        supabase.table("user_plugins")
+        .update(update_data)
+        .eq("id", plugin_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
 
     if not response.data or len(response.data) == 0:
         raise RuntimeError("Failed to update plugin or plugin nott found")
