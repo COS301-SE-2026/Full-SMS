@@ -53,24 +53,18 @@ jobs:
             sudo docker-compose up -d --build
 
             echo "Waiting for containers to start"
-            sleep 15
+            sleep 10
 
             echo "Container status:"
             sudo docker-compose ps
 
-            echo "Running health check with retries"
-            for i in {1..6}; do
-              if curl -f http://localhost:8000/api/py/ > /dev/null 2>&1; then
-                echo "API is healthy"
-                break
-              fi
-              if [ $i -eq 6 ]; then
-                echo "API health check failed after 6 attempts"
-                exit 1
-              fi
-              echo "Attempt $i failed, retrying in 5 seconds"
-              sleep 5
-            done
+            echo "Running health check"
+            if curl -f http://localhost:8000/api/py/health > /dev/null 2>&1; then
+              echo "API is healthy"
+            else
+              echo "API health check failed"
+              exit 1
+            fi
 
             echo "Deployment completed successfully"
 
