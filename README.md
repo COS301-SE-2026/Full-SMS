@@ -40,7 +40,6 @@ Full SMS is a professional single-molecule spectroscopy (SMS) data analysis appl
 - [Coding Standard Document](./docs/demo2/Coding_Standard_Document.pdf)
 - [Brand Style Guide](./docs/demo2/d2-BrandStyleGuide.pdf)
 - [User Manual](./docs/demo2/User%20Manual.pdf)
-
 - [Testing Policy](docs/testing-policy.md)
 
 ## Team Members
