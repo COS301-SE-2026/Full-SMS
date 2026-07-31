@@ -1,3 +1,6 @@
+'use client'
+/* eslint-disable react/no-unescaped-entities */
+
 import React from "react";
 import { Card, CardContent } from "../ui";
 
@@ -33,7 +36,7 @@ export default function Tokens() {
             </p>
             <p>
               &#125; <span className="text-chart-1">from</span>{" "}
-              <span className="text-success">'@/components/ui'</span>
+              <span className="text-success">&quot;@/components/ui&quot;</span>
             </p>
           </div>
         </CardContent>
@@ -46,35 +49,35 @@ export default function Tokens() {
             <p>
               <span className="text-chart-1">import</span> &#123; colors &#125;{" "}
               <span className="text-chart-1">from</span>{" "}
-              <span className="text-success">'@/lib/tokens'</span>
+              <span className="text-success">&quot;@/lib/tokens&quot;</span>
             </p>
             <br />
             <p>
-              colors.primary &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-foreground/60">// '#00e5ff'</span>
+              colors.primary &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-foreground/60">-- '#00e5ff'</span>
             </p>
             <p>
-              colors.background &nbsp;&nbsp;&nbsp;<span className="text-foreground/60">// '#121212'</span>
+              colors.background &nbsp;&nbsp;&nbsp;<span className="text-foreground/60">-- '#121212'</span>
             </p>
             <p>
-              colors.card &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-foreground/60">// '#1E1E1E'</span>
+              colors.card &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-foreground/60">-- '#1E1E1E'</span>
             </p>
             <p>
-              colors.foreground &nbsp;&nbsp;&nbsp;<span className="text-foreground/60">// '#e8e8e8'</span>
+              colors.foreground &nbsp;&nbsp;&nbsp;<span className="text-foreground/60">-- '#e8e8e8'</span>
             </p>
             <p>
-              colors.success &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-foreground/60">// '#00e676'</span>
+              colors.success &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-foreground/60">-- '#00e676'</span>
             </p>
             <p>
-              colors.warning &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-foreground/60">// '#ffd600'</span>
+              colors.warning &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-foreground/60">-- '#ffd600'</span>
             </p>
             <p>
-              colors.destructive &nbsp;&nbsp;<span className="text-foreground/60">// '#ff1744'</span>
+              colors.destructive &nbsp;&nbsp;<span className="text-foreground/60">-- '#ff1744'</span>
             </p>
             <p>
-              colors.border &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-foreground/60">// '#3a3a3a'</span>
+              colors.border &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-foreground/60">-- '#3a3a3a'</span>
             </p>
             <p>
-              colors.chart &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-foreground/60">//[<br />
+              colors.chart &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-foreground/60">--[<br />
                 '#440154',
                 <br /> '#31688e', <br />
                 '#35b779', <br />

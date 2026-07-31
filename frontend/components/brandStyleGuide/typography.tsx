@@ -129,11 +129,11 @@ export default function Typography() {
       </Card>
       <p className="mt-8 text-base">Usage</p>
       <Card className="p-4 flex flex-col gap-2 bg-background/90 font-mono">
-        <p>&lt;h1 <span className="text-destructive/60">className</span>=<span className="text-success/90">"text-2xl font-medium"</span>&gt; Main Heading &lt;/h1&gt;</p>
-        <p>&lt;h2 <span className="text-destructive/60">className</span>=<span className="text-success/90">"text-xl font-medium"</span>&gt; Section heading &lt;/h2&gt;</p>
-        <p>&lt;p <span className="text-destructive/60">className</span>=<span className="text-success/90">"text-base font-medium"</span>&gt; Body text &lt;/p&gt;</p>
-        <p>&lt;p <span className="text-destructive/60">className</span>=<span className="text-success/90">"text-sm text-forground/60"</span>&gt; Muted text &lt;/p&gt;</p>
-        <p>&lt;code <span className="text-destructive/60">className</span>=<span className="text-success/90">"font-mono"</span>&gt; Time (ms) &lt;/code&gt;</p>
+        <p>&lt;h1 <span className="text-destructive/60">className</span>=<span className="text-success/90">&quot;text-2xl font-medium&quot;</span>&gt; Main Heading &lt;/h1&gt;</p>
+        <p>&lt;h2 <span className="text-destructive/60">className</span>=<span className="text-success/90">&quot;text-xl font-medium&quot;</span>&gt; Section heading &lt;/h2&gt;</p>
+        <p>&lt;p <span className="text-destructive/60">className</span>=<span className="text-success/90">&quot;text-base font-medium&quot;</span>&gt; Body text &lt;/p&gt;</p>
+        <p>&lt;p <span className="text-destructive/60">className</span>=<span className="text-success/90">&quot;text-sm text-forground/60&quot;</span>&gt; Muted text &lt;/p&gt;</p>
+        <p>&lt;code <span className="text-destructive/60">className</span>=<span className="text-success/90">&quot;font-mono&quot;</span>&gt; Time (ms) &lt;/code&gt;</p>
       </Card>
     </div>
   );

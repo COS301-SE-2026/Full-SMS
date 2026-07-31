@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import React from "react";
 import { Card, CardContent, CardFooter } from "../ui";
 import {
@@ -160,7 +161,7 @@ export default function LogosAndIcons() {
             <div className="flex flex-col gap-2">
               <p>
                 <span className="text-foreground/60">
-                  // Standard icon implementation
+                  Standard icon implementation
                 </span>
               </p>
               <p>

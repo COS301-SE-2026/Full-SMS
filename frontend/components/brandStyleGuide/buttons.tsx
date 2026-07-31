@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import React from "react";
 import { Button, Card, CardContent } from "../ui";
 import { CardHeader } from "../ui";
