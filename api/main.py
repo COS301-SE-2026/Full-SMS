@@ -35,6 +35,7 @@ print("CORS origins:", [repr(o) for o in origins])
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"https://fullsms-v2-.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
