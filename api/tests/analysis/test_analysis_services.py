@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from api.services.analysis_services.clustering_job_service import clustering_job
 from api.legacy.models.level import LevelData
 from api.services.analysis_services.clustering import execute_clustering
-from api.services.analysis_services.lifetime import lifetime_analysis
+from api.services.analysis_services.lifetime import lifetime_fitting
 
 @patch("api.services.analysis_services.intensity.redisClient")
 @patch("api.services.analysis_services.intensity.bin_photons")
@@ -320,14 +320,14 @@ def test_resolve_current_measurement_cache_miss(mock_find_change_points, mock_ca
 @patch("api.services.analysis_services.lifetime.cache_fallback_service")
 @patch("api.services.analysis_services.lifetime.build_decay_histogram")
 @patch("api.services.analysis_services.lifetime.fit_decay")
-def test_lifetime_analysis_cache_hit_with_fitting(
-    mock_fit_decay, 
-    mock_build_histogram, 
-    mock_cache_fallback, 
-    mock_redis
-):
-
-    mock_request = LifetimeReq(upload_id= "123e4567-e89b-12d3-a456-676767676767", measurement_id="1", bin_size=1.0, fitting_model="mono_exponential"
+def test_lifetime_analysis_cache_hit_with_fitting(mock_fit_decay, mock_build_histogram, mock_cache_fallback, mock_redis):
+    mock_request = LifetimeReq(
+        upload_id="123e4567-e89b-12d3-a456-676767676767",
+        measurement_id="1",
+        bin_size=1.0,
+        fitting_model="mono_exponential",
+        times=[0.0, 0.1, 0.2],
+        counts=[100, 50, 25]
     )
 
     mock_cached_dict = {
@@ -338,24 +338,42 @@ def test_lifetime_analysis_cache_hit_with_fitting(
 
     time_bins = np.array([0.0, 0.1, 0.2])
     histogram = np.array([100, 50, 25])
-    fit_curve = np.array([99.9, 50.1, 24.8])
-    fit_params = {"tau": 2.5, "amp": 100}
     mock_build_histogram.return_value = (time_bins, histogram)
-    mock_fit_decay.return_value = (fit_curve, fit_params)
 
-    response = lifetime_analysis(mock_request)
+    mock_fit_result = MagicMock()
+    mock_fit_result.tau = np.array([2.5])
+    mock_fit_result.tau_std = np.array([0.1])
+    mock_fit_result.amplitude = np.array([100.0])
+    mock_fit_result.amplitude_std = np.array([1.5])
+    mock_fit_result.shift = 0.0
+    mock_fit_result.shift_std = 0.0
+    mock_fit_result.chi_squared = 1.05
+    mock_fit_result.durbin_watson = 1.8
+    mock_fit_result.dw_bounds = None
+    mock_fit_result.residuals = np.array([0.1, -0.1, 0.0])
+    mock_fit_result.fitted_curve = np.array([99.9, 50.1, 24.8])
+    mock_fit_result.fit_start_index = 0
+    mock_fit_result.fit_end_index = 2
+    mock_fit_result.background = 1.0
+    mock_fit_result.num_exponentials = 1
+    mock_fit_result.average_lifetime = 2.5
+    mock_fit_result.fitted_irf_fwhm = None
+    mock_fit_result.fitted_irf_fwhm_std = None
 
-    assert isinstance(response, LifetimeRes)
-    assert response.time_bins == time_bins.tolist()
-    assert response.histogram == histogram.tolist()
-    assert response.fit_curve == fit_curve.tolist()
-    assert response.fit_params == fit_params
+    mock_fit_decay.return_value = mock_fit_result
+
+    response = lifetime_fitting(mock_request)
+
+    assert response.times == [0.0, 0.1, 0.2]
+    assert response.counts == [100, 50, 25]
+    assert response.tau == [2.5]
+    assert response.fitted_curve == [99.9, 50.1, 24.8]
+    assert response.average_lifetime == 2.5
+    
     mock_redis.get.assert_called_once_with(f"raw_data:123e4567-e89b-12d3-a456-676767676767:1")
     mock_cache_fallback.assert_not_called()
-    mock_build_histogram.assert_called_once_with(microtimes=[10, 20, 30], channelwidth=0.05)
-    
-    mock_fit_decay.assert_called_once_with(t=ANY, counts=ANY, channelwidth=0.05)
-    
+    mock_fit_decay.assert_called_once()
+
 
 @patch("api.services.analysis_services.lifetime.redisClient")
 @patch("api.services.analysis_services.lifetime.cache_fallback_service")
@@ -366,7 +384,9 @@ def test_lifetime_analysis_cache_miss_no_fitting(mock_fit_decay, mock_build_hist
         upload_id="123e4567-e89b-12d3-a456-676767676767",
         measurement_id="1",
         bin_size=1.0,
-        fitting_model="" 
+        fitting_model="",
+        times=[0.0, 0.1, 0.2],
+        counts=[100, 50, 25]
     )
 
     mock_redis.get.return_value = None
@@ -381,12 +401,35 @@ def test_lifetime_analysis_cache_miss_no_fitting(mock_fit_decay, mock_build_hist
     histogram = np.array([100, 50, 25])
     mock_build_histogram.return_value = (time_bins, histogram)
 
-    response = lifetime_analysis(mock_request)
-    assert response.fit_curve is None
-    assert response.fit_params is None
+    mock_empty_fit = MagicMock()
+    mock_empty_fit.tau = np.array([])
+    mock_empty_fit.tau_std = np.array([])
+    mock_empty_fit.amplitude = np.array([])
+    mock_empty_fit.amplitude_std = np.array([])
+    mock_empty_fit.shift = 0.0
+    mock_empty_fit.shift_std = 0.0
+    mock_empty_fit.chi_squared = 0.0
+    mock_empty_fit.durbin_watson = 0.0
+    mock_empty_fit.dw_bounds = None
+    mock_empty_fit.residuals = np.array([])
+    mock_empty_fit.fitted_curve = np.array([])
+    mock_empty_fit.fit_start_index = 0
+    mock_empty_fit.fit_end_index = 0
+    mock_empty_fit.background = 0.0
+    mock_empty_fit.num_exponentials = 0
+    mock_empty_fit.average_lifetime = 0.0
+    mock_empty_fit.fitted_irf_fwhm = None
+    mock_empty_fit.fitted_irf_fwhm_std = None
+    
+    mock_fit_decay.return_value = mock_empty_fit
+
+    response = lifetime_fitting(mock_request)
+
+    assert response.fitted_curve == []
+    assert response.tau == []
+    
     mock_redis.get.assert_called_once_with(f"raw_data:123e4567-e89b-12d3-a456-676767676767:1")
-    mock_cache_fallback.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767")  
-    mock_fit_decay.assert_not_called()
+    mock_cache_fallback.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767")
     
     
 @patch("api.services.analysis_services.spectra.redisClient")

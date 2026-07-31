@@ -1,4 +1,6 @@
+import { Card } from '@/components/ui';
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext';
+import { colors } from '@/lib/tokens';
 import { getRasterData } from '@/services/analysisServices';
 import { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
@@ -45,7 +47,7 @@ export function RasterHeatmap() {
     const dy = raster_scan.scan_range / numRows;
 
     return (
-        <div className="h-full w-full">
+        <Card className="flex flex-col w-[83vw] h-[85vh] p-2 mt-1 gap-4">
             <Plot
                 data={[
                     {
@@ -92,9 +94,9 @@ export function RasterHeatmap() {
                         scaleratio: 1, 
                         zeroline: false 
                     },
-                    plot_bgcolor: '#111111',
+                    plot_bgcolor: colors.card,
                     paper_bgcolor: 'transparent',
-                    font: { color: '#e5e7eb' },
+                    font: { color: colors.foreground },
                     margin: { t: 40, r: 20, b: 50, l: 60 },
                     showlegend: false,
                     autosize: true
@@ -102,6 +104,6 @@ export function RasterHeatmap() {
                 useResizeHandler={true}
                 style={{ width: '100%', height: '100%', minHeight: '500px' }}
             />
-        </div>
+        </Card>
     );
 }

@@ -31,7 +31,7 @@ export function IntensityChart() {
   
     useEffect(()=>{
       fetchIntensityTrace()
-      },[currentMeasurement, bin, currentUpload]);
+      },[currentMeasurement, bin, currentUpload])
 
       
     const CpaLevels = useMemo(()=>{
