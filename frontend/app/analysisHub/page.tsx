@@ -68,7 +68,7 @@ export default function App() {
         <FittingDialog />
       </Modal>
 
-      <Card className="inline-flex md:hidden m-4 p-4 border-destructive text-center">
+      <Card className="inline-flex md:hidden m-4 p-5 border-destructive text-center">
         Please use analysis hub from the desktop version.
       </Card>
 
