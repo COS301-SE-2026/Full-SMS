@@ -29,7 +29,7 @@ app = FastAPI(
 )
 
 # CORS configuration - allows frontend to call backend
-origins = [o.strip() for o in os.getenv("BACKEND_CORS_ORIGINS", "http://localhost:3000").split(",")]
+origins = [o.strip() for o in os.getenv("BACKEND_CORS_ORIGINS", "http://localhost:3000,https://fullsms-v2.vercel.app").split(",")]
 print("CORS origins:", [repr(o) for o in origins])
 app.add_middleware(
     CORSMiddleware,

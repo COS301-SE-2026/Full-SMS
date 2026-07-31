@@ -1,0 +1,83 @@
+name: Deploy to AWS Lightsail
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+      - chore/backend-cd-workflow
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to deploy"
+        required: true
+        default: "develop"
+
+jobs:
+  deploy:
+    name: Deploy to Lightsail
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Lightsail
+        uses: appleboy/ssh-action@v1.0.0
+        env:
+          BRANCH: ${{ github.ref_name }}
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          port: 22
+          envs: BRANCH
+          script: |
+            echo "Starting deployment for branch: $BRANCH"
+
+            cd ~/Full-SMS
+
+            echo "Current branch: $(git branch --show-current)"
+
+            echo "Fetching latest changes"
+            git fetch origin
+
+            echo "Switching to branch: $BRANCH"
+            git checkout $BRANCH
+            git pull origin $BRANCH
+
+            echo "Latest commit: $(git log -1 --oneline)"
+
+            echo "Rebuilding Docker containers"
+            sudo docker-compose down
+            sudo docker-compose up -d --build
+
+            echo "Waiting for containers to start"
+            sleep 10
+
+            echo "Container status:"
+            sudo docker-compose ps
+
+            echo "Running health check"
+            if curl -f http://localhost:8000/api/py/health > /dev/null 2>&1; then
+              echo "API is healthy"
+            else
+              echo "API health check failed"
+              exit 1
+            fi
+
+            echo "Deployment completed successfully"
+
+      - name: Deployment Success Notification
+        if: success()
+        run: |
+          echo "Deployment to Lightsail succeeded for branch ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
+
+      - name: Deployment Failure Notification
+        if: failure()
+        run: |
+          echo "Deployment to Lightsail failed for branch ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
