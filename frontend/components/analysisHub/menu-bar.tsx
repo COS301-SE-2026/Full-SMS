@@ -8,6 +8,7 @@ import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { useAnalysisTab } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import { Button } from "../ui";
+import ThemeToggle from "../ui/ThemeToggle";
 interface MenuBarProps {
   readonly onOpenFileUpload: () => void;
 }
@@ -68,7 +69,14 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
           </Button>
       </Link>
 
-         <Link href="/help">
+      <ThemeToggle
+        type='button'
+       className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
+      >
+        Theme
+      </ThemeToggle>
+
+      <Link href="/help">
           <Button
             variant = "ghost"
             onClick={onOpenFileUpload}
@@ -77,6 +85,7 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
             Help
           </Button>
       </Link>
+
 
     </div>
     <SaveSessionModal
