@@ -1,12 +1,12 @@
 'use client'
-import React, { useEffect, useState } from "react";
+import React, { ButtonHTMLAttributes, useEffect, useState } from "react";
 import { Button } from "./Button";
 import { Sun } from "lucide-react";
 
-interface ThemeProps {
-  type?: "button" | "icon";
+interface ThemeProps  extends ButtonHTMLAttributes<HTMLElement>{
+  toggleType?: string;
 }
-export default function ThemeToggle({ type }: ThemeProps) {
+export default function ThemeToggle({ toggleType }: ThemeProps) {
   const [isLight, setIsLight] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("theme") === "light"
@@ -30,7 +30,7 @@ export default function ThemeToggle({ type }: ThemeProps) {
       return nextTheme
     })
   }
-  return type === "button" ? (
+  return toggleType === "button" ? (
     <Button
       onClick={toggleTheme}
       variant="ghost"

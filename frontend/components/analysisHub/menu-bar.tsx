@@ -70,7 +70,7 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
       </Link>
 
       <ThemeToggle
-        type='button'
+        toggleType='button'
        className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
       >
         Theme
