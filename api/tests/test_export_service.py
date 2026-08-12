@@ -4,7 +4,10 @@ import json
 import pytest
 from pathlib import Path
 import pytest
-from api.services.export_service import _package_outputs
+from api.services.export_service import (
+    _package_outputs,
+    _export_intensity_plot
+)
 from api.models.export_request import ExportRequest, Selection
 
 import api.services.export_service as export_service
@@ -295,6 +298,19 @@ class TestGetSAvedAnalysis:
 
             assert result["levels"]["data"] == "new"
             assert result["groups"]["data"] == "new_groups"
+
+
+class TestExportIntensityPlot:
+    def test_uncheckedBox_IntensityPlot(self):
+        request = make_request(plot_intensity = False)
+        data = {"channel1": {"abstimes": [1,2,3]}, "name": "raw"}
+
+        def analysisGetter_fake():
+            return {"levels": None, "groups": None}
+
+        assert _export_intensity_plot(
+            request, data, 1, analysisGetter_fake, "m1"
+        )is None
 
 
         
