@@ -313,4 +313,38 @@ class TestExportIntensityPlot:
         )is None
 
 
+        def test_intensityPlot_noLevelsGroups(self, tmp_path):
+            request = make_request(plot_intensity = True)
+            data = {"channel1": {"abstimes": [1,2,3]}, "name": "raw"}
+
+            outpt_file = tmp_path / "plot.png"
+            outpt_file.write_text("fake")
+
+            def analysisGetter_fake():
+                raise AssertionError( "should not be called when levels/groups are not requested")
+
+            def fake_export_plot(abstimes, outpt_path, fmt, dpi, bin_size_ms, title, levels, groups, show_levels, show_groups):
+                assert levels is None
+                assert groups is None
+                assert show_levels is False
+                assert show_groups is False
+                return outpt_file
+
+            original = export_service.plot_exporters.export_intensity_plot
+            export_service.plot_exporters.export_intensity_plot = fake_export_plot
+
+            try:
+                path,name = _export_intensity_plot(
+                    request, data, 1, analysisGetter_fake, "m1"
+                )
+            finally:
+                export_service.plot_exporters.export_intensity_plot = original
+
+            assert path == outpt_file
+            assert name == "m1_intensity_plot.png"
+                        
+
+
+
+
         
