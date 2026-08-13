@@ -379,6 +379,18 @@ class TestExportIntensityPlot:
                 export_service.plot_exporters.export_intensity_plot = original
     
             assert path == outpt_file
+
+class TestExportBicPlot:
+    def test_uncheckedBox_bicPlot(self):
+        request = make_request(plot_bic = False)
+        data = {"name": "raw"}
+
+        def analysisGetter_fake():
+            raise AssertionError( "should not be called when plot_bic is unchecked")
+
+        assert _export_intensity_plot(
+            request, analysisGetter_fake, data, 1, "m1"
+        )is None
                         
 
 
