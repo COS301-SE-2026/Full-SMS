@@ -313,35 +313,72 @@ class TestExportIntensityPlot:
         )is None
 
 
-        def test_intensityPlot_noLevelsGroups(self, tmp_path):
-            request = make_request(plot_intensity = True)
-            data = {"channel1": {"abstimes": [1,2,3]}, "name": "raw"}
+    def test_intensityPlot_noLevelsGroups(self, tmp_path):
+        request = make_request(plot_intensity = True)
+        data = {"channel1": {"abstimes": [1,2,3]}, "name": "raw"}
 
+        outpt_file = tmp_path / "plot.png"
+        outpt_file.write_text("fake")
+
+        def analysisGetter_fake():
+            raise AssertionError( "should not be called when levels/groups are not requested")
+
+        def fake_export_plot(abstimes, output_path, fmt, dpi, bin_size_ms, title, levels, groups, show_levels, show_groups):
+            assert levels is None
+            assert groups is None
+            assert show_levels is False
+            assert show_groups is False
+            return outpt_file
+
+        original = export_service.plot_exporters.export_intensity_plot
+        export_service.plot_exporters.export_intensity_plot = fake_export_plot
+
+        try:
+            path,name = _export_intensity_plot(
+                request, data, 1, analysisGetter_fake, "m1"
+            )
+        finally:
+            export_service.plot_exporters.export_intensity_plot = original
+
+        assert path == outpt_file
+        assert name == "m1_intensity_plot.png"
+
+
+    def test_intensityPlot_withLevelsGroups(self, tmp_path):
+            request = make_request(plot_intensity = True)
+            request.plotIntensity_levels = True
+            request.plotIntensity_groups = True
+            data = {"channel1": {"abstimes": [1,2,3]}, "name": "raw"}
+    
             outpt_file = tmp_path / "plot.png"
             outpt_file.write_text("fake")
 
+            analysis = {
+                "levels": {"levels": [{"start_index": 0, "end_index": 10, "start_time_ns": 0, "end_time_ns": 1_000_000, "num_photons": 5, "intensity_cps": 50.0}]},
+                "groups": {"selected_step_index": 0, "steps": [{"groups": [{"group_id": 1, "total_photons": 10, "total_dwell_time_s": 1.0, "intensity_cps": 100.0, "level_indices": [0]}]}]},
+            }
+    
             def analysisGetter_fake():
-                raise AssertionError( "should not be called when levels/groups are not requested")
-
-            def fake_export_plot(abstimes, outpt_path, fmt, dpi, bin_size_ms, title, levels, groups, show_levels, show_groups):
-                assert levels is None
-                assert groups is None
-                assert show_levels is False
-                assert show_groups is False
+                return analysis
+    
+            def fake_export_plot(abstimes, output_path, fmt, dpi, bin_size_ms, title, levels, groups, show_levels, show_groups):
+                assert len(levels) == 1
+                assert len(groups) == 1
+                assert show_levels is True
+                assert show_groups is True
                 return outpt_file
-
+    
             original = export_service.plot_exporters.export_intensity_plot
             export_service.plot_exporters.export_intensity_plot = fake_export_plot
-
+    
             try:
                 path,name = _export_intensity_plot(
                     request, data, 1, analysisGetter_fake, "m1"
                 )
             finally:
                 export_service.plot_exporters.export_intensity_plot = original
-
+    
             assert path == outpt_file
-            assert name == "m1_intensity_plot.png"
                         
 
 
