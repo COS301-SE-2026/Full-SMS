@@ -4,10 +4,7 @@ import json
 import pytest
 from pathlib import Path
 import pytest
-from api.services.export_service import (
-    _package_outputs,
-    _export_intensity_plot
-)
+
 from api.models.export_request import ExportRequest, Selection
 
 import api.services.export_service as export_service
@@ -16,7 +13,10 @@ from api.services.export_service import (
     _export_levels_data,
     _export_groups_data,
     _get_measurement_data,
-    _get_saved_analysis
+    _get_saved_analysis,
+    _package_outputs,
+    _export_intensity_plot,
+    _export_bic_plot
 )
 from api.legacy.models.level import LevelData
 
@@ -391,6 +391,17 @@ class TestExportBicPlot:
         assert _export_intensity_plot(
             request, analysisGetter_fake, data, 1, "m1"
         )is None
+
+    def test_bicPlot_noGroups(self):
+            request = make_request(plot_bic = True)
+            data = {"name": "raw"}
+    
+            def analysisGetter_fake():
+                return{"levels": None, "groups": None}
+    
+            assert _export_bic_plot(
+                request, analysisGetter_fake, data,"m1"
+            )is None
                         
 
 
