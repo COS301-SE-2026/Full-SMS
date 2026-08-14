@@ -41,7 +41,7 @@ export default function NavBar() {
             </nav>
 
             <div className="flex items-center gap-4 z-10">
-                <ThemeToggle/>
+                <ThemeToggle toggleType='icon'/>
                 {!user ? (<div className="sm:flex sm:gap-4">
                     <Link href="/login">
                         <Button variant="outline" className='mr-2'>
