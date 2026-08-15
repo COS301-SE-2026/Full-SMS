@@ -388,7 +388,7 @@ class TestExportBicPlot:
         def analysisGetter_fake():
             raise AssertionError( "should not be called when plot_bic is unchecked")
 
-        assert _export_intensity_plot(
+        assert _export_bic_plot(
             request, analysisGetter_fake, data, 1, "m1"
         )is None
 
