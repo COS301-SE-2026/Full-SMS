@@ -402,6 +402,46 @@ class TestExportBicPlot:
             assert _export_bic_plot(
                 request, analysisGetter_fake, data,"m1"
             )is None
+
+    def test_bicPlot_successfulExport(self, tmp_path):
+        request = make_request(plot_bic = True)
+        data = {"name": "raw"}
+
+        outpt_file = tmp_path / "bic.png"
+        outpt_file.write_text("fake")
+        
+        analysis = {
+            "levels": None,
+            "groups": {"selected_step_index": 0, "optimal_step_index": 0, "num_original_levels": 3,  
+                       "steps": [{"groups": [{"group_id": 1, "total_photons": 10, "total_dwell_time_s": 1.0, "intensity_cps": 100.0, "level_indices": [0]}],
+                                "level_group_assignments": [0],
+                                "bic": 123.4,
+                                "num_groups":1}]}
+        }
+
+        def analysisGetter_fake():
+            return analysis
+
+        def fake_export_bic_plot(clustering_result, output_path, fmt, dpi, title):
+            assert clustering_result.selected_step_index == 0
+            assert clustering_result.num_original_levels == 3
+            return outpt_file
+
+        original = export_service.plot_exporters.export_bic_plot
+        export_service.plot_exporters.export_bic_plot = fake_export_bic_plot
+
+        try:
+            path, name = _export_bic_plot(
+                request, analysisGetter_fake,
+                data,
+                "m1"
+            )
+        finally:
+            export_service.plot_exporters.export_bic_plot = original
+
+        assert path == outpt_file
+        assert name == "m1_bic_plot.png"
+
                         
 
 
