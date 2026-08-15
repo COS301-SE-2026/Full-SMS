@@ -3,9 +3,6 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { TrackedFile } from './uploadProgress';
-import { SelectedFile } from '@/types/file';
-import RecentUploads from './recentUploads';
 
 interface FileUploadZoneProps {
   onFilesSelected: (files: File[]) => void;
@@ -117,7 +114,6 @@ export default function FileUploadZone({ onFilesSelected }: FileUploadZoneProps)
           {error}
         </div>
       )}
-    <RecentUploads/>
 
     </div>
   );

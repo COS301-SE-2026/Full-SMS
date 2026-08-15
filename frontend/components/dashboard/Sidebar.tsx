@@ -5,6 +5,7 @@ import { FolderOpen, User, Code, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import { cn } from "@/lib/utils";
 import { NavItem, DashboardSidebarProps } from "@/types/dashboard";
+import ThemeToggle from "../ui/ThemeToggle";
 
 export default function Sidebar({
   activeItem = "workspaces",
@@ -49,8 +50,9 @@ export default function Sidebar({
 
   return (
     <aside className="flex flex-col w-[195px] shrink-0 border-r border-border bg-background">
-      <div className="flex items-center h-[49px] px-3.5 border-b border-border">
+      <div className="flex flex-row justify-between items-center h-[49px] px-3.5 border-b border-border">
         <h3 className="text-foreground font-semibold">FullSMS</h3>
+        <ThemeToggle toggleType="icon"/>
       </div>
       <nav className="flex flex-col py-1 flex-1">
         {navItems.map((item) => {
