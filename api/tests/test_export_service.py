@@ -389,7 +389,7 @@ class TestExportBicPlot:
             raise AssertionError( "should not be called when plot_bic is unchecked")
 
         assert _export_bic_plot(
-            request, analysisGetter_fake, data, 1, "m1"
+            request, analysisGetter_fake, data, "m1"
         )is None
 
     def test_bicPlot_noGroups(self):
@@ -441,6 +441,62 @@ class TestExportBicPlot:
 
         assert path == outpt_file
         assert name == "m1_bic_plot.png"
+
+
+class TestProcessSelection:
+    def test_intensityOnly_noAnalysis(self):
+        request = make_request(export_intensity=True)
+        selection = Selection(measurement_id="m1", channel=1)
+
+        fake_data= {
+            "channel1": {"abstimes": [1, 2, 3]},
+            "name": "raw"
+        }
+
+        def getMeasurement_data_fake(upload_id, measurement_id, user_id):
+            return fake_data
+
+        def intensity_data_fake(req, data, channel, name):
+            return (Path("intensity.csv"), "m1_intensity.csv")
+
+        def intensity_plot_fake(req, data, channel, analysis_getter, name):
+            return None
+
+        def bic_plot_fake(req, analysis_getter, data, name):
+            return None
+
+        def get_saved_analysis_fake(upload_id, measurement_id, user_id):
+            raise AssertionError("shouldn't be called when levels and groups as well as plots aren't requested")
+
+
+
+        original_getMeasurement = export_service._get_measurement_data
+        original_intensityData= export_service._export_intensity_data
+        original_intensityPlot = export_service._export_intensity_plot
+        original_bicPlot = export_service._export_bic_plot
+        original_getAnalysis = export_service._get_saved_analysis
+
+        export_service._get_measurement_data = getMeasurement_data_fake
+        export_service._export_intensity_data = intensity_data_fake
+        export_service._export_intensity_plot = intensity_plot_fake
+        export_service._export_bic_plot = bic_plot_fake
+        export_service._get_saved_analysis = get_saved_analysis_fake
+
+
+        try:
+            results = export_service._process_selection(request, selection, "user1")
+
+        finally:
+            export_service._get_measurement_data = original_getMeasurement
+            export_service._export_intensity_data = original_intensityData
+            export_service._export_intensity_plot = original_intensityPlot
+            export_service._export_bic_plot = original_bicPlot
+            export_service._get_saved_analysis = original_getAnalysis\
+
+        assert results == [
+            (Path("intensity.csv"), "m1_intensity.csv")
+        ]
+
 
                         
 
