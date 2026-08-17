@@ -224,6 +224,43 @@ class TestGetMeasurementData:
             export_service.redisClient.get = originalRedis
         assert result == fake_meas
 
+class TestGetMeasurementDataBackup:
+    def test_missedCache_inBackup(self, tmp_path ):
+        backup_file = tmp_path / "measurements.json.gz"
+        measurements = [
+            {"id": "m1", "value": 1},
+            {"id": "m2", "value": 2}
+        ]
+
+        with gzip.open(backup_file, "wt", encoding="utf-8") as f:
+            json.dump(measurements, f)
+
+        def fake_redisGet(key):
+            return None
+
+        def fake_keyBuild(user_id, upload_id, filename):
+            return "some/storage/key"
+
+        def fake_download(storage_key, file_extension):
+            return backup_file
+
+        originalRedis = export_service.redisClient.get
+        original_keyBuild = export_service.build_storage_key
+        original_download = export_service.download_to_temp
+
+        export_service.redisClient.get = fake_redisGet
+        export_service.build_storage_key = fake_keyBuild
+        export_service.download_to_temp = fake_download
+
+        try:
+            result = _get_measurement_data("u1", "m2", "user1")
+        finally:
+            export_service.redisClient.get = originalRedis
+            export_service.build_storage_key = original_keyBuild
+            export_service.download_to_temp = original_download
+
+        assert result == {"id": "m2", "value": 2}
+
 
 class TestGetSAvedAnalysis:
     def test_no_matchingSession_error(self):
