@@ -651,7 +651,31 @@ class TestProcessSelection:
         assert (Path("levels.csv"),"m1_levels.csv") in results
         assert (Path("groups.csv"),"m1_groups.csv") in results
         assert call_count["n"] == 1
-    
+
+class TestClusteringResult:
+
+    def test_buildsCorrectResult(self):
+        analysis = {"groups": {"optimal_step_index": 1, "selected_step_index": 0, "num_original_levels": 5,
+                               "steps": [{
+                                   "groups": [{"group_id": 1, "total_photons": 10, "total_dwell_time_s": 1.0, "intensity_cps": 100.0, "level_indices": [0]}],
+                                   "level_group_assignments": [0],
+                                   "bic": 111.1,
+                                   "num_groups": 1,
+                               },
+                               {"groups": [{"group_id": 2, "total_photons": 20, "total_dwell_time_s": 2.0, "intensity_cps": 150.0, "level_indices": [1]}], "level_group_assignments": [0, 1], "bic": 222.2, "num_groups": 1,},
+                            ],
+                        }
+                    }
+
+        result = export_service.clustering_result(analysis)
+
+        assert result.optimal_step_index == 1
+        assert result.selected_step_index == 0
+        assert result.num_original_levels == 5
+        assert len(result.steps) == 2
+        assert result.steps[0].bic == 111.1
+        assert result.steps[0].groups[0].group_id == 1
+        assert result.steps[1].num_groups == 1
 
 
                         
