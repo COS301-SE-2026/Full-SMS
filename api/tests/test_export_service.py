@@ -677,6 +677,39 @@ class TestClusteringResult:
         assert result.steps[0].groups[0].group_id == 1
         assert result.steps[1].num_groups == 1
 
+class TestExportData:
+    def test_export_process_multipleSelections(self):
+        request = make_request(
+            selections=[
+                Selection(measurement_id="m1", channel=1),
+                Selection(measurement_id="m2", channel=1),
+            ]
+        )
+        calls=[]
+
+        def processSelection_fake(req, selection, user_id):
+            calls.append(selection.measurement_id)
+            return [(Path(f"{selection.measurement_id}.csv"), f"{selection.measurement_id}.csv")]
+
+        def packageOutputs_fake(output_paths, req):
+            assert len(output_paths) == 2
+            return (Path("final.zip"), "final.zip")
+
+        originalProcess = export_service._process_selection
+        originalPackage = export_service._package_outputs
+
+        export_service._process_selection = processSelection_fake
+        export_service._package_outputs= packageOutputs_fake
+
+        try:
+            result = export_service.export_data(request, "user1")
+        finally:
+            export_service._process_selection = originalProcess
+            export_service._package_outputs= originalPackage
+
+        assert calls == ["m1", "m2"]
+        assert result == (Path("final.zip"), "final.zip")
+
 
                         
 
