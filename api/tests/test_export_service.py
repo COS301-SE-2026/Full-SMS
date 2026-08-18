@@ -711,6 +711,33 @@ class TestExportData:
         assert result == (Path("final.zip"), "final.zip")
 
 
+class TestExportIntegration:
+    def test_realIntensityData_Export(self, tmp_path):
+        intensity_request = make_request(upload_id="upload123", export_intensity=True, bin_size_ms=10, selections=[Selection(measurement_id="m1", channel=1)])
+
+        fake_meas={
+            "name": "raw", 
+            "channel1": {"abstimes": [1000, 2000, 3000, 15000, 16000]},
+        } 
+
+        def fake_redisGet(key):
+            return json.dumps(fake_meas)
+
+        originalRedis=export_service.redisClient.get
+        export_service.redisClient.get = fake_redisGet
+
+        try:
+            resultPath, resultName = export_service.export_data(intensity_request, "user1")
+        finally:
+            export_service.redisClient.get = originalRedis
+
+        assert resultPath.exists()
+        assert resultName == "raw_intensity.csv"
+
+        content = resultPath.read_text()
+        assert len(content) > 0
+
+
                         
 
 
