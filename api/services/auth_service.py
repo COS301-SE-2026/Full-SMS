@@ -1,13 +1,21 @@
 # services
+import httpx
 from jose import JWTError
 from jose.exceptions import ExpiredSignatureError
 from jose import jwt
 import os
 import json
+from api.models.user import OneDriveCode
+from api.utils.supabase_client import supabaseClient
+from dotenv import load_dotenv
+
+load_dotenv()
 
 SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
 SUPABASE_JWK = os.getenv("SUPABASE_JWK")
-
+ONEDRIVE_CLIENT_ID = os.getenv("ONEDRIVE_CLIENT_ID")
+ONEDRIVE_CLIENT_SECRET= os.getenv("ONEDRIVE_CLIENT_SECRET")
+ONEDRIVE_REDIRECT_URI=os.getenv("ONEDRIVE_REDIRECT_URI")
 ALLOWED_ALGORITHMS = ["HS256", "ES256"]
 
 
@@ -50,3 +58,31 @@ def verify_token(token: str) -> dict:
 
     except Exception as e:
         raise ValueError(f"Token verification failed: {str(e)}")
+
+
+def link_onedrive(payload: OneDriveCode, user_id: str):
+    token_response = httpx.post(
+        "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
+        data={
+            "client_id": ONEDRIVE_CLIENT_ID,
+            "client_secret": ONEDRIVE_CLIENT_SECRET,
+            "code": payload.code,
+            "redirect_uri": ONEDRIVE_REDIRECT_URI,
+            "grant_type": "authorization_code"
+        }
+    )
+    
+    if token_response.status_code !=200:
+        print(token_response.text)
+        raise Exception
+    
+    tokens = token_response.json()
+    refresh_token = tokens.get("refresh_token")
+    
+    supabaseClient.table("user_integrations").upsert({
+        "user_id": user_id,
+        "provider": "onedrive",
+        "refresh_token": refresh_token
+    }, on_conflict="user_id,provider",).execute()
+    
+    return {"status":"success"}

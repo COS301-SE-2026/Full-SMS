@@ -17,6 +17,7 @@ from api.routes.analysis_routes import router as analysis_router
 from api.routes.session_routes import session_router
 from api.routes.export_routes import router as export_router
 from api.routes.plugin_routes import router as plugin_router
+from api.routes.cloud_routes import router as cloud_router
 from api.routes.support_routes import support_router
 
 app = FastAPI(
@@ -53,6 +54,7 @@ app.include_router(analysis_router, prefix=prefix)
 app.include_router(plugin_router, prefix=prefix)
 app.include_router(support_router, prefix=prefix)
 app.include_router(export_router, prefix=prefix)
+app.include_router(cloud_router, prefix=prefix)
 
 @app.on_event("startup")
 async def startup_event():
