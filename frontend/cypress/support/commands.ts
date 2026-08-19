@@ -35,6 +35,7 @@
 //     }
 //   }
 // }// }
+// }
 
 const SUPABASE_URL="https://pytgxhfpwiluexvyxicr.supabase.co"
 const NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5dGd4aGZwd2lsdWV4dnl4aWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4MTA4ODAsImV4cCI6MjEwMDM4Njg4MH0.m_npTioTNKfN5L4znKm55pLP5IfvNKYKd9dQdXKWrQk"
@@ -58,3 +59,10 @@ Cypress.Commands.add('login', (email, password) => {
 })
 }) 
 
+declare global{
+    namespace Cypress{
+        interface Chainable{
+            login(email: string, password: string): Chainable<void>
+        }
+    }
+}
