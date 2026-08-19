@@ -24,3 +24,7 @@ describe('Help Menu', () => {
         cy.url().should('include','/help/analysisFeatures')
     })
 
+    it('navigates to File formats', () => {
+        cy.contains('File formats').click({force: true})
+        cy.url().should('include','/help/fileFormats')
+    })
