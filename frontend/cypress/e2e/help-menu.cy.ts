@@ -43,3 +43,9 @@ describe('Help Menu', () => {
         cy.contains('FAQs').click({force: true})
         cy.url().should('include','/help/faqs')
     })
+
+     it('navigates to Submit a ticket', () => {
+        cy.contains('Submit a ticket').click({force: true})
+        cy.url().should('include','/help/contacts')
+    })
+
