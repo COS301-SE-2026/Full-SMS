@@ -49,3 +49,9 @@ describe('Help Menu', () => {
         cy.url().should('include','/help/contacts')
     })
 
+    it('expands a section when the accordion is clicked', () => {
+        cy.visit('/help/faqs')
+        cy.get('[data-cy="accordion-toggle-1"]').click({force: true})
+        cy.get('[data-cy="accordion-content-1"]').should('not.exist')
+    })
+})
