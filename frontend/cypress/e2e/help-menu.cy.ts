@@ -34,3 +34,8 @@ describe('Help Menu', () => {
         cy.url().should('include','/help/plugin')
     })
 
+     it('navigates to Export', () => {
+        cy.contains('Export').click({force: true})
+        cy.url().should('include','/help/export')
+    })
+
