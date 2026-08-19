@@ -39,3 +39,7 @@ describe('Help Menu', () => {
         cy.url().should('include','/help/export')
     })
 
+     it('navigates to FAQs', () => {
+        cy.contains('FAQs').click({force: true})
+        cy.url().should('include','/help/faqs')
+    })
