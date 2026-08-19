@@ -19,3 +19,8 @@ describe('Help Menu', () => {
         cy.url().should('include','/help/session')
     })
 
+    it('navigates to Analysis Features', () => {
+        cy.contains('Analysis Features').click({force: true})
+        cy.url().should('include','/help/analysisFeatures')
+    })
+
