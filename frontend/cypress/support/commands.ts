@@ -34,7 +34,6 @@
 //       visit(originalFn: CommandOriginalFn, url: string, options: Partial<VisitOptions>): Chainable<Element>
 //     }
 //   }
-// }// }
 // }
 
 const SUPABASE_URL="https://pytgxhfpwiluexvyxicr.supabase.co"
