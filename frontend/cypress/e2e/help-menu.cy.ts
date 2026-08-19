@@ -13,3 +13,9 @@ describe('Help Menu', () => {
         cy.contains('Getting Started').click({force: true})
         cy.url().should('include','/help/gettingStarted')
     })
+
+    it('navigates to Saving and Loading a session', () => {
+        cy.contains('Saving and Loading a Session').click({force: true})
+        cy.url().should('include','/help/session')
+    })
+
