@@ -34,4 +34,27 @@
 //       visit(originalFn: CommandOriginalFn, url: string, options: Partial<VisitOptions>): Chainable<Element>
 //     }
 //   }
-// }
+// }// }
+
+const SUPABASE_URL="https://pytgxhfpwiluexvyxicr.supabase.co"
+const NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5dGd4aGZwd2lsdWV4dnl4aWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4MTA4ODAsImV4cCI6MjEwMDM4Njg4MH0.m_npTioTNKfN5L4znKm55pLP5IfvNKYKd9dQdXKWrQk"
+
+Cypress.Commands.add('login', (email, password) => {
+    cy.request({
+        method: 'POST',
+        url:`${SUPABASE_URL}/auth/v1/token?grant_type=password`,
+        headers: {
+            apikey: NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        },
+        body: {
+            email,
+            password,
+        },
+    }).then((response) => {
+    window.localStorage.setItem(
+        'sb-pytgxhfpwiluexvyxicr-auth-token',
+        JSON.stringify(response.body)
+    )
+})
+}) 
+
