@@ -4,3 +4,7 @@ describe('Help Menu', () => {
         cy.visit('/help')
     })
 
+    it('displays the correct heading', () => {
+        cy.contains('How can we help you?')
+        .should('be.visible')
+    })
