@@ -8,3 +8,8 @@ describe('Help Menu', () => {
         cy.contains('How can we help you?')
         .should('be.visible')
     })
+
+    it('navigates to Getting Started', () => {
+        cy.contains('Getting Started').click({force: true})
+        cy.url().should('include','/help/gettingStarted')
+    })
