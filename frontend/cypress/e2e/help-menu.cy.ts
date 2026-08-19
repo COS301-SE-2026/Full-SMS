@@ -28,3 +28,9 @@ describe('Help Menu', () => {
         cy.contains('File formats').click({force: true})
         cy.url().should('include','/help/fileFormats')
     })
+
+    it('navigates to Plugin', () => {
+        cy.contains('Plugin').click({force: true})
+        cy.url().should('include','/help/plugin')
+    })
+
