@@ -55,3 +55,17 @@ describe('Help Menu', () => {
         cy.get('[data-cy="accordion-content-1"]').should('not.exist')
     })
 })
+
+describe('Contact Support', () => {
+    beforeEach(() => {
+        cy.login('default@user.com', 'Password@1')
+        cy.visit('/help/contacts')
+        cy.intercept('POST', '/api/py/support/**', {response: 'Contact support works'})
+    })
+
+    it('submits a ticket successfully', () => {
+        cy.get('[data-cy="ticket-message-input"]').type('Default message')
+        cy.get('[data-cy="submit-ticket-button"]').click()
+        cy.contains('Ticket sent successfully!').should('be.visible')
+    })
+})

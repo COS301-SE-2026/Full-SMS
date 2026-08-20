@@ -25,6 +25,7 @@ export default function ContactSupport(){
                     </CardHeader>
                     <CardContent>
                     <textarea
+                    data-cy="ticket-message-input"
                     value ={message}
                     rows={5}
                     placeholder="I am struggling to..."
@@ -32,7 +33,7 @@ export default function ContactSupport(){
                     className="w-full border border-border rounded px-3 py-2 text-sm bg-card text-foreground focus:outline-none focus:ring-1 focus:ring-primary"/>
 
                     <div className="flex flex-row gap-2">
-                        <Button onClick={async () => {
+                        <Button data-cy="submit-ticket-button" onClick={async () => {
                             if (!user?.email) {return}
                             try{
                                 await supportService.sendEmail(user?.email, message)
