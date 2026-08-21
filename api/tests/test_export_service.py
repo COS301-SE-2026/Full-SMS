@@ -738,6 +738,56 @@ class TestExportIntegration:
         assert len(content) > 0
 
 
+    def test_reallevels_Export(self, tmp_path):
+        levels_request = make_request(upload_id="upload123", export_levels=True, selections=[Selection(measurement_id="m1", channel=1)])
+
+        fake_meas={
+            "name": "raw", 
+            "channel1": {"abstimes": [1000, 2000, 3000]},
+        } 
+        fake_session=[
+            {"dataset_ref": "upload123", "created_at": "2026-01-01", 
+                "results": {"levels": {"measurement_id": "m1", 
+                                        "levels": [{
+                                            "start_index": 0,
+                                            "end_index": 10,
+                                            "start_time_ns": 0,
+                                            "end_time_ns": 5,
+                                            "num_photons": 5,
+                                            "intensity_cps": 50.0,
+                                        }],},
+                "groups": None,
+                },
+            }
+        ]
+        def fake_redisGet(key):
+            return json.dumps(fake_meas)
+
+        def fake_getSession(user_id):
+            return fake_session
+
+        originalRedis=export_service.redisClient.get
+        original_getSessions = export_service.get_sessions
+
+        export_service.redisClient.get = fake_redisGet
+        export_service.get_sessions = fake_getSession
+
+        try:
+            resultPath, resultName = export_service.export_data(levels_request, "user1")
+        finally:
+            export_service.redisClient.get = originalRedis
+            export_service.get_sessions = original_getSessions
+
+        assert resultPath.exists()
+        assert resultName == "raw_levels.csv"
+
+        content = resultPath.read_text()
+        assert len(content) > 0
+    
+
+
+
+
                         
 
 
