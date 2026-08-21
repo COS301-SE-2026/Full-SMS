@@ -7,8 +7,8 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
-  ToggleLeft,
-  ToggleRight,
+  CircleX,
+  CircleCheck,
   Code,
 } from "lucide-react";
 import { useState } from "react";
@@ -143,12 +143,12 @@ export default function PluginTable({
                         >
                           {plugin.enabled ? (
                             <>
-                              <ToggleLeft className="h-4 w-4" />
+                              <CircleX className="h-4 w-4" />
                               Disable
                             </>
                           ) : (
                             <>
-                              <ToggleRight className="h-4 w-4" />
+                              <CircleCheck className="h-4 w-4" />
                               Enable
                             </>
                           )}
