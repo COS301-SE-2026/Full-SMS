@@ -184,3 +184,11 @@ class TestGetReviewerInfo:
 
         result = plugin_marketplace_service.get_reviewer_info("admin123")
         assert result["email"] == "kuda@testing.com"
+
+    def test_get_reviewer_info_user_not_found(self, mock_supabase):
+        mock_response = Mock()
+        mock_response.user = None
+        mock_supabase.auth.admin.get_user_by_id.return_value = mock_response
+
+        result = plugin_marketplace_service.get_reviewer_info("admin123")
+        assert result is None
