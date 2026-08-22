@@ -83,3 +83,16 @@ class TestGetMarketplacePlugins:
 
         assert len(result) == 2
         assert result[0]["name"] == "heatmap plugin"
+
+
+class TestGetMarketplacePluginById:
+    def test_get_marketplace_plugin_by_id(self, mock_supabase):
+        plugin_data = {"id": "plugin123", "name": "Test Plugin"}
+        mock_supabase.table.return_value.select.return_value.eq.return_value.eq.return_value.eq.return_value.single.return_value.execute.return_value.data = (
+            plugin_data
+        )
+
+        result = plugin_marketplace_service.get_marketplace_plugin_by_id("plugin123")
+
+        assert result["id"] == "plugin123"
+        assert result["name"] == "Test Plugin"
