@@ -40,7 +40,7 @@ class TestSubmitMarketplacePlugin:
         mock_supabase.table.return_value.select.return_value.eq.return_value.eq.return_value.single.return_value.execute.return_value.data = {
             "marketplace_status": "pending_review"
         }
-        with pytest.raises(ValueError, match="Plugin is already pending review"):
+        with pytest.raises(ValueError, match="Plugin is already submitted for approval"):
             plugin_marketplace_service.submit_marketplace_plugin("plugin123", "kuda123")
 
 
@@ -122,7 +122,7 @@ class TestGetAllMarketplacePlugins:
         assert len(result) == 2
 
 
-class TestApprovePlugin:
+class TestApprovePluginSubmission:
     def test_successful_approve_plugin(self, mock_supabase):
         plugin_id = "plugin123"
         admin_id = "admin123"
@@ -153,7 +153,7 @@ class TestApprovePlugin:
             plugin_marketplace_service.approve_plugin_submission(plugin_id, admin_id)
 
 
-class TestRejectPlugin:
+class TestRejectPluginSubmission:
     def test_successful_reject_plugin(self, mock_supabase):
         plugin_id = "plugin123"
         admin_id = "admin123"
