@@ -34,7 +34,7 @@ def submit_marketplace_plugin(plugin_id: str, user_id: str) -> dict:
     if plugin.get("marketplace_status") in ["pending_review", "approved"]:
         raise ValueError("Plugin is already submitted for approval")
 
-    update_response = {
+    update_response = (
         supabase.table("user_plugins")
         .update(
             {
@@ -45,7 +45,7 @@ def submit_marketplace_plugin(plugin_id: str, user_id: str) -> dict:
         .eq("id", plugin_id)
         .eq("user_id", user_id)
         .execute()
-    }
+    )
 
     if not update_response.data:
         raise RuntimeError("Failed to submit plugin for review")
