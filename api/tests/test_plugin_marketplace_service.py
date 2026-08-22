@@ -96,3 +96,15 @@ class TestGetMarketplacePluginById:
 
         assert result["id"] == "plugin123"
         assert result["name"] == "Test Plugin"
+
+
+class TestGetPluginsInReview:
+    def test_successful_get_plugins_in_review(self, mock_supabase):
+        mock_supabase.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value.data = [
+            {"id": "plugin1", "marketplace_status": "pending_review"},
+        ]
+
+        result = plugin_marketplace_service.get_plugins_in_review()
+
+        assert len(result) == 1
+        assert result[0]["marketplace_status"] == "pending_review"
