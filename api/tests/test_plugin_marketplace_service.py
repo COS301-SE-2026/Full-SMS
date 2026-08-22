@@ -59,3 +59,14 @@ class TestCancelPluginSubmission:
 
         result = plugin_marketplace_service.cancel_plugin_submission(plugin_id, user_id)
         assert result["marketplace_status"] is None
+
+    def test_cancel_submission_not_pending(self, mock_supabase):
+        mock_supabase.table.return_value.select.return_value.eq.return_value.eq.return_value.single.return_value.execute.return_value.data = {
+            "marketplace_status": "approved"
+        }
+
+        with pytest.raises(
+            ValueError,
+            match="Plugin is only allowed to cancel submission if it is pending review",
+        ):
+            plugin_marketplace_service.cancel_plugin_submission("plugin123", "kuda123")
