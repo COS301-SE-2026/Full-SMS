@@ -42,3 +42,20 @@ class TestSubmitMarketplacePlugin:
         }
         with pytest.raises(ValueError, match="Plugin is already pending review"):
             plugin_marketplace_service.submit_marketplace_plugin("plugin123", "kuda123")
+
+
+class TestCancelPluginSubmission:
+    def test_successful_submission_cancellation(self, mock_supabase):
+        plugin_id = "plugin123"
+        user_id = "kuda123"
+
+        mock_supabase.table.return_value.select.return_value.eq.return_value.eq.return_value.single.return_value.execute.return_value.data = {
+            "marketplace_status": "pending_review"
+        }
+
+        mock_supabase.table.return_value.update.return_value.eq.return_value.eq.return_value.execute.return_value.data = [
+            {"id": plugin_id, "marketplace_status": None}
+        ]
+
+        result = plugin_marketplace_service.cancel_plugin_submission(plugin_id, user_id)
+        assert result["marketplace_status"] is None
