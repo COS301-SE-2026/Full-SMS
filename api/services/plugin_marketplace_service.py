@@ -70,8 +70,11 @@ def get_marketplace_plugins() -> List[dict]:
 
 def get_marketplace_plugin_by_id(plugin_id: str) -> Optional[dict]:
     supabase = get_supabase_admin()
-    response = supabase.table("user_plugins").select(
-        ("id, name, description, version, config, created_at, updated_at, user_id")
+    response = (
+        supabase.table("user_plugins")
+        .select(
+            "id, name, description, version, config, script, created_at, updated_at, user_id"
+        )
         .eq("id", plugin_id)
         .eq("marketplace_status", "approved")
         .eq("enabled", True)
