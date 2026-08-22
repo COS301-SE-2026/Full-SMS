@@ -106,7 +106,7 @@ def get_all_marketplace_plugins() -> List[dict]:
     response = (
         supabase.table("user_plugins")
         .select("*")
-        .eq("marketplace_status", "not.null")
+        .is_("marketplace_status", "not.null")
         .order("updated_at", desc=True)
         .execute()
     )
