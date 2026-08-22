@@ -70,3 +70,16 @@ class TestCancelPluginSubmission:
             match="Plugin is only allowed to cancel submission if it is pending review",
         ):
             plugin_marketplace_service.cancel_plugin_submission("plugin123", "kuda123")
+
+
+class TestGetMarketplacePlugins:
+    def test_get_marketplace_plugins(self, mock_supabase):
+        mock_supabase.table.return_value.select.return_value.eq.return_value.eq.return_value.order.return_value.execute.return_value.data = [
+            {"id": "plugin1", "name": "heatmap plugin"},
+            {"id": "plugin2", "name": "histogram plugin"},
+        ]
+
+        result = plugin_marketplace_service.get_marketplace_plugins()
+
+        assert len(result) == 2
+        assert result[0]["name"] == "heatmap plugin"
