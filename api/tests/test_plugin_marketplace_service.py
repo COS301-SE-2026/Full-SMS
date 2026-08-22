@@ -109,6 +109,7 @@ class TestGetPluginsInReview:
         assert len(result) == 1
         assert result[0]["marketplace_status"] == "pending_review"
 
+
 class TestGetAllMarketplacePlugins:
     def test_successful_get_all_marketplace_plugins(self, mock_supabase):
         mock_supabase.table.return_value.select.return_value.is_.return_value.order.return_value.execute.return_value.data = [
@@ -119,3 +120,23 @@ class TestGetAllMarketplacePlugins:
         result = plugin_marketplace_service.get_all_marketplace_plugins()
 
         assert len(result) == 2
+
+
+class TestApprovePlugin:
+    def test_successful_approve_plugin(self, mock_supabase):
+        plugin_id = "plugin123"
+        admin_id = "admin123"
+
+        mock_supabase.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value.data = {
+            "marketplace_status": "pending_review",
+        }
+
+        mock_supabase.table.return_value.update.return_value.eq.return_value.execute.return_value.data = [
+            {"id": plugin_id, "marketplace_status": "approved"}
+        ]
+
+        result = plugin_marketplace_service.approve_plugin_submission(
+            plugin_id, admin_id
+        )
+
+        assert result["marketplace_status"] == "approved"
