@@ -33,11 +33,11 @@ class TestRejectPluginRequest:
 
     def test_reject_plugin_feedback_required(self):
         with pytest.raises(ValidationError) as exc_info:
-            RejectPluginRequest(feedback="")
+            RejectPluginRequest()
 
         errors = exc_info.value.errors()
-        assert any(error["type"] == "missing" for error in errors)
-        
+        assert any(error["loc"] == ("feedback",) for error in errors)
+
     def test_reject_plugin_with_short_feedback(self):
         with pytest.raises(ValidationError) as exc_info:
             RejectPluginRequest(feedback="kkk")
