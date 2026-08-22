@@ -140,3 +140,14 @@ class TestApprovePlugin:
         )
 
         assert result["marketplace_status"] == "approved"
+
+    def test_approve_plugin_submission_not_in_review(self, mock_supabase):
+        plugin_id = "plugin123"
+        admin_id = "admin123"
+
+        mock_supabase.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value.data = {
+            "marketplace_status": "approved",
+        }
+
+        with pytest.raises(ValueError, match="Plugin is not pending review"):
+            plugin_marketplace_service.approve_plugin_submission(plugin_id, admin_id)
