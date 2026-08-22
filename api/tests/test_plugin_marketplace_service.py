@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import Mock, patch
 from api.services import plugin_marketplace_service
 
 
@@ -172,3 +172,15 @@ class TestRejectPlugin:
         )
 
         assert result["marketplace_status"] == "rejected"
+
+
+class TestGetReviewerInfo:
+    def test_successful_get_reviewer_info(self, mock_supabase):
+        mock_user = Mock()
+        mock_user.email = "kuda@testing.com"
+        mock_response = Mock()
+        mock_response.user = mock_user
+        mock_supabase.auth.admin.get_user_by_id.return_value = mock_response
+
+        result = plugin_marketplace_service.get_reviewer_info("admin123")
+        assert result["email"] == "kuda@testing.com"
