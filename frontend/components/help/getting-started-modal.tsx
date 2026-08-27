@@ -7,3 +7,19 @@ interface GettingStartedProps{
     readonly onClose: () => void
 }
 
+export function GettingStartedModal({open, onClose}: GettingStartedProps){
+    const [currentStep, setCurrentStep] = useState<number>(0)
+    const steps = [
+        {
+            title: "How to create a workspace",
+            points: ["Sign up to create your FULLSMS account", "Login to your new account", "You will be led to the dashboard page where you can create a workspace, visit your profile or create a plugin","Select the Workspaces option on the side menu","Click the New Workspace button","Write the name of your Workspace and the description","Click the Create New Workspace button and a new workspace will be created"]
+        },
+        {
+            title: "How to upload a file for analysis",
+            points: ["Select any of the workspaces you have created","Click the Upload File button","Upload valid data files","Click the Open button to start preparing your file for an analysis session"]
+        },
+        {
+            title: "How to navigate to the Analysis Hub Page",
+            points: ["Click the Workspaces option in the side menu","Select the file you uploaded","You will be led to the Analysis Hub page","Select an analysis algorithm or any from your plugins","Provide necessary parameter values","Select your preferred type of measurements"]
+        }
+    ]
