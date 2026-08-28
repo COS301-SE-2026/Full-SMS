@@ -37,9 +37,18 @@ export function GettingStartedModal({open, onClose}: GettingStartedProps){
                         <p className={index === 0 ? "text-foreground" : "text-foreground/60"}>{point}</p>
                     </div>
                 ))}
-            </ul>
-            <span>Step {currentStep+1} of {steps.length}</span>
-            <div className="flex gap-2 justify-end">
+            </div>
+
+           <div className="flex justify-between mt-6">
+            <span className="text-primary">Step {currentStep+1} of {steps.length}</span>
+            <span>{Math.round(((currentStep + 1) / steps.length) * 100)}% Complete</span>
+           </div>
+
+           <div className="w-full bg-card h-1 rounded-full overflow-hidden">
+            <div className="bg-primary h-full" style={{width: `${Math.round(((currentStep + 1) / steps.length) * 100)}%`}}></div>
+           </div>
+
+            <div className="flex gap-2 justify-end mt-4">
                 <Button
                 onClick={() => setCurrentStep(currentStep > 0 ? currentStep - 1 : currentStep)}>Back</Button>
                 <Button
