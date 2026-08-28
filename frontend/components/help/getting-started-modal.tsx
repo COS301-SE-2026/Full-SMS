@@ -30,7 +30,12 @@ export function GettingStartedModal({open, onClose}: GettingStartedProps){
             <h3 className="mb-4 mt-4">{steps[currentStep].title}</h3>
             <div className="space-y-4">
                 {steps[currentStep].points.map((point, index) => (
-                    <li key={index}>{point}</li>
+                    <div className="flex gap-4" key={index}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                            index === 0 ? "bg-primary/10 border border-primary text-primary" : "bg-card border border-border text-foreground/50"
+                        }`}>{index +1}</div>
+                        <p className={index === 0 ? "text-foreground" : "text-foreground/60"}>{point}</p>
+                    </div>
                 ))}
             </ul>
             <span>Step {currentStep+1} of {steps.length}</span>
