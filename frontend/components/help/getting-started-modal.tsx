@@ -27,8 +27,8 @@ export function GettingStartedModal({open, onClose}: GettingStartedProps){
     return(
         <Modal open={open} onClose={onClose}>
 
-            <h3>{steps[currentStep].title}</h3>
-            <ul>
+            <h3 className="mb-4 mt-4">{steps[currentStep].title}</h3>
+            <div className="space-y-4">
                 {steps[currentStep].points.map((point, index) => (
                     <li key={index}>{point}</li>
                 ))}
