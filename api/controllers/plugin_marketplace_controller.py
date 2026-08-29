@@ -73,6 +73,7 @@ def get_marketplace_plugin_by_id_controller(plugin_id: str) -> dict:
             detail=f"Failed to retrieve marketplace plugin: {str(error)}",
         )
 
+
 def install_marketplace_plugin_controller(plugin_id: str, user_id: str) -> dict:
     try:
         marketplace_plugin = plugin_marketplace_service.get_marketplace_plugin_by_id(
@@ -100,4 +101,20 @@ def install_marketplace_plugin_controller(plugin_id: str, user_id: str) -> dict:
         raise HTTPException(
             status_code=500,
             detail=f"Failed to install marketplace plugin: {str(error)}",
+        )
+
+
+def get_plugins_in_review_controller() -> dict:
+    try:
+        plugins = plugin_marketplace_service.get_plugins_in_review()
+        return {
+            "success": True,
+            "message": "Marketplace plugins in review retrieved successfully",
+            "data": plugins,
+        }
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve marketplace plugins in review: {str(error)}",
         )
