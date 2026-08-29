@@ -54,3 +54,21 @@ def get_marketplace_plugins_controller() -> dict:
             status_code=500,
             detail=f"Failed to retrieve marketplace plugins: {str(error)}",
         )
+
+
+def get_marketplace_plugin_by_id_controller(plugin_id: str) -> dict:
+    try:
+        plugin = plugin_marketplace_service.get_marketplace_plugin_by_id(plugin_id)
+        return {
+            "success": True,
+            "message": "Marketplace plugin retrieved successfully",
+            "data": plugin,
+        }
+
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail=str(error))
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve marketplace plugin: {str(error)}",
+        )
