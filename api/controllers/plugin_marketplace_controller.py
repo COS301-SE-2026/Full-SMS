@@ -3,11 +3,9 @@ from fastapi import HTTPException
 from api.services import plugin_marketplace_service, plugin_service
 
 
-def submit_marketplace_plugin(plugin_id: str, user_id: str) -> dict:
+def submit_marketplace_plugin_controller(plugin_id: str, user_id: str) -> dict:
     try:
-        plugin = plugin_marketplace_service.submit_plugin_to_marketplace(
-            plugin_id, user_id
-        )
+        plugin = plugin_marketplace_service.submit_marketplace_plugin(plugin_id, user_id)
         return {
             "success": True,
             "message": "Plugin submitted for review successfully",
