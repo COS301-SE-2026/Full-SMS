@@ -180,3 +180,40 @@ def reject_plugin_submission_controller(
         raise HTTPException(
             status_code=500, detail=f"Failed to reject plugin submission: {str(error)}"
         )
+
+def get_plugin_submission_details_controller(plugin_id: str, user_id: str) -> dict:
+    try:
+        plugin = plugin_service.get_plugin_by_id(plugin_id, user_id)
+        if not plugin:
+            raise HTTPException(status_code=404, detail="Plugin not found")
+
+        submission_details = {
+            "plugin_id": plugin["id"],
+            "name": plugin["name"],
+            "marketplace_status": plugin.get("marketplace_status"),
+            "submitted_at": plugin.get("submitted_at"),
+            "reviewed_at": plugin.get("reviewed_at"),
+            "review_feedback": plugin.get("review_feedback"),
+        }
+
+        if plugin.get("reviewed_by"):
+            reviewer = plugin_marketplace_service.get_reviewer_info(
+                plugin["reviewed_by"]
+            )
+            submission_details["reviewer_email"] = (
+                reviewer.get("email") if reviewer else None
+            )
+
+        return {
+            "success": True,
+            "message": "Plugin submission details retrieved successfully",
+            "data": submission_details,
+        }
+
+    except HTTPException as error:
+        raise error
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve plugin submission details: {str(error)}",
+        )
