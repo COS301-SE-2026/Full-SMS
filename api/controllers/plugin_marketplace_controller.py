@@ -158,3 +158,25 @@ def approve_plugin_submission_controller(
             status_code=500, detail=f"Failed to approve plugin submission: {str(error)}"
         )
 
+
+def reject_plugin_submission_controller(
+    plugin_id: str, admin_id: str, feedback: str
+) -> dict:
+    try:
+        plugin = plugin_marketplace_service.reject_plugin_submission(
+            plugin_id, admin_id, feedback
+        )
+        return {
+            "success": True,
+            "message": "Plugin submission rejected successfully",
+            "data": plugin,
+        }
+
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    except RuntimeError as error:
+        raise HTTPException(status_code=500, detail=str(error))
+    except Exception as error:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to reject plugin submission: {str(error)}"
+        )
