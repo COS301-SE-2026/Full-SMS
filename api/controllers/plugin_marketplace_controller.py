@@ -134,3 +134,27 @@ def get_all_marketplace_plugins_controller() -> dict:
             status_code=500,
             detail=f"Failed to retrieve all marketplace plugins: {str(error)}",
         )
+
+
+def approve_plugin_submission_controller(
+    plugin_id: str, admin_id: str, feedback: Optional[str] = None
+) -> dict:
+    try:
+        plugin = plugin_marketplace_service.approve_plugin_submission(
+            plugin_id, admin_id, feedback
+        )
+        return {
+            "success": True,
+            "message": "Plugin submission approved successfully",
+            "data": plugin,
+        }
+
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    except RuntimeError as error:
+        raise HTTPException(status_code=500, detail=str(error))
+    except Exception as error:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to approve plugin submission: {str(error)}"
+        )
+
