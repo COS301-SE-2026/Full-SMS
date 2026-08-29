@@ -39,3 +39,18 @@ def cancel_plugin_submission_controller(plugin_id: str, user_id: str) -> dict:
         raise HTTPException(
             status_code=500, detail=f"Failed to cancel plugin submission: {str(error)}"
         )
+
+
+def get_marketplace_plugins_controller() -> dict:
+    try:
+        plugins = plugin_marketplace_service.get_marketplace_plugins()
+        return {
+            "success": True,
+            "message": "Marketplace plugins retrieved successfully",
+            "data": plugins,
+        }
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve marketplace plugins: {str(error)}",
+        )
