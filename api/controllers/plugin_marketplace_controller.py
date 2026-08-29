@@ -118,3 +118,19 @@ def get_plugins_in_review_controller() -> dict:
             status_code=500,
             detail=f"Failed to retrieve marketplace plugins in review: {str(error)}",
         )
+
+
+def get_all_marketplace_plugins_controller() -> dict:
+    try:
+        plugins = plugin_marketplace_service.get_all_marketplace_plugins()
+        return {
+            "success": True,
+            "message": "All marketplace plugins retrieved successfully",
+            "data": plugins,
+        }
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve all marketplace plugins: {str(error)}",
+        )
