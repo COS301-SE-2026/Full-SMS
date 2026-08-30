@@ -23,3 +23,15 @@ class TestSubmitMarketplacePluginController:
             plugin_marketplace_controller.submit_marketplace_plugin_controller("plugin123", "kuda123")
         assert exc_info.value.status_code == 400
         assert str(exc_info.value.detail) == "Plugin not found"
+        
+class TestCancelPluginSubmissionController:
+    @patch("api.controllers.plugin_marketplace_controller.plugin_marketplace_service")
+    def test_succesful_cancellation(self, mock_service):
+        mock_service.cancel_plugin_submssion.return_value = {
+            "id": "plugin123",
+            "marketplace_status": None,
+        }
+        
+        result = plugin_marketplace_controller.cancel_plugin_submission_controller("plugin123", "kuda123")
+        assert result["success"] is True
+        assert result["message"] == "Plugin submission cancelled successfully"
