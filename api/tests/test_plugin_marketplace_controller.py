@@ -96,3 +96,14 @@ class TestInstallMarketplacePluginController:
         assert result["success"] is True
         assert result["message"] == "Marketplace plugin installed successfully"
         
+class TestGetPluginsInReviewController:
+    @patch("api.controllers.plugin_marketplace_controller.plugin_marketplace_service")
+    def test_successful_retrieval(self, mock_service):
+        mock_service.get_plugins_in_review.return_value = [
+            {"id": "plugin123", "marketplace_status": "pending_review"},
+        ]
+        
+        result = plugin_marketplace_controller.get_plugins_in_review_controller()
+        assert result["success"] is True
+        assert len(result["data"]) == 1
+        
