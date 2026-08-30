@@ -61,3 +61,9 @@ export interface SubmissionStatusProps {
   feedback?: string | null;
   reviewedAt?: string | null;
 }
+
+interface MarketplaceGridProps {
+  plugins: MarketplacePlugin[];
+  onInstall: (pluginId: string) => Promise<void>;
+  installingId: string | null;
+}
