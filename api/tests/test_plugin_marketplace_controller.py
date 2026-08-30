@@ -35,3 +35,16 @@ class TestCancelPluginSubmissionController:
         result = plugin_marketplace_controller.cancel_plugin_submission_controller("plugin123", "kuda123")
         assert result["success"] is True
         assert result["message"] == "Plugin submission cancelled successfully"
+        
+class TestGetMarketplacePluginsController:
+    @patch("api.controllers.plugin_marketplace_controller.plugin_marketplace_service")
+    def test_successful_retrieval(self, mock_service):
+        mock_service.get_marketplace_plugins.return_value = [
+            {"id": "plugin123", "marketplace_status": "pending_review"},
+            {"id": "plugin456", "marketplace_status": "approved"},
+        ]
+        
+        result = plugin_marketplace_controller.get_marketplace_plugins_controller()
+        assert result["success"] is True
+        assert len(result["data"]) == 2
+        
