@@ -71,3 +71,28 @@ class TestGetMarketplacePluginByIdController:
         assert exc_info.value.status_code == 404
         assert str(exc_info.value.detail) == "Plugin not found"
         
+class TestInstallMarketplacePluginController:
+    @patch("api.controllers.plugin_marketplace_controller.plugin_marketplace_service")
+    @patch("api.controllers.plugin_marketplace_controller.plugin_service")
+    def test_successful_installation(self, mock_marketplace_service, mock_plugin_service):
+        mock_marketplace_service.get_marketplace_plugin_by_id.return_value = {
+            "name": "test Plugin",
+            "description": "A test plugin",
+            "version": "1.0.0",
+            "config": {},
+            "script": "print('kudaaaa')"
+        }
+        
+        mock_plugin_service.create_plugin.return_value = {
+            "id": "plugin123",
+            "name": "test Plugin",
+            "description": "A test plugin",
+            "version": "1.0.0",
+            "config": {},
+            "script": "print('kudaaaa')"
+        }
+        
+        result = plugin_marketplace_controller.install_marketplace_plugin_controller("plugin123", "kuda123")
+        assert result["success"] is True
+        assert result["message"] == "Marketplace plugin installed successfully"
+        
