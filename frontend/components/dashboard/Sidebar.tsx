@@ -40,7 +40,7 @@ export default function Sidebar({
       icon: Store,
       key: "plugins-marketplace",
       onClick: () => {
-        router.push("/plugins/marketplace");
+        router.push("/marketplace");
       },
     },
     {
