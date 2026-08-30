@@ -47,4 +47,27 @@ class TestGetMarketplacePluginsController:
         result = plugin_marketplace_controller.get_marketplace_plugins_controller()
         assert result["success"] is True
         assert len(result["data"]) == 2
+
+class TestGetMarketplacePluginByIdController:
+    @patch("api.controllers.plugin_marketplace_controller.plugin_marketplace_service")
+    def test_successful_retrieval(self, mock_service):
+        mock_service.get_marketplace_plugin_by_id.return_value = {
+            "id": "plugin123",
+            "marketplace_status": "approved",
+            "name": "Test Plugin"
+        }
+        
+        result = plugin_marketplace_controller.get_marketplace_plugin_by_id_controller("plugin123")
+        assert result["success"] is True
+        assert result["data"]["marketplace_status"] == "approved"
+        assert result["data"]["id"] == "plugin123"
+        
+    @patch("api.controllers.plugin_marketplace_controller.plugin_marketplace_service")
+    def test_plugin_not_found(self, mock_service):
+        mock_service.get_marketplace_plugin_by_id.side_effect = ValueError("Plugin not found")
+        
+        with pytest.raises(HTTPException) as exc_info:
+            plugin_marketplace_controller.get_marketplace_plugin_by_id_controller("plugin123")
+        assert exc_info.value.status_code == 404
+        assert str(exc_info.value.detail) == "Plugin not found"
         
