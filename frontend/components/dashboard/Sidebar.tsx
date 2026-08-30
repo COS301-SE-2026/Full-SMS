@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { FolderOpen, User, Code, LogOut } from "lucide-react";
+import { FolderOpen, User, Code, LogOut, Store } from "lucide-react";
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import { cn } from "@/lib/utils";
 import { NavItem, DashboardSidebarProps } from "@/types/dashboard";
@@ -33,6 +33,14 @@ export default function Sidebar({
       key: "plugins",
       onClick: () => {
         router.push("/plugins");
+      },
+    },
+    {
+      label: "Plugins Marketplace",
+      icon: Store,
+      key: "plugins-marketplace",
+      onClick: () => {
+        router.push("/plugins/marketplace");
       },
     },
     {
