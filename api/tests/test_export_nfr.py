@@ -48,9 +48,45 @@ class TestExportPerformanceNFR:
         finally:
             export_service.redisClient.get = original_redis
 
-            assert result_path.exists()
-            print(f"\nExport took {elapsed:.4f}s (target:  {TARGET_SECONDS}s)")
-            assert elapsed < TARGET_SECONDS
+        assert result_path.exists()
+        print(f"\nExport took {elapsed:.4f}s (target:  {TARGET_SECONDS}s)")
+        assert elapsed < TARGET_SECONDS
+
+
+    def test_intensityExport_largeDataset(self):
+        TARGET_SECONDS = 3.0
+        request = make_request()
+
+        fake_meas = {
+            "name": "raw",
+            "channel1": {"abstimes": list(range(0, 50_000_000, 10))},
+        }
+
+        def fake_redisGet(key):
+            return json.dumps(fake_meas)
+
+        original_redis = export_service.redisClient.get
+        export_service.redisClient.get = fake_redisGet
+
+        try:
+            start = time.perf_counter()
+
+            result_path, result_name =export_service.export_data(
+                request, 
+                "user1"
+            )
+
+            elapsed = time.perf_counter() - start
+        finally:
+            export_service.redisClient.get = original_redis
+
+        assert result_path.exists()
+        print(f"\nExport took {elapsed:.4f}s (target:  {TARGET_SECONDS}s)")
+        assert elapsed < TARGET_SECONDS
+
+
+
+
         
 
         
