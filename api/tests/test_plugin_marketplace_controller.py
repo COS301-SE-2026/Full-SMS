@@ -131,3 +131,27 @@ class TestRejectPluginSubmissionController:
         assert result["success"] is True
         assert result["message"] == "Plugin submission rejected successfully"
         
+class TestGetPluginSubmissionDetailsController:
+    @patch("api.controllers.plugin_marketplace_controller.plugin_service")
+    def test_successful_retreival(self, mock_plugin_service):
+        mock_plugin_service.get_plugin_by_id.return_value = {
+            "id": "plugin123",
+            "name": "Testing Plugin",
+            "marketplace_status": "pending_review",
+            "reviewed_at": None,
+            "review_feedback": None,
+            "reviewed_by": None
+        }
+
+        result = plugin_marketplace_controller.get_plugin_submission_details_controller("plugin123", "kuda123")
+        assert result["success"] is True
+        assert result["data"]["plugin_id"] == "plugin123"
+    
+    @patch("api.controllers.plugin_marketplace_controller.plugin_service")
+    def test_plugin_not_found(self, mock_plugin_service):
+        mock_plugin_service.get_plugin_by_id.return_value = None
+
+        with pytest.raises(HTTPException) as exc_info:
+            plugin_marketplace_controller.get_plugin_submission_details_controller("plugin123", "kuda123")
+        assert exc_info.value.status_code == 404
+        assert str(exc_info.value.detail) == "Plugin not found"
