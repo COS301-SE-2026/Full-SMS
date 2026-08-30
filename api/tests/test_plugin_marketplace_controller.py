@@ -119,3 +119,15 @@ class TestApprovePluginSubmissionController:
         assert result["success"] is True
         assert result["message"] == "Plugin submission approved successfully"
         
+class TestRejectPluginSubmissionController:
+    @patch("api.controllers.plugin_marketplace_controller.plugin_marketplace_service")
+    def test_successful_rejection(self, mock_service):
+        mock_service.reject_plugin_submission.return_value = {
+            "id": "plugin123",
+            "marketplace_status": "rejected",
+        }
+        
+        result = plugin_marketplace_controller.reject_plugin_submission_controller("plugin123", "kuda123","this is a test reasn")
+        assert result["success"] is True
+        assert result["message"] == "Plugin submission rejected successfully"
+        
