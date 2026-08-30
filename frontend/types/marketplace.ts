@@ -49,3 +49,15 @@ export interface SubmissionDetailsResponse {
   data?: SubmissionDetails;
   message?: string;
 }
+
+export interface MarketplaceCardProps {
+  plugin: MarketplacePlugin;
+  onInstall: (pluginId: string) => Promise<void>;
+  isInstalling?: boolean;
+}
+
+export interface SubmissionStatusProps {
+  status: MarketplaceStatus;
+  feedback?: string | null;
+  reviewedAt?: string | null;
+}
