@@ -23,4 +23,17 @@ def make_request(**overrides):
 class TestExportPerformanceNFR:
     def test_intensityExport_withinTarget(self):
         request = make_request()
-        pass
+
+        fake_meas = {
+            "name": "raw",
+            "channel1": {"abstimes": list(range(0, 1_000_000, 10))},
+        }
+
+        def fake_redisGet(key):
+            return json.dumps(fake_meas)
+
+        original_redis = export_service.redisClient.get
+        export_service.redisClient.get = fake_redisGet
+        
+
+        
