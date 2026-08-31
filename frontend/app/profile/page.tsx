@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useFormik } from "formik"
 import * as Yup from "yup"
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Toggle } from "@/components/ui/Toggle"
 import { useAuth } from "@/contexts/authContext/AuthContext"
+import axiosInstance from "@/lib/api/axiosInstance"
 
 function Avatar({ email }: { email: string}) {
     // Get initials from email (first letter before @)
@@ -71,6 +72,24 @@ export default function ProfilePage(){
     const [passwordSuccess, setPasswordSuccess] = useState("")
     const { user, signOut, updatePassword } = useAuth()
     const router = useRouter()
+    const[profile, setProfile]= useState<{ username: string; email: string; role: string } | null>(null)
+    const [profileLoading, setProfileLoading] = useState(true)
+    const [profileError, setProfileError] = useState("")
+
+    useEffect(() =>{
+        async function fetchProfile(){
+            try{
+                const response = await axiosInstance.get("/api/py/profile/me")
+                setProfile(response.data)
+            }catch(error){
+                console.error("Failed to fetch profile:", error)
+                setProfileError("Failed to load profile")
+            } finally {
+                setProfileLoading(false)
+            }
+        }
+        fetchProfile()
+    }, [])
 
     // Derive username from email (part before @)
     const username = user?.email?.split('@')[0] || 'User'
