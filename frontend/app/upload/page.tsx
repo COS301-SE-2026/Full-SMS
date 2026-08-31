@@ -14,7 +14,6 @@ import RecentUploads from '@/components/upload/recentUploads';
 import { FaGoogleDrive } from "react-icons/fa";
 import { GrOnedrive } from 'react-icons/gr';
 import { OneDriveLogin } from '@/lib/microsoftAuth';
-import { useAuth } from '@/contexts/authContext/AuthContext';
 
 type UploadPageProps = {
   onComplete?: () => void
@@ -24,18 +23,11 @@ export default function UploadPage({ onComplete }: UploadPageProps) {
   const [queue, setQueue] = useState<SelectedFile[]>([]);
   const {setIsParsing, setCurrentUpload, currentUpload, currentWorkspaceId, setCurrentUploadName } = useHdf5Data()
   const [uploadId, setUploadId] = useState<string>("");
-  const {oneDriveLinked} = useAuth()
-
   const updateItem = (id: string, patch: Partial<SelectedFile>) => {
   setQueue((prev) =>
     prev.map((item) => (item.id === id ? { ...item, ...patch } : item))
   );
 };
-
-useEffect(()=>{
-  console.log("OneDriveLinked: ", oneDriveLinked);
-  
-}, [oneDriveLinked])
 
 const handleOpen = async () => {
   const items = [...queue]
@@ -164,11 +156,14 @@ useEffect (()=>{
             </span>
             <FileUploadZone onFilesSelected={handleFilesSelected} />
           </div>
-          {/* <div className=' flex flex-col gap-4'>
+          <div className=' flex flex-col gap-4'>
             <span className="text-xs font-semibold text-foreground/50 uppercase tracking-widest px-1 text-center block">
               Use cloud storage
             </span>
-          </div> */}
+            <Button leftIcon={<FaGoogleDrive size={24}/>}>Google Drive</Button>
+            <Button leftIcon={<GrOnedrive size={24}/>}  onClick={OneDriveLogin}>OneDrive</Button>
+          </div>
+
         </div>
 
         <FileList files={queue} onRemove={handleRemoveItem} />
