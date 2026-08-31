@@ -92,7 +92,7 @@ export default function ProfilePage(){
     }, [])
 
     // Derive username from email (part before @)
-    const username = user?.email?.split('@')[0] || 'User'
+    const username = profile?.username || user?.email?.split('@')[0] || 'User'
     const email = user?.email || ''
     const role = user?.user_metadata?.role || 'researcher'
     const joinedDate = user?.created_at
