@@ -1,7 +1,7 @@
 import { defineConfig } from "cypress";
 import * as dotenv from 'dotenv'
 
-dotenv.config({ path: 'env.local'})
+dotenv.config({ path: '.env.local'})
 
 export default defineConfig({
   e2e: {
