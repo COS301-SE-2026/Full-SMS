@@ -94,7 +94,7 @@ export default function ProfilePage(){
     // Derive username from email (part before @)
     const username = profile?.username || user?.email?.split('@')[0] || 'User'
     const email = user?.email || ''
-    const role = user?.user_metadata?.role || 'researcher'
+    const role = profile?.role || user?.user_metadata?.role || 'researcher'
     const joinedDate = user?.created_at
         ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
         : 'Recently'
