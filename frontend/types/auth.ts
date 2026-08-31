@@ -19,11 +19,4 @@ export interface User {
     signOut: () => Promise<{ error: AuthError | null }>
     resetPassword: (email: string) => Promise<{ error: AuthError | null }>
     updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>
-    oneDriveLinked: boolean,
-    setOneDriveLinked: (linked: boolean) => void
-  }
-
-  export interface OnedriveAcessToken{
-    access_token: string,
-    expires_in: number 
   }

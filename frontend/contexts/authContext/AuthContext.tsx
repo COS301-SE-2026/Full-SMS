@@ -17,7 +17,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [oneDriveLinked, setOneDriveLinked] = useState(false)
 
   useEffect(() => {
     // Get initial session
@@ -83,8 +82,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut,
     resetPassword,
     updatePassword,
-    oneDriveLinked,
-    setOneDriveLinked
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

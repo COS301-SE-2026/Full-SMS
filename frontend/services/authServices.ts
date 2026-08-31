@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/api/axiosInstance";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 
 export const authService = {
   //This calls the backend to verify that the Supabase JWT token is valid.
@@ -19,6 +19,13 @@ export const authService = {
   },
 };
 
-export const OneDriveAuthService = async (code :string) =>{
-  return axiosInstance.post('api/py/auth/onedrive', { code })
+export const OneDriveAuthService = (code :string) =>{
+  const router = useRouter()
+  axiosInstance.post('/auth/onedrive', { code }).
+    then(()=>{
+      router.push('/workspace')
+    }).catch((error) =>{
+      console.error('Failed to link OneDrive', error);
+      router.push('/workspace')
+    })
 }
