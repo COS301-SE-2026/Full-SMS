@@ -36,15 +36,15 @@
 //   }
 // }
 
-const SUPABASE_URL="https://pytgxhfpwiluexvyxicr.supabase.co"
-const NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5dGd4aGZwd2lsdWV4dnl4aWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4MTA4ODAsImV4cCI6MjEwMDM4Njg4MH0.m_npTioTNKfN5L4znKm55pLP5IfvNKYKd9dQdXKWrQk"
 
 Cypress.Commands.add('login', (email, password) => {
+    const SUPABASE_URL = Cypress.env('SUPABASE_URL')
+    const SUPABASE_ANON_KEY = Cypress.env('SUPABASE_ANON_KEY')
     cy.request({
         method: 'POST',
         url:`${SUPABASE_URL}/auth/v1/token?grant_type=password`,
         headers: {
-            apikey: NEXT_PUBLIC_SUPABASE_ANON_KEY,
+            apikey: SUPABASE_ANON_KEY,
         },
         body: {
             email,
