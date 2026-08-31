@@ -131,6 +131,8 @@ export default function ProfilePage(){
                 setTimeout(() => setSuccessMessage(""), 3000)
             } catch (error) {
                 console.error("Failed to update profile:", error)
+                setProfileError("Failed to update profile")
+                setTimeout(() => setProfileError(""), 3000)
             }
             setSubmitting(false)
         },
