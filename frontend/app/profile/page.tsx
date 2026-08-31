@@ -120,13 +120,19 @@ export default function ProfilePage(){
         initialValues: { username },
         enableReinitialize: true,
         validationSchema: ProfileSchema,
-        onSubmit: (values, { setSubmitting }) => {
-            //will connect to  profile update API
-            console.log("Profile updated:", values)
+        onSubmit: async (values, { setSubmitting }) => {
+            try{
+                const response = await axiosInstance.put("/api/py/profile/me", {
+                    username: values.username,
+                })
+                setProfile(response.data)
+                setIsEditing(false)
+                setSuccessMessage("Profile updated successfully")
+                setTimeout(() => setSuccessMessage(""), 3000)
+            } catch (error) {
+                console.error("Failed to update profile:", error)
+            }
             setSubmitting(false)
-            setIsEditing(false)
-            setSuccessMessage("Profile updated successfully")
-            setTimeout(() => setSuccessMessage(""), 3000)
         },
     })
 
