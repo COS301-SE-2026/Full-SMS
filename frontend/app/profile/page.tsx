@@ -153,6 +153,13 @@ export default function ProfilePage(){
         },
     })
 
+    if(profileLoading){
+        return(
+            <div className="min-h-screen bg-background flex items-center justify-center text-foreground/60">
+                Loading profile...
+            </div>
+        )
+    }
     return(
         <div className={`min-h-screen bg-background px-4 py-8 ${darkMode ? "dark" : ""}`}>
             <div className="w-full">
