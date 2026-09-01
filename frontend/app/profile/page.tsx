@@ -11,6 +11,7 @@ import { Toggle } from "@/components/ui/Toggle"
 import { useAuth } from "@/contexts/authContext/AuthContext"
 import axiosInstance from "@/lib/api/axiosInstance"
 import { sessionsService } from "@/services/sessionsServices"
+import Sidebar from "@/components/dashboard/Sidebar"
 
 function Avatar({ email }: { email: string}) {
     // Get initials from email (first letter before @)
@@ -185,7 +186,9 @@ export default function ProfilePage(){
         )
     }
     return(
-        <div className={`min-h-screen bg-background px-4 py-8 ${darkMode ? "dark" : ""}`}>
+        <div className='size-full flex h-screen bg-background text-foreground'>
+            <Sidebar activeItem="profile"/>
+            <div className={`flex-1 overflow-y-auto px-4 py-8 ${darkMode ? "dark" : ""}`}>
             <div className="w-full">
 
                 {/* Header */}
@@ -406,6 +409,7 @@ export default function ProfilePage(){
                </div>     
             </div>
         </div>
+    </div>
     </div>
     )
 }
