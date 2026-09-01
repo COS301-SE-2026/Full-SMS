@@ -50,3 +50,8 @@ describe('Help Menu Tutorial', () => {
         cy.get('[data-cy="step-tutorial-title"]').should('not.exist')
     })
 
+    it('backdrop closes the modal', ()=>{
+        cy.get('[data-cy="modal-backdrop"]').click({force: true})
+        cy.get('[data-cy="step-tutorial-title"]').should('not.exist')
+    })
+
