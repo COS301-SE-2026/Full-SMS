@@ -21,7 +21,23 @@ jest.mock("@/lib/supabase/supabaseConfig", () => ({
     },
 }))
 
+jest.mock("@/lib/api/axiosInstance", () => ({
+    __esModule: true,
+    default: {
+        get: jest.fn(),
+        put: jest.fn(),
+    },
+}))
+
+jest.mock("@/services/sessionsServices", () => ({
+    sessionsService: {
+        getSessions: jest.fn(),
+    },
+}))
+
 import { supabase } from "@/lib/supabase/supabaseConfig"
+import axiosInstance from "@/lib/api/axiosInstance"
+import { sessionsService } from "@/services/sessionsServices"
 
 const renderWithAuth = (component: React.ReactElement) => {
     return render(<AuthProvider>{component}</AuthProvider>)
