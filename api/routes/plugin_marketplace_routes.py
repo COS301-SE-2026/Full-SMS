@@ -59,6 +59,11 @@ def get_marketplace_plugins():
     return plugin_marketplace_controller.get_marketplace_plugins_controller()
 
 
+@router.get("/marketplace/pending", summary="get plugins that the admin has to review")
+def get_plugins_in_review(admin_user: AdminUser):
+    return plugin_marketplace_controller.get_plugins_in_review_controller()
+
+
 @router.get(
     "/marketplace/{plugin_id}", summary="Get a specific plugin from the marketplace"
 )
@@ -77,21 +82,6 @@ def install_marketplace_plugin(plugin_id: str, current_user: CurrentUser):
     )
 
 
-@router.get(
-    "/marketplace/{plugin_id}/submission-details",
-    summary="Get the submission details of a plugin",
-)
-def get_plugin_submission_details(plugin_id: str, current_user: CurrentUser):
-    return plugin_marketplace_controller.get_plugin_submission_details_controller(
-        plugin_id, current_user["id"]
-    )
-
-
-@router.get("/marketplace/pending", summary="get plugins that the admin has to review")
-def get_plugins_in_review(admin_user: AdminUser):
-    return plugin_marketplace_controller.get_plugins_in_review_controller()
-
-
 @router.post(
     "/marketplace/{plugin_id}/approve", summary="approve a plugin for the marketplace"
 )
@@ -107,4 +97,14 @@ def approve_plugin(plugin_id: str, admin_user: AdminUser, body: ApprovePluginReq
 def reject_plugin(plugin_id: str, admin_user: AdminUser, body: RejectPluginRequest):
     return plugin_marketplace_controller.reject_plugin_submission_controller(
         plugin_id, admin_user["id"], body.feedback
+    )
+
+
+@router.get(
+    "/marketplace/{plugin_id}/submission-details",
+    summary="Get the submission details of a plugin",
+)
+def get_plugin_submission_details(plugin_id: str, current_user: CurrentUser):
+    return plugin_marketplace_controller.get_plugin_submission_details_controller(
+        plugin_id, current_user["id"]
     )
