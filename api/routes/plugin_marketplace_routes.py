@@ -81,3 +81,8 @@ def get_plugin_submission_details(plugin_id: str, current_user: CurrentUser):
     return plugin_marketplace_controller.get_plugin_submission_details_controller(
         plugin_id, current_user["id"]
     )
+
+
+@router.get("/marketplace/pending", summary="get plugins that the admin has to review")
+def get_plugins_in_review(admin_user: AdminUser):
+    return plugin_marketplace_controller.get_plugins_in_review_controller()
