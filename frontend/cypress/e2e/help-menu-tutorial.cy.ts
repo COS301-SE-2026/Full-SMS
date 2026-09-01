@@ -12,3 +12,9 @@ describe('Help Menu Tutorial', () => {
     it('shows the right step when Getting Started is opened', () => {
         cy.get('[data-cy="step-counter"]').should('contain', 'Step 1 of 3')
     })
+
+    it('clicking Next moves the tutorial to step 2', () => {
+        cy.clickNextTimes(1)
+        cy.get('[data-cy="step-tutorial-title"]').should('contain',"How to upload a file for analysis")
+        cy.get('[data-cy="step-counter"]').should('contain', 'Step 2 of 3')
+    })
