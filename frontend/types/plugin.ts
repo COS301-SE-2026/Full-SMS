@@ -41,6 +41,12 @@ export interface Plugin {
   enabled: boolean;
   created_at: string;
   updated_at: string;
+  marketplace_status: "pending_review" | "approved" | "rejected" | null;
+  submitted_at: string | null;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  review_feedback: string | null
+  source_plugin_id: string | null;
 }
 
 export interface PlotData {
