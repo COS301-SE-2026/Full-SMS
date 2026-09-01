@@ -70,6 +70,16 @@ describe("ProfilePage", () => {
             data: { user: mockSession.user },
             error: null,
         })
+
+        ;(axiosInstance.get as jest.Mock).mockResolvedValue({
+            data: { username: "researcher_one", email: "researcher_one@example.com", role: "researcher"},
+        })
+
+        ;(axiosInstance.put as jest.Mock).mockResolvedValue({
+            data: { username: "newusername", email: "researcher_one@example.com", role: "researcher"},
+        })
+
+        ;(sessionsService.getSessions as jest.Mock).mockResolvedValue([])
     })
 
     it("renders the profile page correctly", async () => {
