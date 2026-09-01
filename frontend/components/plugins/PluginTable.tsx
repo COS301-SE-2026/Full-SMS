@@ -1,6 +1,7 @@
 "use client";
 
 import { Plugin } from "@/types/plugin";
+import { MarketplaceStatus } from "@/types/marketplace";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import {
@@ -10,6 +11,8 @@ import {
   CircleX,
   CircleCheck,
   Code,
+  CloudUpload,
+  XCircle
 } from "lucide-react";
 import { useState } from "react";
 import { formatDate } from "@/utils/dateTime";
@@ -19,6 +22,10 @@ interface PluginTableProps {
   onEdit: (plugin: Plugin) => void;
   onToggle: (plugin: Plugin) => void;
   onDelete: (plugin: Plugin) => void;
+  onSubmitToMarketplace: (plugin: Plugin) => void;
+  onCancelSubmission: (plugin: Plugin) => void;
+  submittingId?: string | null;
+  cancellingId?: string | null;
 }
 
 export default function PluginTable({
@@ -26,8 +33,33 @@ export default function PluginTable({
   onEdit,
   onToggle,
   onDelete,
+  onSubmitToMarketplace,
+  onCancelSubmission,
+  submittingId,
+  cancellingId,
 }: PluginTableProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  const getMarketplaceStatusBadge = (status: MarketplaceStatus) => {
+    switch (status) {
+      case "pending_review":
+        return <Badge variant="warning">Pending Review</Badge>;
+      case "approved":
+        return <Badge variant="success">Approved</Badge>;
+      case "rejected":
+        return <Badge variant="destructive">Rejected</Badge>;
+      default:
+        return <Badge variant="secondary">Not Submitted</Badge>;
+    }
+  };
+
+  const canSubmitToMarketplace = (plugin: Plugin) => {
+    return plugin.marketplace_status === null;
+  };
+
+  const canCancelSubmission = (plugin: Plugin) => {
+    return plugin.marketplace_status === "pending_review";
+  };
 
   const handleMenuToggle = (pluginId: string) => {
     setOpenMenuId(openMenuId === pluginId ? null : pluginId);
@@ -39,8 +71,8 @@ export default function PluginTable({
   };
 
   return (
-    <Card className="overflow-visible">
-      <div className="overflow-x-auto overflow-y-visible">
+    <Card className="overflow-hidden">
+      <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-border bg-card/50">
@@ -58,6 +90,9 @@ export default function PluginTable({
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium text-foreground/60">
                 Status
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-foreground/60">
+                Marketplace
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium text-foreground/60">
                 Updated
@@ -104,6 +139,9 @@ export default function PluginTable({
                     {plugin.enabled ? "Enabled" : "Disabled"}
                   </Badge>
                 </td>
+                <td className="px-4 py-4">
+                  {getMarketplaceStatusBadge(plugin.marketplace_status)}
+                </td>
                 <td className="px-4 py-4 text-sm text-foreground/60">
                   {formatDate(plugin.updated_at)}
                 </td>
@@ -119,7 +157,7 @@ export default function PluginTable({
                     {openMenuId === plugin.id && (
                       <div
                         role="menu"
-                        className="absolute right-0 bottom-full mb-1 w-48 bg-card border border-border rounded-lg shadow-lg z-50"
+                        className="absolute right-0 top-full mt-1 w-56 bg-card border border-border rounded-lg shadow-lg z-10"
                         onClick={(e) => e.stopPropagation()}
                         onKeyDown={(e) => {
                           if (e.key === "Escape") {
@@ -153,6 +191,36 @@ export default function PluginTable({
                             </>
                           )}
                         </button>
+
+                        {canSubmitToMarketplace(plugin) && (
+                          <button
+                            onClick={() =>
+                              handleAction(() => onSubmitToMarketplace(plugin))
+                            }
+                            disabled={submittingId === plugin.id}
+                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors disabled:opacity-50"
+                          >
+                            <CloudUpload className="h-4 w-4" />
+                            {submittingId === plugin.id
+                              ? "Submitting..."
+                              : "Submit to Marketplace"}
+                          </button>
+                        )}
+
+                        {canCancelSubmission(plugin) && (
+                          <button
+                            onClick={() =>
+                              handleAction(() => onCancelSubmission(plugin))
+                            }
+                            disabled={cancellingId === plugin.id}
+                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-warning hover:bg-warning/10 transition-colors disabled:opacity-50"
+                          >
+                            <XCircle className="h-4 w-4" />
+                            {cancellingId === plugin.id
+                              ? "Cancelling..."
+                              : "Cancel Submission"}
+                          </button>
+                        )}
 
                         <button
                           role="menuitem"

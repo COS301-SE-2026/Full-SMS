@@ -51,10 +51,11 @@ app.include_router(upload_router, prefix=prefix)
 app.include_router(session_router, prefix=prefix)
 app.include_router(workspace_router, prefix=prefix)
 app.include_router(analysis_router, prefix=prefix)
+app.include_router(plugin_marketplace_router, prefix=prefix)
 app.include_router(plugin_router, prefix=prefix)
 app.include_router(support_router, prefix=prefix)
 app.include_router(export_router, prefix=prefix)
-app.include_router(plugin_marketplace_router, prefix=prefix)
+
 @app.on_event("startup")
 async def startup_event():
     print("\n" + "="*60)

@@ -51,6 +51,7 @@ def create_plugin(
     script: str,
     description: Optional[str] = None,
     version: str = "1.0.0",
+    source_plugin_id: Optional[str] = None,
 ) -> dict:
     supabase = get_supabase_admin()
     if not name or not config or not script:
@@ -74,6 +75,7 @@ def create_plugin(
                 "script": script,
                 "version": version,
                 "enabled": True,
+                "source_plugin_id": source_plugin_id,
             }
         )
         .execute()

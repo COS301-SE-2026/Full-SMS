@@ -15,11 +15,11 @@ def get_current_user(
 
 CurrentUser = Annotated[dict, Depends(get_current_user)]
 
-@router.post("/{plugin_id}/submit", summary="Submit a plugin for marketplace review")
+@router.post("/marketplace/{plugin_id}/submit", summary="Submit a plugin for marketplace review")
 def submit_marketplace_plugin(plugin_id: str, current_user: CurrentUser):
     return plugin_marketplace_controller.submit_marketplace_plugin_controller(plugin_id, current_user["id"])
 
-@router.post("/{plugin_id}/cancel-submission", summary="Cancel a plugin submission for marketplace review")
+@router.post("/marketplace/{plugin_id}/cancel-submission", summary="Cancel a plugin submission for marketplace review")
 def cancel_plugin_submission(plugin_id: str, current_user: CurrentUser):
     return plugin_marketplace_controller.cancel_plugin_submission_controller(plugin_id, current_user["id"])
 
@@ -35,6 +35,6 @@ def get_marketplace_plugin_by_id(plugin_id: str):
 def install_marketplace_plugin(plugin_id: str, current_user: CurrentUser):
     return plugin_marketplace_controller.install_marketplace_plugin_controller(plugin_id, current_user["id"])
 
-@router.get("/{plugin_id}/submission-details", summary="Get the submission details of a plugin")
+@router.get("/marketplace/{plugin_id}/submission-details", summary="Get the submission details of a plugin")
 def get_plugin_submission_details(plugin_id: str, current_user: CurrentUser):
     return plugin_marketplace_controller.get_plugin_submission_details_controller(plugin_id, current_user["id"])
