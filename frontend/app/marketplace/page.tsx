@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { MarketplacePlugin } from "@/types/marketplace";
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import { marketplaceService } from "@/services/marketplaceService";
@@ -13,6 +13,7 @@ import StatusFilterButton from "@/components/ui/StatusFilterButton";
 import { Search, Filter, Plus } from "lucide-react";
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import { useRouter } from "next/navigation";
+import { pluginService } from "@/services/pluginServices";
 
 type FilterOption = "all" | "installed" | "not_installed";
 
@@ -27,48 +28,64 @@ export default function MarketplacePage() {
   const { user } = useAuth();
   const router = useRouter();
 
-  const fetchPlugins = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await marketplaceService.getMarketplacePlugins();
-      if (response.success) {
-        setPlugins(response.data || []);
-      } else {
-        console.log("failed to fetch marketplace plugins:", response.message);
-        errorToast(response.message || "Failed to fetch marketplace plugins");
-      }
-    } catch (error: unknown) {
-      console.error("Error fetching marketplace plugins;", error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to fetch marketplace plugins";
-      errorToast(message);
-    } finally {
-      setLoading(false);
-    }
-  });
-
-  const fetchInstalledPlugins = useCallback(async () => {
-    try {
-      const response = await pluginService.getPlugins();
-      if (response.success && response.plugins) {
-        const installedIds = response.plugins
-          .filter((p) => p.source_plugin_id)
-          .map((p) => p.source_plugin_id as string);
-        setInstalledPluginIds(installedIds);
-      }
-    } catch (err) {
-      console.error("Failed to fetch installed plugins:", err);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchPlugins();
-  }, []);
+    let isMounted = true;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        const marketplaceResponse =
+          await marketplaceService.getMarketplacePlugins();
+        if (
+          isMounted &&
+          marketplaceResponse.success &&
+          marketplaceResponse.data
+        ) {
+          setPlugins(marketplaceResponse.data);
+        } else if (isMounted && !marketplaceResponse.success) {
+          errorToast(
+            marketplaceResponse.message ||
+              "Failed to fetch marketplace plugins",
+          );
+        }
+
+        const installedResponse = await pluginService.getPlugins();
+        if (
+          isMounted &&
+          installedResponse.success &&
+          installedResponse.plugins
+        ) {
+          const installedIds = installedResponse.plugins
+            .filter((p) => p.source_plugin_id)
+            .map((p) => p.source_plugin_id as string);
+          setInstalledPluginIds(installedIds);
+        }
+      } catch (err) {
+        console.error("Failed to fetch data:", err);
+        if (isMounted) {
+          errorToast(
+            err instanceof Error
+              ? err.message
+              : "Failed to fetch marketplace data",
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [errorToast]);
 
   const filteredPlugins = useMemo(() => {
-    let result = plugins.filter((plugin) => {
+    const result = plugins.filter((plugin) => {
       if (!plugin) return false;
 
       if (searchQuery.trim()) {
@@ -92,7 +109,10 @@ export default function MarketplacePage() {
 
       return true;
     });
-
+    result.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
     return result;
   }, [plugins, searchQuery, filterBy, installedPluginIds, user]);
 
