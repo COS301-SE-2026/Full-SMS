@@ -39,3 +39,9 @@ describe('Help Menu Tutorial', () => {
         cy.get('[data-cy="step-counter"]').should('contain', 'Step 3 of 3')
     })
 
+    it('clicking the Finish button closes the modal', () => {
+        cy.clickNextTimes(2)
+        cy.get('[data-cy="next-button"]').click()
+        cy.get('[data-cy="step-tutorial-title"]').should('not.exist')
+    })
+
