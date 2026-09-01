@@ -7,11 +7,12 @@ import * as Yup from "yup"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
-import { Toggle } from "@/components/ui/Toggle"
+import ThemeToggle from "@/components/ui/ThemeToggle"
 import { useAuth } from "@/contexts/authContext/AuthContext"
 import axiosInstance from "@/lib/api/axiosInstance"
 import { sessionsService } from "@/services/sessionsServices"
 import Sidebar from "@/components/dashboard/Sidebar"
+import { Sun } from "lucide-react"
 
 function Avatar({ email }: { email: string}) {
     // Get initials from email (first letter before @)
@@ -69,7 +70,6 @@ const PasswordSchema = Yup.object({
 export default function ProfilePage(){
     const [isEditing, setIsEditing] = useState(false)
     const [isChangingPassword, setIsChangingPassword] = useState(false)
-    const [darkMode, setDarkMode] = useState(true)
     const [successMessage, setSuccessMessage] = useState("")
     const [passwordSuccess, setPasswordSuccess] = useState("")
     const { user, signOut, updatePassword } = useAuth()
@@ -116,9 +116,7 @@ export default function ProfilePage(){
         ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
         : 'Recently'
 
-    const handleThemeToggle = (checked: boolean) => {
-        setDarkMode(checked)
-    }
+    
 
     const handleLogout = async() => {
         try {
@@ -188,7 +186,7 @@ export default function ProfilePage(){
     return(
         <div className='size-full flex h-screen bg-background text-foreground'>
             <Sidebar activeItem="profile"/>
-            <div className={`flex-1 overflow-y-auto px-4 py-8 ${darkMode ? "dark" : ""}`}>
+            <div className="flex-1 overflow-y-auto px-4 py-8">
             <div className="w-full">
 
                 {/* Header */}
@@ -224,6 +222,18 @@ export default function ProfilePage(){
                     </p>
                     <p className="text-xs text-foreground/60 mt-1">Analysis Sessions</p>
                 </div>
+
+                <button
+                    type="button"
+                    onClick={() => {
+                        const isLight = document.documentElement.classList.toggle("light")
+                        localStorage.setItem("theme", isLight ? "light" : "dark")
+                    }}
+                    className="bg-card border border-border rounded-md p-4 flex flex-col items-center gap-2 text-center hover:bg-card/80 transition-colors cursor-pointer w-full">
+                    <Sun size={20} className="text-foreground"/>
+                    <p className="text-sm font-semibold text-foreground">Theme</p>
+                    <p className="text-xs text-foreground/60">Click to Toggle</p>
+                </button>
             </div>
 
             <div className="col-span-2 flex flex-col gap-4">
@@ -390,20 +400,7 @@ export default function ProfilePage(){
                 </CardContent>
             </Card>
 
-            {/* Preferences */}
-            {/* <Card>
-                <CardHeader>
-                    <CardTitle className="text-base">Preferences</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Toggle
-                        label="Dark Mode"
-                        helperText="Switch between light and dark theme"
-                        checked={darkMode}
-                        onCheckedChange={handleThemeToggle}
-                        />
-                </CardContent>
-            </Card> */}
+             
             
 
                </div>     
