@@ -6,11 +6,12 @@ import httpx
 from  api.utils.supabase_client import supabaseClient
 
 def get_onedrive_token(userID: str):
-    response= supabaseClient.table("user_integrations").select("refresh_token").eq("user_id", userID).eq("provider", "onedrive").execute()
-    refresh_token = response.data[0]["refresh_token"]
+    response = supabaseClient.table("user_integrations").select("refresh_token").eq("user_id", userID).eq("provider", "onedrive").execute()
     
-    if not refresh_token:
-        raise HTTPException(status_code=404, detail="User refresh token not found.")
+    if not response.data or len(response.data) == 0 or not response.data[0].get("refresh_token"):
+        raise HTTPException(status_code=404, detail="OneDrive account not linked. Please sign in.")
+        
+    refresh_token = response.data[0]["refresh_token"]
     
     get_token = httpx.post(
         "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",

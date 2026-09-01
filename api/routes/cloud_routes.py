@@ -7,6 +7,6 @@ from api.routes.profile_routes import get_current_user
 
 router = APIRouter(prefix="/cloud", tags=["cloud"])
 
-@router.post("/onedrive/token")
+@router.get("/onedrive/token")
 def get_onedrive_token(current_user: Annotated[dict, Depends(get_current_user)]):
     return get_onedrive_token_controller(current_user["user"]["id"])

@@ -62,7 +62,7 @@ def verify_token(token: str) -> dict:
 
 def link_onedrive(payload: OneDriveCode, user_id: str):
     token_response = httpx.post(
-        "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
+        "https://login.microsoftonline.com/common/oauth2/v2.0/token",
         data={
             "client_id": ONEDRIVE_CLIENT_ID,
             "client_secret": ONEDRIVE_CLIENT_SECRET,
