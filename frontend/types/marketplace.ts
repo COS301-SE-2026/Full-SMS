@@ -1,4 +1,4 @@
-import { Plugin, PluginConfig } from "./plugin";
+import { Plugin } from "./plugin";
 
 export type MarketPlaceStatus = "pending" | "approved" | "rejected" | null;
 
