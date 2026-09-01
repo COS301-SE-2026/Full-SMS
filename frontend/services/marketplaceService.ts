@@ -97,4 +97,19 @@ export const marketplaceService = {
       throw new Error(message);
     }
   },
+
+  getPluginsInReview: async (): Promise<MarketplacePluginsResponse> => {
+    try {
+      const response = await axiosInstance.get(
+        `/api/py/plugins/marketplace/pending`,
+      );
+      return response.data;
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch plugins in review";
+      throw new Error(message);
+    }
+  },
 };
