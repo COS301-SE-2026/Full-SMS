@@ -32,3 +32,10 @@ describe('Help Menu Tutorial', () => {
         cy.get('[data-cy="step-counter"]').should('contain', 'Step 1 of 3')
     })
 
+    it('next button changes to Finish button in step 3', () => {
+        cy.clickNextTimes(2)
+        cy.get('[data-cy="next-button"]').should('contain', 'Finish')
+        cy.get('[data-cy="step-tutorial-title"]').should('contain',"How to navigate to the Analysis Hub Page")
+        cy.get('[data-cy="step-counter"]').should('contain', 'Step 3 of 3')
+    })
+
