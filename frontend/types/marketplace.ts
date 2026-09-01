@@ -1,6 +1,6 @@
 import { Plugin } from "./plugin";
 
-export type MarketPlaceStatus = "pending" | "approved" | "rejected" | null;
+export type MarketplaceStatus = "pending" | "approved" | "rejected" | null;
 
 export type MarketplacePlugin = Plugin;
 
