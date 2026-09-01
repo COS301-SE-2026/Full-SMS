@@ -17,7 +17,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-
+  const [showPicker, setShowPicker] = useState(false);
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -82,6 +82,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut,
     resetPassword,
     updatePassword,
+    showPicker, 
+    setShowPicker
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
