@@ -129,4 +129,21 @@ export const marketplaceService = {
       throw new Error(message);
     }
   },
+
+  rejectPlugin: async (
+    pluginId: string,
+    feedback?: string,
+  ): Promise<MarketplacePluginResponse> => {
+    try {
+      const response = await axiosInstance.post(
+        `/api/py/plugins/marketplace/${pluginId}/reject`,
+        { feedback },
+      );
+      return response.data;
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Failed to reject plugin";
+      throw new Error(message);
+    }
+  },
 };
