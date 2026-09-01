@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/Input"
 import { Toggle } from "@/components/ui/Toggle"
 import { useAuth } from "@/contexts/authContext/AuthContext"
 import axiosInstance from "@/lib/api/axiosInstance"
+import { sessionsService } from "@/services/sessionsServices"
 
 function Avatar({ email }: { email: string}) {
     // Get initials from email (first letter before @)
@@ -75,6 +76,7 @@ export default function ProfilePage(){
     const[profile, setProfile]= useState<{ username: string; email: string; role: string } | null>(null)
     const [profileLoading, setProfileLoading] = useState(true)
     const [profileError, setProfileError] = useState("")
+    const [sessionCount, setSessionCount] = useState<number | null>(null)
 
     useEffect(() =>{
         async function fetchProfile(){
@@ -90,6 +92,20 @@ export default function ProfilePage(){
         }
         fetchProfile()
     }, [])
+
+    useEffect(() =>{
+        if(!user?.id) return
+        async function fetchSessionCount (){
+            try{
+                const sessions = await sessionsService.getSessions(user!.id)
+                setSessionCount(Array.isArray(sessions) ? sessions.length :0)
+            }catch(error){
+                console.error("Failed to fetch session count:", error)
+                setSessionCount(0)
+            } 
+        }
+        fetchSessionCount()
+    }, [user?.id])
 
     // Derive username from email (part before @)
     const username = profile?.username || user?.email?.split('@')[0] || 'User'
