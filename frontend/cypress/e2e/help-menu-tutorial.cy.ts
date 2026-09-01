@@ -55,3 +55,10 @@ describe('Help Menu Tutorial', () => {
         cy.get('[data-cy="step-tutorial-title"]').should('not.exist')
     })
 
+    it('clicking inside the dialog does not close the modal', () => {
+        cy.get('[data-cy="step-tutorial-title"]').click().should('exist')
+    })
+})
+
+
+
