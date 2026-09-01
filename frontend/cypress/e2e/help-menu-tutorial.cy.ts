@@ -25,3 +25,10 @@ describe('Help Menu Tutorial', () => {
         cy.get('[data-cy="step-tutorial-title"]').should('contain',"How to create a workspace")
         cy.get('[data-cy="step-counter"]').should('contain', 'Step 1 of 3')
     })
+
+     it('clicking Back in step 1 does nothing ', () => {
+        cy.get('[data-cy="back-button"]').click()
+        cy.get('[data-cy="step-tutorial-title"]').should('contain',"How to create a workspace")
+        cy.get('[data-cy="step-counter"]').should('contain', 'Step 1 of 3')
+    })
+
