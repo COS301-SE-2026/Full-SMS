@@ -33,4 +33,5 @@ export interface NavItem {
   label: string;
   key: string;
   onClick: () => void;
+  badge?: number;
 }
