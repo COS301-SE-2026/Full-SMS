@@ -3,7 +3,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from api.controllers.auth_controller import verify_token_controller
 from api.controllers import plugin_marketplace_controller
-from api.models.plugin_marketplace_models import ApprovePluginRequest
+from api.models.plugin_marketplace_models import (
+    ApprovePluginRequest,
+    RejectPluginRequest,
+)
 
 router = APIRouter(prefix="/plugins", tags=["Plugin Marketplace"])
 bearer_scheme = HTTPBearer()
@@ -94,5 +97,14 @@ def get_plugins_in_review(admin_user: AdminUser):
 )
 def approve_plugin(plugin_id: str, admin_user: AdminUser, body: ApprovePluginRequest):
     return plugin_marketplace_controller.approve_plugin_submission_controller(
+        plugin_id, admin_user["id"], body.feedback
+    )
+
+
+@router.post(
+    "/marketplace/{plugin_id}/reject", summary="reject a plugin for the marketplace"
+)
+def reject_plugin(plugin_id: str, admin_user: AdminUser, body: RejectPluginRequest):
+    return plugin_marketplace_controller.reject_plugin_submission_controller(
         plugin_id, admin_user["id"], body.feedback
     )
