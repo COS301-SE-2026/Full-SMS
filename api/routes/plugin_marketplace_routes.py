@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from api.controllers.auth_controller import verify_token_controller
 from api.controllers import plugin_marketplace_controller
+from api.models.plugin_marketplace_models import ApprovePluginRequest
 
 router = APIRouter(prefix="/plugins", tags=["Plugin Marketplace"])
 bearer_scheme = HTTPBearer()
@@ -86,3 +87,12 @@ def get_plugin_submission_details(plugin_id: str, current_user: CurrentUser):
 @router.get("/marketplace/pending", summary="get plugins that the admin has to review")
 def get_plugins_in_review(admin_user: AdminUser):
     return plugin_marketplace_controller.get_plugins_in_review_controller()
+
+
+@router.post(
+    "/marketplace/{plugin_id}/approve", summary="approve a plugin for the marketplace"
+)
+def approve_plugin(plugin_id: str, admin_user: AdminUser, body: ApprovePluginRequest):
+    return plugin_marketplace_controller.approve_plugin_submission_controller(
+        plugin_id, admin_user["id"], body.feedback
+    )
