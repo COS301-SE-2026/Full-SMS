@@ -27,7 +27,7 @@ export function GettingStartedModal({open, onClose}: GettingStartedProps){
     return(
         <Modal open={open} onClose={onClose}>
 
-            <h3 className="mb-4 mt-4">{steps[currentStep].title}</h3>
+            <h3 className="mb-4 mt-4" data-cy="step-tutorial-title">{steps[currentStep].title}</h3>
             <div className="space-y-4">
                 {steps[currentStep].points.map((point, index) => (
                     <div className="flex gap-4" key={index}>
@@ -40,7 +40,7 @@ export function GettingStartedModal({open, onClose}: GettingStartedProps){
             </div>
 
            <div className="flex justify-between mt-6">
-            <span className="text-primary">Step {currentStep+1} of {steps.length}</span>
+            <span className="text-primary" data-cy="step-counter">Step {currentStep+1} of {steps.length}</span>
             <span>{Math.round(((currentStep + 1) / steps.length) * 100)}% Complete</span>
            </div>
 
@@ -50,8 +50,11 @@ export function GettingStartedModal({open, onClose}: GettingStartedProps){
 
             <div className="flex gap-2 justify-end mt-4">
                 <Button
+                data-cy="back-button"
+                variant={currentStep === 0 ? "secondary" : "primary"}
                 onClick={() => setCurrentStep(currentStep > 0 ? currentStep - 1 : currentStep)}>Back</Button>
                 <Button
+                data-cy="next-button"
                 onClick={() => {if(currentStep === max){onClose();}
                 else{
                 setCurrentStep(currentStep+1)}}}
