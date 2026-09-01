@@ -8,3 +8,7 @@ describe('Help Menu Tutorial', () => {
     it('step 1 contains How to create a workspace', () => {
         cy.get('[data-cy="step-tutorial-title"]').should('contain', 'How to create a workspace')
     })
+
+    it('shows the right step when Getting Started is opened', () => {
+        cy.get('[data-cy="step-counter"]').should('contain', 'Step 1 of 3')
+    })
