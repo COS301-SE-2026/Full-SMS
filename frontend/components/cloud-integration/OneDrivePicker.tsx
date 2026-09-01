@@ -1,176 +1,195 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState } from 'react';
-import { Loader } from '@/components/ui';
-import  axiosInstance  from '@/lib/api/axiosInstance';
+import React, { useEffect, useState } from "react";
+import { Loader, Button } from "@/components/ui";
+import axiosInstance from "@/lib/api/axiosInstance";
+import { FaFolder, FaFile, FaArrowLeft } from "react-icons/fa";
+
+interface DriveItem {
+  id: string;
+  name: string;
+  size: number;
+  folder?: { childCount: number };
+  file?: { mimeType: string };
+}
 
 interface OneDrivePickerProps {
   onFilePicked: (fileId: string, filename: string) => void;
   onCancel: () => void;
-  baseUrl?: string; // user's SharePoint/OneDrive URL, e.g. "https://{tenant}-my.sharepoint.com"
 }
 
-export function OneDrivePicker({ onFilePicked, onCancel, baseUrl }: OneDrivePickerProps) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const portRef = useRef<MessagePort | null>(null);
-  const tokenRef = useRef<string | null>(null);
-
+export function OneDrivePicker({
+  onFilePicked,
+  onCancel,
+}: OneDrivePickerProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [items, setItems] = useState<DriveItem[]>([]);
+  const [folderId, setFolderId] = useState<string | null>(null);
+  const [history, setHistory] = useState<{ id: string | null; name: string }[]>(
+    [{ id: null, name: "Root" }],
+  );
+  const [token, setToken] = useState<string | null>(null);
 
+  // Only allow these file types
+  const FILE_EXTS = [".h5", ".hdf5", ".pt3", ".csv"];
+
+  // 1. Grab the token from our backend
   useEffect(() => {
-    let isMounted = true;
-
-    const initializePicker = async () => {
+    const fetchToken = async () => {
       try {
-        const { data } = await axiosInstance.get('/api/py/onedrive/token');
-        const accessToken = data.access_token;
-        tokenRef.current = accessToken;
-
-        if (!isMounted) return;
-
-        const channelId = crypto.randomUUID();
-        const pickerParams = {
-          sdk: '8.0',
-          entry: { oneDrive: { files: {} } },
-          authentication: {},
-          messaging: {
-            origin: window.location.origin,
-            channelId,
-          },
-          selection: { mode: 'single' },
-          typesAndSources: {
-            mode: 'files',
-            pivots: { oneDrive: true, recent: true },
-            filters: ['.h5', '.hdf5', '.pt3', '.csv'], // will need to implement furtther file checking beyond just file extension
-          },
-        };
-
-        const iframe = iframeRef.current;
-        if (!iframe || !iframe.contentWindow) return;
-        const win = iframe.contentWindow;
-
-        const queryString = new URLSearchParams({
-          filePicker: JSON.stringify(pickerParams),
-        });
-        const url = `${baseUrl}/_layouts/15/FilePicker.aspx?${queryString}`;
-
-        // The picker endpoint expects the token in a POST body, not a header or
-        // query param, so we build a throwaway form inside the iframe and submit
-        // it there rather than just setting iframe.src.
-        const form = win.document.createElement('form');
-        form.setAttribute('action', url);
-        form.setAttribute('method', 'POST');
-
-        const tokenInput = win.document.createElement('input');
-        tokenInput.setAttribute('type', 'hidden');
-        tokenInput.setAttribute('name', 'access_token');
-        tokenInput.setAttribute('value', accessToken);
-
-        form.appendChild(tokenInput);
-        win.document.body.appendChild(form);
-        form.submit();
-
-        // Once the picker's loaded it announces itself with an "initialize"
-        // message and hands us a MessagePort — everything after this happens
-        // over that port instead of window.postMessage.
-        const handshakeListener = (event: MessageEvent) => {
-          if (
-            event.source === win &&
-            event.data.type === 'initialize' &&
-            event.data.channelId === channelId
-          ) {
-            const port = event.ports[0];
-            portRef.current = port;
-
-            port.addEventListener('message', handlePickerCommand);
-            port.start();
-            port.postMessage({ type: 'activate' });
-            setLoading(false);
-          }
-        };
-
-        window.addEventListener('message', handshakeListener);
-
-        return () => {
-          window.removeEventListener('message', handshakeListener);
-          portRef.current?.close();
-        };
+        const { data } = await axiosInstance.get(
+          "/api/py/cloud/onedrive/token",
+        );
+        setToken(data.access_token);
+        console.log("Got OneDrive token");
       } catch (err) {
-        console.error('Failed to initialize OneDrive Picker', err);
-        setError('Failed to authenticate with OneDrive. Please refresh or relink your account.');
+        console.error("Token fetch failed", err);
+        setError("Could not authenticate with OneDrive. Try reconnecting.");
+        setLoading(false);
+      }
+    };
+    fetchToken();
+  }, []);
+
+  // 2. Load files & folders from Microsoft Graph whenever token or folder changes
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchDriveItems = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const endpoint = folderId
+          ? `https://graph.microsoft.com/v1.0/me/drive/items/${folderId}/children`
+          : `https://graph.microsoft.com/v1.0/me/drive/root/children`;
+
+        const res = await fetch(endpoint, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error(`Graph API returned ${res.status}`);
+        }
+
+        const data = await res.json();
+        setItems(data.value || []);
+      } catch (err: any) {
+        console.error("Error loading OneDrive items", err);
+        setError("Something went wrong while fetching files.");
+      } finally {
         setLoading(false);
       }
     };
 
-    initializePicker();
+    fetchDriveItems();
+  }, [token, folderId]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [baseUrl]);
-
-  // Handles whatever the picker iframe asks for over the port — token
-  // requests, the actual selection, or the user closing the dialog.
-  const handlePickerCommand = (event: MessageEvent) => {
-    const message = event.data;
-    const port = portRef.current;
-    if (!port || message.type !== 'command') return;
-
-    const commandData = message.data;
-    port.postMessage({ type: 'acknowledge', id: message.id });
-
-    switch (commandData.command) {
-      case 'authenticate':
-        port.postMessage({
-          type: 'result',
-          id: message.id,
-          data: { result: 'token', token: tokenRef.current },
-        });
-        break;
-
-      case 'pick': {
-        port.postMessage({
-          type: 'result',
-          id: message.id,
-          data: { result: 'success' },
-        });
-
-        const selectedFile = commandData.items[0];
-        onFilePicked(selectedFile.id, selectedFile.name);
-        break;
-      }
-
-      case 'close':
-        onCancel();
-        break;
-
-      default:
-        port.postMessage({
-          result: 'error',
-          error: { code: 'unsupportedCommand', message: commandData.command },
-          isExpected: true,
-        });
-        break;
+  const clickItem = (item: DriveItem) => {
+    if (item.folder) {
+      // go deeper
+      setHistory((prev) => [...prev, { id: item.id, name: item.name }]);
+      setFolderId(item.id);
+    } else {
+      onFilePicked(item.id, item.name);
     }
   };
 
-  if (error) {
-    return <div className="text-destructive font-medium p-4">{error}</div>;
-  }
+  const goBack = () => {
+    if (history.length <= 1) return;
+    const newHistory = history.slice(0, -1);
+    setHistory(newHistory);
+    setFolderId(newHistory[newHistory.length - 1].id);
+  };
+
+  const fileAllowed = (fileName: string) => {
+    return FILE_EXTS.some((ext) => fileName.toLowerCase().endsWith(ext));
+  };
 
   return (
-    <div className="relative w-full h-[600px] bg-card border border-border rounded-md overflow-hidden">
-      {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
-          <Loader size="lg" centered />
+    <div className="flex flex-col h-[550px] w-full max-w-2xl bg-card rounded-md overflow-hidden border border-border">
+      {/* Top bar with breadcrumb */}
+      <div className="flex items-center justify-between p-4 border-b border-border bg-muted/40">
+        <div className="flex items-center gap-2">
+          {history.length > 1 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goBack}
+              className="p-2 h-8"
+            >
+              <FaArrowLeft size={12} />
+            </Button>
+          )}
+          <span className="font-semibold text-sm">
+            {history.map((h) => h.name).join(" / ")}
+          </span>
         </div>
-      )}
-      <iframe
-        ref={iframeRef}
-        className="w-full h-full border-none"
-        title="OneDrive File Picker"
-      />
+        <Button variant="outline" size="sm" onClick={onCancel}>
+          Cancel
+        </Button>
+      </div>
+
+      {/* File list area */}
+      <div className="flex-1 overflow-y-auto p-4">
+        {loading ? (
+          <div className="flex h-full items-center justify-center">
+            <Loader size="lg" centered />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col h-full items-center justify-center text-destructive text-sm gap-2">
+            <p>{error}</p>
+            <Button size="sm" onClick={onCancel}>
+              Close
+            </Button>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
+            This folder is empty.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-1">
+            {items.map((item) => {
+              const isFolder = !!item.folder;
+              const allowed = isFolder || fileAllowed(item.name);
+
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => allowed && clickItem(item)}
+                  className={`flex items-center justify-between p-3 rounded-md transition-colors ${
+                    allowed
+                      ? "hover:bg-muted cursor-pointer text-foreground"
+                      : "opacity-40 cursor-not-allowed text-muted-foreground"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 truncate">
+                    {isFolder ? (
+                      <FaFolder
+                        className="text-yellow-500 shrink-0"
+                        size={18}
+                      />
+                    ) : (
+                      <FaFile className="text-blue-500 shrink-0" size={16} />
+                    )}
+                    <span className="text-sm truncate font-medium">
+                      {item.name}
+                    </span>
+                  </div>
+
+                  {!isFolder && item.size && (
+                    <span className="text-xs text-muted-foreground shrink-0">
+                      {(item.size / (1024 * 1024)).toFixed(2)} MB
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

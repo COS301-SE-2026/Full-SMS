@@ -34,7 +34,7 @@ export default function WorkspacePage() {
   const [uploads, setUploads] = useState<UploadRecord[]>();
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
   const { showPicker, setShowPicker } = useAuth();
-  
+
   const handleUploadOpen = (upload_id: string) => {
     setCurrentUpload(upload_id);
     router.push("/analysisHub");
@@ -86,9 +86,48 @@ export default function WorkspacePage() {
     }
   };
 
-useEffect(()=>{
-    console.log("SHOW PICKER CHANGED");
-},[showPicker])
+  useEffect(() => {
+    // 1. BroadcastChannel listener (primary)
+    let channel: BroadcastChannel | null = null;
+    try {
+      channel = new BroadcastChannel("onedrive_oauth_channel");
+      channel.onmessage = (event) => {
+        if (event.data?.type === "ONEDRIVE_AUTH_SUCCESS") {
+          setShowPicker(true);
+        }
+      };
+    } catch (e) {
+      console.warn("BroadcastChannel not supported", e);
+    }
+
+    // 2. postMessage listener
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type === "ONEDRIVE_AUTH_SUCCESS") {
+        setShowPicker(true);
+      }
+    };
+    window.addEventListener("message", handleMessage);
+
+    // 3. Storage event listener fallback
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === "onedrive_auth_event" && event.newValue) {
+        try {
+          const data = JSON.parse(event.newValue);
+          if (data?.type === "ONEDRIVE_AUTH_SUCCESS") {
+            setShowPicker(true);
+          }
+        } catch (e) {}
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      channel?.close();
+      window.removeEventListener("message", handleMessage);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [setShowPicker]);
 
   return (
     <div className="size-full flex h-screen bg-background text-foreground">
@@ -99,13 +138,12 @@ useEffect(()=>{
       >
         <UploadPage />
       </Modal>
-      <Modal
-        open={showPicker}
-        onClose={() => {
-          setShowPicker(false);
-        }}
-      >
+      <Modal open={showPicker} onClose={() => setShowPicker(false)}>
         <OneDrivePicker
+          baseUrl={
+            process.env.NEXT_PUBLIC_ONEDRIVE_BASE_URL ||
+            "https://onedrive.live.com"
+          }
           onFilePicked={handleOneDriveFileSelection}
           onCancel={() => setShowPicker(false)}
         />
