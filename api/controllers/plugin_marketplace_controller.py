@@ -87,6 +87,7 @@ def install_marketplace_plugin_controller(plugin_id: str, user_id: str) -> dict:
             version=marketplace_plugin["version"],
             config=marketplace_plugin["config"],
             script=marketplace_plugin["script"],
+            source_plugin_id=plugin_id,
         )
 
         return {
