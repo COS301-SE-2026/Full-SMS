@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/authContext/AuthContext"
 
 jest.mock("next/navigation", () => ({
     useRouter: () => ({ push: jest.fn() }),
+    usePathname:() => "/profile",
 }))
 
 jest.mock("@/lib/supabase/supabaseConfig", () => ({
@@ -38,6 +39,7 @@ jest.mock("@/services/sessionsServices", () => ({
 import { supabase } from "@/lib/supabase/supabaseConfig"
 import axiosInstance from "@/lib/api/axiosInstance"
 import { sessionsService } from "@/services/sessionsServices"
+import { usePathname } from "next/navigation"
 
 const renderWithAuth = (component: React.ReactElement) => {
     return render(<AuthProvider>{component}</AuthProvider>)
@@ -181,7 +183,8 @@ describe("ProfilePage", () => {
         await waitFor(() => {
             expect(screen.getByText("My Profile")).toBeInTheDocument()
         })
-        expect(screen.getByRole("button", { name: /log out/i })).toBeInTheDocument()
+        const logoutButtons = screen.getAllByRole("button", {name: /log out/i})
+        expect(logoutButtons.length).toBeGreaterThan(0)
     })    
 
 })
