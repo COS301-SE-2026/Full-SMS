@@ -216,11 +216,9 @@ export default function ProfilePage(){
 
             {/* Stats */}
                 <div className="bg-card border border-border rounded-md p-4 text-center">
-                    <p className="text-2xl font-bold text-foreground">0</p>
-                    <p className="text-xs text-foreground/60 mt-1">Datasets Uploaded</p>
-                </div>
-                <div className="bg-card border border-border rounded-md p-4 text-center">
-                    <p className="text-2xl font-bold text-foreground">0</p>
+                    <p className="text-2xl font-bold text-foreground">
+                        {sessionCount ?? "-"}
+                    </p>
                     <p className="text-xs text-foreground/60 mt-1">Analysis Sessions</p>
                 </div>
             </div>
