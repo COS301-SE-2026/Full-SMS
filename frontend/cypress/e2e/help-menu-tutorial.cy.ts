@@ -45,3 +45,8 @@ describe('Help Menu Tutorial', () => {
         cy.get('[data-cy="step-tutorial-title"]').should('not.exist')
     })
 
+    it('clicking the escape key closes the modal', ()=>{
+        cy.get('body').type('{esc}')
+        cy.get('[data-cy="step-tutorial-title"]').should('not.exist')
+    })
+
