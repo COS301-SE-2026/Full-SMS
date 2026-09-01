@@ -2,13 +2,7 @@ import { Plugin, PluginConfig } from "./plugin";
 
 export type MarketPlaceStatus = "pending" | "approved" | "rejected" | null;
 
-export interface MarketplacePlugin extends Plugin {
-  marketplace_status: MarketPlaceStatus;
-  submitted_at: string | null;
-  reviewed_at: string | null;
-  reviewed_by: string | null;
-  review_feedback: string | null;
-}
+export type MarketplacePlugin = Plugin;
 
 export interface MarketplacePluginResponse {
   success: boolean;
@@ -54,6 +48,8 @@ export interface MarketplaceCardProps {
   plugin: MarketplacePlugin;
   onInstall: (pluginId: string) => Promise<void>;
   isInstalling?: boolean;
+  isOwner?: boolean;
+  isInstalled?: boolean;
 }
 
 export interface SubmissionStatusProps {
@@ -62,8 +58,9 @@ export interface SubmissionStatusProps {
   reviewedAt?: string | null;
 }
 
-interface MarketplaceGridProps {
+export interface MarketplaceGridProps {
   plugins: MarketplacePlugin[];
   onInstall: (pluginId: string) => Promise<void>;
   installingId: string | null;
+  installedPluginIds: string[];
 }
