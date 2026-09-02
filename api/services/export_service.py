@@ -40,10 +40,11 @@ def _get_saved_analysis(upload_id: str, measurement_id:str, user_id:str) -> dict
     results = latest.get("results", {})
     levels = results.get("levels")
     groups = results.get("groups")
+    fits = results.get("fits")
 
     if levels and levels.get("measurement_id") != measurement_id:
         raise NotImplementedError("Saved session does not match this measurement.")
-    return {"levels": levels, "groups":groups}
+    return {"levels": levels, "groups":groups, "fits": fits}
 
 
 
