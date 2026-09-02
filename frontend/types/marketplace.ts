@@ -46,7 +46,7 @@ export interface SubmissionDetailsResponse {
 
 export interface MarketplaceCardProps {
   plugin: MarketplacePlugin;
-  onInstall: (pluginId: string) => Promise<void>;
+  onInstall: (pluginId: string) => void;
   isInstalling?: boolean;
   isOwner?: boolean;
   isInstalled?: boolean;
@@ -60,7 +60,7 @@ export interface SubmissionStatusProps {
 
 export interface MarketplaceGridProps {
   plugins: MarketplacePlugin[];
-  onInstall: (pluginId: string) => Promise<void>;
+  onInstall: (pluginId: string) => void;
   installingId: string | null;
   installedPluginIds: string[];
 }

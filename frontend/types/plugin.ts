@@ -72,6 +72,7 @@ export interface HistogramData {
 export interface CreatePluginRequest {
   name: string;
   description?: string;
+  version: string;
   config: PluginConfig;
   script: string;
 }

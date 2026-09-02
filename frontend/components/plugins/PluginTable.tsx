@@ -334,7 +334,7 @@ export default function PluginTable({
             <Button variant="ghost" onClick={() => setFeedbackPlugin(null)}>
               Close
             </Button>
-            {feedbackPlugin?.reviewer_email && (
+            {/* {feedbackPlugin?.reviewer_email && (
               <a
                 href={`mailto:${feedbackPlugin.reviewer_email}?subject=Plugin Rejection Inquiry: ${feedbackPlugin.name}&body=Hi,%0D%0A%0D%0AI would like to inquire about the rejection of my plugin "${feedbackPlugin.name}".%0D%0A%0D%0ARejection feedback: ${feedbackPlugin.review_feedback}%0D%0A%0D%0AThank you.`}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
@@ -342,7 +342,7 @@ export default function PluginTable({
                 <Mail className="h-4 w-4" />
                 Contact Reviewer
               </a>
-            )}
+            )} */}
           </div>
         </div>
       </Modal>
