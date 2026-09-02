@@ -64,3 +64,39 @@ export interface MarketplaceGridProps {
   installingId: string | null;
   installedPluginIds: string[];
 }
+
+export interface PendingReviewContentProps {
+  pendingPlugins: MarketplacePlugin[];
+  approvingId: string | null;
+  rejectingId: string | null;
+  onApprove: (pluginId: string) => void;
+  onReject: (pluginId: string) => void;
+}
+
+export interface RejectPluginModalProps {
+  isOpen: boolean;
+  pluginName: string;
+  isLoading: boolean;
+  onClose: () => void;
+  onConfirm: (feedback: string) => void;
+}
+
+
+export type FilterOption = "all" | "installed" | "not_installed";
+
+export interface MarketplaceContentProps {
+  plugins: MarketplacePlugin[];
+  installedPluginIds: string[];
+  installingId: string | null;
+  onInstall: (pluginId: string) => void;
+}
+
+export interface ReviewPluginModalProps {
+  isOpen: boolean;
+  plugin: MarketplacePlugin | null;
+  isApproving: boolean;
+  isRejecting: boolean;
+  onClose: () => void;
+  onApprove: () => void;
+  onReject: () => void;
+}
