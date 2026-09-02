@@ -5,15 +5,17 @@ import { Button } from "@/components/ui"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent} from "@/components/ui/Card"
 import { Rocket, ChartColumn, FileSearchCorner, Download, CircleQuestionMark, Save, RotateCcw, Puzzle, Mail } from "lucide-react"
 import HelpHero from "@/components/help/HelpHero";
+import { useState } from "react"
+import { GettingStartedModal } from "@/components/help/getting-started-modal";
 
 export default function HelpMenuPage(){
+    const [gettingStartedModalOpen, setGettingStartedModalOpen] = useState(false)
     return(
         <main>
             <HelpHero />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-6 max-w-7xl mx-auto pb-10">
-
-                <Link href="/help/gettingStarted" className="contents">
-                <Card className="group hover:-translate-y-2 transition-transform duration-300">
+                <Card className="group hover:-translate-y-2 transition-transform duration-300 cursor-pointer"
+                onClick={() => setGettingStartedModalOpen(true)}>
                     <CardHeader>
                         <div className="group-hover:bg-primary group-hover:text-background transition-colors   w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><Rocket /></div>
                         <CardTitle>Getting Started</CardTitle>
@@ -27,7 +29,6 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
-                </Link>
 
                 <Link href="/help/session" className="contents">
                 <Card className="group hover:-translate-y-2 transition-transform duration-300">
@@ -161,6 +162,11 @@ export default function HelpMenuPage(){
                     </CardContent>
                 </Card>
             </div>
+            <GettingStartedModal 
+            open={gettingStartedModalOpen}
+            onClose={() =>
+                setGettingStartedModalOpen(false)
+            }/>
         </main>
     )
 }
