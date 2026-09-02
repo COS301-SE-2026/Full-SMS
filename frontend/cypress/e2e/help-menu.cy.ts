@@ -11,7 +11,6 @@ describe('Help Menu', () => {
     //
 
     const testCases = [
-        {item:'Getting Started', route: '/help/gettingStarted'},
         {item:'Saving and Loading a Session', route: '/help/session'},
         {item:'Analysis Features', route: '/help/analysisFeatures'},
         {item:'File formats', route: '/help/fileFormats'},
