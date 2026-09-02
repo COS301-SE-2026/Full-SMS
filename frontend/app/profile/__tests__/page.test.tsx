@@ -178,14 +178,53 @@ describe("ProfilePage", () => {
     //     expect(screen.getByRole("switch")).toBeInTheDocument()
     // })
 
-     it("renders the logout button", async () => {
+    it("renders the logout button", async () => {
         renderWithAuth(<ProfilePage />)
         await waitFor(() => {
             expect(screen.getByText("My Profile")).toBeInTheDocument()
         })
         const logoutButtons = screen.getAllByRole("button", {name: /log out/i})
         expect(logoutButtons.length).toBeGreaterThan(0)
-    })    
+    })  
+
+    it("shows loading state before profile data arrives", async () => {
+        let resolveGet: (value: any) => void
+        ;(axiosInstance.get as jest.Mock).mockReturnValue(new Promise((resolve) => { resolveGet = resolve }))
+        renderWithAuth(<ProfilePage />)
+        expect(screen.getByText("Loading profile...")).toBeInTheDocument()
+
+        resolveGet!({
+            data: {username: "researcher_one", email: "researcher_one@example.com", role: "researcher"},
+        })
+        await waitFor(() => {
+            expect(screen.getByText("My Profile")).toBeInTheDocument()
+        })
+    })   
+
+    it("shows an error message when profile fetch fails", async () => {
+        ;(axiosInstance.get as jest.Mock).mockRejectedValue(new Error("Network error"))
+
+        renderWithAuth(<ProfilePage />)
+        await waitFor(() => {
+            expect(screen.getByText("Failed to load profile")).toBeInTheDocument()
+        })
+    }) 
+
+    it("shows error message when profile update fails", async () => {
+        ;(axiosInstance.put as jest.Mock).mockRejectedValue(new Error("Network error"))
+
+        renderWithAuth(<ProfilePage />)
+        await waitFor(() => {
+            expect(screen.getByText("My Profile")).toBeInTheDocument()
+        })
+        fireEvent.click(screen.getByRole("button", { name: /edit/i }))
+        await waitFor(() => expect(screen.getByLabelText("Username")).toBeInTheDocument())
+
+        fireEvent.click(screen.getByRole("button", { name: /save/i }))
+        await waitFor(() => {
+            expect(screen.getByText("Failed to update profile")).toBeInTheDocument()
+         })
+   })
 
 })
 
