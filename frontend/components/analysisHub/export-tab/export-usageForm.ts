@@ -17,9 +17,9 @@ export function useExportform() {
     } = useHdf5Data();
 
     const [exportIntensity, setExportIntensity] = useState(true);
-    const [exportLevels, setLevels] = useState(true);
-    const [exportGroups, setGroups] = useState(true);
-    const [exportFits, setExportFits] = useState(true);
+    const [exportLevels, setLevels] = useState(false);
+    const [exportGroups, setGroups] = useState(false);
+    const [exportFits, setExportFits] = useState(false);
 
     const [plotIntensity, setPlotIntensity] = useState(true);
     const [plotIncludeLevels, setPlotIncludeLevels] = useState(true);
