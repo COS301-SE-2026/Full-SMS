@@ -70,7 +70,7 @@ export interface PendingReviewContentProps {
   approvingId: string | null;
   rejectingId: string | null;
   onApprove: (pluginId: string) => void;
-  onReject: (pluginId: string) => void;
+  onReject: (pluginId: string, feedback: string) => void;
 }
 
 export interface RejectPluginModalProps {
