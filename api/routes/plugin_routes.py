@@ -9,6 +9,7 @@ from api.controllers.plugin_controller import (
     toggle_plugin_controller,
     delete_plugin_controller,
     execute_plugin_controller,
+    update_installed_plugin_controller,
 )
 from api.models.plugin import (
     PluginCreate,
@@ -65,3 +66,11 @@ def delete_plugin(plugin_id: str, current_user: CurrentUser):
 @router.post("/{plugin_id}/execute", summary="Execute a plugin")
 def execute_plugin(plugin_id: str, request: PluginExecute, current_user: CurrentUser):
     return execute_plugin_controller(plugin_id, request, current_user["id"])
+
+
+@router.patch(
+    "/{plugin_id}/update-from-marketplace",
+    summary="Update installed plugin from marketplace",
+)
+def update_installed_plugin(plugin_id: str, current_user: CurrentUser):
+    return update_installed_plugin_controller(plugin_id, current_user["id"])
