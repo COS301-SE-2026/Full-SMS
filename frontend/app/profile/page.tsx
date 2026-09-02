@@ -242,6 +242,13 @@ export default function ProfilePage(){
                         {successMessage}
                     </p>
                 )}
+                {profileError && (
+                    <p className="text-sm text-destructive text-center font-medium">
+                        {profileError}
+                    </p>
+                )}
+
+
 
 
             {/* Account information */}
