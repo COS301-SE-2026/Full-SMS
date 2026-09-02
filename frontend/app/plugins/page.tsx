@@ -32,6 +32,7 @@ export default function PluginsPage() {
   const [pluginToDelete, setPluginToDelete] = useState<Plugin | null>(null);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPlugins = async () => {
@@ -218,6 +219,28 @@ export default function PluginsPage() {
     }
   };
 
+  const handleUpdateFromMarketplace = async (plugin: Plugin) => {
+    try {
+      setUpdatingId(plugin.id);
+      const response = await pluginService.updateFromMarketplace(plugin.id);
+      if (response.success && response.plugin) {
+        setPlugins((prev) =>
+          prev.map((p) => (p.id === plugin.id ? response.plugin! : p)),
+        );
+        successToast("Plugin has been updated to the latest marketplace version");
+      } else {
+        errorToast(response.message || "Failed to update plugin");
+      }
+    } catch (err) {
+      console.error("Failed to update plugin from marketplace:", err);
+      errorToast(
+        err instanceof Error ? err.message : "Failed to update plugin",
+      );
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const hasPlugins = plugins?.length > 0;
 
   const renderContent = () => {
@@ -301,8 +324,10 @@ export default function PluginsPage() {
               onDelete={setPluginToDelete}
               onSubmitToMarketplace={handleSubmitToMarketplace}
               onCancelSubmission={handleCancelSubmission}
+              onUpdateFromMarketplace={handleUpdateFromMarketplace}
               submittingId={submittingId}
               cancellingId={cancellingId}
+              updatingId={updatingId}
             />
           ) : (
             <Card>

@@ -47,6 +47,7 @@ export interface Plugin {
   reviewed_by: string | null;
   review_feedback: string | null
   source_plugin_id: string | null;
+  available_version: string | null;
 }
 
 export interface PlotData {
@@ -71,6 +72,7 @@ export interface HistogramData {
 export interface CreatePluginRequest {
   name: string;
   description?: string;
+  version: string;
   config: PluginConfig;
   script: string;
 }

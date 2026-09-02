@@ -97,4 +97,53 @@ export const marketplaceService = {
       throw new Error(message);
     }
   },
+
+  getPluginsInReview: async (): Promise<MarketplacePluginsResponse> => {
+    try {
+      const response = await axiosInstance.get(
+        `/api/py/plugins/marketplace/pending`,
+      );
+      return response.data;
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch plugins in review";
+      throw new Error(message);
+    }
+  },
+
+  approvePlugin: async (
+    pluginId: string,
+    feedback?: string,
+  ): Promise<MarketplacePluginResponse> => {
+    try {
+      const response = await axiosInstance.post(
+        `/api/py/plugins/marketplace/${pluginId}/approve`,
+        { feedback },
+      );
+      return response.data;
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Failed to approve plugin";
+      throw new Error(message);
+    }
+  },
+
+  rejectPlugin: async (
+    pluginId: string,
+    feedback?: string,
+  ): Promise<MarketplacePluginResponse> => {
+    try {
+      const response = await axiosInstance.post(
+        `/api/py/plugins/marketplace/${pluginId}/reject`,
+        { feedback },
+      );
+      return response.data;
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Failed to reject plugin";
+      throw new Error(message);
+    }
+  },
 };

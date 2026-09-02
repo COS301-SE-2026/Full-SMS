@@ -5,12 +5,16 @@ import { FolderOpen, User, Code, LogOut, Store } from "lucide-react";
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import { cn } from "@/lib/utils";
 import { NavItem, DashboardSidebarProps } from "@/types/dashboard";
+import { useEffect, useState } from "react";
+import { isAdmin } from "@/types/auth";
+import { marketplaceService } from "@/services/marketplaceService";
 
 export default function Sidebar({
   activeItem = "workspaces",
 }: Readonly<DashboardSidebarProps>) {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const router = useRouter();
+  const [pendingReviewCount, setPendingReviewCount] = useState<number>(0);
 
   const pathname = usePathname();
 
@@ -19,6 +23,23 @@ export default function Sidebar({
   if (excludedRoutes.includes(pathname)) {
     return null;
   }
+
+  useEffect(() => {
+    const fetchPendingReviewCount = async () => {
+      if (!isAdmin(user)) return;
+
+      try {
+        const response = await marketplaceService.getPluginsInReview();
+        if (response.success && response.data) {
+          setPendingReviewCount(response.data.length);
+        }
+      } catch (error) {
+        console.error("Failed to fetch pending review count:", error);
+      }
+    };
+
+    fetchPendingReviewCount();
+  }, [user]);
 
   const navItems: NavItem[] = [
     {
@@ -42,6 +63,10 @@ export default function Sidebar({
       onClick: () => {
         router.push("/marketplace");
       },
+      badge:
+        isAdmin(user) && pendingReviewCount > 0
+          ? pendingReviewCount
+          : undefined,
     },
     {
       label: "Profile",
@@ -74,7 +99,14 @@ export default function Sidebar({
                   : "text-foreground hover:bg-card",
               )}
             >
-              <item.icon size={20} />
+              <div className="relative">
+                <item.icon size={20} />
+                {item.badge !== undefined && item.badge > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center bg-red-500 text-white">
+                    {item.badge > 99 ? "99+" : item.badge}
+                  </span>
+                )}
+              </div>
               <span>{item.label}</span>
             </button>
           );
