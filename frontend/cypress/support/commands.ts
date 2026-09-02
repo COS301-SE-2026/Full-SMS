@@ -56,7 +56,7 @@ Cypress.Commands.add('login', (email, password) => {
         JSON.stringify(response.body)
     )
 })
-}) 
+})
 
 declare global{
     namespace Cypress{
@@ -65,3 +65,19 @@ declare global{
         }
     }
 }
+
+
+Cypress.Commands.add('clickNextTimes', (numClicks: number) => {
+    for (let i = 0; i < numClicks; i++){
+        cy.get('[data-cy="next-button"]').click()
+    }
+})
+
+declare global{
+    namespace Cypress{
+        interface Chainable{
+            clickNextTimes(numClicks: number): Chainable<void>
+        }
+    }
+}
+
