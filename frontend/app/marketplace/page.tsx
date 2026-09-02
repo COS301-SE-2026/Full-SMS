@@ -4,29 +4,28 @@ import { useState, useMemo, useEffect } from "react";
 import { MarketplacePlugin } from "@/types/marketplace";
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import { marketplaceService } from "@/services/marketplaceService";
-import { Card, CardContent } from "@/components/ui/Card";
 import DashboardSidebar from "@/components/dashboard/Sidebar";
-import MarketplaceGrid from "@/components/marketplace/MarketplaceGrid";
 import EmptyMarketplaceState from "@/components/marketplace/EmptyMarketplaceState";
-import { Button } from "@/components/ui/Button";
-import StatusFilterButton from "@/components/ui/StatusFilterButton";
-import { Search, Filter, Plus } from "lucide-react";
 import { useAuth } from "@/contexts/authContext/AuthContext";
-import { useRouter } from "next/navigation";
 import { pluginService } from "@/services/pluginServices";
-
-type FilterOption = "all" | "installed" | "not_installed";
+import { isAdmin } from "@/types/auth";
+import MarketplaceContent from "@/components/marketplace/MarketplaceContent";
+import PendingReviewContent from "@/components/marketplace/PendingReviewContent";
 
 export default function MarketplacePage() {
   const { successToast, errorToast } = useToast();
   const [plugins, setPlugins] = useState<MarketplacePlugin[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [searchQuery, setSearchQuery] = useState<string>("");
   const [installingId, setInstallingId] = useState<string | null>(null);
   const [installedPluginIds, setInstalledPluginIds] = useState<string[]>([]);
-  const [filterBy, setFilterBy] = useState<FilterOption>("all");
   const { user } = useAuth();
-  const router = useRouter();
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"marketplace" | "review">(
+    "marketplace",
+  );
+  const userIsAdmin = isAdmin(user);
+  const [pendingPlugins, setPendingPlugins] = useState<MarketplacePlugin[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -61,6 +60,18 @@ export default function MarketplacePage() {
             .map((p) => p.source_plugin_id as string);
           setInstalledPluginIds(installedIds);
         }
+
+        if (userIsAdmin) {
+          try {
+            const pendingResponse =
+              await marketplaceService.getPluginsInReview();
+            if (isMounted && pendingResponse.success && pendingResponse.data) {
+              setPendingPlugins(pendingResponse.data);
+            }
+          } catch (err) {
+            console.error("Failed to fetch pending plugins:", err);
+          }
+        }
       } catch (err) {
         console.error("Failed to fetch data:", err);
         if (isMounted) {
@@ -84,37 +95,16 @@ export default function MarketplacePage() {
     };
   }, [errorToast]);
 
-  const filteredPlugins = useMemo(() => {
-    const result = plugins.filter((plugin) => {
-      if (!plugin) return false;
-
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        const matchesName = plugin.name?.toLowerCase().includes(query);
-        const matchesDescription = plugin.description
-          ?.toLowerCase()
-          .includes(query);
-        if (!matchesName && !matchesDescription) return false;
+  const refreshMarketplace = async () => {
+    try {
+      const response = await marketplaceService.getMarketplacePlugins();
+      if (response.success && response.data) {
+        setPlugins(response.data);
       }
-
-      if (filterBy === "installed" && !installedPluginIds.includes(plugin.id)) {
-        return false;
-      }
-      if (
-        filterBy === "not_installed" &&
-        (installedPluginIds.includes(plugin.id) || plugin.user_id === user?.id)
-      ) {
-        return false;
-      }
-
-      return true;
-    });
-    result.sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-    );
-    return result;
-  }, [plugins, searchQuery, filterBy, installedPluginIds, user]);
+    } catch (err) {
+      console.error("Failed to refresh marketplace:", err);
+    }
+  };
 
   const handlePluginInstall = async (pluginId: string) => {
     try {
@@ -138,7 +128,52 @@ export default function MarketplacePage() {
     }
   };
 
+  const handleApprove = async (pluginId: string) => {
+    try {
+      setApprovingId(pluginId);
+      const response = await marketplaceService.approvePlugin(pluginId);
+      if (response.success) {
+        successToast("Plugin approved successfully");
+        setPendingPlugins((prev) => prev.filter((p) => p.id !== pluginId));
+        refreshMarketplace();
+      } else {
+        errorToast(response.message || "Failed to approve plugin");
+      }
+    } catch (err) {
+      console.error("Failed to approve plugin:", err);
+      errorToast(
+        err instanceof Error ? err.message : "Failed to approve plugin",
+      );
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
+  const handleReject = async (pluginId: string, feedback: string) => {
+    try {
+      setRejectingId(pluginId);
+      const response = await marketplaceService.rejectPlugin(
+        pluginId,
+        feedback,
+      );
+      if (response.success) {
+        successToast("Plugin rejected");
+        setPendingPlugins((prev) => prev.filter((p) => p.id !== pluginId));
+      } else {
+        errorToast(response.message || "Failed to reject plugin");
+      }
+    } catch (err) {
+      console.error("Failed to reject plugin:", err);
+      errorToast(
+        err instanceof Error ? err.message : "Failed to reject plugin",
+      );
+    } finally {
+      setRejectingId(null);
+    }
+  };
+
   const hasPlugins = plugins.length > 0;
+  const hasPendingPlugins = pendingPlugins.length > 0;
 
   const renderContent = () => {
     if (loading) {
@@ -149,7 +184,9 @@ export default function MarketplacePage() {
       );
     }
 
-    if (hasPlugins) {
+    const showContent = hasPlugins || (userIsAdmin && hasPendingPlugins);
+
+    if (showContent) {
       return (
         <div className="flex-1 p-8 overflow-auto">
           <div className="max-w-7xl mx-auto">
@@ -161,79 +198,54 @@ export default function MarketplacePage() {
                 Discover and install plugins created by the community
               </p>
             </div>
-            <div className="flex flex-col lg:flex-row gap-4 mb-6">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/40" />
-                <input
-                  type="text"
-                  placeholder="Search marketplace..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-13 pl-10 pr-4 py-2 bg-card border border-border rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
-                />
-              </div>
 
-              <div className="flex gap-2">
-                <StatusFilterButton
-                  label="All"
-                  value="all"
-                  currentFilter={filterBy}
-                  onClick={setFilterBy}
-                  count={plugins.length}
-                />
-                <StatusFilterButton
-                  label="Installed"
-                  value="installed"
-                  currentFilter={filterBy}
-                  onClick={setFilterBy}
-                  count={
-                    plugins.filter((p) => installedPluginIds.includes(p.id))
-                      .length
-                  }
-                />
-                <StatusFilterButton
-                  label="Not Installed"
-                  value="not_installed"
-                  currentFilter={filterBy}
-                  onClick={setFilterBy}
-                  count={
-                    plugins.filter(
-                      (p) =>
-                        !installedPluginIds.includes(p.id) &&
-                        p.user_id !== user?.id,
-                    ).length
-                  }
-                />
+            {userIsAdmin && (
+              <div className="flex gap-1 mb-8 border-b border-border">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("marketplace")}
+                  className={`px-5 py-3 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                    activeTab === "marketplace"
+                      ? "border-primary text-primary"
+                      : "border-transparent text-foreground/60 hover:text-foreground"
+                  }`}
+                >
+                  Marketplace
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("review")}
+                  className={`px-5 py-3 text-sm font-medium transition-colors border-b-2 -mb-px flex items-center gap-2 ${
+                    activeTab === "review"
+                      ? "border-primary text-primary"
+                      : "border-transparent text-foreground/60 hover:text-foreground"
+                  }`}
+                >
+                  Pending Review
+                  {pendingPlugins.length > 0 && (
+                    <span className="min-w-[20px] h-5 px-1.5 rounded-full text-xs font-medium flex items-center justify-center bg-primary/30 text-warning-foreground">
+                      {pendingPlugins.length}
+                    </span>
+                  )}
+                </button>
               </div>
-              <Button
-                variant="primary"
-                size="sm"
-                leftIcon={<Plus className="h-4 w-4" />}
-                onClick={() => router.push("/plugins")}
-                className="ml-auto"
-              >
-                Submit New Plugin
-              </Button>
-            </div>
-            <p className="text-sm text-foreground/60 mb-4">
-              Showing {filteredPlugins.length} of {plugins.length} plugins
-            </p>
-            {filteredPlugins.length > 0 ? (
-              <MarketplaceGrid
-                plugins={filteredPlugins}
-                onInstall={handlePluginInstall}
-                installingId={installingId}
+            )}
+
+            {activeTab === "marketplace" || !userIsAdmin ? (
+              <MarketplaceContent
+                plugins={plugins}
                 installedPluginIds={installedPluginIds}
+                installingId={installingId}
+                onInstall={handlePluginInstall}
               />
             ) : (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Search className="h-12 w-12 text-foreground/20 mx-auto mb-4" />
-                  <p className="text-foreground/60">
-                    No plugins match your search criteria
-                  </p>
-                </CardContent>
-              </Card>
+              <PendingReviewContent
+                pendingPlugins={pendingPlugins}
+                approvingId={approvingId}
+                rejectingId={rejectingId}
+                onApprove={handleApprove}
+                onReject={handleReject}
+              />
             )}
           </div>
         </div>
