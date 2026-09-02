@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Loader, Button } from "@/components/ui";
+import { Loader, Button, Card } from "@/components/ui";
 import axiosInstance from "@/lib/api/axiosInstance";
 import { FaFolder, FaFile, FaArrowLeft } from "react-icons/fa";
 
@@ -34,7 +34,7 @@ export function OneDrivePicker({
   // Only allow these file types
   const FILE_EXTS = [".h5", ".hdf5", ".pt3", ".csv"];
 
-  // 1. Grab the token from our backend
+  // Grab the token from our backend
   useEffect(() => {
     const fetchToken = async () => {
       try {
@@ -52,7 +52,7 @@ export function OneDrivePicker({
     fetchToken();
   }, []);
 
-  // 2. Load files & folders from Microsoft Graph whenever token or folder changes
+  //Load files & folders from Microsoft Graph whenever token or folder changes
   useEffect(() => {
     if (!token) return;
 
@@ -109,8 +109,8 @@ export function OneDrivePicker({
   };
 
   return (
-    <div className="flex flex-col h-[550px] w-full max-w-2xl bg-card rounded-md overflow-hidden border border-border">
-      {/* Top bar with breadcrumb */}
+    <Card className="flex flex-col h-[550px] w-[550px] bg-card rounded-md overflow-hidden border border-border mt-8">
+      {/* Top bar */}
       <div className="flex items-center justify-between p-4 border-b border-border bg-muted/40">
         <div className="flex items-center gap-2">
           {history.length > 1 && (
@@ -154,7 +154,6 @@ export function OneDrivePicker({
             {items.map((item) => {
               const isFolder = !!item.folder;
               const allowed = isFolder || fileAllowed(item.name);
-
               return (
                 <div
                   key={item.id}
@@ -168,17 +167,16 @@ export function OneDrivePicker({
                   <div className="flex items-center gap-3 truncate">
                     {isFolder ? (
                       <FaFolder
-                        className="text-yellow-500 shrink-0"
+                        className="text-warning shrink-0"
                         size={18}
                       />
                     ) : (
-                      <FaFile className="text-blue-500 shrink-0" size={16} />
+                      <FaFile className="text-primary shrink-0" size={16} />
                     )}
                     <span className="text-sm truncate font-medium">
                       {item.name}
                     </span>
                   </div>
-
                   {!isFolder && item.size && (
                     <span className="text-xs text-muted-foreground shrink-0">
                       {(item.size / (1024 * 1024)).toFixed(2)} MB
@@ -190,6 +188,6 @@ export function OneDrivePicker({
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 }

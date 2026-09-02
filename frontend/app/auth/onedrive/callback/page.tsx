@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader } from "@/components/ui";
+import { Button, Loader } from "@/components/ui";
 import { OneDriveAuthService } from "@/services/authServices";
 import { useSearchParams } from "next/navigation";
 import React, { useEffect, useState, useRef, Suspense } from "react";
@@ -21,7 +21,7 @@ function OneDriveCallbackContent() {
         await OneDriveAuthService(code);
         setStatus("success");
 
-        // 1. BroadcastChannel: Notifies the main tab regardless of window.opener
+        // BroadcastChannel: Notifies the original workspace tab (not the callback tab) regardless of window.opener
         try {
           const bc = new BroadcastChannel("onedrive_oauth_channel");
           bc.postMessage({ type: "ONEDRIVE_AUTH_SUCCESS" });
@@ -30,7 +30,7 @@ function OneDriveCallbackContent() {
           console.warn("BroadcastChannel error:", e);
         }
 
-        // 2. localStorage fallback: triggers a 'storage' event in the main tab
+        // localStorage fallback: triggers a 'storage' event in the original workspace tab (not the callback tab)
         try {
           localStorage.setItem(
             "onedrive_auth_event",
@@ -38,7 +38,7 @@ function OneDriveCallbackContent() {
           );
         } catch (e) {}
 
-        // 3. postMessage fallback (if opener is still attached)
+        // postMessage fallback (if opener is still attached)
         try {
           if (window.opener && !window.opener.closed) {
             window.opener.postMessage(
@@ -48,7 +48,7 @@ function OneDriveCallbackContent() {
           }
         } catch (e) {}
 
-        // 4. Close the popup
+        // Close the popup
         setTimeout(() => {
           window.close();
         }, 500);
@@ -74,12 +74,12 @@ function OneDriveCallbackContent() {
     return (
       <div className="flex flex-col h-screen items-center justify-center gap-4 text-center p-4">
         <p className="text-destructive font-medium">{errorMessage}</p>
-        <button
+        <Button
           onClick={() => window.close()}
           className="px-4 py-2 border rounded text-sm hover:bg-muted"
         >
           Close Window
-        </button>
+        </Button>
       </div>
     );
   }
@@ -91,14 +91,14 @@ function OneDriveCallbackContent() {
           OneDrive Connected Successfully!
         </p>
         <p className="text-xs text-muted-foreground">
-          Closing window... If it doesn't close automatically, click below:
+          Closing window... If it does not close automatically, click below:
         </p>
-        <button
+        <Button
           onClick={() => window.close()}
           className="mt-2 px-4 py-2 border rounded text-sm hover:bg-muted"
         >
           Close Window
-        </button>
+        </Button>
       </div>
     );
   }

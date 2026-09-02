@@ -43,15 +43,15 @@ def onedrive_upload_service(user_id: str, file_id: str, file_name: str, workspac
     token_data = get_onedrive_token(user_id)
     access_token = token_data["access_token"]
     
-    graph_api_url = f"https://graph.microssoft.com/v1.0.me/drive/items/{file_id}/content"
+    graph_api_url = f"https://graph.microsoft.com/v1.0/me/drive/items/{file_id}/content"
     headers = {"Authorization": f"Bearer {access_token}"}
     
     with httpx.Client(follow_redirects=True, timeout= 60) as client:
         response = client.get(graph_api_url, headers=headers)
         if response.status_code !=200:
-            raise HTTPException(status_code=400, detail="Failed to download file from OneDrive")
+            raise HTTPException(status_code=400, detail=f"{response.content}")
         
-        file = res.content
+        file = response.content
         
         size_bytes = len(file)
         
@@ -68,14 +68,15 @@ def onedrive_upload_service(user_id: str, file_id: str, file_name: str, workspac
         
         upload_record = supabaseClient.table("hdf5_uploads").insert({
             "user_id": user_id,
-            "filename": filename,
+            "id":upload_id,
+            "filename": file_name,
             "workspace_id": workspace_id,
             "size_bytes": size_bytes,
             "storage_key": storage_key,
             "sha256": sha256_hash,
             "status": "uploaded",
             "progress": 0
-        }).execute
+        }).execute()
         
         hdf5_job_service.enqueue_parse(upload_id, user_id, storage_key)
         

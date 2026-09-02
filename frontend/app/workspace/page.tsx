@@ -71,7 +71,7 @@ export default function WorkspacePage() {
   ) => {
     try {
       // Tell the backend to fetch this file from Microsoft and begin processing
-      await axiosInstance.post("/api/py/upload/onedrive", {
+      await axiosInstance.post("/api/py/cloud/upload/onedrive", {
         //[cite: 3]
         file_id: fileId,
         filename: filename,
@@ -87,7 +87,8 @@ export default function WorkspacePage() {
   };
 
   useEffect(() => {
-    // 1. BroadcastChannel listener (primary)
+    // BroadcastChannel, listen to messages from callback state uto handle onedrive picker state 
+    // useState() couldnt carry through because multiple windows
     let channel: BroadcastChannel | null = null;
     try {
       channel = new BroadcastChannel("onedrive_oauth_channel");
