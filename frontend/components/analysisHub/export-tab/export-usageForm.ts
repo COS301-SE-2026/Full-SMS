@@ -19,6 +19,7 @@ export function useExportform() {
     const [exportIntensity, setExportIntensity] = useState(true);
     const [exportLevels, setLevels] = useState(true);
     const [exportGroups, setGroups] = useState(true);
+    const [exportFits, setExportFits] = useState(true);
 
     const [plotIntensity, setPlotIntensity] = useState(true);
     const [plotIncludeLevels, setPlotIncludeLevels] = useState(true);
@@ -85,6 +86,7 @@ export function useExportform() {
             export_intensity: exportIntensity,
             export_levels: exportLevels,
             export_groups: exportGroups,
+            export_fits: exportFits,
 
             plot_format: PlotfileFormat,
             plot_dpi: plotDPI,
@@ -159,6 +161,8 @@ export function useExportform() {
         setLevels,
         exportGroups,
         setGroups,
+        exportFits,
+        setExportFits,
         plotIntensity,
         setPlotIntensity,
         plotIncludeLevels,
