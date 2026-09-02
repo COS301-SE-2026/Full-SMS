@@ -40,7 +40,9 @@ class TestSubmitMarketplacePlugin:
         mock_supabase.table.return_value.select.return_value.eq.return_value.eq.return_value.single.return_value.execute.return_value.data = {
             "marketplace_status": "pending_review"
         }
-        with pytest.raises(ValueError, match="Plugin is already submitted for approval"):
+        with pytest.raises(
+            ValueError, match="Plugin is already submitted for approval"
+        ):
             plugin_marketplace_service.submit_marketplace_plugin("plugin123", "kuda123")
 
 
@@ -74,11 +76,32 @@ class TestCancelPluginSubmission:
 
 class TestGetMarketplacePlugins:
     def test_get_marketplace_plugins(self, mock_supabase):
-        mock_supabase.table.return_value.select.return_value.eq.return_value.eq.return_value.order.return_value.execute.return_value.data = [
-            {"id": "plugin1", "name": "heatmap plugin"},
-            {"id": "plugin2", "name": "histogram plugin"},
+        mock_supabase.table.return_value.select.return_value.order.return_value.execute.return_value.data = [
+            {
+                "source_plugin_id": "plugin123",
+                "name": "heatmap plugin",
+                "description": "this sis a description",
+                "version": "1.0.0",
+                "config": {},
+                "script": "print('Kudaaaaa')",
+                "owner_id": "user123",
+                "created_at": "2026-09-02",
+                "updated_at": "2026-09-03",
+                "approved_at": "2026-09-02",
+            },
+            {
+                "source_plugin_id": "plugin2",
+                "name": "histogram plugin",
+                "description": "testss",
+                "version": "1.0.0",
+                "config": {},
+                "script": "print('Kudaaaaa')",
+                "owner_id": "user122",
+                "created_at": "2026-09-02",
+                "updated_at": "2026-09-03",
+                "approved_at": "2026-09-02",
+            },
         ]
-
         result = plugin_marketplace_service.get_marketplace_plugins()
 
         assert len(result) == 2
@@ -87,15 +110,26 @@ class TestGetMarketplacePlugins:
 
 class TestGetMarketplacePluginById:
     def test_get_marketplace_plugin_by_id(self, mock_supabase):
-        plugin_data = {"id": "plugin123", "name": "Test Plugin"}
-        mock_supabase.table.return_value.select.return_value.eq.return_value.eq.return_value.eq.return_value.single.return_value.execute.return_value.data = (
+        plugin_data = {
+            "source_plugin_id": "plugin123",
+            "name": "heatmap plugin",
+            "description": "this sis a description",
+            "version": "1.0.0",
+            "config": {},
+            "script": "print('Kudaaaaa')",
+            "owner_id": "user123",
+            "created_at": "2026-09-02",
+            "updated_at": "2026-09-03",
+            "approved_at": "2026-09-02",
+        }
+        mock_supabase.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value.data = (
             plugin_data
         )
 
         result = plugin_marketplace_service.get_marketplace_plugin_by_id("plugin123")
 
         assert result["id"] == "plugin123"
-        assert result["name"] == "Test Plugin"
+        assert result["name"] == "heatmap plugin"
 
 
 class TestGetPluginsInReview:
@@ -128,6 +162,13 @@ class TestApprovePluginSubmission:
         admin_id = "admin123"
 
         mock_supabase.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value.data = {
+            "id": plugin_id,
+            "user_id": "user123",
+            "name": "Test Plugin",
+            "description": "A test plugin",
+            "version": "1.0.0",
+            "config": {"parameters": [], "outputs": []},
+            "script": "print('hello')",
             "marketplace_status": "pending_review",
         }
 
@@ -135,6 +176,12 @@ class TestApprovePluginSubmission:
             {"id": plugin_id, "marketplace_status": "approved"}
         ]
 
+        mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = (
+            []
+        )
+        mock_supabase.table.return_value.insert.return_value.execute.return_value.data = [
+            {}
+        ]
         result = plugin_marketplace_service.approve_plugin_submission(
             plugin_id, admin_id
         )
