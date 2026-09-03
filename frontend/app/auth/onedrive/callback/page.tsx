@@ -47,7 +47,9 @@ function OneDriveCallbackContent() {
               window.location.origin
             );
           }
-        } catch (e) {}
+        } catch (e) {
+          console.error(e)
+        }
 
         setTimeout(() => {
           window.close();
@@ -64,7 +66,9 @@ function OneDriveCallbackContent() {
           const bc = new BroadcastChannel("onedrive_oauth_channel");
           bc.postMessage({ type: "ONEDRIVE_AUTH_ERROR" });
           bc.close();
-        } catch (e) {}
+        } catch (e) {
+          console.error(e)
+        }
       }
     };
 
