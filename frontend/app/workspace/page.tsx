@@ -160,7 +160,7 @@ export default function WorkspacePage() {
           }
     }
 
-    let checkDbStatus = async()=>{
+    const checkDbStatus = async()=>{
       const response = await getHdf5UploadStatus(uploadId)
       if(response?.status){
         handleUpdate(response.progress, response.status)
