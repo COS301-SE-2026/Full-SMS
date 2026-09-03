@@ -21,7 +21,9 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
   const {successToast, errorToast} = useToast()
   const callSave = async (name: string) => {
     try{
-      await sessionsService.saveSession(user?.id || 'anonymous', {name: name, dataset_ref: currentUpload, dataset_name: currentUploadName, parameters: {bin_size: bin, confidence: confidence}, results: {levels: cpaData, groups:groupingData, hdf5Data: hdf5Data, hdf5Metadata: hdf5Metadata, currentMeasurement: currentMeasurement, currentWorkspaceId: currentWorkspaceId, activeTab: activeTab, heatMapColor: heatMapColor, spectraHeatMapColor:spectraHeatMapColor}})
+      await sessionsService.saveSession(user?.id || 'anonymous', {name: name, dataset_ref: currentUpload, dataset_name: currentUploadName, parameters: {bin_size: bin, confidence: confidence}, 
+        results: {levels: cpaData, groups:groupingData, hdf5Data: hdf5Data, hdf5Metadata: hdf5Metadata, currentMeasurement: currentMeasurement, currentWorkspaceId: currentWorkspaceId, activeTab: activeTab, heatMapColor: heatMapColor, spectraHeatMapColor:spectraHeatMapColor},
+        analysis_data: {levels: cpaData, clustering_results: groupingData, file_metadata: hdf5Metadata, current_selection: currentMeasurement, ui_state: {bin_size_ms: bin, confidence: confidence, active_tab: activeTab}}})
       successToast("Session has been saved")
       setSaveModalOpen(false)
     }catch(error){

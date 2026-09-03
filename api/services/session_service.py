@@ -24,7 +24,8 @@ def save_session(user_id:str,session:SessionCreate)->dict:
                 'name':session.name,
                 'dataset_ref':session.dataset_ref,
                 'parameters':session.parameters,
-                'results':session.results}
+                'results':session.results,
+                'analysis_data': session.analysis_data}
     response = supabase.table('sessions_table').insert(new_row).execute()
     return response.data[0]
 
