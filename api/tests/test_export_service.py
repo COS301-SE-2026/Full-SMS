@@ -225,39 +225,51 @@ class TestPackageOutputs:
 
 
     def test_zip_filename_contents(self, tmp_path) :
-            path1= make_test_output(tmp_path, name="first.csv")
-            path2= make_test_output(tmp_path, name="second.csv")
-    
-            request = make_request(
-                 upload_id="upload123",
-                 export_intensity=True, 
-                 selections=[
-                      Selection(measurement_id="m4", channel=1,)
-                 ],
-                )
-    
-            output_paths = [ (path1, "first.csv"), (path2, "second.csv"),]
-    
-            _, result_name= _package_outputs(output_paths, request)
+        path1= make_test_output(tmp_path, name="first.csv")
+        path2= make_test_output(tmp_path, name="second.csv")
 
-            assert "upload123" in result_name
-            assert "m4" in result_name
-            assert "intensity" in result_name
-            assert result_name.endswith(".zip")
+        request = make_request(
+            upload_id="upload123",
+            export_intensity=True, 
+            selections=[
+                Selection(measurement_id="m4", channel=1,)
+            ],
+        )
+
+        output_paths = [ (path1, "first.csv"), (path2, "second.csv"),]
+
+        _, result_name= _package_outputs(output_paths, request)
+
+        assert "upload123" in result_name
+        assert "m4" in result_name
+        assert "intensity" in result_name
+        assert result_name.endswith(".zip")
     
     def test_unselected_exportCategories_exclusion(self, tmp_path) :
-                path1= make_test_output(tmp_path, name="first.csv")
-                path2= make_test_output(tmp_path, name="second.csv")
-        
-                request = make_request(export_groups=True)
-        
-                output_paths = [ (path1, "first.csv"), (path2, "second.csv"),]
-        
-                _, result_name= _package_outputs(output_paths, request)
-    
-                assert "groups" in result_name
-                assert "intensity" not in result_name
-                assert "levels" not in result_name
+        path1= make_test_output(tmp_path, name="first.csv")
+        path2= make_test_output(tmp_path, name="second.csv")
+
+        request = make_request(export_groups=True)
+
+        output_paths = [ (path1, "first.csv"), (path2, "second.csv"),]
+
+        _, result_name= _package_outputs(output_paths, request)
+
+        assert "groups" in result_name
+        assert "intensity" not in result_name
+        assert "levels" not in result_name
+
+    def test_fits_Withcategory(self, tmp_path) :
+        path1= make_test_output(tmp_path, name="first.csv")
+        path2= make_test_output(tmp_path, name="second.csv")
+
+        request = make_request(export_fits=True)
+
+        output_paths = [ (path1, "first.csv"), (path2, "second.csv"),]
+
+        _, result_name= _package_outputs(output_paths, request)
+
+        assert "fits" in result_name
 
 
 class TestGetMeasurementData:
@@ -704,6 +716,63 @@ class TestProcessSelection:
         assert (Path("levels.csv"),"m1_levels.csv") in results
         assert (Path("groups.csv"),"m1_groups.csv") in results
         assert call_count["n"] == 1
+
+    def test_fits_processSelection(self):
+            request = make_request(export_fits=True)
+            selection = Selection(measurement_id="7", channel=1)
+    
+            fake_data= {
+                "channel1": {"abstimes": [1, 2, 3]},
+                "name": "raw"
+            }
+    
+            def getMeasurement_data_fake(upload_id, measurement_id, user_id):
+                return fake_data
+
+            def get_saved_analysis_fake(upload_id, measurement_id, user_id):
+                return {"levels": None, "groups":None, "fits": {"tau": [1.0]}}
+    
+            def intensity_data_fake(req, data, channel, name):
+                return None
+
+            def fitsData_fake(req, analysis, measurement_id, channel, name):
+                return (Path("fits.csv"), "m1_fits.csv")
+    
+            def intensity_plot_fake(req, data, channel, analysis_getter, name):
+                return None
+    
+            def bic_plot_fake(req, analysis_getter, data, name):
+                return None
+    
+    
+    
+            original_getMeasurement = export_service._get_measurement_data
+            original_intensityData= export_service._export_intensity_data
+            original_fitsData = export_service._export_fits_data
+            original_intensityPlot = export_service._export_intensity_plot
+            original_bicPlot = export_service._export_bic_plot
+            original_getAnalysis = export_service._get_saved_analysis
+    
+            export_service._get_measurement_data = getMeasurement_data_fake
+            export_service._export_intensity_data = intensity_data_fake
+            export_service._export_fits_data = fitsData_fake
+            export_service._export_intensity_plot = intensity_plot_fake
+            export_service._export_bic_plot = bic_plot_fake
+            export_service._get_saved_analysis = get_saved_analysis_fake
+    
+    
+            try:
+                results = export_service._process_selection(request, selection, "user1")
+    
+            finally:
+                export_service._get_measurement_data = original_getMeasurement
+                export_service._export_intensity_data = original_intensityData
+                export_service._export_fits_data = original_fitsData
+                export_service._export_intensity_plot = original_intensityPlot
+                export_service._export_bic_plot = original_bicPlot
+                export_service._get_saved_analysis = original_getAnalysis
+    
+            assert (Path("fits.csv"), "m1_fits.csv") in results
 
 class TestClusteringResult:
 
