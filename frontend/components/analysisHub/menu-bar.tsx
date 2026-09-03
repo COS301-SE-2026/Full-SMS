@@ -17,11 +17,11 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
   const [saveModalOpen, setSaveModalOpen] = useState(false)
   const {currentUploadName, cpaData, groupingData, bin, confidence, currentUpload, hdf5Data, hdf5Metadata, currentMeasurement, currentWorkspaceId, heatMapColor, spectraHeatMapColor} = useHdf5Data()
   const {user} = useAuth()
-  const {activeTab} = useAnalysisTab()
+  const {activeTab, fitResult} = useAnalysisTab()
   const {successToast, errorToast} = useToast()
   const callSave = async (name: string) => {
     try{
-      await sessionsService.saveSession(user?.id || 'anonymous', {name: name, dataset_ref: currentUpload, dataset_name: currentUploadName, parameters: {bin_size: bin, confidence: confidence}, results: {levels: cpaData, groups:groupingData, hdf5Data: hdf5Data, hdf5Metadata: hdf5Metadata, currentMeasurement: currentMeasurement, currentWorkspaceId: currentWorkspaceId, activeTab: activeTab, heatMapColor: heatMapColor, spectraHeatMapColor:spectraHeatMapColor}})
+      await sessionsService.saveSession(user?.id || 'anonymous', {name: name, dataset_ref: currentUpload, dataset_name: currentUploadName, parameters: {bin_size: bin, confidence: confidence}, results: {levels: cpaData, groups:groupingData, fits: fitResult, hdf5Data: hdf5Data, hdf5Metadata: hdf5Metadata, currentMeasurement: currentMeasurement, currentWorkspaceId: currentWorkspaceId, activeTab: activeTab, heatMapColor: heatMapColor, spectraHeatMapColor:spectraHeatMapColor}})
       successToast("Session has been saved")
       setSaveModalOpen(false)
     }catch(error){
