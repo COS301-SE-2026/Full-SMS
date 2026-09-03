@@ -12,6 +12,7 @@ from api.services.export_service import (
     _export_intensity_data,
     _export_levels_data,
     _export_groups_data,
+    _export_fits_data,
     _get_measurement_data,
     _get_saved_analysis,
     _package_outputs,
@@ -136,6 +137,19 @@ class TestExportGroupsData:
 
         assert path == outpt_file
         assert name == "m1_groups.csv"
+
+
+class TestExportFitsData:
+    def test_uncheckedBox_lifetime(self):
+        fits_request = make_request(export_fits=False)
+        analysis = {"fits": {"tau": [1.0]}}
+        assert _export_fits_data(fits_request, analysis, "m1", 1, "m1") is None
+
+    def test_noFits_analysis(self):
+        fits_request=make_request(export_fits=True)
+        assert _export_fits_data(fits_request, {"fits": None}, "m1", 1, "m1") is None
+
+
         
 
    
@@ -783,6 +797,8 @@ class TestExportIntegration:
 
         content = resultPath.read_text()
         assert len(content) > 0
+
+
     
 
 
