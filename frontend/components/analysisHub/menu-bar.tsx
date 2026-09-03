@@ -17,7 +17,7 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
   const [saveModalOpen, setSaveModalOpen] = useState(false)
   const {currentUploadName, cpaData, groupingData, bin, confidence, currentUpload, hdf5Data, hdf5Metadata, currentMeasurement, currentWorkspaceId, heatMapColor, spectraHeatMapColor} = useHdf5Data()
   const {user} = useAuth()
-  const {activeTab} = useAnalysisTab()
+  const {activeTab, fitResult} = useAnalysisTab()
   const {successToast, errorToast} = useToast()
   const callSave = async (name: string) => {
     try{

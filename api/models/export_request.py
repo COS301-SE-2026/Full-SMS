@@ -13,6 +13,7 @@ class ExportRequest(BaseModel):
     export_levels: bool = False
     export_groups: bool= False
     export_intensity: bool = False
+    export_fits: bool = False
     format: ExportFormat = ExportFormat.CSV
     bin_size_ms: float =10.0
 

@@ -11,3 +11,11 @@ class UpdateProfileRequest(BaseModel):
     username: Optional[str] = None
     new_password: Optional[str] = None
 
+class OneDriveCode(BaseModel):
+    code: str
+    
+    
+class OneDriveUploadPayload(BaseModel):
+    file_id: str
+    filename: str
+    workspace_id: str
