@@ -6,7 +6,8 @@ import {
   useState,
   ReactNode,
   useMemo,
-  useEffect
+  useEffect,
+  useCallback,
 } from "react";
 import { UploadMetadata } from "@/types/hdf5";
 import { ChangePointResult, ClusteringRes } from "@/types/analysis";
@@ -23,6 +24,15 @@ type Hdf5Response = {
 }
 
 type Confidence = 69 | 90 | 95 | 99
+
+export interface CachedPluginResult {
+    status: "success" | "error";
+    results?: Record<string, unknown>;
+    error?: string;
+    executionTimeMs?: number;
+    executedAt: string;
+    parameters?: Record<string, unknown>;
+  }
 
 interface Hdf5DataContextType {
   hdf5Data: Hdf5Response | undefined
@@ -55,6 +65,9 @@ interface Hdf5DataContextType {
   clearSelectedMeasurements: () => void 
   spectraHeatMapColor: string,
   setSpectraHeatMapColor: (colour: string)=> void
+  getPluginResult: (pluginId: string, workspaceId: string, measurementId: string) => CachedPluginResult | null;
+  setPluginResult: (pluginId: string, workspaceId: string, measurementId: string, result: CachedPluginResult) => void;
+  clearPluginResults: () => void;
 }
 
 const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(undefined)
@@ -89,6 +102,24 @@ export function Hdf5DataProvider({ children }: { readonly children: ReactNode })
   }) ///the id of the current workspace so the uploads associated with that workspace are fetched, or to associate a new upload with the current workspace
 
   const [selectedMeasurements, setSelectedMeasurements] = useState<Set<string>>(new Set())
+  const [pluginResultsCache, setPluginResultsCache] = useState<Record<string, CachedPluginResult>>({});
+
+  const getPluginResult = useCallback((pluginId: string, workspaceId: string, measurementId: string): CachedPluginResult | null =>{
+    const key = `${pluginId}-${workspaceId}-${measurementId}`;
+    return pluginResultsCache[key] || null;
+  }, [pluginResultsCache]);
+
+  const setPluginResult = useCallback((pluginId: string, workspaceId: string, measurementId: string, result: CachedPluginResult) => {
+      const key = `${pluginId}-${workspaceId}-${measurementId}`;
+      setPluginResultsCache(prev => ({
+        ...prev,
+        [key]: result
+      }));
+    }, []);
+
+  const clearPluginResults = useCallback(() => {
+    setPluginResultsCache({});
+  }, []);
   
   function toggleSelectedmeasurement(measurement_id: string) { //clicking checkbxs
     setSelectedMeasurements((previous) => {
@@ -170,8 +201,11 @@ export function Hdf5DataProvider({ children }: { readonly children: ReactNode })
     selectAllmeasurements,
     clearSelectedMeasurements,
     spectraHeatMapColor,
-    setSpectraHeatMapColor
-  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin, confidence,cpaData, currentWorkspaceId, groupingData, currentUploadName, heatMapColor, selectedMeasurements, spectraHeatMapColor])
+    setSpectraHeatMapColor,
+    getPluginResult,
+    setPluginResult,
+    clearPluginResults,
+  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin, confidence,cpaData, currentWorkspaceId, groupingData, currentUploadName, heatMapColor, selectedMeasurements, spectraHeatMapColor, getPluginResult, setPluginResult, clearPluginResults])
 
 
   

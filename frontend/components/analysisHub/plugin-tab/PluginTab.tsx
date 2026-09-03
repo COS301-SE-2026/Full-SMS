@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Plugin, PluginExecutionState, PluginTabProps } from "@/types/plugin";
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import { Button } from "@/components/ui/Button";
@@ -11,7 +11,10 @@ import ParameterForm from "@/components/plugins/ParameterForm";
 import ResultsRenderer from "@/components/plugins/renderers/ResultsRenderer";
 import { pluginService } from "@/services/pluginServices";
 import { formatDate } from "@/utils/dateTime";
-import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
+import {
+  useHdf5Data,
+  CachedPluginResult,
+} from "@/contexts/hdf5Context/Hdf5DataContext";
 
 function getDefaultValues(plugin: Plugin): Record<string, unknown> {
   const defaults: Record<string, unknown> = {};
@@ -33,8 +36,56 @@ export default function PluginTab({ plugin }: PluginTabProps) {
   });
   const [executionTime, setExecutionTime] = useState<number | null>(null);
   const [lastExecutedAt, setLastExecutedAt] = useState<string | null>(null);
-  const { currentWorkspaceId, currentUpload, currentMeasurement } =
-    useHdf5Data();
+  const {
+    currentWorkspaceId,
+    currentUpload,
+    currentMeasurement,
+    getPluginResult,
+    setPluginResult,
+  } = useHdf5Data();
+
+  const fetchedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const loadResult = async () => {
+      if (!currentWorkspaceId) return;
+
+      const measurementId = currentMeasurement && currentMeasurement !== "0"
+        ? currentMeasurement
+        : "1";
+
+      const cacheKey = `${plugin.id}-${currentWorkspaceId}-${measurementId}`;
+
+      const cached = getPluginResult(plugin.id, currentWorkspaceId, measurementId);
+      if (cached) {
+        if (cached.status === "success") {
+          setExecution({
+            status: "success",
+            results: cached.results,
+            isPreviousResult: true,
+          });
+          setExecutionTime(cached.executionTimeMs || null);
+          setLastExecutedAt(cached.executedAt);
+          if (cached.parameters) {
+            setParams((prev) => ({
+              ...prev,
+              ...cached.parameters,
+            }));
+          }
+        } else {
+          setExecution({ status: "idle" });
+        }
+        return;
+      }
+
+      if (fetchedRef.current === cacheKey) return;
+      fetchedRef.current = cacheKey;
+
+      setExecution({ status: "idle" });
+    };
+
+    loadResult();
+  }, [plugin.id, currentWorkspaceId, currentMeasurement, getPluginResult]);
 
   const handleRun = async () => {
     setExecution({ status: "running" });
@@ -56,6 +107,23 @@ export default function PluginTab({ plugin }: PluginTabProps) {
       console.log("comeeeeeee onnnnnnnn", response);
 
       if (response.success) {
+        const executedAt = new Date().toISOString();
+
+        if (currentWorkspaceId) {
+          const cachedResult: CachedPluginResult = {
+            status: "success",
+            results: response.results,
+            executionTimeMs: response.execution_time,
+            executedAt,
+            parameters: params,
+          };
+          setPluginResult(
+            plugin.id,
+            currentWorkspaceId,
+            measurementId,
+            cachedResult,
+          );
+        }
         setExecution({
           status: "success",
           results: response.results,
