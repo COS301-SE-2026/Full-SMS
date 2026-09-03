@@ -111,7 +111,7 @@ export default function WorkspacePage() {
         id: "",
         file_name: filename,
         status: "Fetching data set from OneDrive",
-        progress: 5,
+        progress: 0,
       });
 
       // Tell the backend to fetch this file from Microsoft and begin processing
@@ -230,10 +230,6 @@ export default function WorkspacePage() {
       </Modal>
       <Modal open={showPicker} onClose={() => setShowPicker(false)}>
         <OneDrivePicker
-          baseUrl={
-            process.env.NEXT_PUBLIC_ONEDRIVE_BASE_URL ||
-            "https://onedrive.live.com"
-          }
           onFilePicked={handleOneDriveFileSelection}
           onCancel={() => setShowPicker(false)}
         />
