@@ -10,8 +10,8 @@ from api.services.hdf5_upload_service import create_upload_record, set_status, s
 from api.services.storage_service import build_storage_key
 from  api.utils.supabase_client import supabaseClient
 
-def get_onedrive_token(userID: str):
-    response = supabaseClient.table("user_integrations").select("refresh_token").eq("user_id", userID).eq("provider", "onedrive").execute()
+def get_onedrive_token(user_id: str):
+    response = supabaseClient.table("user_integrations").select("refresh_token").eq("user_id", user_id).eq("provider", "onedrive").execute()
     
     if not response.data or len(response.data) == 0 or not response.data[0].get("refresh_token"):
         raise HTTPException(status_code=404, detail="OneDrive account not linked. Please sign in.")
