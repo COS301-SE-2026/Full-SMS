@@ -76,8 +76,6 @@ def test_onedrive_upload_service_complete_flow(
         upload_id="upload-456",
         storage_key="user-123/upload-456/sample.h5",
         file_id="graph-file-id-789",
-        file_name="sample.h5",
-        workspace_id="ws-001",
     )
 
     # cheking the file content was uploaded to Supabase Storage exactly once
