@@ -6,6 +6,7 @@ from api.services.plugin_service import (
     update_plugin,
     toggle_plugin,
     delete_plugin,
+    update_installed_plugin,
 )
 from api.models.plugin import (
     PluginCreate,
@@ -185,4 +186,20 @@ def execute_plugin_controller(
     except Exception as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)
+        )
+
+
+def update_installed_plugin_controller(plugin_id: str, user_id: str) -> dict:
+    try:
+        plugin = update_installed_plugin(plugin_id, user_id)
+        return {
+            "success": True,
+            "message": "Plugin updated to latest version",
+            "plugin": plugin,
+        }
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )

@@ -19,6 +19,7 @@ from api.routes.export_routes import router as export_router
 from api.routes.plugin_routes import router as plugin_router
 from api.routes.cloud_routes import router as cloud_router
 from api.routes.support_routes import support_router
+from api.routes.plugin_marketplace_routes import router as plugin_marketplace_router
 
 app = FastAPI(
     title="Full-SMS API",
@@ -51,6 +52,7 @@ app.include_router(upload_router, prefix=prefix)
 app.include_router(session_router, prefix=prefix)
 app.include_router(workspace_router, prefix=prefix)
 app.include_router(analysis_router, prefix=prefix)
+app.include_router(plugin_marketplace_router, prefix=prefix)
 app.include_router(plugin_router, prefix=prefix)
 app.include_router(support_router, prefix=prefix)
 app.include_router(export_router, prefix=prefix)

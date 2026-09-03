@@ -1,14 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useFormik } from "formik"
 import * as Yup from "yup"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
-import { Toggle } from "@/components/ui/Toggle"
+import ThemeToggle from "@/components/ui/ThemeToggle"
 import { useAuth } from "@/contexts/authContext/AuthContext"
+import axiosInstance from "@/lib/api/axiosInstance"
+import { sessionsService } from "@/services/sessionsServices"
+import Sidebar from "@/components/dashboard/Sidebar"
+import { Sun } from "lucide-react"
 
 function Avatar({ email }: { email: string}) {
     // Get initials from email (first letter before @)
@@ -66,23 +70,53 @@ const PasswordSchema = Yup.object({
 export default function ProfilePage(){
     const [isEditing, setIsEditing] = useState(false)
     const [isChangingPassword, setIsChangingPassword] = useState(false)
-    const [darkMode, setDarkMode] = useState(true)
     const [successMessage, setSuccessMessage] = useState("")
     const [passwordSuccess, setPasswordSuccess] = useState("")
     const { user, signOut, updatePassword } = useAuth()
     const router = useRouter()
+    const[profile, setProfile]= useState<{ username: string; email: string; role: string } | null>(null)
+    const [profileLoading, setProfileLoading] = useState(true)
+    const [profileError, setProfileError] = useState("")
+    const [sessionCount, setSessionCount] = useState<number | null>(null)
+
+    useEffect(() =>{
+        async function fetchProfile(){
+            try{
+                const response = await axiosInstance.get("/api/py/profile/me")
+                setProfile(response.data)
+            }catch(error){
+                console.error("Failed to fetch profile:", error)
+                setProfileError("Failed to load profile")
+            } finally {
+                setProfileLoading(false)
+            }
+        }
+        fetchProfile()
+    }, [])
+
+    useEffect(() =>{
+        if(!user?.id) return
+        async function fetchSessionCount (){
+            try{
+                const sessions = await sessionsService.getSessions(user!.id)
+                setSessionCount(Array.isArray(sessions) ? sessions.length :0)
+            }catch(error){
+                console.error("Failed to fetch session count:", error)
+                setSessionCount(0)
+            } 
+        }
+        fetchSessionCount()
+    }, [user?.id])
 
     // Derive username from email (part before @)
-    const username = user?.email?.split('@')[0] || 'User'
+    const username = profile?.username || user?.email?.split('@')[0] || 'User'
     const email = user?.email || ''
-    const role = user?.user_metadata?.role || 'researcher'
+    const role = profile?.role || user?.user_metadata?.role || 'researcher'
     const joinedDate = user?.created_at
         ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
         : 'Recently'
 
-    const handleThemeToggle = (checked: boolean) => {
-        setDarkMode(checked)
-    }
+    
 
     const handleLogout = async() => {
         try {
@@ -101,13 +135,21 @@ export default function ProfilePage(){
         initialValues: { username },
         enableReinitialize: true,
         validationSchema: ProfileSchema,
-        onSubmit: (values, { setSubmitting }) => {
-            //will connect to  profile update API
-            console.log("Profile updated:", values)
+        onSubmit: async (values, { setSubmitting }) => {
+            try{
+                const response = await axiosInstance.put("/api/py/profile/me", {
+                    username: values.username,
+                })
+                setProfile(response.data)
+                setIsEditing(false)
+                setSuccessMessage("Profile updated successfully")
+                setTimeout(() => setSuccessMessage(""), 3000)
+            } catch (error) {
+                console.error("Failed to update profile:", error)
+                setProfileError("Failed to update profile")
+                setTimeout(() => setProfileError(""), 3000)
+            }
             setSubmitting(false)
-            setIsEditing(false)
-            setSuccessMessage("Profile updated successfully")
-            setTimeout(() => setSuccessMessage(""), 3000)
         },
     })
 
@@ -134,8 +176,17 @@ export default function ProfilePage(){
         },
     })
 
+    if(profileLoading){
+        return(
+            <div className="min-h-screen bg-background flex items-center justify-center text-foreground/60">
+                Loading profile...
+            </div>
+        )
+    }
     return(
-        <div className={`min-h-screen bg-background px-4 py-8 ${darkMode ? "dark" : ""}`}>
+        <div className='size-full flex h-screen bg-background text-foreground'>
+            <Sidebar activeItem="profile"/>
+            <div className="flex-1 overflow-y-auto px-4 py-8">
             <div className="w-full">
 
                 {/* Header */}
@@ -166,13 +217,23 @@ export default function ProfilePage(){
 
             {/* Stats */}
                 <div className="bg-card border border-border rounded-md p-4 text-center">
-                    <p className="text-2xl font-bold text-foreground">0</p>
-                    <p className="text-xs text-foreground/60 mt-1">Datasets Uploaded</p>
-                </div>
-                <div className="bg-card border border-border rounded-md p-4 text-center">
-                    <p className="text-2xl font-bold text-foreground">0</p>
+                    <p className="text-2xl font-bold text-foreground">
+                        {sessionCount ?? "-"}
+                    </p>
                     <p className="text-xs text-foreground/60 mt-1">Analysis Sessions</p>
                 </div>
+
+                <button
+                    type="button"
+                    onClick={() => {
+                        const isLight = document.documentElement.classList.toggle("light")
+                        localStorage.setItem("theme", isLight ? "light" : "dark")
+                    }}
+                    className="bg-card border border-border rounded-md p-4 flex flex-col items-center gap-2 text-center hover:bg-card/80 transition-colors cursor-pointer w-full">
+                    <Sun size={20} className="text-foreground"/>
+                    <p className="text-sm font-semibold text-foreground">Theme</p>
+                    <p className="text-xs text-foreground/60">Click to Toggle</p>
+                </button>
             </div>
 
             <div className="col-span-2 flex flex-col gap-4">
@@ -181,6 +242,13 @@ export default function ProfilePage(){
                         {successMessage}
                     </p>
                 )}
+                {profileError && (
+                    <p className="text-sm text-destructive text-center font-medium">
+                        {profileError}
+                    </p>
+                )}
+
+
 
 
             {/* Account information */}
@@ -339,25 +407,13 @@ export default function ProfilePage(){
                 </CardContent>
             </Card>
 
-            {/* Preferences */}
-            {/* <Card>
-                <CardHeader>
-                    <CardTitle className="text-base">Preferences</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Toggle
-                        label="Dark Mode"
-                        helperText="Switch between light and dark theme"
-                        checked={darkMode}
-                        onCheckedChange={handleThemeToggle}
-                        />
-                </CardContent>
-            </Card> */}
+             
             
 
                </div>     
             </div>
         </div>
+    </div>
     </div>
     )
 }

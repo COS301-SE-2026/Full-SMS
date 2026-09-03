@@ -35,3 +35,49 @@
 //     }
 //   }
 // }
+
+
+Cypress.Commands.add('login', (email, password) => {
+    const SUPABASE_URL = Cypress.env('SUPABASE_URL')
+    const SUPABASE_ANON_KEY = Cypress.env('SUPABASE_ANON_KEY')
+    cy.request({
+        method: 'POST',
+        url:`${SUPABASE_URL}/auth/v1/token?grant_type=password`,
+        headers: {
+            apikey: SUPABASE_ANON_KEY,
+        },
+        body: {
+            email,
+            password,
+        },
+    }).then((response) => {
+    window.localStorage.setItem(
+        'sb-pytgxhfpwiluexvyxicr-auth-token',
+        JSON.stringify(response.body)
+    )
+})
+})
+
+declare global{
+    namespace Cypress{
+        interface Chainable{
+            login(email: string, password: string): Chainable<void>
+        }
+    }
+}
+
+
+Cypress.Commands.add('clickNextTimes', (numClicks: number) => {
+    for (let i = 0; i < numClicks; i++){
+        cy.get('[data-cy="next-button"]').click()
+    }
+})
+
+declare global{
+    namespace Cypress{
+        interface Chainable{
+            clickNextTimes(numClicks: number): Chainable<void>
+        }
+    }
+}
+

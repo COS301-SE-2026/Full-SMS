@@ -18,7 +18,7 @@ export default function FAQPage(){
                         <div>
                             <CardTitle>1. Will I lose my analysis if I close the browser without saving?</CardTitle>
                         </div>
-                        <Button variant="secondary" size="sm"
+                        <Button variant="secondary" size="sm" data-cy="accordion-toggle-1"
                             onClick={() => {
                                 if (openQuestion === 0) {setOpenQuestion(null)}
                                 else {setOpenQuestion(0)}
@@ -29,7 +29,7 @@ export default function FAQPage(){
                     </CardHeader>
 
                     {openQuestion === 0 && (
-                        <CardContent>
+                        <CardContent data-cy="accordion-content-1">
                             <p>Yes, you will lose your analysis if you close the browser without saving.
                                 Always save your session so you can retrieve it in the sessions list when you get back on the platform.
                             </p>

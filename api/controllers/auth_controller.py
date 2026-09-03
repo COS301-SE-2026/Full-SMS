@@ -15,6 +15,7 @@ def verify_token_controller(token: str) -> dict:
                 "id": payload.get("sub"),
                 "email": payload.get("email"),
                 "role": payload.get("role","authenticated"),
+                "app_metadata": payload.get("app_metadata", {}),
             },
         }
     except ValueError as e:
