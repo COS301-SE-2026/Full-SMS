@@ -12,12 +12,23 @@ def get_raster_scan_data(payload: RasterScanReq):
 
     raster_scan = cached_measurement.raster_scan
     if hasattr(raster_scan, "data"):
-        raster_scan = raster_scan.data.tolist()
+        raster_dict = {
+                "data": raster_scan.data.tolist(),
+                "x_start": raster_scan.x_start,
+                "y_start": raster_scan.y_start,
+                "scan_range": raster_scan.scan_range,
+                "pixels_per_line": raster_scan.pixels_per_line,
+                "integration_time": raster_scan.integration_time,
+            }
+    elif isinstance(raster_scan, dict):
+        raster_dict = raster_scan
 
     raster_scan_coord = cached_measurement.raster_scan_coord
+    if isinstance(raster_scan_coord, tuple):
+        raster_scan_coord = list(raster_scan_coord)
 
     return {
-        "raster_scan": raster_scan,
+        "raster_scan": raster_dict,
         "raster_scan_coord": raster_scan_coord
     }
 

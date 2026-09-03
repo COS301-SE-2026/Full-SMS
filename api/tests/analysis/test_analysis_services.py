@@ -96,14 +96,27 @@ def test_raster_scan_data_cache_hit(mock_cache_fallback, mock_get_cached):
         measurement_id="1"
     )
 
+    mock_raster = MagicMock()
+    mock_raster.data = np.array([[1, 2], [3, 4]])
+    mock_raster.x_start = 10.0
+    mock_raster.y_start = 20.0
+    mock_raster.scan_range = 50.0
+    mock_raster.pixels_per_line = 2
+    mock_raster.integration_time = 1.0
+
     mock_measurement = MagicMock()
     mock_measurement.raster_scan = [[1, 2], [3, 4]]
     mock_measurement.raster_scan_coord = {"x": 10, "y": 20}
+    mock_measurement.raster_scan = mock_raster
+    mock_measurement.raster_scan_coord = (10, 20)
     mock_get_cached.return_value = mock_measurement
 
     response = get_raster_scan_data(mock_request)
     assert response["raster_scan"] == [[1, 2], [3, 4]]
     assert response["raster_scan_coord"] == {"x": 10, "y": 20}
+    assert response["raster_scan"]["data"] == [[1, 2], [3, 4]]
+    assert response["raster_scan"]["scan_range"] == 50.0
+    assert response["raster_scan_coord"] == [10, 20]
     
     mock_get_cached.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767", "1")
     mock_cache_fallback.assert_not_called()
@@ -119,14 +132,27 @@ def test_raster_scan_data_cache_miss(mock_cache_fallback, mock_get_cached):
 
     mock_get_cached.return_value = None
 
+    mock_raster = MagicMock()
+    mock_raster.data = np.array([[5, 6], [7, 8]])
+    mock_raster.x_start = 10.0
+    mock_raster.y_start = 20.0
+    mock_raster.scan_range = 50.0
+    mock_raster.pixels_per_line = 2
+    mock_raster.integration_time = 1.0
+
     mock_measurement = MagicMock()
     mock_measurement.raster_scan = [[5, 6], [7, 8]]
     mock_measurement.raster_scan_coord = {"x": 50, "y": 60}
+    mock_measurement.raster_scan = mock_raster
+    mock_measurement.raster_scan_coord = (50, 60)
     mock_cache_fallback.return_value = mock_measurement
 
     response = get_raster_scan_data(mock_request)
     assert response["raster_scan"] == [[5, 6], [7, 8]]
     assert response["raster_scan_coord"] == {"x": 50, "y": 60}
+    assert response["raster_scan"]["data"] == [[5, 6], [7, 8]]
+    assert response["raster_scan"]["scan_range"] == 50.0
+    assert response["raster_scan_coord"] == [50, 60]
     
     mock_get_cached.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767", "1")
     mock_cache_fallback.assert_called_once_with(upload_id="123e4567-e89b-12d3-a456-676767676767", measurement_id="1")
