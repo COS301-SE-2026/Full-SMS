@@ -469,3 +469,58 @@ def load_irf(path: Path | str) -> Optional[Tuple[NDArray[np.float64], NDArray[np
         pass
 
     return None
+
+
+def extract_file_metadata_only(path: Path | str) -> Tuple[FileMetadata, List[dict]]:
+    """Extract metadata and measurement summaries without loading large photon arrays into memory."""
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"File not found: {path}")
+
+    with h5py.File(path, "r") as h5file:
+        version = _get_file_version(h5file)
+        measurement_names = _get_measurement_names(h5file)
+        num_measurements = len(measurement_names)
+
+        has_spectra = False
+        has_raster = False
+        summaries = []
+
+        for idx, meas_name in enumerate(measurement_names):
+            meas_grp = h5file[meas_name]
+            description = _get_description(meas_grp, version)
+            tcspc_card = _get_tcspc_card(meas_grp, version)
+            
+            if _has_spectra(meas_grp):
+                has_spectra = True
+            if _has_raster_scan(meas_grp):
+                has_raster = True
+
+            default_channelwidth = 0.01220703125
+            if "Micro Times (ns)" in meas_grp:
+                sample = meas_grp["Micro Times (ns)"][:100]
+                if len(sample) > 0:
+                    default_channelwidth = _determine_channelwidth(sample)
+
+            summaries.append({
+                "id": idx + 1,
+                "name": meas_name.replace("Particle", "Measurement"),
+                "description": description,
+                "tcspc_card": tcspc_card,
+                "channelWidth": default_channelwidth,
+                "has_spectra": _has_spectra(meas_grp),
+                "has_raster": _has_raster_scan(meas_grp),
+            })
+
+    metadata = FileMetadata(
+        path=path,
+        filename=path.name,
+        num_measurements=num_measurements,
+        has_irf=False,
+        has_spectra=has_spectra,
+        has_raster=has_raster,
+    )
+
+    return metadata, summaries
+
+
