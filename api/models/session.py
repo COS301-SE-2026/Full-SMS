@@ -9,6 +9,7 @@ class SessionCreate(BaseModel):
     parameters: Optional[dict] = None
     results: Optional[dict] = None
     dataset_name: Optional[str] = None
+    analysis_data: Optional[dict] = None
 
 
 class SessionResponse(SessionCreate):
