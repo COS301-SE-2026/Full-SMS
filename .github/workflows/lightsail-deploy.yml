@@ -76,6 +76,8 @@ jobs:
             echo "Restarting frontend"
             pm2 restart frontend || pm2 start npm --name "frontend" -- start
 
+            echo "let's take a moment to breathe and appreciate the fact that we have reached thus far loll,, I reckon 10 seconds yeah?"
+            sleep 10
             echo "Frontend status:"
             pm2 status
 
