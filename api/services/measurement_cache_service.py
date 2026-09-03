@@ -1,5 +1,6 @@
 
 import pickle
+from typing import Optional
 
 from api.legacy.models.measurement import MeasurementData
 from api.utils.redis_Client import redisClient
@@ -24,10 +25,10 @@ def get_cached_measurement(upload_id: str, measurement_id: str | int) -> Optiona
     cache_key = build_cache_key(upload_id=upload_id, measurement_id=measurement_id)
     
     try:
-        byte_data= redisClient.get(key)
+        byte_data= redisClient.get(cache_key)
         if not byte_data:
             return None
         return pickle.loads(byte_data)
     except Exception as e:
-        print(f"There was an error getting measurement-{measurement_id} from cache")
+        print(f"There was an error getting measurement-{measurement_id} from cache: {e}")
         return None
