@@ -14,10 +14,10 @@ from api.legacy.models.level import LevelData
 from api.services.analysis_services.clustering import execute_clustering
 from api.services.analysis_services.lifetime import lifetime_fitting
 
-@patch("api.services.analysis_services.intensity.redisClient")
+@patch("api.services.analysis_services.intensity.get_cached_measurement")
 @patch("api.services.analysis_services.intensity.bin_photons")
 @patch("api.services.analysis_services.intensity.compute_intensity_cps")
-def test_intensity_analysis_cache_hit(mock_compute_intensity, mock_bin_photons, mock_redis):
+def test_intensity_analysis_cache_hit(mock_compute_intensity, mock_bin_photons, mock_get_cached):
     mock_request = IntensityReq(
         upload_id="123e4567-e89b-12d3-a456-676767676767", 
         measurement_id="1", 
@@ -29,7 +29,7 @@ def test_intensity_analysis_cache_hit(mock_compute_intensity, mock_bin_photons, 
             "abstimes": [1e6, 2e6, 3e6]
         }
     }
-    mock_redis.get.return_value = json.dumps(mock_cached_dict)
+    mock_get_cached.return_value = mock_cached_dict
 
     times = np.array([0, 1, 2])
     counts = np.array([2, 5, 8]) 
@@ -43,7 +43,7 @@ def test_intensity_analysis_cache_hit(mock_compute_intensity, mock_bin_photons, 
     assert response.time_bins == times.tolist()
     assert response.intensity_cps == intensity_cps.tolist() 
     assert response.counts == counts.tolist()
-    mock_redis.get.assert_called_once_with("raw_data:123e4567-e89b-12d3-a456-676767676767:1")
+    mock_get_cached.assert_called_once_with(upload_id="123e4567-e89b-12d3-a456-676767676767", measurement_id="1")
     mock_bin_photons.assert_called_once_with(
         abstimes=ANY, 
         bin_size_ms=10.0
@@ -54,11 +54,11 @@ def test_intensity_analysis_cache_hit(mock_compute_intensity, mock_bin_photons, 
     )
     
 
-@patch("api.services.analysis_services.intensity.redisClient")
+@patch("api.services.analysis_services.intensity.get_cached_measurement")
 @patch("api.services.analysis_services.intensity.cache_fallback_service")
 @patch("api.services.analysis_services.intensity.bin_photons")
 @patch("api.services.analysis_services.intensity.compute_intensity_cps")
-def test_intensity_analysis_cache_miss(mock_compute_intensity, mock_bin_photons, mock_cache_fallback, mock_redis):
+def test_intensity_analysis_cache_miss(mock_compute_intensity, mock_bin_photons, mock_cache_fallback, mock_get_cached):
     mock_request = IntensityReq(
         upload_id="123e4567-e89b-12d3-a456-676767676767",
         measurement_id="1",
@@ -71,9 +71,9 @@ def test_intensity_analysis_cache_miss(mock_compute_intensity, mock_bin_photons,
         }
     }
     
-    mock_redis.get.return_value = None
+    mock_get_cached.return_value = None
     
-    mock_cache_fallback.return_value = json.dumps(mock_cached_dict)
+    mock_cache_fallback.return_value = mock_cached_dict
     times = np.array([0, 1, 2])
     counts = np.array([2, 5, 8])
     intensity_cps = np.array([200, 500, 800])
@@ -84,53 +84,52 @@ def test_intensity_analysis_cache_miss(mock_compute_intensity, mock_bin_photons,
     assert response.time_bins == times.tolist()
     assert response.counts == counts.tolist()
     assert response.intensity_cps == intensity_cps.tolist() 
-    mock_redis.get.assert_called_once_with("raw_data:123e4567-e89b-12d3-a456-676767676767:1")
-    mock_cache_fallback.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767")
+    mock_get_cached.assert_called_once_with(upload_id="123e4567-e89b-12d3-a456-676767676767", measurement_id="1")
+    mock_cache_fallback.assert_called_once_with(upload_id="123e4567-e89b-12d3-a456-676767676767", measurement_id="1")
     
 
-@patch("api.services.analysis_services.raster_scan.redisClient")
-@patch("api.services.analysis_services.raster_scan.cache_fallback")
-def test_raster_scan_data_cache_hit(mock_cache_fallback, mock_redis):
+@patch("api.services.analysis_services.raster_scan.get_cached_measurement")
+@patch("api.services.analysis_services.raster_scan.cache_fallback_service")
+def test_raster_scan_data_cache_hit(mock_cache_fallback, mock_get_cached):
     mock_request = RasterScanReq(
         upload_id = "123e4567-e89b-12d3-a456-676767676767",
         measurement_id="1"
     )
 
-    mock_cached_dict = {
-        "raster_scan": [[1, 2], [3, 4]],
-        "raster_scan_coord": {"x": 10, "y": 20}
-    }
-    mock_redis.get.return_value = json.dumps(mock_cached_dict)
+    mock_measurement = MagicMock()
+    mock_measurement.raster_scan = [[1, 2], [3, 4]]
+    mock_measurement.raster_scan_coord = {"x": 10, "y": 20}
+    mock_get_cached.return_value = mock_measurement
 
     response = get_raster_scan_data(mock_request)
     assert response["raster_scan"] == [[1, 2], [3, 4]]
     assert response["raster_scan_coord"] == {"x": 10, "y": 20}
     
-    mock_redis.get.assert_called_once_with(f"raw_data:123e4567-e89b-12d3-a456-676767676767:1")
-    mock_cache_fallback.assert_not_called() #verify fallback was skipped
+    mock_get_cached.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767", "1")
+    mock_cache_fallback.assert_not_called()
     
 
-@patch("api.services.analysis_services.raster_scan.redisClient")
-@patch("api.services.analysis_services.raster_scan.cache_fallback") 
-def test_raster_scan_data_cache_miss(mock_cache_fallback, mock_redis):
+@patch("api.services.analysis_services.raster_scan.get_cached_measurement")
+@patch("api.services.analysis_services.raster_scan.cache_fallback_service") 
+def test_raster_scan_data_cache_miss(mock_cache_fallback, mock_get_cached):
     mock_request = RasterScanReq(
         upload_id="123e4567-e89b-12d3-a456-676767676767",
         measurement_id="1"
     )
 
-    mock_redis.get.return_value = None
+    mock_get_cached.return_value = None
 
-    mock_fallback_dict = {
-        "raster_scan": [[5, 6], [7, 8]],
-        "raster_scan_coord": {"x": 50, "y": 60}
-    }
-    mock_cache_fallback.return_value = json.dumps(mock_fallback_dict)
+    mock_measurement = MagicMock()
+    mock_measurement.raster_scan = [[5, 6], [7, 8]]
+    mock_measurement.raster_scan_coord = {"x": 50, "y": 60}
+    mock_cache_fallback.return_value = mock_measurement
+
     response = get_raster_scan_data(mock_request)
     assert response["raster_scan"] == [[5, 6], [7, 8]]
     assert response["raster_scan_coord"] == {"x": 50, "y": 60}
     
-    mock_redis.get.assert_called_once_with(f"raw_data:123e4567-e89b-12d3-a456-676767676767:1")
-    mock_cache_fallback.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767")
+    mock_get_cached.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767", "1")
+    mock_cache_fallback.assert_called_once_with(upload_id="123e4567-e89b-12d3-a456-676767676767", measurement_id="1")
 
 @dataclass
 class DummyClusteringResponse:
@@ -246,10 +245,10 @@ def mock_cpa_res():
     mock_result.levels = [mock_level]
     return mock_result
 
-@patch("api.services.analysis_services.change_point_analysis.redisClient")
+@patch("api.services.analysis_services.change_point_analysis.get_cached_measurement")
 @patch("api.services.analysis_services.change_point_analysis.cache_fallback_service")
 @patch("api.services.analysis_services.change_point_analysis.find_change_points")
-def test_resolve_current_measurement_cache_hit(mock_find_change_points, mock_cache_fallback, mock_redis):
+def test_resolve_current_measurement_cache_hit(mock_find_change_points, mock_cache_fallback, mock_get_cached):
     mock_request = CpaReq(
         upload_id="123e4567-e89b-12d3-a456-676767676767",
         measurement_id="1",
@@ -261,7 +260,7 @@ def test_resolve_current_measurement_cache_hit(mock_find_change_points, mock_cac
             "abstimes": [1e6, 2e6, 3e6]
         }
     }
-    mock_redis.get.return_value = json.dumps(mock_cached_dict)
+    mock_get_cached.return_value = mock_cached_dict
 
     mock_find_change_points.return_value = mock_cpa_res()
 
@@ -276,7 +275,7 @@ def test_resolve_current_measurement_cache_hit(mock_find_change_points, mock_cac
     assert level["start_index"] == 0
     assert level["intensity_cps"] == 50000.0
     assert level["group_id"] == 1
-    mock_redis.get.assert_called_once_with(f"raw_data:123e4567-e89b-12d3-a456-676767676767:1")
+    mock_get_cached.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767", "1")
     mock_cache_fallback.assert_not_called()
     
     mock_find_change_points.assert_called_once_with(
@@ -285,42 +284,42 @@ def test_resolve_current_measurement_cache_hit(mock_find_change_points, mock_cac
     )
 
 
-@patch("api.services.analysis_services.change_point_analysis.redisClient")
+@patch("api.services.analysis_services.change_point_analysis.get_cached_measurement")
 @patch("api.services.analysis_services.change_point_analysis.cache_fallback_service")
 @patch("api.services.analysis_services.change_point_analysis.find_change_points")
-def test_resolve_current_measurement_cache_miss(mock_find_change_points, mock_cache_fallback, mock_redis):
+def test_resolve_current_measurement_cache_miss(mock_find_change_points, mock_cache_fallback, mock_get_cached):
     mock_request = CpaReq(
         upload_id="123e4567-e89b-12d3-a456-676767676767",
         measurement_id="1",
         confidence=99.0
     )
 
-    mock_redis.get.return_value = None
+    mock_get_cached.return_value = None
 
     mock_cached_dict = {
         "channel1": {
             "abstimes": [1e6, 2e6, 3e6]
         }
     }
-    mock_cache_fallback.return_value = json.dumps(mock_cached_dict)
+    mock_cache_fallback.return_value = mock_cached_dict
 
     mock_find_change_points.return_value = mock_cpa_res()
 
     response = resolve_current_measurement(mock_request)
 
-    mock_redis.get.assert_called_once_with(f"raw_data:123e4567-e89b-12d3-a456-676767676767:1")
-    mock_cache_fallback.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767")
+    mock_get_cached.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767", "1")
+    mock_cache_fallback.assert_called_once_with(upload_id="123e4567-e89b-12d3-a456-676767676767", measurement_id="1")
 
     mock_find_change_points.assert_called_once_with(
         abstimes=ANY, 
         confidence=0.99
     )
     
-@patch("api.services.analysis_services.lifetime.redisClient")
+@patch("api.services.analysis_services.lifetime.get_cached_measurement")
 @patch("api.services.analysis_services.lifetime.cache_fallback_service")
 @patch("api.services.analysis_services.lifetime.build_decay_histogram")
 @patch("api.services.analysis_services.lifetime.fit_decay")
-def test_lifetime_analysis_cache_hit_with_fitting(mock_fit_decay, mock_build_histogram, mock_cache_fallback, mock_redis):
+def test_lifetime_analysis_cache_hit_with_fitting(mock_fit_decay, mock_build_histogram, mock_cache_fallback, mock_get_cached):
     mock_request = LifetimeReq(
         upload_id="123e4567-e89b-12d3-a456-676767676767",
         measurement_id="1",
@@ -330,11 +329,10 @@ def test_lifetime_analysis_cache_hit_with_fitting(mock_fit_decay, mock_build_his
         counts=[100, 50, 25]
     )
 
-    mock_cached_dict = {
-        "channel1": {"microtimes": [10, 20, 30]},
-        "channelWidth": 0.05
-    }
-    mock_redis.get.return_value = json.dumps(mock_cached_dict)
+    mock_measurement = MagicMock()
+    mock_measurement.channelwidth = 0.05
+    mock_measurement.channel1.microtimes = [10, 20, 30]
+    mock_get_cached.return_value = mock_measurement
 
     time_bins = np.array([0.0, 0.1, 0.2])
     histogram = np.array([100, 50, 25])
@@ -370,16 +368,16 @@ def test_lifetime_analysis_cache_hit_with_fitting(mock_fit_decay, mock_build_his
     assert response.fitted_curve == [99.9, 50.1, 24.8]
     assert response.average_lifetime == 2.5
     
-    mock_redis.get.assert_called_once_with(f"raw_data:123e4567-e89b-12d3-a456-676767676767:1")
+    mock_get_cached.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767", "1")
     mock_cache_fallback.assert_not_called()
     mock_fit_decay.assert_called_once()
 
 
-@patch("api.services.analysis_services.lifetime.redisClient")
+@patch("api.services.analysis_services.lifetime.get_cached_measurement")
 @patch("api.services.analysis_services.lifetime.cache_fallback_service")
 @patch("api.services.analysis_services.lifetime.build_decay_histogram")
 @patch("api.services.analysis_services.lifetime.fit_decay")
-def test_lifetime_analysis_cache_miss_no_fitting(mock_fit_decay, mock_build_histogram, mock_cache_fallback, mock_redis):
+def test_lifetime_analysis_cache_miss_no_fitting(mock_fit_decay, mock_build_histogram, mock_cache_fallback, mock_get_cached):
     mock_request = LifetimeReq(
         upload_id="123e4567-e89b-12d3-a456-676767676767",
         measurement_id="1",
@@ -389,13 +387,12 @@ def test_lifetime_analysis_cache_miss_no_fitting(mock_fit_decay, mock_build_hist
         counts=[100, 50, 25]
     )
 
-    mock_redis.get.return_value = None
+    mock_get_cached.return_value = None
 
-    mock_cached_dict = {
-        "channel1": {"microtimes": [5, 15, 25]},
-        "channelWidth": 0.05
-    }
-    mock_cache_fallback.return_value = json.dumps(mock_cached_dict)
+    mock_measurement = MagicMock()
+    mock_measurement.channelwidth = 0.05
+    mock_measurement.channel1.microtimes = [5, 15, 25]
+    mock_cache_fallback.return_value = mock_measurement
 
     time_bins = np.array([0.0, 0.1, 0.2])
     histogram = np.array([100, 50, 25])
@@ -428,32 +425,31 @@ def test_lifetime_analysis_cache_miss_no_fitting(mock_fit_decay, mock_build_hist
     assert response.fitted_curve == []
     assert response.tau == []
     
-    mock_redis.get.assert_called_once_with(f"raw_data:123e4567-e89b-12d3-a456-676767676767:1")
-    mock_cache_fallback.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767")
+    mock_get_cached.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767", "1")
+    mock_cache_fallback.assert_called_once_with(upload_id="123e4567-e89b-12d3-a456-676767676767", measurement_id="1")
     
     
-@patch("api.services.analysis_services.spectra.redisClient")
+@patch("api.services.analysis_services.spectra.get_cached_measurement")
 @patch("api.services.analysis_services.spectra.cache_fallback_service")
-def test_spectra_analysis_cache_hit(mock_cache_fallback, mock_redis):
+def test_spectra_analysis_cache_hit(mock_cache_fallback, mock_get_cached):
     mock_spectra_request = RasterScanReq(        
         upload_id="123e4567-e89b-12d3-a456-676767676767",
         measurement_id="1"
     )
     
-    mock_cached_spectra_data = {
-        "spectra": {
-            "data": [
-                [59.0, 78.0, 67.5, 71.5],
-                [60.0, 79.0, 63.5, 71.5],
-                [61.0, 80.0, 65.5, 71.5]
-            ],
-            "series_times": [4.005799770355225, 6.008699655532837, 8.01159954071045],
-            "wavelengths": [833.4079, 833.007401359167, 832.6071450173359],
-            "exposure_time": 0.0
-        }
-    }
+    mock_measurement = MagicMock()
+    mock_spectra = MagicMock()
+    mock_spectra.data = [
+        [59.0, 78.0, 67.5, 71.5],
+        [60.0, 79.0, 63.5, 71.5],
+        [61.0, 80.0, 65.5, 71.5]
+    ]
+    mock_spectra.series_times = [4.005799770355225, 6.008699655532837, 8.01159954071045]
+    mock_spectra.wavelengths = [833.4079, 833.007401359167, 832.6071450173359]
+    mock_spectra.exposure_time = 0.0
+    mock_measurement.spectra = mock_spectra
     
-    mock_redis.get.return_value = json.dumps(mock_cached_spectra_data)
+    mock_get_cached.return_value = mock_measurement
     response = get_spectra_data(mock_spectra_request)
     expected_z_matrix = [
         [59.0, 60.0, 61.0],
@@ -472,33 +468,33 @@ def test_spectra_analysis_cache_hit(mock_cache_fallback, mock_redis):
     assert response["bounds_min"] == (4.005799770355225, 832.6071450173359)
     assert response["bounds_max"] == (8.01159954071045, 833.4079)
 
-    mock_redis.get.assert_called_once_with("raw_data:123e4567-e89b-12d3-a456-676767676767:1")
+    mock_get_cached.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767", "1")
     mock_cache_fallback.assert_not_called()
     
 
-@patch("api.services.analysis_services.spectra.redisClient")
+@patch("api.services.analysis_services.spectra.get_cached_measurement")
 @patch("api.services.analysis_services.spectra.cache_fallback_service")
-def test_spectra_analysis_cache_miss(mock_cache_fallback, mock_redis):
+def test_spectra_analysis_cache_miss(mock_cache_fallback, mock_get_cached):
     mock_spectra_request = RasterScanReq(        
         upload_id="123e4567-e89b-12d3-a456-676767676767",
         measurement_id="1"
     )
     
-    mock_redis.get.return_value = None
+    mock_get_cached.return_value = None
 
-    mock_cached_spectra_data = {
-        "spectra": {
-            "data": [
-                [59.0, 78.0, 67.5, 71.5],
-                [60.0, 79.0, 63.5, 71.5],
-                [61.0, 80.0, 65.5, 71.5]
-            ],
-            "series_times": [4.005799770355225, 6.008699655532837, 8.01159954071045],
-            "wavelengths": [833.4079, 833.007401359167, 832.6071450173359],
-            "exposure_time": 0.0
-        }
-    }
-    mock_cache_fallback.return_value = json.dumps(mock_cached_spectra_data)
+    mock_measurement = MagicMock()
+    mock_spectra = MagicMock()
+    mock_spectra.data = [
+        [59.0, 78.0, 67.5, 71.5],
+        [60.0, 79.0, 63.5, 71.5],
+        [61.0, 80.0, 65.5, 71.5]
+    ]
+    mock_spectra.series_times = [4.005799770355225, 6.008699655532837, 8.01159954071045]
+    mock_spectra.wavelengths = [833.4079, 833.007401359167, 832.6071450173359]
+    mock_spectra.exposure_time = 0.0
+    mock_measurement.spectra = mock_spectra
+
+    mock_cache_fallback.return_value = mock_measurement
     response = get_spectra_data(mock_spectra_request)
     expected_z = [
         [59.0, 60.0, 61.0],
@@ -515,18 +511,18 @@ def test_spectra_analysis_cache_miss(mock_cache_fallback, mock_redis):
     assert response["scale_min"] == 59.0
     assert response["scale_max"] == 80.0
     assert response["exposure_time"] == 0.0
-    mock_redis.get.assert_called_once_with("raw_data:123e4567-e89b-12d3-a456-676767676767:1")
-    mock_cache_fallback.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767")
+    mock_get_cached.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767", "1")
+    mock_cache_fallback.assert_called_once_with(upload_id="123e4567-e89b-12d3-a456-676767676767", measurement_id="1")
 
-@patch("api.services.analysis_services.cache_fallback.redisClient")
-@patch("api.services.analysis_services.cache_fallback.read_hdf5")
+@patch("api.services.analysis_services.cache_fallback.get_cached_measurement")
+@patch("api.services.analysis_services.cache_fallback.read_single_measurement")
 @patch("api.services.analysis_services.cache_fallback.download_to_temp")
 @patch("api.services.analysis_services.cache_fallback.supabaseClient")
 def test_cache_fallback_service_success(
     mock_supabase, 
     mock_download, 
-    mock_read_hdf5, 
-    mock_redis
+    mock_read_single, 
+    mock_get_cached
 ):
     upload_id = "123e4567-e89b-12d3-a456-676767676767"
     expected_storage_key = "123e4567-e89b-12d3-a456-676767676767/user47/file.hdf5"
@@ -543,56 +539,32 @@ def test_cache_fallback_service_success(
     
     mock_supabase.table.return_value = mock_table
     mock_download.return_value = expected_temp_path
+    mock_get_cached.return_value = None
     
-    measurement_data = {
-        "id": "1", 
-        "name": "Ms1",
-        "channelWidth": 0.0122,
-        "description": "CLH [-5], in HEPES buffer @ pH 8.0",
-        "channel1": {
-            "abstimes": [1e6, 2e6, 3e6]
-        }
-    }
+    mock_measurement = MagicMock()
+    mock_measurement.id = 1
+    mock_read_single.return_value = mock_measurement
 
-    mock_hdf5_data = {
-        "metadata": {"name": "power_study.h5", "has_spectra": True, "has_raster": True},
-        "measurements": [measurement_data]
-    }
-    mock_read_hdf5.return_value = mock_hdf5_data
+    result = cache_fallback_service(upload_id, 1)
 
-    expected_cached_result = json.dumps(measurement_data)
-    mock_redis.get.return_value = expected_cached_result
-
-    result = cache_fallback_service(upload_id)
-
-    assert result == expected_cached_result
+    assert result == mock_measurement
 
     mock_supabase.table.assert_called_once_with("hdf5_uploads")
     mock_table.select.assert_called_once_with("storage_key")
     mock_select.eq.assert_called_once_with("id", upload_id)
     mock_download.assert_called_once_with(expected_storage_key, ".hdf5")
-    mock_read_hdf5.assert_called_once_with(expected_temp_path)
-
-    expected_redis_calls = [
-        call(f"raw_data:{upload_id}:1", expected_cached_result)
-    ]
-    mock_redis.set.assert_has_calls(expected_redis_calls, any_order=False)
-    mock_redis.get.assert_called_once_with(f"raw_data:{upload_id}:1")
+    mock_read_single.assert_called_once_with(path=expected_temp_path, measurement_id=1)
     
-@patch("api.services.analysis_services.cache_fallback.redisClient")
-@patch("api.services.analysis_services.cache_fallback.read_hdf5")
-@patch("api.services.analysis_services.cache_fallback.download_to_temp")
+@patch("api.services.analysis_services.cache_fallback.get_cached_measurement")
 @patch("api.services.analysis_services.cache_fallback.supabaseClient")
 def test_cache_fallback_service_upload_not_found(
     mock_supabase, 
-    mock_download, 
-    mock_read_hdf5, 
-    mock_redis
+    mock_get_cached
 ):
     upload_id = "fake-fugazi-does-not-exist"
+    mock_get_cached.return_value = None
     mock_execute = MagicMock()
     mock_execute.data = []  #empty
-    
     
     mock_eq = MagicMock()
     mock_eq.execute.return_value = mock_execute
@@ -604,10 +576,5 @@ def test_cache_fallback_service_upload_not_found(
 
     #should raise an IndexError on data[0]
     with pytest.raises(IndexError):
-        cache_fallback_service(upload_id)
-
-    mock_download.assert_not_called()
-    mock_read_hdf5.assert_not_called()
-    mock_redis.set.assert_not_called()
-    mock_redis.get.assert_not_called()
+        cache_fallback_service(upload_id, 1)
     

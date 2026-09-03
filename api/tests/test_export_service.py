@@ -211,89 +211,46 @@ class TestGetMeasurementData:
     def test_cache_returnsData(self):
         fake_meas= { "id" : "m1", "value":42}
 
-        def redisGetFunc_fake(key):
-            return json.dumps(fake_meas)
-
-        originalRedis = export_service.redisClient.get
-        export_service.redisClient.get = redisGetFunc_fake
+        original_get = export_service.get_cached_measurement
+        export_service.get_cached_measurement = lambda u, m: fake_meas
 
         try:
             result = _get_measurement_data("u1", "m1", "user1")
-
         finally:
-            export_service.redisClient.get = originalRedis
+            export_service.get_cached_measurement = original_get
         assert result == fake_meas
 
 class TestGetMeasurementDataBackup:
-    def test_missedCache_inBackup(self, tmp_path ):
-        backup_file = tmp_path / "measurements.json.gz"
-        measurements = [
-            {"id": "m1", "value": 1},
-            {"id": "m2", "value": 2}
-        ]
+    def test_missedCache_callsFallback(self):
+        fake_meas = {"id": "m2", "value": 2}
 
-        with gzip.open(backup_file, "wt", encoding="utf-8") as f:
-            json.dump(measurements, f)
+        original_get = export_service.get_cached_measurement
+        original_fallback = export_service.cache_fallback_service
 
-        def fake_redisGet(key):
-            return None
-
-        def fake_keyBuild(user_id, upload_id, filename):
-            return "some/storage/key"
-
-        def fake_download(storage_key, file_extension):
-            return backup_file
-
-        originalRedis = export_service.redisClient.get
-        original_keyBuild = export_service.build_storage_key
-        original_download = export_service.download_to_temp
-
-        export_service.redisClient.get = fake_redisGet
-        export_service.build_storage_key = fake_keyBuild
-        export_service.download_to_temp = fake_download
+        export_service.get_cached_measurement = lambda u, m: None
+        export_service.cache_fallback_service = lambda u, m: fake_meas
 
         try:
             result = _get_measurement_data("u1", "m2", "user1")
         finally:
-            export_service.redisClient.get = originalRedis
-            export_service.build_storage_key = original_keyBuild
-            export_service.download_to_temp = original_download
+            export_service.get_cached_measurement = original_get
+            export_service.cache_fallback_service = original_fallback
 
-        assert result == {"id": "m2", "value": 2}
+        assert result == fake_meas
 
-    def test_missedCache_not_inBackup(self, tmp_path ):
-            backup_file = tmp_path / "measurements.json.gz"
-            measurements = [
-                {"id": "m1", "value": 1},
-            ]
-    
-            with gzip.open(backup_file, "wt", encoding="utf-8") as f:
-                json.dump(measurements, f)
-    
-            def fake_redisGet(key):
-                return None
-    
-            def fake_keyBuild(user_id, upload_id, filename):
-                return "some/storage/key"
-    
-            def fake_download(storage_key, file_extension):
-                return backup_file
-    
-            originalRedis = export_service.redisClient.get
-            original_keyBuild = export_service.build_storage_key
-            original_download = export_service.download_to_temp
-    
-            export_service.redisClient.get = fake_redisGet
-            export_service.build_storage_key = fake_keyBuild
-            export_service.download_to_temp = fake_download
-    
-            try:
-                with pytest.raises(ValueError):
-                    _get_measurement_data("u1", "does_not_exist", "user1")
-            finally:
-                export_service.redisClient.get = originalRedis
-                export_service.build_storage_key = original_keyBuild
-                export_service.download_to_temp = original_download
+    def test_missedCache_notFound_raisesError(self):
+        original_get = export_service.get_cached_measurement
+        original_fallback = export_service.cache_fallback_service
+
+        export_service.get_cached_measurement = lambda u, m: None
+        export_service.cache_fallback_service = lambda u, m: None
+
+        try:
+            with pytest.raises(ValueError):
+                _get_measurement_data("u1", "does_not_exist", "user1")
+        finally:
+            export_service.get_cached_measurement = original_get
+            export_service.cache_fallback_service = original_fallback
     
     
 
@@ -720,16 +677,13 @@ class TestExportIntegration:
             "channel1": {"abstimes": [1000, 2000, 3000, 15000, 16000]},
         } 
 
-        def fake_redisGet(key):
-            return json.dumps(fake_meas)
-
-        originalRedis=export_service.redisClient.get
-        export_service.redisClient.get = fake_redisGet
+        original_get = export_service.get_cached_measurement
+        export_service.get_cached_measurement = lambda u, m: fake_meas
 
         try:
             resultPath, resultName = export_service.export_data(intensity_request, "user1")
         finally:
-            export_service.redisClient.get = originalRedis
+            export_service.get_cached_measurement = original_get
 
         assert resultPath.exists()
         assert resultName == "raw_intensity.csv"
@@ -760,22 +714,20 @@ class TestExportIntegration:
                 },
             }
         ]
-        def fake_redisGet(key):
-            return json.dumps(fake_meas)
 
         def fake_getSession(user_id):
             return fake_session
 
-        originalRedis=export_service.redisClient.get
+        original_get = export_service.get_cached_measurement
         original_getSessions = export_service.get_sessions
 
-        export_service.redisClient.get = fake_redisGet
+        export_service.get_cached_measurement = lambda u, m: fake_meas
         export_service.get_sessions = fake_getSession
 
         try:
             resultPath, resultName = export_service.export_data(levels_request, "user1")
         finally:
-            export_service.redisClient.get = originalRedis
+            export_service.get_cached_measurement = original_get
             export_service.get_sessions = original_getSessions
 
         assert resultPath.exists()
