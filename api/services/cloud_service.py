@@ -6,6 +6,7 @@ from fastapi import HTTPException
 import httpx
 
 from api.services import hdf5_job_service
+from api.services.hdf5_upload_service import create_upload_record, set_upload_progress, validate_upload_request
 from api.services.storage_service import build_storage_key
 from  api.utils.supabase_client import supabaseClient
 
@@ -57,8 +58,14 @@ def onedrive_upload_service(user_id: str, file_id: str, file_name: str, workspac
         
         # hashes and upload_ids are generated server side when upload comes from a cloud storage service
         sha256_hash = hashlib.sha256(file).hexdigest()
-        upload_id = str(uuid.uuid4())
-        storage_key = build_storage_key(user_id=user_id, upload_id=upload_id, file_name=file_name)
+        # upload_id = str(uuid.uuid4())
+        # storage_key = build_storage_key(user_id=user_id, upload_id=upload_id, file_name=file_name)
+        validate_upload_request(filename=file_name, size_bytes=size_bytes)
+        upload_record = create_upload_record(user_id=user_id, filename=file_name, workspace_id=workspace_id, size_bytes=size_bytes, sha256=sha256_hash)
+        upload_id = upload_record["id"]
+        storage_key = upload_record["storage_key"]
+        
+        set_upload_progress(progress=50, upload_id=upload_id)
         
         supabaseClient.storage.from_(BUCKET).upload(
             path=storage_key,
@@ -66,17 +73,7 @@ def onedrive_upload_service(user_id: str, file_id: str, file_name: str, workspac
             file_options={"content-type": "application/x-hdf5"}
         )
         
-        upload_record = supabaseClient.table("hdf5_uploads").insert({
-            "user_id": user_id,
-            "id":upload_id,
-            "filename": file_name,
-            "workspace_id": workspace_id,
-            "size_bytes": size_bytes,
-            "storage_key": storage_key,
-            "sha256": sha256_hash,
-            "status": "uploaded",
-            "progress": 0
-        }).execute()
+        set_upload_progress(progress=75, upload_id=upload_id)
         
         hdf5_job_service.enqueue_parse(upload_id, user_id, storage_key)
         

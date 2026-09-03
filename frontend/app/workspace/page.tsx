@@ -23,6 +23,35 @@ import { OneDriveLogin } from "@/lib/microsoftAuth";
 import { OneDrivePicker } from "@/components/cloud-integration/OneDrivePicker";
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import axiosInstance from "@/lib/api/axiosInstance";
+import { supabase } from "@/lib/supabase/supabaseConfig";
+
+interface ProgressTrackerProps{
+  activeUpload:{
+    id: string;
+    file_name: string;
+    status: string;
+    progress: number;
+  }
+}
+
+function ProgressTracker({activeUpload}: ProgressTrackerProps) {
+  return (
+    <div className="w-[70vw] mt-4 p-4 rounded-lg border border-border bg-card shadow-sm space-y-2">
+      <div className="flex justify-between items-center text-sm font-medium">
+        <span className="truncate max-w-[300px]">{activeUpload.file_name}</span>
+        <span className="capitalize text-primary">
+          {activeUpload.status}... ({activeUpload.progress}%)
+        </span>
+      </div>
+      <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+        <div
+          className="bg-primary h-2 rounded-full transition-all duration-300"
+          style={{ width: `${activeUpload.progress}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function WorkspacePage() {
   const router = useRouter();
@@ -34,6 +63,12 @@ export default function WorkspacePage() {
   const [uploads, setUploads] = useState<UploadRecord[]>();
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
   const { showPicker, setShowPicker } = useAuth();
+  const [activeUpload, setActiveUpload] = useState<{
+    id: string;
+    file_name: string;
+    status: string;
+    progress: number;
+  } | null>(null);
 
   const handleUploadOpen = (upload_id: string) => {
     setCurrentUpload(upload_id);
@@ -70,24 +105,82 @@ export default function WorkspacePage() {
     filename: string,
   ) => {
     try {
-      // Tell the backend to fetch this file from Microsoft and begin processing
-      await axiosInstance.post("/api/py/cloud/upload/onedrive", {
-        //[cite: 3]
-        file_id: fileId,
-        filename: filename,
-        workspace_id: currentWorkspaceId,
+      setShowPicker(false);
+      setActiveUpload({
+        id: "",
+        file_name: filename,
+        status: "Fetching data set from OneDrive",
+        progress: 5,
       });
 
-      // Close the picker and refresh the workspace file list UI
-      setShowPicker(false);
+      // Tell the backend to fetch this file from Microsoft and begin processing
+      const { data } = await axiosInstance.post(
+        "/api/py/cloud/upload/onedrive",
+        {
+          file_id: fileId,
+          filename: filename,
+          workspace_id: currentWorkspaceId,
+        },
+      );
+
+      if (data?.upload_id) {
+        getUploadProgress(filename, data.upload_id);
+      }
       // refreshWorkspaceFiles();
     } catch (error) {
-      console.error("Backend failed to queue the file download", error);
+      console.error("Backend failed to queue the dataset download", error);
     }
   };
 
+  const getUploadProgress = (filename: string, uploadId: string) => {
+    const sub = supabase
+      .channel(`follow-upload-${uploadId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "hdf5_uploads",
+          filter: `id=eq.${uploadId}`,
+        },
+        async (payload) => {
+          const recentStatus: string = payload.new.status;
+          const progress: number = payload.new.progress || 0;
+
+          setActiveUpload({
+            id: uploadId,
+            file_name: filename,
+            status: recentStatus,
+            progress: progress,
+          });
+
+          if (
+            recentStatus.toLocaleLowerCase() === "parsed" &&
+            currentWorkspaceId
+          ) {
+            const refreshWorkspace =
+              await workspaceService.getWorkspaceUploads(currentWorkspaceId);
+            if (refreshWorkspace.success) {
+              setUploads(refreshWorkspace.uploads);
+            }
+
+            setTimeout(() => {
+              setActiveUpload(null);
+              supabase.removeChannel(sub);
+            }, 2000);
+          } else if (recentStatus.toLowerCase() === "failed") {
+            setTimeout(() => {
+              setActiveUpload(null);
+              supabase.removeChannel(sub);
+            }, 4000);
+          }
+        },
+      )
+      .subscribe();
+  };
+
   useEffect(() => {
-    // BroadcastChannel, listen to messages from callback state uto handle onedrive picker state 
+    // BroadcastChannel, listen to messages from callback state uto handle onedrive picker state
     // useState() couldnt carry through because multiple windows
     let channel: BroadcastChannel | null = null;
     try {
@@ -183,6 +276,9 @@ export default function WorkspacePage() {
                   Upload File
                 </Button>
               </div>
+            </div>
+            <div>
+              {activeUpload && <ProgressTracker activeUpload={activeUpload}/>}
             </div>
             {!uploads || uploads.length === 0 ? (
               <div>

@@ -21,7 +21,8 @@ function OneDriveCallbackContent() {
         await OneDriveAuthService(code);
         setStatus("success");
 
-        // BroadcastChannel: Notifies the original workspace tab (not the callback tab) regardless of window.opener
+        // BroadcastChannel: Notifies the original workspace tab 
+        // regardless of window.opener
         try {
           const bc = new BroadcastChannel("onedrive_oauth_channel");
           bc.postMessage({ type: "ONEDRIVE_AUTH_SUCCESS" });
@@ -30,7 +31,7 @@ function OneDriveCallbackContent() {
           console.warn("BroadcastChannel error:", e);
         }
 
-        // localStorage fallback: triggers a 'storage' event in the original workspace tab (not the callback tab)
+        // localStorage fallback: triggers a 'storage' event in the original workspace tab
         try {
           localStorage.setItem(
             "onedrive_auth_event",
@@ -48,10 +49,10 @@ function OneDriveCallbackContent() {
           }
         } catch (e) {}
 
-        // Close the popup
         setTimeout(() => {
           window.close();
-        }, 500);
+        }, 500)
+
       } catch (err: any) {
         console.error("OneDrive auth failed:", err);
         setStatus("error");

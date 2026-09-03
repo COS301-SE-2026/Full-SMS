@@ -175,4 +175,13 @@ def get_user_uploads_service(user_id) -> list:
                 )
     return resoponse
 
+def set_upload_progress(progress: int, upload_id: str):
+    """
+    Update the progress of an upload
+    """
+    supabaseClient.table("hdf5_uploads").update({
+            "status": "uploading",
+            "progress": progress
+        }).eq("id", upload_id).execute()
+
             
