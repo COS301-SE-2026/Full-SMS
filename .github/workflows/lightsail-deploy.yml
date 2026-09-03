@@ -34,8 +34,6 @@ jobs:
           envs: BRANCH
           script_stop: true
           script: |
-            set +e
-
             echo "Starting deployment for branch: $BRANCH"
 
             cd ~/Full-SMS
@@ -54,38 +52,30 @@ jobs:
 
             echo "Latest commit: $(git log -1 --oneline)"
 
-            echo "Building Frontend (backend stays running during build)"
-            cd ~/Full-SMS/frontend
-
-            echo "Installing dependencies"
-            if ! npm ci --production=false; then
-              echo "npm install failed, aborting deployment"
-              exit 1
-            fi
-
-            echo "Building frontend (this may take a while)"
-            if ! npm run build; then
-              echo "Frontend build failed, aborting deployment"
-              echo "Live site is still running with previous version"
-              exit 1
-            fi
-
-            echo "Frontend built successfully, now deploying..."
-
-            echo "Restarting frontend with new build"
-            pm2 restart frontend || pm2 start npm --name "frontend" -- start
-
-            echo "Deploying Backend"
-            cd ~/Full-SMS
+            echo "deploying Backend"
 
             docker-compose stop api
             docker rm -f full-sms_api_1 2>/dev/null || true
+            docker-compose up -d --build api
 
-            if ! docker-compose up -d --build api; then
-              echo "Backend build failed, restarting previous version"
-              docker-compose up -d api
-              exit 1
-            fi
+            echo "Waiting for backend to start"
+            sleep 10
+
+            echo "Backend container status:"
+            docker-compose ps
+
+            echo "Deploying Frontend"
+
+            cd ~/Full-SMS/frontend
+
+            echo "Installing dependencies"
+            npm ci --production=false
+
+            echo "Building frontend"
+            npm run build
+
+            echo "Restarting frontend"
+            pm2 restart frontend || pm2 start npm --name "frontend" -- start
 
             echo "let's take a moment to breathe and appreciate the fact that we have reached thus far loll,, I reckon 10 seconds yeah?"
             sleep 10
