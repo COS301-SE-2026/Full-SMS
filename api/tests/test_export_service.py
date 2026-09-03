@@ -149,11 +149,50 @@ class TestExportFitsData:
         fits_request=make_request(export_fits=True)
         assert _export_fits_data(fits_request, {"fits": None}, "m1", 1, "m1") is None
 
+    def test_fitsData(self, tmp_path):
+        fits_request=make_request(export_fits=True)
+        analysis = {
+            "fits": {
+                "tau": [5.6169],
+                "tau_std": [0.1341],
+                "amplitude": [1.0],
+                "amplitude_std": [0.0],
+                "shift": 23.7917,
+                "shift_std": 0.0,
+                "chi_squared": 1391.1055,
+                "durbin_watson": 0.0211,
+                "dw_bounds": None,
+                "residuals": [0.1, 0.2, 0.3],
+                "fitted_curve": [1.0, 2.0, 3.0],
+                "fit_start_index": 0,
+                "fit_end_index": 3,
+                "background": 0.6818,
+                "num_exponentials": 1,
+                "average_lifetime": 5.6169,
+                "fitted_irf_fwhm": None,
+                "fitted_irf_fwhm_std": None,
+            }
+        }
+        outpt_file =tmp_path/ "fits.csv"
+        outpt_file.write_text("fake")
 
-        
+        def fake_export_fitResults(fit_results, output_path, fmt):
+            key = list(fit_results.keys())[0]
+            assert key == (7, 1, 0)
+            assert fit_results[key].chi_squared == 1391.1055
+            return outpt_file
 
-   
-    
+        original = export_service.exporters.export_fit_results
+        export_service.exporters.export_fit_results = fake_export_fitResults
+
+        try:
+            path, name = _export_fits_data(fits_request, analysis, "7", 1, "m1")
+        finally:
+            export_service.exporters.export_fit_results = original
+
+        assert path == outpt_file
+        assert name == "m1_fits.csv"
+
     
 class TestPackageOutputs:
     def test_single_output_unzipped(self, tmp_path):
