@@ -206,7 +206,9 @@ export default function WorkspacePage() {
           if (data?.type === "ONEDRIVE_AUTH_SUCCESS") {
             setShowPicker(true);
           }
-        } catch (e) {}
+        } catch (e) {
+          console.error(e)
+        }
       }
     };
     window.addEventListener("storage", handleStorage);

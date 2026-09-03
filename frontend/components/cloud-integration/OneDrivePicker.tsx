@@ -21,7 +21,7 @@ interface OneDrivePickerProps {
 export function OneDrivePicker({
   onFilePicked,
   onCancel,
-}: OneDrivePickerProps) {
+}: Readonly<OneDrivePickerProps>) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState<DriveItem[]>([]);
@@ -31,10 +31,9 @@ export function OneDrivePicker({
   );
   const [token, setToken] = useState<string | null>(null);
 
-  // Only allow these file types
-  const FILE_EXTS = [".h5", ".hdf5", ".pt3", ".csv"];
+  // enabled file types
+  const FILE_EXTS = [".h5", ".hdf5"];
 
-  // Grab the token from our backend
   useEffect(() => {
     const fetchToken = async () => {
       try {
@@ -52,7 +51,6 @@ export function OneDrivePicker({
     fetchToken();
   }, []);
 
-  //Load files & folders from Microsoft Graph whenever token or folder changes
   useEffect(() => {
     if (!token) return;
 
@@ -89,7 +87,7 @@ export function OneDrivePicker({
 
   const clickItem = (item: DriveItem) => {
     if (item.folder) {
-      // go deeper
+      // move into folder directories
       setHistory((prev) => [...prev, { id: item.id, name: item.name }]);
       setFolderId(item.id);
     } else {
@@ -108,8 +106,74 @@ export function OneDrivePicker({
     return FILE_EXTS.some((ext) => fileName.toLowerCase().endsWith(ext));
   };
 
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="flex h-full items-center justify-center">
+          <Loader size="lg" centered />
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="flex flex-col h-full items-center justify-center text-destructive text-sm gap-2">
+          <p>{error}</p>
+          <Button size="sm" onClick={onCancel}>
+            Close
+          </Button>
+        </div>
+      );
+    }
+
+    if (items.length === 0) {
+      return (
+        <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
+          This folder is empty.
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 gap-1">
+        {items.map((item) => {
+          const isFolder = !!item.folder;
+          const allowed = isFolder || fileAllowed(item.name);
+          return (
+            <Button
+            variant={"ghost"}
+              key={item.id}
+              onClick={() => allowed && clickItem(item)}
+              className={`flex items-center justify-between p-3 rounded-md transition-colors ${
+                allowed
+                  ? "hover:bg-muted cursor-pointer text-foreground"
+                  : "opacity-40 cursor-not-allowed text-muted-foreground"
+              }`}
+            >
+              <div className="flex items-center gap-3 truncate">
+                {isFolder ? (
+                  <FaFolder className="text-warning shrink-0" size={18} />
+                ) : (
+                  <FaFile className="text-primary shrink-0" size={16} />
+                )}
+                <span className="text-sm truncate font-medium">
+                  {item.name}
+                </span>
+              </div>
+              {!isFolder && item.size>0 && (
+                <span className="text-xs text-muted-foreground shrink-0">
+                  {(item.size / (1024 * 1024)).toFixed(2)} MB
+                </span>
+              )}
+            </Button>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
-    <Card className="flex flex-col h-[550px] w-[550px] bg-card rounded-md overflow-hidden border border-border mt-8">
+    <Card className="flex flex-col h-[550px] w-full bg-card rounded-md overflow-hidden border border-border mt-8">
       {/* Top bar */}
       <div className="flex items-center justify-between p-4 border-b border-border bg-muted/40">
         <div className="flex items-center gap-2">
@@ -133,61 +197,7 @@ export function OneDrivePicker({
       </div>
 
       {/* File list area */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {loading ? (
-          <div className="flex h-full items-center justify-center">
-            <Loader size="lg" centered />
-          </div>
-        ) : error ? (
-          <div className="flex flex-col h-full items-center justify-center text-destructive text-sm gap-2">
-            <p>{error}</p>
-            <Button size="sm" onClick={onCancel}>
-              Close
-            </Button>
-          </div>
-        ) : items.length === 0 ? (
-          <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
-            This folder is empty.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-1">
-            {items.map((item) => {
-              const isFolder = !!item.folder;
-              const allowed = isFolder || fileAllowed(item.name);
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => allowed && clickItem(item)}
-                  className={`flex items-center justify-between p-3 rounded-md transition-colors ${
-                    allowed
-                      ? "hover:bg-muted cursor-pointer text-foreground"
-                      : "opacity-40 cursor-not-allowed text-muted-foreground"
-                  }`}
-                >
-                  <div className="flex items-center gap-3 truncate">
-                    {isFolder ? (
-                      <FaFolder
-                        className="text-warning shrink-0"
-                        size={18}
-                      />
-                    ) : (
-                      <FaFile className="text-primary shrink-0" size={16} />
-                    )}
-                    <span className="text-sm truncate font-medium">
-                      {item.name}
-                    </span>
-                  </div>
-                  {!isFolder && item.size && (
-                    <span className="text-xs text-muted-foreground shrink-0">
-                      {(item.size / (1024 * 1024)).toFixed(2)} MB
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      <div className="flex-1 overflow-y-auto p-4">{renderContent()}</div>
     </Card>
   );
 }
