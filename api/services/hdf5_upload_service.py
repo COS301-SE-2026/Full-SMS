@@ -85,7 +85,8 @@ def set_status(upload_id: str, user_id: str, status: str, *, progress: int | Non
     """
     if status == "failed":
         (supabaseClient.table("hdf5_uploads")
-         .update({"status": status, "err_code": err_code, "err_msg": err_msg}).eq("id", upload_id)
+         .update({"status": status, "err_code": err_code, "err_msg": err_msg})
+         .eq("id", upload_id)
          .eq("user_id", user_id)
          .execute()
         )
@@ -174,4 +175,14 @@ def get_user_uploads_service(user_id) -> list:
                 .execute()
                 )
     return resoponse
+
+def set_upload_progress(progress: int, upload_id: str):
+    """
+    Update the progress of an upload
+    """
+    supabaseClient.table("hdf5_uploads").update({
+            "status": "uploading",
+            "progress": progress
+        }).eq("id", upload_id).execute()
+
             

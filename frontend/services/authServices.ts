@@ -17,3 +17,13 @@ export const authService = {
     }
   },
 };
+
+export const OneDriveAuthService = async (code: string) => {
+  try {
+    const response = await axiosInstance.post('/api/py/auth/onedrive', { code });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to link OneDrive', error);
+    throw error;
+  }
+}

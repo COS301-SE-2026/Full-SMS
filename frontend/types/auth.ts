@@ -24,6 +24,8 @@ export interface User {
     signOut: () => Promise<{ error: AuthError | null }>
     resetPassword: (email: string) => Promise<{ error: AuthError | null }>
     updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>
+    showPicker: boolean;
+    setShowPicker: (show: boolean) => void;
   }
 
   export const isAdmin = (user: SupabaseUser | null): boolean => {
