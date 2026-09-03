@@ -8,6 +8,6 @@ export const options = {
     },
 };
 
-export default function(){
+export default function test(){
     http.get(`http://localhost:8000/api/py/sessions/?user_id=${default_user_id}`);
 }
