@@ -40,7 +40,7 @@ def get_onedrive_token(user_id: str):
     }
     
 BUCKET = os.environ.get("SUPABASE_BUCKET_NAME")  
-def onedrive_upload_service(user_id: str, file_id: str, file_name: str, workspace_id: str, upload_id: str, storage_key: str):
+def onedrive_upload_service(user_id: str, file_id: str, upload_id: str, storage_key: str):
     try:
         set_status(upload_id=upload_id, user_id=user_id, progress=25, status="downloading")
         

@@ -23,7 +23,6 @@ import { OneDriveLogin } from "@/lib/microsoftAuth";
 import { OneDrivePicker } from "@/components/cloud-integration/OneDrivePicker";
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import axiosInstance from "@/lib/api/axiosInstance";
-import { supabase } from "@/lib/supabase/supabaseConfig";
 import { getHdf5UploadStatus } from "@/services/hdf5services";
 
 interface ProgressTrackerProps{

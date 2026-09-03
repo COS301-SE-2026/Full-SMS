@@ -1,6 +1,4 @@
 import axiosInstance from "@/lib/api/axiosInstance";
-import { useRouter } from "next/router";
-import { useAuth } from "@/contexts/authContext/AuthContext";
 
 export const authService = {
   //This calls the backend to verify that the Supabase JWT token is valid.
