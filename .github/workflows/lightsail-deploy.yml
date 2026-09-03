@@ -3,15 +3,14 @@ name: Deploy to AWS Lightsail
 on:
   push:
     branches:
-      - develop
       - main
-      - chore/backend-cd-workflow
+      - chore/aws-cd
   workflow_dispatch:
     inputs:
       branch:
         description: "Branch to deploy"
         required: true
-        default: "develop"
+        default: "main"
 
 jobs:
   deploy:
@@ -32,6 +31,7 @@ jobs:
           key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
           port: 22
           envs: BRANCH
+          script_stop: true
           script: |
             echo "Starting deployment for branch: $BRANCH"
 
@@ -42,42 +42,96 @@ jobs:
             echo "Fetching latest changes"
             git fetch origin
 
+            echo "Stashing any local changes"
+            git stash
+
             echo "Switching to branch: $BRANCH"
             git checkout $BRANCH
             git pull origin $BRANCH
 
             echo "Latest commit: $(git log -1 --oneline)"
 
-            echo "Rebuilding Docker containers"
-            sudo docker-compose down
-            sudo docker-compose up -d --build
+            echo "deploying Backend"
 
-            echo "Waiting for containers to start"
+            docker-compose stop api
+            docker rm -f full-sms_api_1 2>/dev/null || true
+            docker-compose up -d --build api
+
+            echo "Waiting for backend to start"
             sleep 10
 
-            echo "Container status:"
-            sudo docker-compose ps
+            echo "Backend container status:"
+            docker-compose ps
 
-            echo "Running health check"
-            if curl -f http://localhost:8000/api/py/health > /dev/null 2>&1; then
-              echo "API is healthy"
+            echo "Deploying Frontend"
+
+            cd ~/Full-SMS/frontend
+
+            echo "Installing dependencies"
+            npm ci --production=false
+
+            echo "Building frontend"
+            npm run build
+
+            echo "Restarting frontend"
+            pm2 restart frontend || pm2 start npm --name "frontend" -- start
+
+            echo "Frontend status:"
+            pm2 status
+
+            echo "Running Health Checks"
+
+            echo "Cheking backend"
+            if curl -f http://localhost:8000/ > /dev/null 2>&1; then
+              echo "Backend is healthy"
             else
-              echo "API health check failed"
+              echo "Backend health check failed"
+              docker-compose logs api --tail 50
               exit 1
             fi
 
+            echo "checking frontend"
+            if curl -f http://localhost:3000/ > /dev/null 2>&1; then
+              echo "Frontend is healthy"
+            else
+              echo "Frontend health check failed"
+              pm2 logs frontend --lines 50
+              exit 1
+            fi
+
+            echo "checking plugin execution"
+            if curl -f http://localhost:8001/health > /dev/null 2>&1; then
+              echo "Plugin execution is healthy"
+            else
+              echo "Plugin execution not running, attempting restart"
+              cd ~/plugin-execution
+              export EXECUTION_API_KEY="${{ secrets.EXECUTION_API_KEY }}"
+              nohup python3 execution_api.py > execution_api.log 2>&1 &
+              sleep 3
+              if curl -f http://localhost:8001/health > /dev/null 2>&1; then
+                echo "Plugin execution restarted successfully"
+              else
+                echo "Plugin execution failed to start"
+                exit 1
+              fi
+            fi
+
             echo "Deployment completed successfully"
+            echo "Frontend: https://fullsms.duckdns.org"
+            echo "Backend: https://fullsms.duckdns.org/api/py"
 
       - name: Deployment Success Notification
         if: success()
         run: |
-          echo "Deployment to Lightsail succeeded for branch ${{ github.ref_name }}"
+          echo "Deployment to Lightsail succeeded"
+          echo "Branch: ${{ github.ref_name }}"
           echo "Commit: ${{ github.sha }}"
           echo "Author: ${{ github.actor }}"
 
       - name: Deployment Failure Notification
         if: failure()
         run: |
-          echo "Deployment to Lightsail failed for branch ${{ github.ref_name }}"
+          echo "Deployment to Lightsail failed"
+          echo "Branch: ${{ github.ref_name }}"
           echo "Commit: ${{ github.sha }}"
           echo "Author: ${{ github.actor }}"
