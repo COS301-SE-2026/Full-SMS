@@ -24,6 +24,7 @@ import { OneDrivePicker } from "@/components/cloud-integration/OneDrivePicker";
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import axiosInstance from "@/lib/api/axiosInstance";
 import { supabase } from "@/lib/supabase/supabaseConfig";
+import { getHdf5UploadStatus } from "@/services/hdf5services";
 
 interface ProgressTrackerProps{
   activeUpload:{
@@ -133,50 +134,45 @@ export default function WorkspacePage() {
   };
 
   const getUploadProgress = (filename: string, uploadId: string) => {
-    const sub = supabase
-      .channel(`follow-upload-${uploadId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "hdf5_uploads",
-          filter: `id=eq.${uploadId}`,
-        },
-        async (payload) => {
-          const recentStatus: string = payload.new.status;
-          const progress: number = payload.new.progress || 0;
 
-          setActiveUpload({
-            id: uploadId,
-            file_name: filename,
-            status: recentStatus,
-            progress: progress,
-          });
 
-          if (
-            recentStatus.toLocaleLowerCase() === "parsed" &&
-            currentWorkspaceId
-          ) {
-            const refreshWorkspace =
-              await workspaceService.getWorkspaceUploads(currentWorkspaceId);
+    const handleUpdate = async (progress: number, recentStatus: string) =>{
+      setActiveUpload({
+        id: uploadId,
+        file_name: filename,
+        status: recentStatus,
+        progress: progress,
+      });
+      if (recentStatus.toLocaleLowerCase() === "parsed" && currentWorkspaceId) {
+            const refreshWorkspace = await workspaceService.getWorkspaceUploads(currentWorkspaceId);
             if (refreshWorkspace.success) {
               setUploads(refreshWorkspace.uploads);
-            }
-
+             }
             setTimeout(() => {
+              clearInterval(pollInterval)
               setActiveUpload(null);
-              supabase.removeChannel(sub);
             }, 2000);
           } else if (recentStatus.toLowerCase() === "failed") {
             setTimeout(() => {
+              clearInterval(pollInterval)
               setActiveUpload(null);
-              supabase.removeChannel(sub);
             }, 4000);
           }
-        },
-      )
-      .subscribe();
+    }
+
+    let checkDbStatus = async()=>{
+      const response = await getHdf5UploadStatus(uploadId)
+      if(response?.status){
+        handleUpdate(response.progress, response.status)
+      }
+    }
+    void checkDbStatus()
+
+      const pollInterval = setInterval(()=>{
+        void checkDbStatus()
+      },1500)
+
+      
   };
 
   useEffect(() => {

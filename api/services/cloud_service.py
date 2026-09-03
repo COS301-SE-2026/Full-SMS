@@ -6,7 +6,7 @@ from fastapi import HTTPException
 import httpx
 
 from api.services import hdf5_job_service
-from api.services.hdf5_upload_service import create_upload_record, set_upload_progress, validate_upload_request
+from api.services.hdf5_upload_service import create_upload_record, set_status, set_upload_progress, validate_upload_request
 from api.services.storage_service import build_storage_key
 from  api.utils.supabase_client import supabaseClient
 
@@ -40,45 +40,48 @@ def get_onedrive_token(userID: str):
     }
     
 BUCKET = os.environ.get("SUPABASE_BUCKET_NAME")  
-def onedrive_upload_service(user_id: str, file_id: str, file_name: str, workspace_id: str):
-    token_data = get_onedrive_token(user_id)
-    access_token = token_data["access_token"]
-    
-    graph_api_url = f"https://graph.microsoft.com/v1.0/me/drive/items/{file_id}/content"
-    headers = {"Authorization": f"Bearer {access_token}"}
-    
-    with httpx.Client(follow_redirects=True, timeout= 60) as client:
-        response = client.get(graph_api_url, headers=headers)
-        if response.status_code !=200:
-            raise HTTPException(status_code=400, detail=f"{response.content}")
+def onedrive_upload_service(user_id: str, file_id: str, file_name: str, workspace_id: str, upload_id: str, storage_key: str):
+    try:
+        set_status(upload_id=upload_id, user_id=user_id, progress=25, status="downloading")
         
-        file = response.content
+        token_data = get_onedrive_token(user_id)
+        access_token = token_data["access_token"]
         
-        size_bytes = len(file)
+        graph_api_url = f"https://graph.microsoft.com/v1.0/me/drive/items/{file_id}/content"
+        headers = {"Authorization": f"Bearer {access_token}"}
         
-        # hashes and upload_ids are generated server side when upload comes from a cloud storage service
-        sha256_hash = hashlib.sha256(file).hexdigest()
-        # upload_id = str(uuid.uuid4())
-        # storage_key = build_storage_key(user_id=user_id, upload_id=upload_id, file_name=file_name)
-        validate_upload_request(filename=file_name, size_bytes=size_bytes)
-        upload_record = create_upload_record(user_id=user_id, filename=file_name, workspace_id=workspace_id, size_bytes=size_bytes, sha256=sha256_hash)
-        upload_id = upload_record["id"]
-        storage_key = upload_record["storage_key"]
-        
-        set_upload_progress(progress=50, upload_id=upload_id)
-        
-        supabaseClient.storage.from_(BUCKET).upload(
-            path=storage_key,
-            file=file,
-            file_options={"content-type": "application/x-hdf5"}
-        )
-        
-        set_upload_progress(progress=75, upload_id=upload_id)
-        
-        hdf5_job_service.enqueue_parse(upload_id, user_id, storage_key)
-        
-        return {
-            "status":"success",
-            "upload_id":upload_id,
-            "filename": file_name
-        }
+        with httpx.Client(follow_redirects=True, timeout= 60) as client:
+            response = client.get(graph_api_url, headers=headers)
+            if response.status_code !=200:
+                raise HTTPException(status_code=400, detail=f"{response.content}")
+            
+            file = response.content
+            
+            size_bytes = len(file)
+            
+            # hashes and upload_ids are generated server side when upload comes from a cloud storage service
+            sha256_hash = hashlib.sha256(file).hexdigest()
+            
+            supabaseClient.table("hdf5_uploads").update({
+                "size_bytes": size_bytes,
+                "sha256": sha256_hash,
+                "status": "uploading",
+                "progress": 50
+            }).eq("id", upload_id).execute()
+                    
+            supabaseClient.storage.from_(BUCKET).upload(
+                path=storage_key,
+                file=file,
+                file_options={"content-type": "application/x-hdf5"}
+            )
+            
+            set_status(progress=75, upload_id=upload_id, user_id=user_id, status="processing")
+            
+            hdf5_job_service.enqueue_parse(upload_id, user_id, storage_key)
+            
+    except Exception as e:
+        print (f"An error occurent in the Onedrive upload service: {e}")
+        supabaseClient.table("hdf5_uploads").update({
+            "status": "failed",
+            "err_msg": str(e)
+        }).eq("id", upload_id).execute()

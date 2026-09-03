@@ -85,7 +85,8 @@ def set_status(upload_id: str, user_id: str, status: str, *, progress: int | Non
     """
     if status == "failed":
         (supabaseClient.table("hdf5_uploads")
-         .update({"status": status, "err_code": err_code, "err_msg": err_msg}).eq("id", upload_id)
+         .update({"status": status, "err_code": err_code, "err_msg": err_msg})
+         .eq("id", upload_id)
          .eq("user_id", user_id)
          .execute()
         )
