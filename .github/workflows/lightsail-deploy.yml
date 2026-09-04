@@ -112,18 +112,21 @@ jobs:
             fi
 
             echo "checking plugin execution"
-            if curl -f http://localhost:8001/health > /dev/null 2>&1; then
+            PLUGIN_HEALTHY=$(curl -sf http://localhost:8001/health > /dev/null 2>&1 && echo "yes" || echo "no")
+            if [ "$PLUGIN_HEALTHY" = "yes" ]; then
               echo "Plugin execution is healthy"
             else
               echo "Plugin execution not running, attempting restart"
               cd ~/plugin-execution
               export EXECUTION_API_KEY="${{ secrets.EXECUTION_API_KEY }}"
               nohup python3 execution_api.py > execution_api.log 2>&1 &
-              sleep 3
-              if curl -f http://localhost:8001/health > /dev/null 2>&1; then
+              sleep 5
+              PLUGIN_RESTART=$(curl -sf http://localhost:8001/health > /dev/null 2>&1 && echo "yes" || echo "no")
+              if [ "$PLUGIN_RESTART" = "yes" ]; then
                 echo "Plugin execution restarted successfully"
               else
                 echo "Plugin execution failed to start"
+                cat execution_api.log 2>/dev/null || echo "No log file found"
                 exit 1
               fi
             fi
