@@ -25,6 +25,7 @@
     "plotly.js": "^3.7.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-icons": "^5.7.0",
     "react-plotly.js": "^4.0.0",
     "react-resizable-panels": "^4.12.2",
     "react-toastify": "^11.1.0",

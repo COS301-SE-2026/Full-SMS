@@ -113,5 +113,20 @@ export const pluginService = {
         error instanceof Error ? error.message : "Failed to execute plugin";
       throw new Error(message);
     }
-  }
+  },
+
+  updateFromMarketplace: async (pluginId: string): Promise<PluginResponse> => {
+    try {
+      const response = await axiosInstance.patch(
+        `/api/py/plugins/${pluginId}/update-from-marketplace`,
+      );
+      return response.data;
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to update plugin from marketplace";
+      throw new Error(message);
+    }
+  },
 };

@@ -4,7 +4,7 @@ import json
 import pytest
 from pathlib import Path
 import pytest
-from api.services.export_service import _package_outputs
+
 from api.models.export_request import ExportRequest, Selection
 
 import api.services.export_service as export_service
@@ -12,8 +12,12 @@ from api.services.export_service import (
     _export_intensity_data,
     _export_levels_data,
     _export_groups_data,
+    _export_fits_data,
     _get_measurement_data,
-    _get_saved_analysis
+    _get_saved_analysis,
+    _package_outputs,
+    _export_intensity_plot,
+    _export_bic_plot
 )
 from api.legacy.models.level import LevelData
 
@@ -133,10 +137,62 @@ class TestExportGroupsData:
 
         assert path == outpt_file
         assert name == "m1_groups.csv"
-        
 
-   
-    
+
+class TestExportFitsData:
+    def test_uncheckedBox_lifetime(self):
+        fits_request = make_request(export_fits=False)
+        analysis = {"fits": {"tau": [1.0]}}
+        assert _export_fits_data(fits_request, analysis, "m1", 1, "m1") is None
+
+    def test_noFits_analysis(self):
+        fits_request=make_request(export_fits=True)
+        assert _export_fits_data(fits_request, {"fits": None}, "m1", 1, "m1") is None
+
+    def test_fitsData(self, tmp_path):
+        fits_request=make_request(export_fits=True)
+        analysis = {
+            "fits": {
+                "tau": [5.6169],
+                "tau_std": [0.1341],
+                "amplitude": [1.0],
+                "amplitude_std": [0.0],
+                "shift": 23.7917,
+                "shift_std": 0.0,
+                "chi_squared": 1391.1055,
+                "durbin_watson": 0.0211,
+                "dw_bounds": None,
+                "residuals": [0.1, 0.2, 0.3],
+                "fitted_curve": [1.0, 2.0, 3.0],
+                "fit_start_index": 0,
+                "fit_end_index": 3,
+                "background": 0.6818,
+                "num_exponentials": 1,
+                "average_lifetime": 5.6169,
+                "fitted_irf_fwhm": None,
+                "fitted_irf_fwhm_std": None,
+            }
+        }
+        outpt_file =tmp_path/ "fits.csv"
+        outpt_file.write_text("fake")
+
+        def fake_export_fitResults(fit_results, output_path, fmt):
+            key = list(fit_results.keys())[0]
+            assert key == (7, 1, 0)
+            assert fit_results[key].chi_squared == 1391.1055
+            return outpt_file
+
+        original = export_service.exporters.export_fit_results
+        export_service.exporters.export_fit_results = fake_export_fitResults
+
+        try:
+            path, name = _export_fits_data(fits_request, analysis, "7", 1, "m1")
+        finally:
+            export_service.exporters.export_fit_results = original
+
+        assert path == outpt_file
+        assert name == "m1_fits.csv"
+
     
 class TestPackageOutputs:
     def test_single_output_unzipped(self, tmp_path):
@@ -169,57 +225,99 @@ class TestPackageOutputs:
 
 
     def test_zip_filename_contents(self, tmp_path) :
-            path1= make_test_output(tmp_path, name="first.csv")
-            path2= make_test_output(tmp_path, name="second.csv")
-    
-            request = make_request(
-                 upload_id="upload123",
-                 export_intensity=True, 
-                 selections=[
-                      Selection(measurement_id="m4", channel=1,)
-                 ],
-                )
-    
-            output_paths = [ (path1, "first.csv"), (path2, "second.csv"),]
-    
-            _, result_name= _package_outputs(output_paths, request)
+        path1= make_test_output(tmp_path, name="first.csv")
+        path2= make_test_output(tmp_path, name="second.csv")
 
-            assert "upload123" in result_name
-            assert "m4" in result_name
-            assert "intensity" in result_name
-            assert result_name.endswith(".zip")
+        request = make_request(
+            upload_id="upload123",
+            export_intensity=True, 
+            selections=[
+                Selection(measurement_id="m4", channel=1,)
+            ],
+        )
+
+        output_paths = [ (path1, "first.csv"), (path2, "second.csv"),]
+
+        _, result_name= _package_outputs(output_paths, request)
+
+        assert "upload123" in result_name
+        assert "m4" in result_name
+        assert "intensity" in result_name
+        assert result_name.endswith(".zip")
     
     def test_unselected_exportCategories_exclusion(self, tmp_path) :
-                path1= make_test_output(tmp_path, name="first.csv")
-                path2= make_test_output(tmp_path, name="second.csv")
-        
-                request = make_request(export_groups=True)
-        
-                output_paths = [ (path1, "first.csv"), (path2, "second.csv"),]
-        
-                _, result_name= _package_outputs(output_paths, request)
-    
-                assert "groups" in result_name
-                assert "intensity" not in result_name
-                assert "levels" not in result_name
+        path1= make_test_output(tmp_path, name="first.csv")
+        path2= make_test_output(tmp_path, name="second.csv")
+
+        request = make_request(export_groups=True)
+
+        output_paths = [ (path1, "first.csv"), (path2, "second.csv"),]
+
+        _, result_name= _package_outputs(output_paths, request)
+
+        assert "groups" in result_name
+        assert "intensity" not in result_name
+        assert "levels" not in result_name
+
+    def test_fits_Withcategory(self, tmp_path) :
+        path1= make_test_output(tmp_path, name="first.csv")
+        path2= make_test_output(tmp_path, name="second.csv")
+
+        request = make_request(export_fits=True)
+
+        output_paths = [ (path1, "first.csv"), (path2, "second.csv"),]
+
+        _, result_name= _package_outputs(output_paths, request)
+
+        assert "fits" in result_name
 
 
 class TestGetMeasurementData:
     def test_cache_returnsData(self):
         fake_meas= { "id" : "m1", "value":42}
 
-        def redisGetFunc_fake(key):
-            return json.dumps(fake_meas)
-
-        originalRedis = export_service.redisClient.get
-        export_service.redisClient.get = redisGetFunc_fake
+        original_get = export_service.get_cached_measurement
+        export_service.get_cached_measurement = lambda u, m: fake_meas
 
         try:
             result = _get_measurement_data("u1", "m1", "user1")
-
         finally:
-            export_service.redisClient.get = originalRedis
+            export_service.get_cached_measurement = original_get
         assert result == fake_meas
+
+class TestGetMeasurementDataBackup:
+    def test_missedCache_callsFallback(self):
+        fake_meas = {"id": "m2", "value": 2}
+
+        original_get = export_service.get_cached_measurement
+        original_fallback = export_service.cache_fallback_service
+
+        export_service.get_cached_measurement = lambda u, m: None
+        export_service.cache_fallback_service = lambda u, m: fake_meas
+
+        try:
+            result = _get_measurement_data("u1", "m2", "user1")
+        finally:
+            export_service.get_cached_measurement = original_get
+            export_service.cache_fallback_service = original_fallback
+
+        assert result == fake_meas
+
+    def test_missedCache_notFound_raisesError(self):
+        original_get = export_service.get_cached_measurement
+        original_fallback = export_service.cache_fallback_service
+
+        export_service.get_cached_measurement = lambda u, m: None
+        export_service.cache_fallback_service = lambda u, m: None
+
+        try:
+            with pytest.raises(ValueError):
+                _get_measurement_data("u1", "does_not_exist", "user1")
+        finally:
+            export_service.get_cached_measurement = original_get
+            export_service.cache_fallback_service = original_fallback
+    
+    
 
 
 class TestGetSAvedAnalysis:
@@ -295,6 +393,480 @@ class TestGetSAvedAnalysis:
 
             assert result["levels"]["data"] == "new"
             assert result["groups"]["data"] == "new_groups"
+
+
+class TestExportIntensityPlot:
+    def test_uncheckedBox_IntensityPlot(self):
+        request = make_request(plot_intensity = False)
+        data = {"channel1": {"abstimes": [1,2,3]}, "name": "raw"}
+
+        def analysisGetter_fake():
+            return {"levels": None, "groups": None}
+
+        assert _export_intensity_plot(
+            request, data, 1, analysisGetter_fake, "m1"
+        )is None
+
+
+    def test_intensityPlot_noLevelsGroups(self, tmp_path):
+        request = make_request(plot_intensity = True)
+        data = {"channel1": {"abstimes": [1,2,3]}, "name": "raw"}
+
+        outpt_file = tmp_path / "plot.png"
+        outpt_file.write_text("fake")
+
+        def analysisGetter_fake():
+            raise AssertionError( "should not be called when levels/groups are not requested")
+
+        def fake_export_plot(abstimes, output_path, fmt, dpi, bin_size_ms, title, levels, groups, show_levels, show_groups):
+            assert levels is None
+            assert groups is None
+            assert show_levels is False
+            assert show_groups is False
+            return outpt_file
+
+        original = export_service.plot_exporters.export_intensity_plot
+        export_service.plot_exporters.export_intensity_plot = fake_export_plot
+
+        try:
+            path,name = _export_intensity_plot(
+                request, data, 1, analysisGetter_fake, "m1"
+            )
+        finally:
+            export_service.plot_exporters.export_intensity_plot = original
+
+        assert path == outpt_file
+        assert name == "m1_intensity_plot.png"
+
+
+    def test_intensityPlot_withLevelsGroups(self, tmp_path):
+            request = make_request(plot_intensity = True)
+            request.plotIntensity_levels = True
+            request.plotIntensity_groups = True
+            data = {"channel1": {"abstimes": [1,2,3]}, "name": "raw"}
+    
+            outpt_file = tmp_path / "plot.png"
+            outpt_file.write_text("fake")
+
+            analysis = {
+                "levels": {"levels": [{"start_index": 0, "end_index": 10, "start_time_ns": 0, "end_time_ns": 1_000_000, "num_photons": 5, "intensity_cps": 50.0}]},
+                "groups": {"selected_step_index": 0, "steps": [{"groups": [{"group_id": 1, "total_photons": 10, "total_dwell_time_s": 1.0, "intensity_cps": 100.0, "level_indices": [0]}]}]},
+            }
+    
+            def analysisGetter_fake():
+                return analysis
+    
+            def fake_export_plot(abstimes, output_path, fmt, dpi, bin_size_ms, title, levels, groups, show_levels, show_groups):
+                assert len(levels) == 1
+                assert len(groups) == 1
+                assert show_levels is True
+                assert show_groups is True
+                return outpt_file
+    
+            original = export_service.plot_exporters.export_intensity_plot
+            export_service.plot_exporters.export_intensity_plot = fake_export_plot
+    
+            try:
+                path,name = _export_intensity_plot(
+                    request, data, 1, analysisGetter_fake, "m1"
+                )
+            finally:
+                export_service.plot_exporters.export_intensity_plot = original
+    
+            assert path == outpt_file
+
+class TestExportBicPlot:
+    def test_uncheckedBox_bicPlot(self):
+        request = make_request(plot_bic = False)
+        data = {"name": "raw"}
+
+        def analysisGetter_fake():
+            raise AssertionError( "should not be called when plot_bic is unchecked")
+
+        assert _export_bic_plot(
+            request, analysisGetter_fake, data, "m1"
+        )is None
+
+    def test_bicPlot_noGroups(self):
+            request = make_request(plot_bic = True)
+            data = {"name": "raw"}
+    
+            def analysisGetter_fake():
+                return{"levels": None, "groups": None}
+    
+            assert _export_bic_plot(
+                request, analysisGetter_fake, data,"m1"
+            )is None
+
+    def test_bicPlot_successfulExport(self, tmp_path):
+        request = make_request(plot_bic = True)
+        data = {"name": "raw"}
+
+        outpt_file = tmp_path / "bic.png"
+        outpt_file.write_text("fake")
+        
+        analysis = {
+            "levels": None,
+            "groups": {"selected_step_index": 0, "optimal_step_index": 0, "num_original_levels": 3,  
+                       "steps": [{"groups": [{"group_id": 1, "total_photons": 10, "total_dwell_time_s": 1.0, "intensity_cps": 100.0, "level_indices": [0]}],
+                                "level_group_assignments": [0],
+                                "bic": 123.4,
+                                "num_groups":1}]}
+        }
+
+        def analysisGetter_fake():
+            return analysis
+
+        def fake_export_bic_plot(clustering_result, output_path, fmt, dpi, title):
+            assert clustering_result.selected_step_index == 0
+            assert clustering_result.num_original_levels == 3
+            return outpt_file
+
+        original = export_service.plot_exporters.export_bic_plot
+        export_service.plot_exporters.export_bic_plot = fake_export_bic_plot
+
+        try:
+            path, name = _export_bic_plot(
+                request, analysisGetter_fake,
+                data,
+                "m1"
+            )
+        finally:
+            export_service.plot_exporters.export_bic_plot = original
+
+        assert path == outpt_file
+        assert name == "m1_bic_plot.png"
+
+
+class TestProcessSelection:
+    def test_intensityOnly_noAnalysis(self):
+        request = make_request(export_intensity=True)
+        selection = Selection(measurement_id="m1", channel=1)
+
+        fake_data= {
+            "channel1": {"abstimes": [1, 2, 3]},
+            "name": "raw"
+        }
+
+        def getMeasurement_data_fake(upload_id, measurement_id, user_id):
+            return fake_data
+
+        def intensity_data_fake(req, data, channel, name):
+            return (Path("intensity.csv"), "m1_intensity.csv")
+
+        def intensity_plot_fake(req, data, channel, analysis_getter, name):
+            return None
+
+        def bic_plot_fake(req, analysis_getter, data, name):
+            return None
+
+        def get_saved_analysis_fake(upload_id, measurement_id, user_id):
+            raise AssertionError("shouldn't be called when levels and groups as well as plots aren't requested")
+
+
+
+        original_getMeasurement = export_service._get_measurement_data
+        original_intensityData= export_service._export_intensity_data
+        original_intensityPlot = export_service._export_intensity_plot
+        original_bicPlot = export_service._export_bic_plot
+        original_getAnalysis = export_service._get_saved_analysis
+
+        export_service._get_measurement_data = getMeasurement_data_fake
+        export_service._export_intensity_data = intensity_data_fake
+        export_service._export_intensity_plot = intensity_plot_fake
+        export_service._export_bic_plot = bic_plot_fake
+        export_service._get_saved_analysis = get_saved_analysis_fake
+
+
+        try:
+            results = export_service._process_selection(request, selection, "user1")
+
+        finally:
+            export_service._get_measurement_data = original_getMeasurement
+            export_service._export_intensity_data = original_intensityData
+            export_service._export_intensity_plot = original_intensityPlot
+            export_service._export_bic_plot = original_bicPlot
+            export_service._get_saved_analysis = original_getAnalysis
+
+        assert results == [
+            (Path("intensity.csv"), "m1_intensity.csv")
+        ]
+
+
+    def test_savedAnalaysis_singleCall(self):
+        request = make_request(export_levels=True, export_groups=True)
+        selection = Selection(measurement_id="m1", channel=1)
+
+        fake_data= {
+            "channel1": {"abstimes": [1, 2, 3]},
+            "name": "raw"
+        }
+
+        call_count = {"n": 0}
+
+        def getMeasurement_data_fake(upload_id, measurement_id, user_id):
+            return fake_data
+
+        def get_saved_analysis_fake(upload_id, measurement_id, user_id):
+            call_count["n"] += 1
+
+            return {
+                "levels": {"levels":[]},
+                "groups": {
+                    "selected_step_index":0,
+                    "steps":[{"groups": []}]
+                }
+            }
+
+        def intensity_data_fake(req, data, channel, name):
+            return None
+
+        def levelsData_fake(req, analysis, name):
+            return (Path("levels.csv"),"m1_levels.csv")
+
+        def groupsData_fake(req, analysis, name):
+            return (Path("groups.csv"),"m1_groups.csv")
+
+        def intensity_plot_fake(req, data, channel, analysis_getter, name):
+            analysis_getter()
+            return None
+
+        def bic_plot_fake(req, analysis_getter, data, name):
+            analysis_getter()
+            return None
+
+        
+
+
+
+        original_getMeasurement = export_service._get_measurement_data
+        original_getAnalysis = export_service._get_saved_analysis
+        original_intensityData= export_service._export_intensity_data
+        original_levelsData = export_service._export_levels_data
+        original_groupsData = export_service._export_groups_data
+        original_intensityPlot = export_service._export_intensity_plot
+        original_bicPlot = export_service._export_bic_plot
+        
+
+        export_service._get_measurement_data = getMeasurement_data_fake
+        export_service._get_saved_analysis = get_saved_analysis_fake
+        export_service._export_intensity_data = intensity_data_fake
+        export_service._export_levels_data = levelsData_fake
+        export_service._export_groups_data = groupsData_fake
+        export_service._export_intensity_plot = intensity_plot_fake
+        export_service._export_bic_plot = bic_plot_fake
+
+
+        try:
+            results = export_service._process_selection(request, selection, "user1")
+
+        finally:
+            export_service._get_measurement_data = original_getMeasurement
+            export_service._get_saved_analysis = original_getAnalysis
+            export_service._export_intensity_data = original_intensityData
+            export_service._export_levels_data = original_levelsData
+            export_service._export_groups_data = original_groupsData
+            export_service._export_intensity_plot = original_intensityPlot
+            export_service._export_bic_plot = original_bicPlot
+            
+
+        assert (Path("levels.csv"),"m1_levels.csv") in results
+        assert (Path("groups.csv"),"m1_groups.csv") in results
+        assert call_count["n"] == 1
+
+    def test_fits_processSelection(self):
+            request = make_request(export_fits=True)
+            selection = Selection(measurement_id="7", channel=1)
+    
+            fake_data= {
+                "channel1": {"abstimes": [1, 2, 3]},
+                "name": "raw"
+            }
+    
+            def getMeasurement_data_fake(upload_id, measurement_id, user_id):
+                return fake_data
+
+            def get_saved_analysis_fake(upload_id, measurement_id, user_id):
+                return {"levels": None, "groups":None, "fits": {"tau": [1.0]}}
+    
+            def intensity_data_fake(req, data, channel, name):
+                return None
+
+            def fitsData_fake(req, analysis, measurement_id, channel, name):
+                return (Path("fits.csv"), "m1_fits.csv")
+    
+            def intensity_plot_fake(req, data, channel, analysis_getter, name):
+                return None
+    
+            def bic_plot_fake(req, analysis_getter, data, name):
+                return None
+    
+    
+    
+            original_getMeasurement = export_service._get_measurement_data
+            original_intensityData= export_service._export_intensity_data
+            original_fitsData = export_service._export_fits_data
+            original_intensityPlot = export_service._export_intensity_plot
+            original_bicPlot = export_service._export_bic_plot
+            original_getAnalysis = export_service._get_saved_analysis
+    
+            export_service._get_measurement_data = getMeasurement_data_fake
+            export_service._export_intensity_data = intensity_data_fake
+            export_service._export_fits_data = fitsData_fake
+            export_service._export_intensity_plot = intensity_plot_fake
+            export_service._export_bic_plot = bic_plot_fake
+            export_service._get_saved_analysis = get_saved_analysis_fake
+    
+    
+            try:
+                results = export_service._process_selection(request, selection, "user1")
+    
+            finally:
+                export_service._get_measurement_data = original_getMeasurement
+                export_service._export_intensity_data = original_intensityData
+                export_service._export_fits_data = original_fitsData
+                export_service._export_intensity_plot = original_intensityPlot
+                export_service._export_bic_plot = original_bicPlot
+                export_service._get_saved_analysis = original_getAnalysis
+    
+            assert (Path("fits.csv"), "m1_fits.csv") in results
+
+class TestClusteringResult:
+
+    def test_buildsCorrectResult(self):
+        analysis = {"groups": {"optimal_step_index": 1, "selected_step_index": 0, "num_original_levels": 5,
+                               "steps": [{
+                                   "groups": [{"group_id": 1, "total_photons": 10, "total_dwell_time_s": 1.0, "intensity_cps": 100.0, "level_indices": [0]}],
+                                   "level_group_assignments": [0],
+                                   "bic": 111.1,
+                                   "num_groups": 1,
+                               },
+                               {"groups": [{"group_id": 2, "total_photons": 20, "total_dwell_time_s": 2.0, "intensity_cps": 150.0, "level_indices": [1]}], "level_group_assignments": [0, 1], "bic": 222.2, "num_groups": 1,},
+                            ],
+                        }
+                    }
+
+        result = export_service.clustering_result(analysis)
+
+        assert result.optimal_step_index == 1
+        assert result.selected_step_index == 0
+        assert result.num_original_levels == 5
+        assert len(result.steps) == 2
+        assert result.steps[0].bic == 111.1
+        assert result.steps[0].groups[0].group_id == 1
+        assert result.steps[1].num_groups == 1
+
+class TestExportData:
+    def test_export_process_multipleSelections(self):
+        request = make_request(
+            selections=[
+                Selection(measurement_id="m1", channel=1),
+                Selection(measurement_id="m2", channel=1),
+            ]
+        )
+        calls=[]
+
+        def processSelection_fake(req, selection, user_id):
+            calls.append(selection.measurement_id)
+            return [(Path(f"{selection.measurement_id}.csv"), f"{selection.measurement_id}.csv")]
+
+        def packageOutputs_fake(output_paths, req):
+            assert len(output_paths) == 2
+            return (Path("final.zip"), "final.zip")
+
+        originalProcess = export_service._process_selection
+        originalPackage = export_service._package_outputs
+
+        export_service._process_selection = processSelection_fake
+        export_service._package_outputs= packageOutputs_fake
+
+        try:
+            result = export_service.export_data(request, "user1")
+        finally:
+            export_service._process_selection = originalProcess
+            export_service._package_outputs= originalPackage
+
+        assert calls == ["m1", "m2"]
+        assert result == (Path("final.zip"), "final.zip")
+
+
+class TestExportIntegration:
+    def test_realIntensityData_Export(self, tmp_path):
+        intensity_request = make_request(upload_id="upload123", export_intensity=True, bin_size_ms=10, selections=[Selection(measurement_id="m1", channel=1)])
+
+        fake_meas={
+            "name": "raw", 
+            "channel1": {"abstimes": [1000, 2000, 3000, 15000, 16000]},
+        } 
+
+        original_get = export_service.get_cached_measurement
+        export_service.get_cached_measurement = lambda u, m: fake_meas
+
+        try:
+            resultPath, resultName = export_service.export_data(intensity_request, "user1")
+        finally:
+            export_service.get_cached_measurement = original_get
+
+        assert resultPath.exists()
+        assert resultName == "raw_intensity.csv"
+
+        content = resultPath.read_text()
+        assert len(content) > 0
+
+
+    def test_reallevels_Export(self, tmp_path):
+        levels_request = make_request(upload_id="upload123", export_levels=True, selections=[Selection(measurement_id="m1", channel=1)])
+
+        fake_meas={
+            "name": "raw", 
+            "channel1": {"abstimes": [1000, 2000, 3000]},
+        } 
+        fake_session=[
+            {"dataset_ref": "upload123", "created_at": "2026-01-01", 
+                "results": {"levels": {"measurement_id": "m1", 
+                                        "levels": [{
+                                            "start_index": 0,
+                                            "end_index": 10,
+                                            "start_time_ns": 0,
+                                            "end_time_ns": 5,
+                                            "num_photons": 5,
+                                            "intensity_cps": 50.0,
+                                        }],},
+                "groups": None,
+                },
+            }
+        ]
+
+        def fake_getSession(user_id):
+            return fake_session
+
+        original_get = export_service.get_cached_measurement
+        original_getSessions = export_service.get_sessions
+
+        export_service.get_cached_measurement = lambda u, m: fake_meas
+        export_service.get_sessions = fake_getSession
+
+        try:
+            resultPath, resultName = export_service.export_data(levels_request, "user1")
+        finally:
+            export_service.get_cached_measurement = original_get
+            export_service.get_sessions = original_getSessions
+
+        assert resultPath.exists()
+        assert resultName == "raw_levels.csv"
+
+        content = resultPath.read_text()
+        assert len(content) > 0
+
+
+    
+
+
+
+
+                        
+
+
 
 
         

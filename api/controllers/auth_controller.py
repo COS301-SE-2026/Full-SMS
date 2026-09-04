@@ -1,6 +1,7 @@
 # controllers
 from fastapi import Depends, HTTPException, status
-from api.services.auth_service import verify_token
+from api.models.user import OneDriveCode
+from api.services.auth_service import link_onedrive, verify_token
 
 def verify_token_controller(token: str) -> dict:
     """
@@ -14,6 +15,7 @@ def verify_token_controller(token: str) -> dict:
                 "id": payload.get("sub"),
                 "email": payload.get("email"),
                 "role": payload.get("role","authenticated"),
+                "app_metadata": payload.get("app_metadata", {}),
             },
         }
     except ValueError as e:
@@ -22,3 +24,12 @@ def verify_token_controller(token: str) -> dict:
             detail=str(e),
             headers={"WWW-Authenticate": "Bearer"},
         )
+        
+def link_onedrive_controller(payload: OneDriveCode, user_id: str):
+    """
+    Authorizes link to OneDrive account
+    """
+    try:
+        return link_onedrive(payload, user_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to exchange token: {e}")

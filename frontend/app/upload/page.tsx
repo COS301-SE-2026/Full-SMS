@@ -10,7 +10,9 @@ import {supabase} from '@/lib/supabase/supabaseConfig'
 import { InitUploadResponse } from '@/types/hdf5';
 import { Intensity_Req } from '@/types/analysis';
 import { intensityAnalysis } from '@/services/analysisServices';
-
+import RecentUploads from '@/components/upload/recentUploads';
+import { GrOnedrive } from 'react-icons/gr';
+import { OneDriveLogin } from '@/lib/microsoftAuth';
 
 type UploadPageProps = {
   onComplete?: () => void
@@ -143,19 +145,27 @@ useEffect (()=>{
   };
 
   return (
-    <main className=" text-zinc-100 font-sans p-4 sm:p-8 flex flex-col items-center justify-center pt-16">
+    <main className="p-4 sm:p-8 flex flex-col items-center justify-center pt-16">
       <div className="w-full max-w-4xl space-y-8">
-
         {/* File upload area */}
-        <div className="space-y-2">
-          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-widest px-1 text-center block">
-            Drop Your Files Here
-          </span>
-          <FileUploadZone onFilesSelected={handleFilesSelected} />
+        <div className="space-y-2 flex flex-row gap-4">
+          <div>
+            <span className="text-xs font-semibold text-foreground/50 uppercase tracking-widest px-1 text-center block">
+              Drop Your Files Here
+            </span>
+            <FileUploadZone onFilesSelected={handleFilesSelected} />
+          </div>
+          <div className=' flex flex-col gap-4'>
+            <span className="text-xs font-semibold text-foreground/50 uppercase tracking-widest px-1 text-center block">
+              Use cloud storage
+            </span>
+            <Button leftIcon={<GrOnedrive size={24}/>}  onClick={OneDriveLogin}>OneDrive</Button>
+          </div>
+
         </div>
 
         <FileList files={queue} onRemove={handleRemoveItem} />
-
+        <RecentUploads/>
 
         {queue.length > 0 && (
           <div className="flex items-center justify-end gap-3 pt-2 max-w-4xl mx-auto">

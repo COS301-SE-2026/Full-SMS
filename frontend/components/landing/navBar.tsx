@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '../ui'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/authContext/AuthContext'
+import ThemeToggle from '../ui/ThemeToggle'
 
 const navItems = [{"name": "About", "link":"#about"}, {"name": "Features", "link":"#features"}, {"name": "Github", "link":"https://github.com/COS301-SE-2026/Full-SMS"}]
 
@@ -24,7 +25,7 @@ export default function NavBar() {
                     navItems.map((item)=>(
                         <li key={item.name}>
                             <Link
-                            className="text-gray-500 transition hover:text-foreground-500/75 dark:text-white dark:hover:text-foreground/75 hover:underline decoration-primary"
+                            className="text-foreground transition hover:text-foreground-500/75 hover:underline decoration-primary"
                             href={item.link}
                             target= {item.name.toLowerCase() === "Github".toLowerCase() ? "_blank" : "" }
                             rel={item.name.toLowerCase() === "Github".toLowerCase() ? "noopener noreferrer" : "" }
@@ -40,6 +41,7 @@ export default function NavBar() {
             </nav>
 
             <div className="flex items-center gap-4 z-10">
+                <ThemeToggle toggleType='icon'/>
                 {!user ? (<div className="sm:flex sm:gap-4">
                     <Link href="/login">
                         <Button variant="outline" className='mr-2'>

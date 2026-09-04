@@ -14,6 +14,7 @@ import PluginEditorModal from "@/components/plugins/PluginEditorModal";
 import StatusFilterButton from "@/components/ui/StatusFilterButton";
 import { Plus, Search } from "lucide-react";
 import { Loader } from "@/components/ui/Loader";
+import { marketplaceService } from "@/services/marketplaceService";
 
 type PluginFilter = "all" | "enabled" | "disabled";
 
@@ -29,6 +30,9 @@ export default function PluginsPage() {
     undefined,
   );
   const [pluginToDelete, setPluginToDelete] = useState<Plugin | null>(null);
+  const [submittingId, setSubmittingId] = useState<string | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPlugins = async () => {
@@ -171,6 +175,72 @@ export default function PluginsPage() {
     }
   };
 
+  const handleSubmitToMarketplace = async (plugin: Plugin) => {
+    try {
+      setSubmittingId(plugin.id);
+      const response = await marketplaceService.submitPlugin(plugin.id);
+      if (response.success && response.data) {
+        setPlugins((prev) =>
+          prev.map((p) => (p.id === plugin.id ? response.data! : p)),
+        );
+        successToast("Plugin submitted for marketplace review");
+      } else {
+        errorToast(response.message || "Failed to submit plugin");
+      }
+    } catch (err) {
+      console.error("Failed to submit plugin:", err);
+      errorToast(
+        err instanceof Error ? err.message : "Failed to submit plugin",
+      );
+    } finally {
+      setSubmittingId(null);
+    }
+  };
+
+  const handleCancelSubmission = async (plugin: Plugin) => {
+    try {
+      setCancellingId(plugin.id);
+      const response = await marketplaceService.cancelSubmission(plugin.id);
+      if (response.success && response.data) {
+        setPlugins((prev) =>
+          prev.map((p) => (p.id === plugin.id ? response.data! : p)),
+        );
+        successToast("Marketplace submission cancelled");
+      } else {
+        errorToast(response.message || "Failed to cancel submission");
+      }
+    } catch (err) {
+      console.error("Failed to cancel submission:", err);
+      errorToast(
+        err instanceof Error ? err.message : "Failed to cancel submission",
+      );
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
+  const handleUpdateFromMarketplace = async (plugin: Plugin) => {
+    try {
+      setUpdatingId(plugin.id);
+      const response = await pluginService.updateFromMarketplace(plugin.id);
+      if (response.success && response.plugin) {
+        setPlugins((prev) =>
+          prev.map((p) => (p.id === plugin.id ? response.plugin! : p)),
+        );
+        successToast("Plugin has been updated to the latest marketplace version");
+      } else {
+        errorToast(response.message || "Failed to update plugin");
+      }
+    } catch (err) {
+      console.error("Failed to update plugin from marketplace:", err);
+      errorToast(
+        err instanceof Error ? err.message : "Failed to update plugin",
+      );
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const hasPlugins = plugins?.length > 0;
 
   const renderContent = () => {
@@ -252,6 +322,12 @@ export default function PluginsPage() {
               onEdit={handleEdit}
               onToggle={handleToggle}
               onDelete={setPluginToDelete}
+              onSubmitToMarketplace={handleSubmitToMarketplace}
+              onCancelSubmission={handleCancelSubmission}
+              onUpdateFromMarketplace={handleUpdateFromMarketplace}
+              submittingId={submittingId}
+              cancellingId={cancellingId}
+              updatingId={updatingId}
             />
           ) : (
             <Card>

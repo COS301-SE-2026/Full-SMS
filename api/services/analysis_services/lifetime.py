@@ -2,6 +2,7 @@ from api.legacy.analysis.lifetime import fit_decay
 from api.legacy.analysis.histograms import build_decay_histogram
 from api.models.analysis_models import LifetimeReq, LifetimeRes
 from api.services.analysis_services.cache_fallback import cache_fallback_service
+from api.services.measurement_cache_service import get_cached_measurement
 from api.utils.redis_Client import redisClient
 import json
 import numpy as np
@@ -12,13 +13,12 @@ def lifetime_fitting(payload: LifetimeReq):
     measurement_id = payload.measurement_id
     
 
-    cached_data = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
+    cached_measurement = get_cached_measurement(upload_id, measurement_id)
 
-    if not cached_data:
-        cached_data = cache_fallback_service(upload_id)
+    if not cached_measurement:
+        cached_measurement = cache_fallback_service(upload_id=upload_id, measurement_id=measurement_id)
 
-    raw_data = json.loads(cached_data)
-    channel_width = raw_data["channelWidth"]
+    channel_width = cached_measurement.channelwidth
     
     fit_result = fit_decay(
         counts=np.array(payload.counts, dtype=np.float64),
@@ -57,14 +57,13 @@ def fluorescence_decay(payload):
     measurement_id = payload.measurement_id
     
 
-    cached_data = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
+    cached_measurement = get_cached_measurement(upload_id, measurement_id)
 
-    if not cached_data:
-        cached_data = cache_fallback_service(upload_id)
+    if not cached_measurement:
+        cached_measurement = cache_fallback_service(upload_id=upload_id, measurement_id=measurement_id)
 
-    raw_data = json.loads(cached_data)
-    microtimes = raw_data["channel1"]["microtimes"]
-    channel_width = raw_data["channelWidth"]
+    microtimes = cached_measurement.channel1.microtimes
+    channel_width = cached_measurement.channelwidth
     times, counts = build_decay_histogram(
         microtimes=microtimes,
         channelwidth=channel_width

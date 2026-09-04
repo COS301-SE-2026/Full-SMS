@@ -56,7 +56,10 @@ def get_hdf5_upload_status(upload_id: str, current_user: dict) -> dict:
     hdf5_upload = hdf5_upload_service.get_upload(upload_id, current_user['user']['id'])
     if not hdf5_upload:
         raise HTTPException(status_code=404, detail="Upload not found.")
-    return hdf5_upload.status
+    return {
+        "status": hdf5_upload["status"], 
+        "progress": hdf5_upload.get("progress", 0)
+    }
 
 def get_hdf5_upload_result(upload_id: str, current_user: dict) -> dict:
     """

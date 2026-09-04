@@ -35,6 +35,7 @@ export default function ExportPanel() {
                         <Checkbox label= "Intensity Plot Data" checked={form.exportIntensity} onCheckedChange={form.setExportIntensity} />
                         <Checkbox label= "Levels (change points)" checked={form.exportLevels} onCheckedChange={form.setLevels} />
                         <Checkbox label= "Groups (clusters)" checked={form.exportGroups} onCheckedChange={form.setGroups} />
+                        <Checkbox label= "Lifetime Fit Parameters" checked={form.exportFits} onCheckedChange={form.setExportFits} />
                         </CardContent>
                     </Card>
 

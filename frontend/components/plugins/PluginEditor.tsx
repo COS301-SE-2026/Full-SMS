@@ -73,7 +73,8 @@ export default function PluginEditor({
       try {
         await onSave({
           name: values.name,
-          description: values.description,
+          description: values.description || undefined,
+          version: values.version,
           script: values.script,
           config: {
             parameters: values.parameters,

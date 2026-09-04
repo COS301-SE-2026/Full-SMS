@@ -363,7 +363,6 @@ def test_get_spectra_data_bad_payload(mock_spectra):
         # "measurement_id": "29",
     }
 
-    # 2. ACT
     response = client.post('/api/py/analysis/spectra', json=test_payload)
 
     assert response.status_code == 422

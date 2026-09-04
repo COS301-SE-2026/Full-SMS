@@ -7,27 +7,41 @@ import numpy as np
 from pathlib import Path
 from api.models.export_request import ExportRequest
 from api.legacy.io import exporters
+from api.services.analysis_services.cache_fallback import cache_fallback_service
+from api.services.measurement_cache_service import get_cached_measurement
 from api.utils.redis_Client import redisClient
 from api.services.storage_service import build_storage_key, download_to_temp
 from api.services.session_service import get_sessions
 from api.legacy.models.level import LevelData
 from api.legacy.io import plot_exporters
 from api.legacy.models.group import GroupData, ClusteringResult, ClusteringStep
+from api.legacy.models.fit import FitResult
+
 
 def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> dict :
-    cached_data = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
-    if cached_data:
-        return json.loads(cached_data)
+    cached_measurement = get_cached_measurement(upload_id, measurement_id)
+    if not cached_measurement:
+        cached_measurement = cache_fallback_service(upload_id, measurement_id)
     
-    storage_key = build_storage_key(user_id, upload_id, "measurements.json.gz")
-    temporary_path = download_to_temp(storage_key, file_extension=".json.gz")
-    with gzip.open(temporary_path, "rt", encoding="utf-8") as f:
-        measurements = json.load(f)
-        for measurement in measurements:
-            if measurement.get("id") == measurement_id:
-                return measurement
-        raise ValueError(f"measurement {measurement_id} not found in backup")
+    if not cached_measurement:
+        raise ValueError(f"Measurement {measurement_id} not found for upload {upload_id}")
 
+    if isinstance(cached_measurement, dict):
+        return cached_measurement
+    return {
+        "id": cached_measurement.id,
+        "name": cached_measurement.name,
+        "channelWidth": cached_measurement.channelwidth,
+        "description": cached_measurement.description,
+        "channel1": {
+            "abstimes": cached_measurement.channel1.abstimes,
+            "microtimes": cached_measurement.channel1.microtimes,
+        } if cached_measurement.channel1 else None,
+        "channel2": {
+            "abstimes": cached_measurement.channel2.abstimes,
+            "microtimes": cached_measurement.channel2.microtimes,
+        } if cached_measurement.channel2 else None,
+    }
 
 def _get_saved_analysis(upload_id: str, measurement_id:str, user_id:str) -> dict:
     sessions = get_sessions(user_id)
@@ -40,10 +54,11 @@ def _get_saved_analysis(upload_id: str, measurement_id:str, user_id:str) -> dict
     results = latest.get("results", {})
     levels = results.get("levels")
     groups = results.get("groups")
+    fits = results.get("fits")
 
     if levels and levels.get("measurement_id") != measurement_id:
         raise NotImplementedError("Saved session does not match this measurement.")
-    return {"levels": levels, "groups":groups}
+    return {"levels": levels, "groups":groups, "fits": fits}
 
 
 
@@ -100,6 +115,39 @@ def _export_groups_data(request, analysis, measurement_name) -> tuple[Path, str]
     return output_path, f"{measurement_name}_groups{output_path.suffix}"
 
 
+def _export_fits_data(request, analysis, measurement_id, channel, measurement_name) -> tuple[Path, str] | None:
+    if not (request.export_fits and analysis["fits"]):
+        return None
+    fit_data = analysis["fits"]
+    fit_result = FitResult(
+    tau=tuple(fit_data["tau"]),
+    tau_std=tuple(fit_data["tau_std"]),
+    amplitude=tuple(fit_data["amplitude"]),
+    amplitude_std=tuple(fit_data["amplitude_std"]),
+    shift=fit_data["shift"],
+    shift_std=fit_data["shift_std"],
+    chi_squared=fit_data["chi_squared"],
+    durbin_watson=fit_data["durbin_watson"],
+    dw_bounds=tuple(fit_data["dw_bounds"]) if fit_data.get("dw_bounds") else None,
+    residuals=np.array(fit_data["residuals"], dtype=np.float64),
+    fitted_curve=np.array(fit_data["fitted_curve"], dtype=np.float64),
+    fit_start_index=fit_data["fit_start_index"],
+    fit_end_index=fit_data["fit_end_index"],
+    background=fit_data["background"],
+    num_exponentials=fit_data["num_exponentials"],
+    average_lifetime=fit_data["average_lifetime"],
+    fitted_irf_fwhm=fit_data.get("fitted_irf_fwhm"),
+    fitted_irf_fwhm_std=fit_data.get("fitted_irf_fwhm_std"),
+    )
+
+    fd, tmp_path = tempfile.mkstemp()
+    os.close(fd)
+    outpt_path= exporters.export_fit_results(
+        fit_results={(int(measurement_id), channel, 0): fit_result},
+        output_path=Path(tmp_path),
+        fmt= request.format,
+    )
+    return outpt_path, f"{measurement_name}_fits{outpt_path.suffix}"
 
 def _export_intensity_plot(request, data, channel, analysis_getter, measurement_name) -> tuple[Path, str] | None:
     if not request.plot_intensity:
@@ -173,7 +221,7 @@ def _process_selection(request, selection, user_id) -> list[tuple[Path, str]]:
     if intensity_result:
         results.append(intensity_result)
 
-    if request.export_levels or request.export_groups:
+    if request.export_levels or request.export_groups or request.export_fits:
         analysis = get_analysis()
         levels_result= _export_levels_data(request, analysis, measurement_name)
         if levels_result:
@@ -181,6 +229,9 @@ def _process_selection(request, selection, user_id) -> list[tuple[Path, str]]:
         groups_result = _export_groups_data(request, analysis, measurement_name)
         if groups_result:
             results.append(groups_result)
+        fits_result = _export_fits_data(request, analysis, measurement_id, channel, measurement_name )
+        if fits_result:
+            results.append(fits_result)
 
     plot_result = _export_intensity_plot(request, data, channel, get_analysis, measurement_name)
     if plot_result:
@@ -234,6 +285,8 @@ def _package_outputs(output_paths, request) -> tuple[Path, str]:
         categories.append("levels")
     if request.export_groups:
         categories.append("groups")
+    if request.export_fits:
+        categories.append("fits")
     category_str = "-".join(categories) if categories else "export"
 
     measurement_ids_str = "-".join(sel.measurement_id for sel in request.selections)
