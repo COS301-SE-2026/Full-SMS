@@ -34,13 +34,14 @@ Full SMS is a professional single-molecule spectroscopy (SMS) data analysis appl
 
 ## Documentation
 
-- [Software Requirements Specification (SRS)](./docs/demo2/SRS.pdf)
+- [Software Requirements Specification (SRS)](./docs/demo3/SRS.pdf)
 - [Software Architecture Specification](./docs/demo2/Software_Architecture_Specifications.pdf)
 - [Project Board](https://github.com/orgs/COS301-SE-2026/projects/57)
 - [Coding Standard Document](./docs/demo2/Coding_Standard_Document.pdf)
 - [Brand Style Guide](./docs/demo2/d2-BrandStyleGuide.pdf)
 - [User Manual](./docs/demo2/User%20Manual.pdf)
 - [Testing Policy](docs/testing-policy.md)
+- [API Contacts](docs/demo3/openapi.yaml)
 
 ## Team Members
 
