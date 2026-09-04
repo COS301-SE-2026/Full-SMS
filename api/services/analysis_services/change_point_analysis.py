@@ -2,6 +2,7 @@ from api.legacy.analysis.change_point import find_change_points
 from api.models.analysis_models import ( CpaReq)
 from api.services.analysis_services.cache_fallback import cache_fallback_service
 from api.services.hdf5_services import read_hdf5
+from api.services.measurement_cache_service import get_cached_measurement
 from api.services.storage_service import download_to_temp
 from api.utils.redis_Client import redisClient
 from api.utils.supabase_client import supabaseClient
@@ -15,14 +16,19 @@ def resolve_current_measurement(payload: CpaReq) -> dict:
 
     measurement_id = payload.measurement_id
 
-    cached_data = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
+    cached_measurement = get_cached_measurement(upload_id, measurement_id)
 
-    if not cached_data:
-        cached_data = cache_fallback_service(upload_id)
+    if not cached_measurement:
+        cached_measurement = cache_fallback_service(upload_id=upload_id, measurement_id=measurement_id)
     
 
-    raw_data = json.loads(cached_data)
-    abstimes = np.array(raw_data["channel1"]["abstimes"], dtype=np.float64)
+    if isinstance(cached_measurement, str):
+        cached_measurement = json.loads(cached_measurement)
+
+    if isinstance(cached_measurement, dict):
+        abstimes = np.array(cached_measurement["channel1"]["abstimes"], dtype=np.float64)
+    else:
+        abstimes = cached_measurement.channel1.abstimes
     confidence = payload.confidence/100
 
     result = find_change_points(abstimes=abstimes, confidence=confidence)

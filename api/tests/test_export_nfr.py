@@ -1,7 +1,9 @@
 import time
-import json
+import pickle
+import numpy as np
 import pytest
 from pathlib import Path
+from unittest.mock import MagicMock
 
 from api.models.export_request import ExportRequest, Selection
 import api.services.export_service as export_service
@@ -26,27 +28,31 @@ class TestExportPerformanceNFR:
         request = make_request()
 
         fake_meas = {
+            "id": "m1",
             "name": "raw",
-            "channel1": {"abstimes": list(range(0, 1_000_000, 10))},
+            "channelWidth": 0.0122,
+            "description": "test",
+            "channel1": {
+                "abstimes": np.arange(0, 1_000_000, 10, dtype=np.uint64),
+                "microtimes": np.array([], dtype=np.uint32),
+            },
+            "channel2": None,
         }
 
-        def fake_redisGet(key):
-            return json.dumps(fake_meas)
-
-        original_redis = export_service.redisClient.get
-        export_service.redisClient.get = fake_redisGet
+        original_get = export_service.get_cached_measurement
+        export_service.get_cached_measurement = lambda u, m: fake_meas
 
         try:
             start = time.perf_counter()
 
-            result_path, result_name =export_service.export_data(
+            result_path, result_name = export_service.export_data(
                 request, 
                 "user1"
             )
 
             elapsed = time.perf_counter() - start
         finally:
-            export_service.redisClient.get = original_redis
+            export_service.get_cached_measurement = original_get
 
         assert result_path.exists()
         print(f"\nExport took {elapsed:.4f}s (target:  {TARGET_SECONDS}s)")
@@ -58,27 +64,31 @@ class TestExportPerformanceNFR:
         request = make_request()
 
         fake_meas = {
+            "id": "m1",
             "name": "raw",
-            "channel1": {"abstimes": list(range(0, 50_000_000, 10))},
+            "channelWidth": 0.0122,
+            "description": "test",
+            "channel1": {
+                "abstimes": np.arange(0, 50_000_000, 10, dtype=np.uint64),
+                "microtimes": np.array([], dtype=np.uint32),
+            },
+            "channel2": None,
         }
 
-        def fake_redisGet(key):
-            return json.dumps(fake_meas)
-
-        original_redis = export_service.redisClient.get
-        export_service.redisClient.get = fake_redisGet
+        original_get = export_service.get_cached_measurement
+        export_service.get_cached_measurement = lambda u, m: fake_meas
 
         try:
             start = time.perf_counter()
 
-            result_path, result_name =export_service.export_data(
+            result_path, result_name = export_service.export_data(
                 request, 
                 "user1"
             )
 
             elapsed = time.perf_counter() - start
         finally:
-            export_service.redisClient.get = original_redis
+            export_service.get_cached_measurement = original_get
 
         assert result_path.exists()
         print(f"\nExport took {elapsed:.4f}s (target:  {TARGET_SECONDS}s)")

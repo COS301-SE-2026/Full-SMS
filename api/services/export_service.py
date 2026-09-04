@@ -7,6 +7,8 @@ import numpy as np
 from pathlib import Path
 from api.models.export_request import ExportRequest
 from api.legacy.io import exporters
+from api.services.analysis_services.cache_fallback import cache_fallback_service
+from api.services.measurement_cache_service import get_cached_measurement
 from api.utils.redis_Client import redisClient
 from api.services.storage_service import build_storage_key, download_to_temp
 from api.services.session_service import get_sessions
@@ -17,19 +19,29 @@ from api.legacy.models.fit import FitResult
 
 
 def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> dict :
-    cached_data = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
-    if cached_data:
-        return json.loads(cached_data)
+    cached_measurement = get_cached_measurement(upload_id, measurement_id)
+    if not cached_measurement:
+        cached_measurement = cache_fallback_service(upload_id, measurement_id)
     
-    storage_key = build_storage_key(user_id, upload_id, "measurements.json.gz")
-    temporary_path = download_to_temp(storage_key, file_extension=".json.gz")
-    with gzip.open(temporary_path, "rt", encoding="utf-8") as f:
-        measurements = json.load(f)
-        for measurement in measurements:
-            if measurement.get("id") == measurement_id:
-                return measurement
-        raise ValueError(f"measurement {measurement_id} not found in backup")
+    if not cached_measurement:
+        raise ValueError(f"Measurement {measurement_id} not found for upload {upload_id}")
 
+    if isinstance(cached_measurement, dict):
+        return cached_measurement
+    return {
+        "id": cached_measurement.id,
+        "name": cached_measurement.name,
+        "channelWidth": cached_measurement.channelwidth,
+        "description": cached_measurement.description,
+        "channel1": {
+            "abstimes": cached_measurement.channel1.abstimes,
+            "microtimes": cached_measurement.channel1.microtimes,
+        } if cached_measurement.channel1 else None,
+        "channel2": {
+            "abstimes": cached_measurement.channel2.abstimes,
+            "microtimes": cached_measurement.channel2.microtimes,
+        } if cached_measurement.channel2 else None,
+    }
 
 def _get_saved_analysis(upload_id: str, measurement_id:str, user_id:str) -> dict:
     sessions = get_sessions(user_id)
