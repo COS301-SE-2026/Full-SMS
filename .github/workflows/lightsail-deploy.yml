@@ -52,17 +52,8 @@ jobs:
 
             echo "Latest commit: $(git log -1 --oneline)"
 
-            echo "deploying Backend"
-
+            echo "Stopping backend to free memory for frontend build"
             docker-compose stop api
-            docker rm -f full-sms_api_1 2>/dev/null || true
-            docker-compose up -d --build api
-
-            echo "Waiting for backend to start"
-            sleep 10
-
-            echo "Backend container status:"
-            docker-compose ps
 
             echo "Deploying Frontend"
 
@@ -82,16 +73,34 @@ jobs:
             echo "Frontend status:"
             pm2 status
 
+            echo "deploying Backend"
+            cd ~/Full-SMS
+
+            docker rm -f full-sms_api_1 2>/dev/null || true
+            docker-compose up -d --build api
+
+            echo "Waiting for backend to start"
+            sleep 15
+
+            echo "Backend container status:"
+            docker-compose ps
+
             echo "Running Health Checks"
 
             echo "Cheking backend"
-            if curl -f http://localhost:8000/ > /dev/null 2>&1; then
-              echo "Backend is healthy"
-            else
-              echo "Backend health check failed"
-              docker-compose logs api --tail 50
-              exit 1
-            fi
+            for i in 1 2 3 4 5; do
+              if curl -f http://localhost:8000/api/py/health > /dev/null 2>&1; then
+                echo "Backend is healthy"
+                break
+              fi
+              if [ $i -eq 5 ]; then
+                echo "Backend health check failed"
+                docker-compose logs api --tail 50
+                exit 1
+              fi
+              echo "Retrying in 5 seconds..."
+              sleep 5
+            done
 
             echo "checking frontend"
             if curl -f http://localhost:3000/ > /dev/null 2>&1; then
