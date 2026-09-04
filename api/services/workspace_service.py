@@ -2,7 +2,8 @@ import os
 import uuid
 from typing import List, Optional
 from supabase import Client, create_client
-
+from api.services.storage_service import BUCKET
+from api.utils.redis_Client import redisClient
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 
@@ -171,3 +172,41 @@ def get_workspace_uploads(workspace_id: str, user_id: str) -> dict:
                 .execute()
                 )
     return response.data
+
+def delete_workspace_upload(workspace_id: str, upload_id: str, user_id: str) -> dict:
+    supabase = get_supabase_admin()
+
+    record = (
+        supabase.table("hdf5_uploads")
+        .select("id, storage_key")
+        .eq("id", upload_id)
+        .eq("workspace_id", workspace_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+    if not record.data:
+        raise ValueError("Upload not found.")
+    storage_key = record.data[0].get("storage_key")
+
+    if storage_key:
+        try:
+            supabase.storage.from_(BUCKET).remove([storage_key])
+        except Exception as e:
+            print(f"Warning: Failed to delete storage file {storage_key}: {e}")
+
+    try:
+        keys = redisClient.keys(f"raw_data:{upload_id}:*")
+        if keys:
+            redisClient.delete(*keys)
+    except Exception as e:
+        print(f"Warning: Failed to delete Redis cache keys: {e}")
+
+    delete_res = (
+        supabase.table("hdf5_uploads")
+        .delete()
+        .eq("id", upload_id)
+        .eq("workspace_id", workspace_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+    return {"deleted": True, "upload_id": upload_id}

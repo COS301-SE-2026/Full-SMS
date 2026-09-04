@@ -106,7 +106,7 @@ export const workspaceService = {
     }
   },
 
-  
+
   getWorkspaceUploads: async (
     workspaceId: string,
   ): Promise<WorkspaceUploadsResponse> => {
@@ -121,6 +121,21 @@ export const workspaceService = {
       );
     }
   },
+
+  deleteWorkspaceUpload: async (workspaceId: string, uploadId: string) => {
+    try {
+      const response = await axiosInstance.delete(
+        `/api/py/workspaces/${workspaceId}/uploads/${uploadId}`
+      );
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        error.response?.data?.detail || "Failed to delete upload"
+      );
+    }
+  },
 };
+
+
 
 

@@ -7,7 +7,8 @@ from api.services.workspace_service import (
     update_workspace,
     delete_workspace,
     archive_workspace,
-    unarchive_workspace
+    unarchive_workspace,
+    delete_workspace_upload
 )
 from api.models.workspace import WorkspaceCreate, WorkspaceUpdate
 
@@ -109,3 +110,12 @@ def get_workspace_uploads_controller(workspace_id: str, user_id: str) -> dict:
     except Exception as e:
         raise HTTPException(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        
+def delete_workspace_upload_controller(workspace_id: str, upload_id: str, user_id: str) -> dict:
+    try:
+        res = delete_workspace_upload(workspace_id=workspace_id, upload_id=upload_id, user_id=user_id)
+        return {"success": True, "message": "Upload deleted successfully", "data": res}
+    except ValueError as valerror:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(valerror))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
