@@ -9,7 +9,8 @@ from api.controllers.workspace_controller import (
     update_workspace_controller,
     delete_workspace_controller,
     archive_workspace_controller,
-    unarchive_workspace_controller)
+    unarchive_workspace_controller,
+    delete_workspace_upload_controller)
 
 from api.models.workspace import WorkspaceCreate, WorkspaceUpdate
 from typing import Annotated
@@ -61,3 +62,8 @@ def unarchive_workspace(workspace_id: str, current_user: CurrentUser):
 @router.patch("/{workspace_id}/uploads", summary="Get workspace uploads")
 def get_worspace_uploads(workspace_id: str, current_user: CurrentUser):
     return get_workspace_uploads_controller(workspace_id, current_user["id"])
+
+
+@router.delete("/{workspace_id}/uploads/{upload_id}", summary="Delete a workspace upload")
+def delete_workspace_upload_route(workspace_id: str, upload_id: str, current_user: CurrentUser):
+    return delete_workspace_upload_controller(workspace_id, upload_id, current_user["id"])
