@@ -105,15 +105,11 @@ def test_raster_scan_data_cache_hit(mock_cache_fallback, mock_get_cached):
     mock_raster.integration_time = 1.0
 
     mock_measurement = MagicMock()
-    mock_measurement.raster_scan = [[1, 2], [3, 4]]
-    mock_measurement.raster_scan_coord = {"x": 10, "y": 20}
     mock_measurement.raster_scan = mock_raster
     mock_measurement.raster_scan_coord = (10, 20)
     mock_get_cached.return_value = mock_measurement
 
     response = get_raster_scan_data(mock_request)
-    assert response["raster_scan"] == [[1, 2], [3, 4]]
-    assert response["raster_scan_coord"] == {"x": 10, "y": 20}
     assert response["raster_scan"]["data"] == [[1, 2], [3, 4]]
     assert response["raster_scan"]["scan_range"] == 50.0
     assert response["raster_scan_coord"] == [10, 20]
@@ -141,15 +137,11 @@ def test_raster_scan_data_cache_miss(mock_cache_fallback, mock_get_cached):
     mock_raster.integration_time = 1.0
 
     mock_measurement = MagicMock()
-    mock_measurement.raster_scan = [[5, 6], [7, 8]]
-    mock_measurement.raster_scan_coord = {"x": 50, "y": 60}
     mock_measurement.raster_scan = mock_raster
     mock_measurement.raster_scan_coord = (50, 60)
     mock_cache_fallback.return_value = mock_measurement
 
     response = get_raster_scan_data(mock_request)
-    assert response["raster_scan"] == [[5, 6], [7, 8]]
-    assert response["raster_scan_coord"] == {"x": 50, "y": 60}
     assert response["raster_scan"]["data"] == [[5, 6], [7, 8]]
     assert response["raster_scan"]["scan_range"] == 50.0
     assert response["raster_scan_coord"] == [50, 60]
