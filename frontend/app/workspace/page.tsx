@@ -17,24 +17,24 @@ import { UploadRecord } from "@/types/hdf5";
 import { Modal } from "@/components/ui/Modal";
 import UploadPage from "../upload/page";
 import { useRouter } from "next/navigation";
-import { FaGoogleDrive } from "react-icons/fa";
 import { GrOnedrive } from "react-icons/gr";
 import { OneDriveLogin } from "@/lib/microsoftAuth";
 import { OneDrivePicker } from "@/components/cloud-integration/OneDrivePicker";
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import axiosInstance from "@/lib/api/axiosInstance";
 import { getHdf5UploadStatus } from "@/services/hdf5services";
+import { DeleteIcon, TrashIcon } from "lucide-react";
 
-interface ProgressTrackerProps{
-  activeUpload:{
+interface ProgressTrackerProps {
+  activeUpload: {
     id: string;
     file_name: string;
     status: string;
     progress: number;
-  }
+  };
 }
 
-function ProgressTracker({activeUpload}: ProgressTrackerProps) {
+function ProgressTracker({ activeUpload }: ProgressTrackerProps) {
   return (
     <div className="w-[70vw] mt-4 p-4 rounded-lg border border-border bg-card shadow-sm space-y-2">
       <div className="flex justify-between items-center text-sm font-medium">
@@ -133,9 +133,7 @@ export default function WorkspacePage() {
   };
 
   const getUploadProgress = (filename: string, uploadId: string) => {
-
-
-    const handleUpdate = async (progress: number, recentStatus: string) =>{
+    const handleUpdate = async (progress: number, recentStatus: string) => {
       setActiveUpload({
         id: uploadId,
         file_name: filename,
@@ -143,35 +141,34 @@ export default function WorkspacePage() {
         progress: progress,
       });
       if (recentStatus.toLocaleLowerCase() === "parsed" && currentWorkspaceId) {
-            const refreshWorkspace = await workspaceService.getWorkspaceUploads(currentWorkspaceId);
-            if (refreshWorkspace.success) {
-              setUploads(refreshWorkspace.uploads);
-             }
-            setTimeout(() => {
-              clearInterval(pollInterval)
-              setActiveUpload(null);
-            }, 2000);
-          } else if (recentStatus.toLowerCase() === "failed") {
-            setTimeout(() => {
-              clearInterval(pollInterval)
-              setActiveUpload(null);
-            }, 4000);
-          }
-    }
-
-    const checkDbStatus = async()=>{
-      const response = await getHdf5UploadStatus(uploadId)
-      if(response?.status){
-        handleUpdate(response.progress, response.status)
+        const refreshWorkspace =
+          await workspaceService.getWorkspaceUploads(currentWorkspaceId);
+        if (refreshWorkspace.success) {
+          setUploads(refreshWorkspace.uploads);
+        }
+        setTimeout(() => {
+          clearInterval(pollInterval);
+          setActiveUpload(null);
+        }, 2000);
+      } else if (recentStatus.toLowerCase() === "failed") {
+        setTimeout(() => {
+          clearInterval(pollInterval);
+          setActiveUpload(null);
+        }, 4000);
       }
-    }
-    void checkDbStatus()
+    };
 
-      const pollInterval = setInterval(()=>{
-        void checkDbStatus()
-      },1500)
+    const checkDbStatus = async () => {
+      const response = await getHdf5UploadStatus(uploadId);
+      if (response?.status) {
+        handleUpdate(response.progress, response.status);
+      }
+    };
+    void checkDbStatus();
 
-      
+    const pollInterval = setInterval(() => {
+      void checkDbStatus();
+    }, 1500);
   };
 
   useEffect(() => {
@@ -207,7 +204,7 @@ export default function WorkspacePage() {
             setShowPicker(true);
           }
         } catch (e) {
-          console.error(e)
+          console.error(e);
         }
       }
     };
@@ -219,6 +216,22 @@ export default function WorkspacePage() {
       window.removeEventListener("storage", handleStorage);
     };
   }, [setShowPicker]);
+
+  const handleDeleteUpload = async (e: React.MouseEvent, uploadId: string) => {
+    e.stopPropagation();
+    if (!confirm("Are you sure you want to delete this dataset?")) return;
+    try {
+      if (!currentWorkspaceId) return;
+      await workspaceService.deleteWorkspaceUpload(
+        currentWorkspaceId,
+        uploadId,
+      );
+      // Optimistically remove the deleted upload from local state
+      setUploads((prev) => prev?.filter((u) => u.id !== uploadId));
+    } catch (error) {
+      console.error("Failed to delete upload:", error);
+    }
+  };
 
   return (
     <div className="size-full flex h-screen bg-background text-foreground">
@@ -239,7 +252,7 @@ export default function WorkspacePage() {
         {isLoading && data ? (
           <Loader centered={true} />
         ) : (
-          <div className="p-16">
+          <div className="p-16 h-[vh] overflow-y-auto">
             <h1 className="font-bold">{data?.name?.toUpperCase()}</h1>
             <p>{data?.description}</p>
             <Badge variant="success" className="mt-2">
@@ -249,9 +262,6 @@ export default function WorkspacePage() {
             <div className="mt-4 flex justify-between h-min">
               <h2>Workspace Uploads</h2>
               <div className="flex gap-2">
-                <Button leftIcon={<FaGoogleDrive size={24} />}>
-                  Google Drive
-                </Button>
                 <Button
                   leftIcon={<GrOnedrive size={24} />}
                   onClick={OneDriveLogin}
@@ -271,7 +281,7 @@ export default function WorkspacePage() {
               </div>
             </div>
             <div>
-              {activeUpload && <ProgressTracker activeUpload={activeUpload}/>}
+              {activeUpload && <ProgressTracker activeUpload={activeUpload} />}
             </div>
             {!uploads || uploads.length === 0 ? (
               <div>
@@ -281,17 +291,26 @@ export default function WorkspacePage() {
               uploads.map((upload, index) => (
                 <Card
                   key={upload.id || index}
-                  className="upload-item w-[70vw] mt-4"
+                  className="upload-item w-[70vw] mt-4 flex flex-row justify-between items-center"
                   onClick={() => {
                     handleUploadOpen(upload.id);
                   }}
                 >
-                  <CardHeader className="font-bold">
-                    {upload.filename}
-                  </CardHeader>
-                  <CardContent>
-                    {(upload.size_bytes / (1024 * 1024)).toPrecision(2)} MB
-                  </CardContent>
+                  <div>
+                    <CardHeader className="font-bold">
+                      {upload.filename}
+                    </CardHeader>
+                    <CardContent>
+                      {(upload.size_bytes / (1024 * 1024)).toPrecision(2)} MB
+                    </CardContent>
+                  </div>
+                  <Button
+                    variant={"ghost"}
+                    className="mr-10 hover:bg-destructive/10"
+                    onClick={(e) => handleDeleteUpload(e, upload.id)}
+                  >
+                    <TrashIcon className="text-destructive" />
+                  </Button>
                 </Card>
               ))
             )}

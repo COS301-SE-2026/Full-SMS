@@ -1,4 +1,5 @@
 from api.services.analysis_services.cache_fallback import cache_fallback_service
+from api.services.measurement_cache_service import get_cached_measurement
 from api.utils.redis_Client import redisClient
 from api.models.analysis_models import RasterScanReq
 import json
@@ -9,16 +10,21 @@ def get_spectra_data(payload: RasterScanReq):
     upload_id = payload.upload_id
     measurement_id = payload.measurement_id
 
-    cached_data = redisClient.get(f"raw_data:{upload_id}:{measurement_id}")
-    if not cached_data:
-       cached_data = cache_fallback_service(upload_id)
+    cached_measurement = get_cached_measurement(upload_id, measurement_id)
+    if not cached_measurement:
+       cached_measurement = cache_fallback_service(upload_id=upload_id, measurement_id=measurement_id)
 
-    raw_data = json.loads(cached_data)
-    spectra = raw_data["spectra"]
-    data = np.array(spectra["data"])
-    series_times = np.array(spectra["series_times"])
-    wavelegths = np.array(spectra["wavelengths"])
-    exposure_time= float(spectra["exposure_time"])
+    spectra = cached_measurement.spectra
+    if hasattr(spectra, "data"):
+        data = np.array(spectra.data)
+        series_times = np.array(spectra.series_times)
+        wavelegths = np.array(spectra.wavelengths)
+        exposure_time = float(spectra.exposure_time)
+    else:
+        data = np.array(spectra["data"])
+        series_times = np.array(spectra["series_times"])
+        wavelegths = np.array(spectra["wavelengths"])
+        exposure_time = float(spectra["exposure_time"])
 
     data_transposed = data.T
 

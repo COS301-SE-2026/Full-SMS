@@ -469,3 +469,104 @@ def load_irf(path: Path | str) -> Optional[Tuple[NDArray[np.float64], NDArray[np
         pass
 
     return None
+
+
+def extract_file_metadata_only(path: Path | str) -> Tuple[FileMetadata, List[dict]]:
+    """Extract metadata and measurement summaries without loading large photon arrays into memory."""
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"File not found: {path}")
+
+    with h5py.File(path, "r") as h5file:
+        version = _get_file_version(h5file)
+        measurement_names = _get_measurement_names(h5file)
+        num_measurements = len(measurement_names)
+
+        has_spectra = False
+        has_raster = False
+        summaries = []
+
+        for idx, meas_name in enumerate(measurement_names):
+            meas_grp = h5file[meas_name]
+            description = _get_description(meas_grp, version)
+            tcspc_card = _get_tcspc_card(meas_grp, version)
+            
+            if _has_spectra(meas_grp):
+                has_spectra = True
+            if _has_raster_scan(meas_grp):
+                has_raster = True
+
+            default_channelwidth = 0.01220703125
+            if "Micro Times (ns)" in meas_grp:
+                sample = meas_grp["Micro Times (ns)"][:100]
+                if len(sample) > 0:
+                    default_channelwidth = _determine_channelwidth(sample)
+
+            summaries.append({
+                "id": idx + 1,
+                "name": meas_name.replace("Particle", "Measurement"),
+                "description": description,
+                "tcspc_card": tcspc_card,
+                "channelWidth": default_channelwidth,
+                "has_spectra": _has_spectra(meas_grp),
+                "has_raster": _has_raster_scan(meas_grp),
+            })
+
+    metadata = FileMetadata(
+        path=path,
+        filename=path.name,
+        num_measurements=num_measurements,
+        has_irf=False,
+        has_spectra=has_spectra,
+        has_raster=has_raster,
+    )
+
+    return metadata, summaries
+
+
+def read_single_measurement(path: Path | str, measurement_id: int | str) -> Optional[MeasurementData]:
+    """Read ONLY a single measurement group from the HDF5 file without reading others into memory."""
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"File not found: {path}")
+
+    meas_int_id = int(measurement_id)
+
+    with h5py.File(path, "r") as h5file:
+        version = _get_file_version(h5file)
+        measurement_names = _get_measurement_names(h5file)
+
+        if meas_int_id < 1 or meas_int_id > len(measurement_names):
+            return None
+
+        meas_name = measurement_names[meas_int_id - 1]
+        measurement_group = h5file[meas_name]
+
+        channel1 = _read_channel_data(measurement_group, version, is_secondary=False)
+        if channel1 is None:
+            return None
+
+        channel2 = None
+        if version not in _OLD_VERSIONS_NO_DUAL_CHANNEL:
+            channel2 = _read_channel_data(measurement_group, version, is_secondary=True)
+
+        description = _get_description(measurement_group, version)
+        tcspc_card = _get_tcspc_card(measurement_group, version)
+        channelwidth = _determine_channelwidth(channel1.microtimes)
+
+        spectra_data = _read_spectra_data(measurement_group) if _has_spectra(measurement_group) else None
+        raster_scan_data = _read_raster_scan_data(measurement_group) if _has_raster_scan(measurement_group) else None
+        raster_scan_coord = _read_raster_scan_coord(measurement_group) if _has_raster_scan(measurement_group) else None
+
+        return MeasurementData(
+            id=meas_int_id,
+            name=meas_name.replace("Particle", "Measurement"),
+            tcspc_card=tcspc_card,
+            channelwidth=channelwidth,
+            channel1=channel1,
+            channel2=channel2,
+            description=description,
+            spectra=spectra_data,
+            raster_scan=raster_scan_data,
+            raster_scan_coord=raster_scan_coord,
+        )

@@ -11,7 +11,6 @@ import { InitUploadResponse } from '@/types/hdf5';
 import { Intensity_Req } from '@/types/analysis';
 import { intensityAnalysis } from '@/services/analysisServices';
 import RecentUploads from '@/components/upload/recentUploads';
-import { FaGoogleDrive } from "react-icons/fa";
 import { GrOnedrive } from 'react-icons/gr';
 import { OneDriveLogin } from '@/lib/microsoftAuth';
 
@@ -160,7 +159,6 @@ useEffect (()=>{
             <span className="text-xs font-semibold text-foreground/50 uppercase tracking-widest px-1 text-center block">
               Use cloud storage
             </span>
-            <Button leftIcon={<FaGoogleDrive size={24}/>}>Google Drive</Button>
             <Button leftIcon={<GrOnedrive size={24}/>}  onClick={OneDriveLogin}>OneDrive</Button>
           </div>
 

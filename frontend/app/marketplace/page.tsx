@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { MarketplacePlugin } from "@/types/marketplace";
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import { marketplaceService } from "@/services/marketplaceService";
-import DashboardSidebar from "@/components/dashboard/Sidebar";
+import Sidebar from "@/components/dashboard/Sidebar";
 import EmptyMarketplaceState from "@/components/marketplace/EmptyMarketplaceState";
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import { pluginService } from "@/services/pluginServices";
@@ -256,7 +256,7 @@ export default function MarketplacePage() {
 
   return (
     <div className="flex h-screen bg-background text-foreground">
-      <DashboardSidebar activeItem="marketplace" />
+      <Sidebar activeItem="plugins-marketplace" />
       <main className="flex-1 flex flex-col min-w-0">{renderContent()}</main>
     </div>
   );
