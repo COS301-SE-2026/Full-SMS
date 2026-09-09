@@ -6,6 +6,7 @@ import api.services.hdf5_services as read_hdf5_service
 import api.services.hdf5_upload_service as hdf5_upload_service
 import api.services.storage_service as storage_service
 import api.services.hdf5_job_service as hdf5_job_service
+from api.utils.supabase_client import supabaseClient
 
 def init_hdf5_upload(payload: dict, current_user: dict) -> dict:
     """
@@ -92,3 +93,20 @@ def get_user_uploads_by_id(user_id: str) -> list:
     if not user_uploads:
         raise HTTPException(status_code=404, detail="User uploads not found")
     return user_uploads
+
+def get_upload_by_id(user_id: string, upload_id: string):
+
+    response = (supabaseClient.table("hdf5_uploads").select("*")
+                .eq("user_id", user_id)
+                .eq("id", upload_id)
+                .execute())
+
+    upload = response.data[0]
+
+    if not upload:
+        raise HTTPException(status_code=404, detail="Upload not found")
+        
+    return upload
+
+
+
