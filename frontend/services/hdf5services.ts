@@ -55,3 +55,8 @@ export const getUserHdf5Uploads = async () =>{
   const {data}  = await axiosInstance.get(`api/py/hdf5/user-uploads`);
   return data;
 }
+
+export const getCurrentUpload = async (upload_id: string) =>{
+  const {data} = await axiosInstance.get(`api/py/hdf5/upload/${upload_id}`)
+  return data
+}

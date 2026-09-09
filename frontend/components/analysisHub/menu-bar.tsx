@@ -33,8 +33,7 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
 
   return (
     <>
-    <div className="flex items-center h-7 px-2 border-b border-border bg-background">
-      
+    <div className="flex items-center h-7 px-2 border-b border-border bg-background z-10">
         <Button
           variant = "ghost"
           onClick={onOpenFileUpload}
