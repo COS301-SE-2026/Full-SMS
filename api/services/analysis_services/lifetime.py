@@ -11,20 +11,24 @@ import numpy as np
 def lifetime_fitting(payload: LifetimeReq):
     upload_id = payload.upload_id
     measurement_id = payload.measurement_id
-    
 
     cached_measurement = get_cached_measurement(upload_id, measurement_id)
 
     if not cached_measurement:
-        cached_measurement = cache_fallback_service(upload_id=upload_id, measurement_id=measurement_id)
+        cached_measurement = cache_fallback_service(
+            upload_id=upload_id, measurement_id=measurement_id
+        )
 
-    channel_width = cached_measurement.channelwidth
-    
+    if isinstance(cached_measurement, dict):
+        channel_width = cached_measurement["channelwidth"]
+    else:
+        channel_width = cached_measurement.channelwidth
+
     fit_result = fit_decay(
         counts=np.array(payload.counts, dtype=np.float64),
         t=np.array(payload.times, dtype=np.float64),
         channelwidth=channel_width,
-        )
+    )
 
     res_data = {
         "times": payload.times,
@@ -45,33 +49,39 @@ def lifetime_fitting(payload: LifetimeReq):
         "background": float(fit_result.background),
         "num_exponentials": int(fit_result.num_exponentials),
         "average_lifetime": float(fit_result.average_lifetime),
-        "fitted_irf_fwhm": float(fit_result.fitted_irf_fwhm) if fit_result.fitted_irf_fwhm else None,
-        "fitted_irf_fwhm_std": float(fit_result.fitted_irf_fwhm_std) if fit_result.fitted_irf_fwhm_std else None,
+        "fitted_irf_fwhm": (
+            float(fit_result.fitted_irf_fwhm) if fit_result.fitted_irf_fwhm else None
+        ),
+        "fitted_irf_fwhm_std": (
+            float(fit_result.fitted_irf_fwhm_std)
+            if fit_result.fitted_irf_fwhm_std
+            else None
+        ),
     }
 
-    # fully serialized Pydantic model
     return LifetimeRes(**res_data)
+
 
 def fluorescence_decay(payload):
     upload_id = payload.upload_id
     measurement_id = payload.measurement_id
-    
 
     cached_measurement = get_cached_measurement(upload_id, measurement_id)
 
     if not cached_measurement:
-        cached_measurement = cache_fallback_service(upload_id=upload_id, measurement_id=measurement_id)
+        cached_measurement = cache_fallback_service(
+            upload_id=upload_id, measurement_id=measurement_id
+        )
 
-    microtimes = cached_measurement.channel1.microtimes
-    channel_width = cached_measurement.channelwidth
+    if isinstance(cached_measurement, dict):
+        microtimes = cached_measurement["channel1"]["microtimes"]
+        channel_width = cached_measurement["channelwidth"]
+    else:
+        microtimes = cached_measurement.channel1.microtimes
+        channel_width = cached_measurement.channelwidth
+
     times, counts = build_decay_histogram(
-        microtimes=microtimes,
-        channelwidth=channel_width
+        microtimes=microtimes, channelwidth=channel_width
     )
 
-    return{ 
-        "times": times.tolist(),
-        "counts": counts.tolist()
-    }
-
-
+    return {"times": times.tolist(), "counts": counts.tolist()}
