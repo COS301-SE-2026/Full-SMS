@@ -1,21 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
-import {
-  MoreHorizontal,
-  FolderOpen,
-  Archive,
-  RotateCcw,
-  Trash2,
-  FileText,
-} from "lucide-react";
+import { useState } from "react";
+import { FolderOpen, Archive, RotateCcw, Trash2, FileText } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { WorkspaceTableRow, WorkspaceTableProps } from "@/types/workspace";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import { formatDate, formatRelativeTime } from "@/utils/dateTime";
-
+import ActionMenu, { ActionMenuItem } from "@/components/ui/ActionMenu";
 export default function WorkspaceTable({
   workspaces,
   onOpen,
@@ -26,38 +18,6 @@ export default function WorkspaceTable({
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [deleteModalWorkspace, setDeleteModalWorkspace] =
     useState<WorkspaceTableRow | null>(null);
-  const [menuPosition, setMenuPosition] = useState<{
-    top: number;
-    left: number;
-  } | null>(null);
-  const buttonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        openMenuId &&
-        !buttonRefs.current[openMenuId]?.contains(e.target as Node)
-      ) {
-        setOpenMenuId(null);
-      }
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, [openMenuId]);
-
-  const handleMenuToggle = (id: string, buttonEl: HTMLButtonElement) => {
-    if (openMenuId === id) {
-      setOpenMenuId(null);
-      setMenuPosition(null);
-    } else {
-      const rect = buttonEl.getBoundingClientRect();
-      setMenuPosition({
-        top: rect.top,
-        left: rect.right - 192,
-      });
-      setOpenMenuId(id);
-    }
-  };
 
   const handleAction = (action: () => void) => {
     action();
@@ -135,20 +95,33 @@ export default function WorkspaceTable({
                     </Badge>
                   </td>
                   <td className="py-4 px-4">
-                    <div className="relative inline-block">
-                      <button
-                        ref={(el) => {
-                          buttonRefs.current[workspace.id] = el;
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMenuToggle(workspace.id, e.currentTarget);
-                        }}
-                        className="p-2 rounded-lg hover:bg-border/50 transition-colors"
-                      >
-                        <MoreHorizontal className="h-4 w-4 text-foreground/60" />
-                      </button>
-                    </div>
+                    <ActionMenu
+                      id={workspace.id}
+                      items={[
+                        {
+                          label: "Open",
+                          icon: <FolderOpen className="h-4 w-4" />,
+                          onClick: () => onOpen(workspace.id),
+                        },
+                        workspace.status === "active"
+                          ? {
+                              label: "Archive",
+                              icon: <Archive className="h-4 w-4" />,
+                              onClick: () => onArchive(workspace.id),
+                            }
+                          : {
+                              label: "UnArchive",
+                              icon: <RotateCcw className="h-4 w-4" />,
+                              onClick: () => onUnarchive(workspace.id),
+                            },
+                        {
+                          label: "Delete",
+                          icon: <Trash2 className="h-4 w-4" />,
+                          onClick: () => setDeleteModalWorkspace(workspace),
+                          variant: "destructive",
+                        },
+                      ]}
+                    />
                   </td>
                 </tr>
               ))}
@@ -156,75 +129,6 @@ export default function WorkspaceTable({
           </table>
         </div>
       </Card>
-      {openMenuId &&
-        menuPosition &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <div
-            className="fixed w-48 bg-card border border-border rounded-lg shadow-lg z-[9999]"
-            style={{
-              top: menuPosition.top,
-              left: menuPosition.left,
-              transform: "translateY(-100%)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-            role="menu"
-            tabIndex={0}
-            onKeyDown={(e) => e.stopPropagation()}
-          >
-            {workspaces
-              .filter((w) => w.id === openMenuId)
-              .map((workspace) => (
-                <div key={workspace.id}>
-                  <button
-                    onClick={() => handleAction(() => onOpen(workspace.id))}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors rounded-t-lg"
-                    role="menuitem"
-                  >
-                    <FolderOpen className="h-4 w-4" />
-                    Open
-                  </button>
-
-                  {workspace.status === "active" ? (
-                    <button
-                      onClick={() =>
-                        handleAction(() => onArchive(workspace.id))
-                      }
-                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors"
-                      role="menuitem"
-                    >
-                      <Archive className="h-4 w-4" />
-                      Archive
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() =>
-                        handleAction(() => onUnarchive(workspace.id))
-                      }
-                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors"
-                      role="menuitem"
-                    >
-                      <RotateCcw className="h-4 w-4" />
-                      UnArchive
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => {
-                      setOpenMenuId(null);
-                      setDeleteModalWorkspace(workspace);
-                    }}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors rounded-b-lg"
-                    role="menuitem"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Delete
-                  </button>
-                </div>
-              ))}
-          </div>,
-          document.body,
-        )}
       <ConfirmDeleteModal
         isOpen={!!deleteModalWorkspace}
         onClose={() => setDeleteModalWorkspace(null)}
