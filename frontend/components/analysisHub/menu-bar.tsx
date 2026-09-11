@@ -9,6 +9,7 @@ import { useAnalysisTab } from "@/contexts/analysisTabsContext/AnalysisTabsConte
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import { Button } from "../ui";
 import ThemeToggle from "../ui/ThemeToggle";
+import BackButton from "@/components/ui/BackButton";
 interface MenuBarProps {
   readonly onOpenFileUpload: () => void;
 }
@@ -34,7 +35,7 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
   return (
     <>
     <div className="flex items-center h-7 px-2 border-b border-border bg-background">
-      
+        <BackButton className="px-3 h-full text-xs hover:bg-card rounded-sm" />
         <Button
           variant = "ghost"
           onClick={onOpenFileUpload}
