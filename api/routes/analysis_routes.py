@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from api.models.analysis_models import (ClusteringReq, CpaReq, IntensityReq, IntensityRes, LifetimeReq, RasterScanReq)
-from api.controllers.analysis_controller import (get_clustering_job_status, get_decay_controller, get_lifetime_controller, get_spectra_data_controller, init_clustering_analysis_controller, intensity_analysis_controller, change_point_analysis_controller, get_raster_scan_controller)
+from api.models.analysis_models import (ClusteringReq, CorrelationReq, CpaReq, IntensityReq, IntensityRes, LifetimeReq, RasterScanReq)
+from api.controllers.analysis_controller import (get_clustering_job_status, get_correlation_controller, get_decay_controller, get_lifetime_controller, get_spectra_data_controller, init_clustering_analysis_controller, intensity_analysis_controller, change_point_analysis_controller, get_raster_scan_controller)
 
 
 router = APIRouter(prefix="/analysis", tags=["Analysis"])
@@ -46,3 +46,7 @@ def get_lifetime(req: LifetimeReq):
 def get_lifetime(req: LifetimePayload):
     print(f"ROUte: {req}")
     return get_decay_controller(req)
+
+@router.post("/correlation")
+def get_correlation(req: CorrelationReq):
+    return get_correlation_controller(req)

@@ -4,6 +4,7 @@ import os
 from celery import Celery, shared_task
 import json
 from api.legacy.io.hdf5_reader import extract_file_metadata_only, read_single_measurement
+from api.services import hdf5_upload_service
 from api.services.hdf5_upload_service import save_parse_result, set_status
 from api.services.measurement_cache_service import cache_measurement, get_cached_measurement
 from api.services.storage_service import download_to_temp, build_storage_key
@@ -59,8 +60,11 @@ def parse_upload_job(upload_id: str, user_id: str, storage_key: str) -> None:
         hdf5_path = Path(temp_hdf5_path)
         
         metadata, summaries = extract_file_metadata_only(hdf5_path)
+        
+        upload_record = hdf5_upload_service.get_upload(upload_id, user_id)
+        original_filename = upload_record.get("filename") if upload_record else metadata.filename
         metadata_dict = {
-            "filename": metadata.filename,
+            "filename": original_filename,
             "num_measurements": metadata.num_measurements,
             "has_spectra": metadata.has_spectra,
             "has_rasters": metadata.has_raster,
