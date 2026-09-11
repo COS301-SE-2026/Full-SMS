@@ -17,7 +17,8 @@ import {
   Mail,
   Download,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { formatDate } from "@/utils/dateTime";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
@@ -49,6 +50,24 @@ export default function PluginTable({
 }: PluginTableProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [feedbackPlugin, setFeedbackPlugin] = useState<Plugin | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
+  const buttonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        openMenuId &&
+        !buttonRefs.current[openMenuId]?.contains(e.target as Node)
+      ) {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [openMenuId]);
 
   const getMarketplaceStatusBadge = (plugin: Plugin) => {
     console.log("plugin..", plugin);
@@ -87,8 +106,18 @@ export default function PluginTable({
     );
   };
 
-  const handleMenuToggle = (pluginId: string) => {
-    setOpenMenuId(openMenuId === pluginId ? null : pluginId);
+  const handleMenuToggle = (pluginId: string, buttonEl: HTMLButtonElement) => {
+    if (openMenuId === pluginId) {
+      setOpenMenuId(null);
+      setMenuPosition(null);
+    } else {
+      const rect = buttonEl.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.top,
+        left: rect.right - 224,
+      });
+      setOpenMenuId(pluginId);
+    }
   };
 
   const handleAction = (action: () => void) => {
@@ -97,7 +126,7 @@ export default function PluginTable({
   };
 
   return (
-    <Card className="overflow-hidden">
+    <Card>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
@@ -174,123 +203,16 @@ export default function PluginTable({
                 <td className="px-4 py-4">
                   <div className="relative inline-block">
                     <button
-                      onClick={() => handleMenuToggle(plugin.id)}
+                      ref={(el) => {
+                        buttonRefs.current[plugin.id] = el;
+                      }}
+                      onClick={(e) =>
+                        handleMenuToggle(plugin.id, e.currentTarget)
+                      }
                       className="p-2 rounded-lg hover:bg-border/50 transition-colors"
                     >
                       <MoreHorizontal className="h-4 w-4 text-foreground/60" />
                     </button>
-
-                    {openMenuId === plugin.id && (
-                      <div
-                        role="menu"
-                        className="absolute right-0 top-full mt-1 w-56 bg-card border border-border rounded-lg shadow-lg z-10"
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => {
-                          if (e.key === "Escape") {
-                            setOpenMenuId(null);
-                          }
-                        }}
-                      >
-                        <button
-                          role="menuitem"
-                          onClick={() => handleAction(() => onEdit(plugin))}
-                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors"
-                        >
-                          <Pencil className="h-4 w-4" />
-                          Edit
-                        </button>
-
-                        <button
-                          role="menuitem"
-                          onClick={() => handleAction(() => onToggle(plugin))}
-                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors"
-                        >
-                          {plugin.enabled ? (
-                            <>
-                              <CircleX className="h-4 w-4" />
-                              Disable
-                            </>
-                          ) : (
-                            <>
-                              <CircleCheck className="h-4 w-4" />
-                              Enable
-                            </>
-                          )}
-                        </button>
-
-                        {canSubmitToMarketplace(plugin) && (
-                          <button
-                            onClick={() =>
-                              handleAction(() => onSubmitToMarketplace(plugin))
-                            }
-                            disabled={submittingId === plugin.id}
-                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors disabled:opacity-50"
-                          >
-                            <CloudUpload className="h-4 w-4" />
-                            {submittingId === plugin.id
-                              ? "Submitting..."
-                              : "Submit to Marketplace"}
-                          </button>
-                        )}
-
-                        {canCancelSubmission(plugin) && (
-                          <button
-                            onClick={() =>
-                              handleAction(() => onCancelSubmission(plugin))
-                            }
-                            disabled={cancellingId === plugin.id}
-                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-warning hover:bg-warning/10 transition-colors disabled:opacity-50"
-                          >
-                            <XCircle className="h-4 w-4" />
-                            {cancellingId === plugin.id
-                              ? "Cancelling..."
-                              : "Cancel Submission"}
-                          </button>
-                        )}
-
-                        {plugin.available_version &&
-                          onUpdateFromMarketplace && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleAction(() =>
-                                  onUpdateFromMarketplace(plugin),
-                                )
-                              }
-                              disabled={updatingId === plugin.id}
-                              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
-                            >
-                              <Download className="h-4 w-4" />
-                              {updatingId === plugin.id
-                                ? "Updating..."
-                                : "Update Available"}
-                            </button>
-                          )}
-
-                        {plugin.marketplace_status === "rejected" &&
-                          plugin.review_feedback && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleAction(() => setFeedbackPlugin(plugin))
-                              }
-                              className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-destructive/10 transition-colors"
-                            >
-                              <MessageSquare className="h-4 w-4" />
-                              Rejection Feedback
-                            </button>
-                          )}
-
-                        <button
-                          role="menuitem"
-                          onClick={() => handleAction(() => onDelete(plugin))}
-                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </td>
               </tr>
@@ -298,6 +220,129 @@ export default function PluginTable({
           </tbody>
         </table>
       </div>
+      {openMenuId &&
+        menuPosition &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed w-56 bg-card border border-border rounded-lg shadow-lg z-[9999]"
+            style={{
+              top: menuPosition.top,
+              left: menuPosition.left,
+              transform: "translateY(-100%)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+            role="menu"
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setOpenMenuId(null);
+              }
+            }}
+          >
+            {plugins
+              .filter((p) => p.id === openMenuId)
+              .map((plugin) => (
+                <div key={plugin.id}>
+                  <button
+                    role="menuitem"
+                    onClick={() => handleAction(() => onEdit(plugin))}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors rounded-t-lg"
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Edit
+                  </button>
+
+                  <button
+                    role="menuitem"
+                    onClick={() => handleAction(() => onToggle(plugin))}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors"
+                  >
+                    {plugin.enabled ? (
+                      <>
+                        <CircleX className="h-4 w-4" />
+                        Disable
+                      </>
+                    ) : (
+                      <>
+                        <CircleCheck className="h-4 w-4" />
+                        Enable
+                      </>
+                    )}
+                  </button>
+
+                  {canSubmitToMarketplace(plugin) && (
+                    <button
+                      onClick={() =>
+                        handleAction(() => onSubmitToMarketplace(plugin))
+                      }
+                      disabled={submittingId === plugin.id}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors disabled:opacity-50"
+                    >
+                      <CloudUpload className="h-4 w-4" />
+                      {submittingId === plugin.id
+                        ? "Submitting..."
+                        : "Submit to Marketplace"}
+                    </button>
+                  )}
+
+                  {canCancelSubmission(plugin) && (
+                    <button
+                      onClick={() =>
+                        handleAction(() => onCancelSubmission(plugin))
+                      }
+                      disabled={cancellingId === plugin.id}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-warning hover:bg-warning/10 transition-colors disabled:opacity-50"
+                    >
+                      <XCircle className="h-4 w-4" />
+                      {cancellingId === plugin.id
+                        ? "Cancelling..."
+                        : "Cancel Submission"}
+                    </button>
+                  )}
+
+                  {plugin.available_version && onUpdateFromMarketplace && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleAction(() => onUpdateFromMarketplace(plugin))
+                      }
+                      disabled={updatingId === plugin.id}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
+                    >
+                      <Download className="h-4 w-4" />
+                      {updatingId === plugin.id
+                        ? "Updating..."
+                        : "Update Available"}
+                    </button>
+                  )}
+
+                  {plugin.marketplace_status === "rejected" &&
+                    plugin.review_feedback && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleAction(() => setFeedbackPlugin(plugin))
+                        }
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-destructive/10 transition-colors"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                        Rejection Feedback
+                      </button>
+                    )}
+
+                  <button
+                    role="menuitem"
+                    onClick={() => handleAction(() => onDelete(plugin))}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors rounded-b-lg"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </button>
+                </div>
+              ))}
+          </div>,
+          document.body,
+        )}
       <Modal
         open={feedbackPlugin !== null}
         onClose={() => setFeedbackPlugin(null)}
