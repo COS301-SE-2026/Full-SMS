@@ -1,7 +1,7 @@
 from dataclasses import asdict
 from celery.result import AsyncResult
 from fastapi import HTTPException
-from api.models.analysis_models import ClusteringReq, CpaReq, IntensityReq, IntensityRes, RasterScanReq, LifetimeReq, RebinCorrelationReq
+from api.models.analysis_models import ClusteringReq, CpaReq, IntensityReq, IntensityRes, RasterScanReq, LifetimeReq, RebinCorrelationReq, CorrelationReq
 from api.services.analysis_services.clustering_job_service import clustering_job
 from api.services.analysis_services.correlation import get_correlation_result, get_rebin
 from api.services.analysis_services.intensity import intensity_analysis
