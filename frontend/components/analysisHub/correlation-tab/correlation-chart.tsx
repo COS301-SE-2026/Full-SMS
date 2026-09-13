@@ -19,7 +19,7 @@ function CorrelationChart() {
 
 
   const summary = hdf5Metadata?.measurements_summary?.filter((sum)=>(sum.id).toString()=== currentMeasurement)
-  const dualChannel = summary[0].channels?.length > 1 
+  const dualChannel = (summary?.[0]?.channels?.length ?? 0) > 1;
   if(!dualChannel){
     return(
       <Card className="w-[83vw] h-[85vh] mt-1 text-warning p-4 flex flex-col text-center justify-center">

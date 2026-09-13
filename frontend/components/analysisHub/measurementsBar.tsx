@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronRight, FileText } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { UploadMetadata, UploadResultRecord } from "@/types/hdf5";
@@ -9,7 +9,6 @@ import { getHdf5UploadResult } from "@/services/hdf5services";
 import { Intensity_Req } from "@/types/analysis";
 import { intensityAnalysis } from "@/services/analysisServices";
 import { Button, Checkbox } from "@/components/ui";
-import { Measurement } from "@/types/hdf5";
 
 export interface MeasurementsBarProps {
   readonly showSelectionCheckboxes?: boolean;
@@ -173,13 +172,12 @@ export function MeasurementsBar({
               {isOpen && isMultiChannel && (
                 <div className="flex flex-col pl-7 pr-3 py-1 ml-3 my-0.5 border-l-2 border-primary/30 gap-0.5 transition-all duration-200 ease-in-out transform origin-top">
                   {m.channels!.map((channelName, chIdx) => {
-                    const channelNum = chIdx + 1;
-                    // (Hook up to your currentChannel state here if available)
+                    // const channelNum = chIdx + 1;
                     return (
                       <button
                         key={channelName}
                         onClick={() => {
-                          // e.g. setCurrentChannel(channelNum)
+                          //setCurrentChannel(channelNum)
                         }}
                         className="flex items-center gap-1.5 px-2 py-1 rounded text-xs text-foreground/80 hover:bg-card text-left transition-colors cursor-pointer"
                       >

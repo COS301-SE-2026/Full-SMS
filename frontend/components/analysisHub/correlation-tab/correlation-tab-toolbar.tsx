@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { NumberField } from "../intensity-tab/analysis-toolbar";
-import { Button, Card } from "@/components/ui";
+import { Button } from "@/components/ui";
 import {
   getCorrelationResult,
   getRebinCorrelationResult,
@@ -8,6 +8,25 @@ import {
 import { CorrelationReq, RebinCorrelationReq } from "@/types/analysis";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { useToast } from "@/contexts/toastContext/ToastContext";
+
+
+function getG2AtZero(tau?: number[], g2?: number[]): number {
+    if (!tau?.length || !g2?.length) {
+      return 0;
+    }
+    let minDiff = Infinity;
+    let zeroIdx = 0;
+    for (let i = 0; i < tau.length; i++) {
+      const diff = Math.abs(tau[i]);
+
+      if (diff < minDiff) {
+        minDiff = diff;
+        zeroIdx = i;
+        if (diff === 0) break;
+      }
+    }
+    return g2[zeroIdx] ?? 0;
+  }
 
 export default function CorrelationTabToolbar() {
   const [window, setWindow] = useState<number>(450);
@@ -65,25 +84,9 @@ export default function CorrelationTabToolbar() {
     const data = await fetchRebinResult();
     if (data) setCorrelationData(data);
   };
-  function getG2AtZero(tau?: number[], g2?: number[]): number {
-    if (!tau?.length || !g2?.length) {
-      return 0;
-    }
-    let minDiff = Infinity;
-    let zeroIdx = 0;
-    for (let i = 0; i < tau.length; i++) {
-      const diff = Math.abs(tau[i]);
-
-      if (diff < minDiff) {
-        minDiff = diff;
-        zeroIdx = i;
-        if (diff === 0) break;
-      }
-    }
-    return g2[zeroIdx] ?? 0;
-  }
+  
   const summary = hdf5Metadata?.measurements_summary?.filter((sum)=>(sum.id).toString()=== currentMeasurement)
-  const dualChannel = summary[0].channels?.length > 1 
+  const dualChannel = (summary?.[0]?.channels?.length ?? 0) > 1;
 
 
   return (

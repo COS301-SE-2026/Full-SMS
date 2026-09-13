@@ -123,7 +123,7 @@ def get_rebin(params: RebinCorrelationReq) -> dict[str,Any]:
         num_photons_ch1= params.result["num_photons_ch1"],
         num_photons_ch2= params.result["num_photons_ch2"]
     )
-    new_result = rebin_correlation(typed_result, params.new_binsize_ns, params.new_window_ns)
+    new_result = rebin_correlation(typed_result, params.new_binsize_ns,new_window_ns)
     
     print(new_result)
     print("new result above")
