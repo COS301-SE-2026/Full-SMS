@@ -7,11 +7,14 @@ import { Rocket, ChartColumn, FileSearchCorner, Download, CircleQuestionMark, Sa
 import HelpHero from "@/components/help/HelpHero";
 import { useState } from "react"
 import { GettingStartedModal } from "@/components/help/getting-started-modal";
+import Sidebar from "@/components/dashboard/Sidebar";
 
 export default function HelpMenuPage(){
     const [gettingStartedModalOpen, setGettingStartedModalOpen] = useState(false)
     return(
-        <main>
+        <div className="flex h-screen bg-background text-foreground">
+        <Sidebar activeItem="help" />
+        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
             <HelpHero />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-6 max-w-7xl mx-auto pb-10">
                 <Card className="group hover:-translate-y-2 transition-transform duration-300 cursor-pointer"
@@ -168,5 +171,6 @@ export default function HelpMenuPage(){
                 setGettingStartedModalOpen(false)
             }/>
         </main>
+        </div>
     )
 }
