@@ -151,5 +151,3 @@ test_measurement = {
 
 def test_correlation():
    result = get_correlation_result(test_measurement)
-#    print(result)
-   print(f"DONE!: \n num_events: {result["num_events"]} \n num_photons_ch1: {result["num_photons_ch1"]} \n num_photons_ch2: {result["num_photons_ch2"]}")
