@@ -94,7 +94,7 @@ def get_user_uploads_by_id(user_id: str) -> list:
         raise HTTPException(status_code=404, detail="User uploads not found")
     return user_uploads
 
-def get_upload_by_id(user_id: string, upload_id: string):
+def get_upload_by_id(user_id: str, upload_id: str):
 
     response = (supabaseClient.table("hdf5_uploads").select("*")
                 .eq("user_id", user_id)
