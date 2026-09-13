@@ -1,20 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import {
-  MoreHorizontal,
-  FolderOpen,
-  Archive,
-  RotateCcw,
-  Trash2,
-  FileText,
-} from "lucide-react";
+import { FolderOpen, Archive, RotateCcw, Trash2, FileText } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { WorkspaceTableRow, WorkspaceTableProps } from "@/types/workspace";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import { formatDate, formatRelativeTime } from "@/utils/dateTime";
-
+import ActionMenu, { ActionMenuItem } from "@/components/ui/ActionMenu";
 export default function WorkspaceTable({
   workspaces,
   onOpen,
@@ -26,10 +19,6 @@ export default function WorkspaceTable({
   const [deleteModalWorkspace, setDeleteModalWorkspace] =
     useState<WorkspaceTableRow | null>(null);
 
-  const handleMenuToggle = (workspaceId: string) => {
-    setOpenMenuId(openMenuId === workspaceId ? null : workspaceId);
-  };
-
   const handleAction = (action: () => void) => {
     action();
     setOpenMenuId(null);
@@ -37,7 +26,7 @@ export default function WorkspaceTable({
 
   return (
     <>
-      <Card className="overflow-visible">
+      <Card>
         <div className="overflow-x-auto overflow-y-visible">
           <table className="w-full">
             <thead>
@@ -106,75 +95,33 @@ export default function WorkspaceTable({
                     </Badge>
                   </td>
                   <td className="py-4 px-4">
-                    <div className="relative inline-block">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMenuToggle(workspace.id);
-                        }}
-                        className="p-2 rounded-lg hover:bg-border/50 transition-colors"
-                      >
-                        <MoreHorizontal className="h-4 w-4 text-foreground/60" />
-                      </button>
-
-                      {openMenuId === workspace.id && (
-                        <div
-                          className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-lg shadow-lg z-10"
-                          onClick={(e) => e.stopPropagation()}
-                          role="menu"
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            e.stopPropagation();
-                          }}
-                        >
-                          <button
-                            onClick={() =>
-                              handleAction(() => onOpen(workspace.id))
+                    <ActionMenu
+                      id={workspace.id}
+                      items={[
+                        {
+                          label: "Open",
+                          icon: <FolderOpen className="h-4 w-4" />,
+                          onClick: () => onOpen(workspace.id),
+                        },
+                        workspace.status === "active"
+                          ? {
+                              label: "Archive",
+                              icon: <Archive className="h-4 w-4" />,
+                              onClick: () => onArchive(workspace.id),
                             }
-                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors"
-                            role="menuitem"
-                          >
-                            <FolderOpen className="h-4 w-4" />
-                            Open
-                          </button>
-
-                          {workspace.status === "active" ? (
-                            <button
-                              onClick={() =>
-                                handleAction(() => onArchive(workspace.id))
-                              }
-                              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors"
-                            >
-                              <Archive className="h-4 w-4" />
-                              Archive
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() =>
-                                handleAction(() => onUnarchive(workspace.id))
-                              }
-                              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors"
-                              role="menuitem"
-                            >
-                              <RotateCcw className="h-4 w-4" />
-                              UnArchive
-                            </button>
-                          )}
-
-                          <button
-                            onClick={() => {
-                              setOpenMenuId(null);
-                              setDeleteModalWorkspace(workspace);
-                            }}
-                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
-                            role="menuitem"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                          : {
+                              label: "UnArchive",
+                              icon: <RotateCcw className="h-4 w-4" />,
+                              onClick: () => onUnarchive(workspace.id),
+                            },
+                        {
+                          label: "Delete",
+                          icon: <Trash2 className="h-4 w-4" />,
+                          onClick: () => setDeleteModalWorkspace(workspace),
+                          variant: "destructive",
+                        },
+                      ]}
+                    />
                   </td>
                 </tr>
               ))}

@@ -24,6 +24,7 @@ import { useAuth } from "@/contexts/authContext/AuthContext";
 import axiosInstance from "@/lib/api/axiosInstance";
 import { getHdf5UploadStatus } from "@/services/hdf5services";
 import { DeleteIcon, TrashIcon } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 
 interface ProgressTrackerProps {
   activeUpload: {
@@ -253,6 +254,7 @@ export default function WorkspacePage() {
           <Loader centered={true} />
         ) : (
           <div className="p-16 h-[vh] overflow-y-auto">
+            <BackButton href="/dashboard" label="Back to Workspaces" className="mb-4" />
             <h1 className="font-bold">{data?.name?.toUpperCase()}</h1>
             <p>{data?.description}</p>
             <Badge variant="success" className="mt-2">

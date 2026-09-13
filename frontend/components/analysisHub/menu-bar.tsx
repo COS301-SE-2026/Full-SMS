@@ -9,6 +9,8 @@ import { useAnalysisTab } from "@/contexts/analysisTabsContext/AnalysisTabsConte
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import { Button } from "../ui";
 import ThemeToggle from "../ui/ThemeToggle";
+import BackButton from "@/components/ui/BackButton";
+import { useRouter } from "next/navigation";
 interface MenuBarProps {
   readonly onOpenFileUpload: () => void;
 }
@@ -21,7 +23,7 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
   const {successToast, errorToast} = useToast()
   const callSave = async (name: string) => {
     try{
-      await sessionsService.saveSession(user?.id || 'anonymous', {name: name, dataset_ref: currentUpload, dataset_name: currentUploadName, parameters: {bin_size: bin, confidence: confidence}, results: {levels: cpaData, groups:groupingData, fits: fitResult, hdf5Data: hdf5Data, hdf5Metadata: hdf5Metadata, currentMeasurement: currentMeasurement, currentWorkspaceId: currentWorkspaceId, activeTab: activeTab, heatMapColor: heatMapColor, spectraHeatMapColor:spectraHeatMapColor}})
+      await sessionsService.saveSession({name: name, dataset_ref: currentUpload, dataset_name: currentUploadName, parameters: {bin_size: bin, confidence: confidence}, results: {levels: cpaData, groups:groupingData, fits: fitResult, hdf5Data: hdf5Data, hdf5Metadata: hdf5Metadata, currentMeasurement: currentMeasurement, currentWorkspaceId: currentWorkspaceId, activeTab: activeTab, heatMapColor: heatMapColor, spectraHeatMapColor:spectraHeatMapColor}})
       successToast("Session has been saved")
       setSaveModalOpen(false)
     }catch(error){
@@ -30,10 +32,12 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
     }
   }
   const [recentSessionsModalOpen, setRecentSessionsModalOpen] = useState(false)
+  const router = useRouter()
 
   return (
     <>
-    <div className="flex items-center h-7 px-2 border-b border-border bg-background z-10">
+    <div className="flex items-center h-7 px-2 border-b border-border bg-background">
+        <BackButton className="px-3 h-full text-xs hover:bg-card rounded-sm" />
         <Button
           variant = "ghost"
           onClick={onOpenFileUpload}
@@ -57,16 +61,14 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
         >
           Sessions
         </Button>
-
-      <Link href="/profile">
-          <Button
-            variant = "ghost"
-            onClick={onOpenFileUpload}
-            className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
-          >
-            Account
-          </Button>
-      </Link>
+        
+        <Button
+          variant = "ghost"
+          onClick={() => {router.push("/profile");}}
+          className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
+        >
+          Account
+        </Button>
 
       <ThemeToggle
         toggleType='button'
@@ -75,15 +77,21 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
         Theme
       </ThemeToggle>
 
-      <Link href="/help">
-          <Button
-            variant = "ghost"
-            onClick={onOpenFileUpload}
-            className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
-          >
-            Help
-          </Button>
-      </Link>
+      <Button
+        variant="ghost"
+        onClick={() => {router.push("/plugins");}}
+        className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
+      >
+        Plugins
+      </Button>
+
+      <Button
+        variant = "ghost"
+        onClick={() => {router.push("/help");}}
+        className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
+      >
+        Help
+      </Button>
 
 
     </div>

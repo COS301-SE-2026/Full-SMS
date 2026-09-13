@@ -11,7 +11,7 @@ export default function GroupingToolbar() {
   const {groupingData, setGroupingData, cpaData} = useHdf5Data()
   const {errorToast} = useToast();
   const {execute, isProcessing, result, error} = UseCeleryPolling<ClusteringReq, ClusteringRes>(
-    "http://localhost:8000/api/py/analysis/grouping", (job_id) =>`http://localhost:8000/api/py/analysis/grouping/${job_id}`,{
+    `${process.env.NEXT_PUBLIC_API_URL}/api/py/analysis/grouping`, (job_id) =>`${process.env.NEXT_PUBLIC_API_URL}/api/py/analysis/grouping/${job_id}`,{
     onSuccess: (data: ClusteringRes) =>{
     console.log("Grouping complete:", data)
       setGroupingData(data)
