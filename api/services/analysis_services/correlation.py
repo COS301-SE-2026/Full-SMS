@@ -108,7 +108,6 @@ def get_rebin(params: RebinCorrelationReq) -> dict[str,Any]:
     Returns:
         New CorrelationResult with rebinned histogram.
     """
-    print(f"\n\n\nPARAMS\n\n{params.result["window_ns"]}\n\n\n\n\n")
     
     new_window_ns = params.new_window_ns
     if new_window_ns is None:
