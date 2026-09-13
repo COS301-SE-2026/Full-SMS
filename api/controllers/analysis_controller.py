@@ -1,9 +1,9 @@
 from dataclasses import asdict
 from celery.result import AsyncResult
 from fastapi import HTTPException
-from api.models.analysis_models import ClusteringReq, CpaReq, IntensityReq, IntensityRes, RasterScanReq, LifetimeReq
+from api.models.analysis_models import ClusteringReq, CpaReq, IntensityReq, IntensityRes, RasterScanReq, LifetimeReq, RebinCorrelationReq
 from api.services.analysis_services.clustering_job_service import clustering_job
-from api.services.analysis_services.correlation import get_correlation_result
+from api.services.analysis_services.correlation import get_correlation_result, get_rebin
 from api.services.analysis_services.intensity import intensity_analysis
 from api.services.analysis_services.change_point_analysis import resolve_current_measurement
 from api.services.analysis_services.lifetime import fluorescence_decay, lifetime_fitting
@@ -105,6 +105,15 @@ def get_decay_controller(req):
 def get_correlation_controller(req: CorrelationReq):
     try:
         response = get_correlation_result(req)
+        return response
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+def get_rebin_correlation_controller(req: RebinCorrelationReq):
+    try:
+        response = get_rebin(req)
         return response
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))

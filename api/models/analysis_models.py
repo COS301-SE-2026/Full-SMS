@@ -95,3 +95,8 @@ class CorrelationReq(BaseModel):
     window_ns: float = 500.0
     binsize_ns: float = 0.5
     difftime_ns: float = 0.0
+    
+class RebinCorrelationReq(BaseModel):
+    result: dict
+    new_binsize_ns: float
+    new_window_ns: float | None 
