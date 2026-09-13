@@ -10,6 +10,7 @@ import { useToast } from "@/contexts/toastContext/ToastContext";
 import { Button } from "../ui";
 import ThemeToggle from "../ui/ThemeToggle";
 import BackButton from "@/components/ui/BackButton";
+import { useRouter } from "next/navigation";
 interface MenuBarProps {
   readonly onOpenFileUpload: () => void;
 }
@@ -31,6 +32,7 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
     }
   }
   const [recentSessionsModalOpen, setRecentSessionsModalOpen] = useState(false)
+  const router = useRouter()
 
   return (
     <>
@@ -59,16 +61,14 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
         >
           Sessions
         </Button>
-
-      <Link href="/profile">
-          <Button
-            variant = "ghost"
-            onClick={onOpenFileUpload}
-            className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
-          >
-            Account
-          </Button>
-      </Link>
+        
+        <Button
+          variant = "ghost"
+          onClick={() => {router.push("/profile");}}
+          className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
+        >
+          Account
+        </Button>
 
       <ThemeToggle
         toggleType='button'
@@ -77,15 +77,21 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
         Theme
       </ThemeToggle>
 
-      <Link href="/help">
-          <Button
-            variant = "ghost"
-            onClick={onOpenFileUpload}
-            className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
-          >
-            Help
-          </Button>
-      </Link>
+      <Button
+        variant="ghost"
+        onClick={() => {router.push("/plugins");}}
+        className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
+      >
+        Plugins
+      </Button>
+
+      <Button
+        variant = "ghost"
+        onClick={() => {router.push("/help");}}
+        className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
+      >
+        Help
+      </Button>
 
 
     </div>
