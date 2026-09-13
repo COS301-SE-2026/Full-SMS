@@ -193,3 +193,9 @@ export type CorrelationRes = {
   num_events: number;
   measurement_id?: string
 };
+
+export type RebinCorrelationReq = {
+    result: CorrelationRes,
+    new_binsize_ns: number,
+    new_window_ns?: number
+}

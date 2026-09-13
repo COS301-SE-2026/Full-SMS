@@ -186,11 +186,12 @@ export default function GroupingCharts() {
               showgrid: true,
               gridcolor: colors.border,
               gridwidth: 1,
-              title: "Time (ms)",
+              title: {text:"Time (ms)"},
             },
             yaxis: {
               range: [0, Math.max(...y_coords_intensity)],
               autorange: false,
+              title: {text:"Counts/bin"}
             },
             font: {
               family: "JetBrains Mono, monospace",
@@ -234,13 +235,13 @@ export default function GroupingCharts() {
               plot_bgcolor: colors.card,
               paper_bgcolor: colors.card,
               xaxis: {
-                title: "Number of groups",
+                title: {text:"Number of groups"},
                 showgrid: true,
                 gridcolor: colors.border,
                 zeroline: false,
               },
               yaxis: {
-                title: "BIC",
+                title: {text:"BIC"},
                 showgrid: true,
                 gridcolor: colors.border,
                 zeroline: false,

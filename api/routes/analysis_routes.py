@@ -51,6 +51,6 @@ def get_lifetime(req: LifetimePayload):
 def get_correlation(req: CorrelationReq):
     return get_correlation_controller(req)
 
-@router.post("/correlation")
+@router.post("/correlation/rebin")
 def get_rebin_correlation(req: RebinCorrelationReq):
     return get_rebin_correlation_controller(req)

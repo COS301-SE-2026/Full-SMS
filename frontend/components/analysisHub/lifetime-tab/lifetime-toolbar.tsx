@@ -11,7 +11,7 @@ export default function LifetimeToolbar() {
     const {setFittingDialogOpen, useLogScale, setUseLogScale, fitResult} = useAnalysisTab()
 
   return (
-    <div className="flex flex-col gap-4 h-12 px-4 border-b border-border bg-background mb-4 h-fit">
+    <div className="flex flex-col gap-4 h-12 px-4 border-b border-border bg-background mb-4 h-fit pb-2">
       <div className='flex flex-row gap-4 items-center'>
         <h3 className="text-foreground">Lifetime Analysis</h3>
           <Toggle
@@ -24,7 +24,7 @@ export default function LifetimeToolbar() {
           checked={showIRF}
           onCheckedChange={setShowIRF}
           />
-          <Button variant='primary' className=' min-h-[28px] px-10' onClick={()=>setFittingDialogOpen(true)}>
+          <Button variant='primary'  size={"sm"} onClick={()=>setFittingDialogOpen(true)}>
               Fit... 
           </Button>
       </div>
