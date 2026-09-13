@@ -69,7 +69,7 @@ def get_hdf5_upload_result(upload_id: str, current_user: dict) -> dict:
     hdf5_upload_result = hdf5_upload_service.get_upload_result(upload_id, current_user['user']['id'])
     if hdf5_upload_result is None:
         raise HTTPException(status_code=404, detail="Upload result not found.")
-    print(f"Retrieved upload result: {hdf5_upload_result}")
+    # print(f"Retrieved upload result: {hdf5_upload_result}")
     return hdf5_upload_result
 
 async def read_hdf5_file(file: UploadFile):
@@ -100,12 +100,15 @@ def get_upload_by_id(user_id: string, upload_id: string):
                 .eq("user_id", user_id)
                 .eq("id", upload_id)
                 .execute())
-
+    
+    print(response)
+    
     upload = response.data[0]
 
     if not upload:
         raise HTTPException(status_code=404, detail="Upload not found")
-        
+    
+ 
     return upload
 
 

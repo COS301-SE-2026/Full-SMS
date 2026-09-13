@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/api/axiosInstance";
-import { changePoint_Req, ClusteringReq, Intensity_Req } from "@/types/analysis";
+import { changePoint_Req, ClusteringReq, CorrelationReq, CorrelationRes, Intensity_Req } from "@/types/analysis";
 
 
 export const intensityAnalysis = async (payload: Intensity_Req)=>{    
@@ -37,5 +37,10 @@ export const getLifetimeData = async (payload: any) =>{
 
 export const getFluorescenceDecay = async (payload: any) =>{
     const {data}= await axiosInstance.post('api/py/analysis/lifetime', payload)
+    return data
+}
+
+export const getCorrelationResult = async (payload: CorrelationReq) =>{
+    const { data } = await axiosInstance.post<CorrelationRes>('api/py/analysis/correlation', payload)
     return data
 }

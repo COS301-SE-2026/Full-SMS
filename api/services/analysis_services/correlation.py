@@ -13,8 +13,8 @@ from api.services.measurement_cache_service import get_cached_measurement
 
 def get_correlation_result(params: CorrelationReq) -> dict[str, Any]:
     print(f"{params}")
-    upload_id = params["upload_id"]
-    measurement_id = params["measurement_id"]
+    upload_id = params.upload_id
+    measurement_id = params.measurement_id
     print(upload_id)
     print(measurement_id)
     
@@ -39,9 +39,9 @@ def get_correlation_result(params: CorrelationReq) -> dict[str, Any]:
         microtimes1 =  measurement.channel1.microtimes
         microtimes2 =  measurement.channel2.microtimes
     
-    window_ns = params["window_ns"]
-    binsize_ns = params["binsize_ns"]
-    difftime_ns = params["difftime_ns"]
+    window_ns = params.window_ns
+    binsize_ns = params.binsize_ns
+    difftime_ns = params.difftime_ns
     
     result = calculate_g2(
         abstimes1=abstimes1,
@@ -62,7 +62,7 @@ def get_correlation_result(params: CorrelationReq) -> dict[str, Any]:
         "num_photons_ch1": result.num_photons_ch1,
         "num_photons_ch2": result.num_photons_ch2,
         "num_events": result.num_events ,
-        "measurement_id": params.get("measurement_id"),
+        "measurement_id": params.measurement_id
     }
     
 

@@ -30,8 +30,8 @@ def change_point_analysis_controller(req: CpaReq):
     try:
         response = resolve_current_measurement(req)
         return response
-    except Exception:
-        raise HTTPException(status_code=500, detail=str("Could not complete Change Point Analysis:"))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(f"Could not complete Change Point Analysis:{e}"))
 
 def get_raster_scan_controller(req: RasterScanReq):
     try:
