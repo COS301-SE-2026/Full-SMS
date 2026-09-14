@@ -86,18 +86,24 @@ export default function WorkspacePage() {
   };
 
   useEffect(() => {
-    if (currentWorkspaceId) {
-      const fetchWorkspace = async () => {
-        const workspaceData =
-          await workspaceService.getWorkspace(currentWorkspaceId);
-        if (workspaceData.success) {
-          setData(workspaceData.workspace);
-          setIsLoading(false);
-        }
-      };
-      fetchWorkspace();
-      fetchWorkspaceUploads();
-    }
+    if (!currentWorkspaceId) return;
+
+    const loadData = async () => {
+      const workspaceData =
+        await workspaceService.getWorkspace(currentWorkspaceId);
+      if (workspaceData.success) {
+        setData(workspaceData.workspace);
+        setIsLoading(false);
+      }
+
+      const uploadsData =
+        await workspaceService.getWorkspaceUploads(currentWorkspaceId);
+      if (uploadsData.success) {
+        setUploads(uploadsData.uploads);
+      }
+    };
+
+    loadData();
   }, [currentWorkspaceId]);
 
   const handleOneDriveFileSelection = async (

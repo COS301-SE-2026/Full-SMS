@@ -1,7 +1,6 @@
+'use client';
 
-  'use client';
-
-  import React, { useEffect, useState } from 'react';
+  import React, { useEffect, useState, useRef } from 'react';
   import { SelectedFile } from '@/types/file';
   import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext';
   import { getHdf5UploadStatus } from '@/services/hdf5services';
@@ -30,14 +29,28 @@
   export default function FileList({ files, onRemove }: FileListProps) {
     const { currentUpload } = useHdf5Data();
     const [parsingComplete, setParsingComplete] = useState(false);
+    const previousUploadRef = useRef<string | null>(null);
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+
       if (!currentUpload) {
-        setParsingComplete(false);
+        previousUploadRef.current = null;
         return;
       }
 
-      const checkStatus = async () => {
+      if (previousUploadRef.current === currentUpload) {
+        return;
+      }
+
+      previousUploadRef.current = currentUpload;
+      setParsingComplete(false);
+
+      const checkStatus = async (): Promise<boolean> => {
         try {
           const response = await getHdf5UploadStatus(currentUpload);
           if (response?.status?.toLowerCase() === 'parsed') {
@@ -52,14 +65,20 @@
 
       checkStatus();
 
-      const interval = setInterval(async () => {
+      intervalRef.current = setInterval(async () => {
         const done = await checkStatus();
-        if (done) {
-          clearInterval(interval);
+        if (done && intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
         }
       }, 2000);
 
-      return () => clearInterval(interval);
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+      };
     }, [currentUpload]);
 
     if (files.length === 0) return null;
@@ -90,7 +109,6 @@
                   >
                     {/*Document Icon and filename description */}
                     <div className="flex items-center gap-4 min-w-0 flex-1">
-
                       <svg
                         className={`w-[18px] h-[18px] flex-shrink-0 transition-colors ${
                           isPending || isSuccess 
@@ -140,18 +158,18 @@
                           </div>
                         )}
                         {isSuccess && (
-                        <div className="text-[11px] mt-0.5 font-medium tracking-wide">
-                          {!parsingComplete ? (
-                            <span className="text-[#4fd1c5] animate-pulse">
-                              Upload complete! Processing file...
-                            </span>
-                          ) : (
-                            <span className="text-[#4fd1c5]">
-                              Ready! Go to your workspace to start analysis.
-                            </span>
-                          )}
-                        </div>
-                      )}
+                          <div className="text-[11px] mt-0.5 font-medium tracking-wide">
+                            {!parsingComplete ? (
+                              <span className="text-[#4fd1c5] animate-pulse">
+                                Upload complete! Processing file...
+                              </span>
+                            ) : (
+                              <span className="text-[#4fd1c5]">
+                                Ready! Go to your workspace to start analysis.
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
 

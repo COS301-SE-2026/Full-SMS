@@ -1,37 +1,38 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { getUserHdf5Uploads } from "@/services/hdf5services";
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import { Card, CardHeader, CardDescription, CardTitle, Loader } from "../ui";
 import { UploadRecord } from "@/types/hdf5";
 
 export default function RecentUploads() {
-  const auth = useAuth();
+  const { user } = useAuth();
   const [userUploads, setUserUploads] = useState<{ data: UploadRecord[] }>({
     data: [],
   });
   const [isLoading, setIsLoading] = useState(true);
-
-  const fetchUploads = async () => {
-    setIsLoading(true);
-    try {
-      const uploads = await getUserHdf5Uploads();
-      if (uploads) {
-        setUserUploads(uploads);
-      }
-    } catch (e) {
-      console.error("Failed to fetch uploads:", e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
-    if (auth?.user) {
-      fetchUploads();
-    }
-  }, [auth?.user]);
+    if (!user) return;
+
+    const fetchUploads = async () => {
+      setIsLoading(true);
+      try {
+        const uploads = await getUserHdf5Uploads();
+        if (uploads) {
+          setUserUploads(uploads);
+        }
+      } catch (e) {
+        console.error("Failed to fetch uploads:", e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUploads();
+  }, [user]);
 
   const getRelativeDaysAgo = (isoString: string): string => {
     const past = new Date(isoString);
@@ -46,12 +47,9 @@ export default function RecentUploads() {
 
   return (
     <div className="flex flex-col justify-center">
-      <div className="mb-4">
-        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider text-center">
-          Recent Uploads
-        </h3>
-        <div className="w-16 h-0.5 bg-primary/30 mx-auto mt-1"></div>
-      </div>
+      <p className="text-sm font-medium text-center text-foreground/70 mb-3">
+        Recent Uploads
+      </p>
       {isLoading ? (
         <Loader />
       ) : userUploads.data?.length === 0 ? (

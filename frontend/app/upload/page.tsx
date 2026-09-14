@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { FileUploadZone, FileList } from "@/components/upload";
 import type { SelectedFile } from "@/components/upload";
 import {
@@ -14,8 +14,6 @@ import { Button } from "@/components/ui";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { supabase } from "@/lib/supabase/supabaseConfig";
 import { InitUploadResponse } from "@/types/hdf5";
-import { Intensity_Req } from "@/types/analysis";
-import { intensityAnalysis } from "@/services/analysisServices";
 import RecentUploads from "@/components/upload/recentUploads";
 import { GrOnedrive } from "react-icons/gr";
 import { OneDriveLogin } from "@/lib/microsoftAuth";
@@ -30,7 +28,6 @@ export default function UploadPage({ onComplete }: UploadPageProps) {
   const {
     setIsParsing,
     setCurrentUpload,
-    currentUpload,
     currentWorkspaceId,
     setCurrentUploadName,
   } = useHdf5Data();
