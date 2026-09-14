@@ -11,7 +11,7 @@ export interface ChangePointResult {
     measurement_id: string;
     num_change_points: number;
     change_point_indices: number[];
-    confidence_regions: [number, number][]; 
+    confidence_regions: [number, number][];
     levels: LevelData[] | undefined;
 }
 
@@ -24,7 +24,7 @@ export type Intensity_Req = {
 
 export type Intensity_Res = {
     time_bins: Float64Array;
-    counts: Int8Array;  
+    counts: Int8Array;
     intensity_cps: Float64Array
 }
 
@@ -35,9 +35,9 @@ export type changePoint_Req = {
     confidence: number
 }
 
-export type ClusteringReq={
+export type ClusteringReq = {
     levels: LevelData[] | undefined
-} 
+}
 
 export interface GroupData {
     group_id: number;
@@ -47,13 +47,13 @@ export interface GroupData {
     intensity_cps: number;
 }
 export interface ClusteringStep {
-    bic:number,
+    bic: number,
     groups: GroupData[];
     level_group_assignments: number[];
     num_groups: number;
 }
 
-export type ClusteringRes ={
+export type ClusteringRes = {
     steps: ClusteringStep[],
     optimal_step_index: number,
     selected_step_index: number,
@@ -72,12 +72,12 @@ export type LevelData = {
 
 export type SpectraData = {
     z: number[][],
-    rows: number ,
+    rows: number,
     cols: number,
-    bounds_min :[number, number],
-    bounds_max :[number, number],
-    scale_min :number,
-    scale_max :number,
+    bounds_min: [number, number],
+    bounds_max: [number, number],
+    scale_min: number,
+    scale_max: number,
     exposure_time: number
 }
 
@@ -97,7 +97,7 @@ export type LifetimeReq = {
     shift_bounds?: [number, number] | null;
     start?: number | null;
     end?: number | null;
-    autostart?: StartpointMode; 
+    autostart?: StartpointMode;
     autoend?: boolean; // Default: false
     background?: number | null;
     irf_background?: number | null;
@@ -107,7 +107,7 @@ export type LifetimeReq = {
     irf_fwhm_bounds?: [number, number] | null;
 }
 
-export type LifetimeRes ={
+export type LifetimeRes = {
     times: number[];
     counts: number[];
     tau: number[];
@@ -173,4 +173,29 @@ export type FitSettings = {
 // irf_fwhm_bounds: Bounds for FWHM as (min, max) in nanoseconds.
 
 
+export type CorrelationReq = {
+    upload_id: string
+    measurement_id: string
+    window_ns: number 
+    binsize_ns: number 
+    difftime_ns: number
+}
 
+
+export type CorrelationRes = {
+  tau: number[];
+  g2: number[];
+  events: number[];
+  window_ns: number;
+  binsize_ns: number;
+  num_photons_ch1: number;
+  num_photons_ch2: number;
+  num_events: number;
+  measurement_id?: string
+};
+
+export type RebinCorrelationReq = {
+    result: CorrelationRes,
+    new_binsize_ns: number,
+    new_window_ns?: number
+}

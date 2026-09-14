@@ -13,16 +13,19 @@ import GroupingTab from "@/components/analysisHub/grouping-tab/grouping-tab";
 import RasterTab from "@/components/analysisHub/raster-tab/raster-tab";
 import SpectraMap from "@/components/analysisHub/spectra-tab/spectra-map";
 import PluginTab from "@/components/analysisHub/plugin-tab/PluginTab";
-import LifetimeTab from '@/components/analysisHub/lifetime-tab/lifetime-tab';
-import FittingDialog from '@/components/analysisHub/lifetime-tab/fitting-dialog'; 
+import LifetimeTab from "@/components/analysisHub/lifetime-tab/lifetime-tab";
+import FittingDialog from "@/components/analysisHub/lifetime-tab/fitting-dialog";
+
 import { pluginService } from "@/services/pluginServices";
 import { Plugin } from "@/types/plugin";
 import ExportPanel from "@/components/analysisHub/export-tab/export-tab-panel";
-import { Card } from '@/components/ui';
+import { Card } from "@/components/ui";
+import CorrelationTab from "@/components/analysisHub/correlation-tab/correlation-tab";
 
 export default function App() {
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
-  const { activeTab, fittingDialogOpen, setFittingDialogOpen } = useAnalysisTab();
+  const { activeTab, fittingDialogOpen, setFittingDialogOpen } =
+    useAnalysisTab();
   const [currentPlugin, setCurrentPlugin] = useState<Plugin | null>(null);
 
   const isPluginTab = activeTab.startsWith("plugin:");
@@ -56,7 +59,7 @@ export default function App() {
   return (
     <div className="size-full flex flex-col bg-background text-foreground h-screen">
       <MenuBar onOpenFileUpload={() => setFileUploadModalOpen(true)} />
-      
+
       <Modal
         open={fileUploadModalOpen}
         onClose={() => setFileUploadModalOpen(false)}
@@ -64,7 +67,10 @@ export default function App() {
         <UploadPage />
       </Modal>
 
-      <Modal open={fittingDialogOpen} onClose={() => setFittingDialogOpen(false)}>
+      <Modal
+        open={fittingDialogOpen}
+        onClose={() => setFittingDialogOpen(false)}
+      >
         <FittingDialog />
       </Modal>
 
@@ -74,7 +80,7 @@ export default function App() {
 
       <div className="hidden md:flex flex-1 min-h-0">
         <Sidebar />
-        
+
         {activeTab === "intensity" && (
           <div className="flex flex-col flex-1 min-w-0">
             <AnalysisToolbar />
@@ -112,6 +118,13 @@ export default function App() {
           <div className="flex flex-col flex-1 min-w-0">
             <div className="flex flex-1 gap-3 p-3 min-h-0">
               <LifetimeTab />
+            </div>
+          </div>
+        )}
+        {activeTab === "correlation" && (
+          <div className="flex flex-col flex-1 min-w-0">
+            <div className="flex flex-1 gap-3 p-3 min-h-0">
+              <CorrelationTab />
             </div>
           </div>
         )}

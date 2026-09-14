@@ -6,13 +6,15 @@ import {changePoint_Req } from '@/types/analysis';
 import { changePointAnalysis } from '@/services/analysisServices';
 import { Loader } from '../../ui';
 
-function NumberField({
+export function NumberField({
   label,
   value,
   onChange,
+  slider = true
 }: {
   label: string;
   value: number;
+  slider?: boolean;
   onChange: (v: number) => void;
 }) {
   return (
@@ -20,13 +22,14 @@ function NumberField({
       <label className="text-xs text-foreground/70 whitespace-nowrap">
         {label}
       </label>
+      
             <input
         type="range"
         min={0.1}
         max={1000}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-24 h-1.5 rounded-lg appearance-none bg-border cursor-pointer accent-primary "
+        className={`w-24 h-1.5 rounded-lg appearance-none bg-border cursor-pointer accent-primary ${slider ? "hidden": ""}`}
       />
 
       <input

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any, Tuple
 import numpy as np
+from api.legacy.analysis.correlation import CorrelationResult
 from api.legacy.analysis.lifetime import FitSettings, StartpointMode
 from api.legacy.models.level import LevelData
 from api.legacy.models import ClusteringResult
@@ -71,6 +72,9 @@ class CpaReq(BaseModel):
     upload_id: str
     measurement_id: str
     confidence: int
+    
+class SelectedMeasurements(BaseModel):
+    measurements: List[CpaReq]
 
 
 ## Clustering / Grouping
@@ -80,3 +84,19 @@ class ClusteringReq(BaseModel):
 class RasterScanReq(BaseModel):
     upload_id: str
     measurement_id:str
+    
+# class CorrelationRes(BaseModel):
+#     correlation_result: CorrelationResult
+#     events: np.ndarray
+
+class CorrelationReq(BaseModel):
+    upload_id: str
+    measurement_id: str
+    window_ns: float = 500.0
+    binsize_ns: float = 0.5
+    difftime_ns: float = 0.0
+    
+class RebinCorrelationReq(BaseModel):
+    result: dict[str,Any]
+    new_binsize_ns: float
+    new_window_ns: float | None 

@@ -149,7 +149,6 @@ def save_parse_result(upload_id: str, metadata: dict, measurements: str, result_
         measurements (str): Path to the measurements JSON file in storage.
         result_storage_key (str): The storage key for the parsing result.
     """
-    print(f"raw_result_storage_key FROM save_parse_result: {result_storage_key}")
     supabaseClient.table("hdf5_results").insert({
         "upload_id": upload_id,
         "metadata_json": metadata,

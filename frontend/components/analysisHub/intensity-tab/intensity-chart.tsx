@@ -111,7 +111,7 @@ export function IntensityChart() {
               gridcolor: colors.border,   
               gridwidth: 1,     
               domain: [0, 0.65],
-              title: 'Time (ms)' 
+              title: {text:'Time (ms)'} 
             },
             
             xaxis2: {
@@ -119,7 +119,6 @@ export function IntensityChart() {
               gridcolor: colors.border,
               gridwidth: 1,
               domain: [0.72, 1],
-              title: 'Counts',
               anchor: 'y'
             },
 
@@ -129,7 +128,7 @@ export function IntensityChart() {
               gridwidth: 1,
               range:[0,70],
               anchor: 'x',
-              title: 'Intensity (cps)'
+              title: {text:'Counts/bin'}
             },
             
             font: {

@@ -9,7 +9,8 @@ import {
   Download,
   ChevronLeft,
   Clock,
-  Code
+  Code,
+  Grip
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MeasurementsBar } from './measurementsBar';
@@ -25,6 +26,7 @@ const navItems = [
   { icon: Layers, label: 'Grouping', key: 'grouping' },
   { icon: Grid3x3, label: 'Raster', key: 'raster' },
   { icon: Waves, label: 'Spectra', key: 'spectra' },
+  { icon: Grip, label: 'Correlation', key: 'correlation' },
   { icon: Download, label: 'Export', key: 'export' },
 ];
 

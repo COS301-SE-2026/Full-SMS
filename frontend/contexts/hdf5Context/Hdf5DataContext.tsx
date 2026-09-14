@@ -10,7 +10,11 @@ import {
   useCallback,
 } from "react";
 import { UploadMetadata } from "@/types/hdf5";
-import { ChangePointResult, ClusteringRes } from "@/types/analysis";
+import {
+  ChangePointResult,
+  ClusteringRes,
+  CorrelationRes,
+} from "@/types/analysis";
 
 // class IntensityRes(BaseModel):
 //     time_bins: List[float]       # X-axis ( time in milliseconds)
@@ -18,134 +22,180 @@ import { ChangePointResult, ClusteringRes } from "@/types/analysis";
 //     intensity_cps: List[float]
 
 type Hdf5Response = {
-  time_bins: number[],
-  counts: number[],
-  intensity_cps: number[]
-}
+  time_bins: number[];
+  counts: number[];
+  intensity_cps: number[];
+};
 
-type Confidence = 69 | 90 | 95 | 99
+type Confidence = 69 | 90 | 95 | 99;
 
 export interface CachedPluginResult {
-    status: "success" | "error";
-    results?: Record<string, unknown>;
-    error?: string;
-    executionTimeMs?: number;
-    executedAt: string;
-    parameters?: Record<string, unknown>;
-  }
-
-interface Hdf5DataContextType {
-  hdf5Data: Hdf5Response | undefined
-  setHdf5Data: (data: Hdf5Response) => void
-  isParsing: boolean
-  setIsParsing: (is_parsing: boolean) => void
-  currentUpload: string
-  setCurrentUpload: (upload_id: string)=> void
-  currentMeasurement: string,
-  setCurrentMeasurement: (measurement_id: string) => void,
-  setHdf5Metadata: (metadata: UploadMetadata)=> void,
-  hdf5Metadata: UploadMetadata | undefined
-  bin: number,
-  setBin: (bin: number)=>void
-  confidence: Confidence
-  setConfidence: (conf: Confidence)=> void
-  cpaData: ChangePointResult | undefined
-  setCpaData: (data: ChangePointResult)=>void
-  setCurrentWorkspaceId: (id: string)=>void,
-  currentWorkspaceId: string | null
-  groupingData: ClusteringRes | undefined,
-  setGroupingData:(data: ClusteringRes) => void
-  currentUploadName:string
-  setCurrentUploadName: (name: string)=>void
-  heatMapColor: string
-  setHeatMapColor: (colour: string) =>void
-  selectedMeasurements: Set<string>
-  toggleSelectedmeasurement: (measurement_id: string) => void
-  selectAllmeasurements: (total: number) => void
-  clearSelectedMeasurements: () => void 
-  spectraHeatMapColor: string,
-  setSpectraHeatMapColor: (colour: string)=> void
-  getPluginResult: (pluginId: string, workspaceId: string, measurementId: string) => CachedPluginResult | null;
-  setPluginResult: (pluginId: string, workspaceId: string, measurementId: string, result: CachedPluginResult) => void;
-  clearPluginResults: () => void;
+  status: "success" | "error";
+  results?: Record<string, unknown>;
+  error?: string;
+  executionTimeMs?: number;
+  executedAt: string;
+  parameters?: Record<string, unknown>;
 }
 
-const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(undefined)
+interface Hdf5DataContextType {
+  hdf5Data: Hdf5Response | undefined;
+  setHdf5Data: (data: Hdf5Response) => void;
+  isParsing: boolean;
+  setIsParsing: (is_parsing: boolean) => void;
+  currentUpload: string;
+  setCurrentUpload: (upload_id: string) => void;
+  currentMeasurement: string;
+  setCurrentMeasurement: (measurement_id: string) => void;
+  setHdf5Metadata: (metadata: UploadMetadata) => void;
+  hdf5Metadata: UploadMetadata | undefined;
+  bin: number;
+  setBin: (bin: number) => void;
+  confidence: Confidence;
+  setConfidence: (conf: Confidence) => void;
+  cpaData: ChangePointResult | undefined;
+  setCpaData: (data: ChangePointResult) => void;
+  setCurrentWorkspaceId: (id: string) => void;
+  currentWorkspaceId: string | null;
+  groupingData: ClusteringRes | undefined;
+  setGroupingData: (data: ClusteringRes) => void;
+  currentUploadName: string;
+  setCurrentUploadName: (name: string) => void;
+  heatMapColor: string;
+  setHeatMapColor: (colour: string) => void;
+  selectedMeasurements: Set<string>;
+  toggleSelectedmeasurement: (measurement_id: string) => void;
+  selectAllmeasurements: (total: number) => void;
+  clearSelectedMeasurements: () => void;
+  spectraHeatMapColor: string;
+  setSpectraHeatMapColor: (colour: string) => void;
+  getPluginResult: (
+    pluginId: string,
+    workspaceId: string,
+    measurementId: string,
+  ) => CachedPluginResult | null;
+  setPluginResult: (
+    pluginId: string,
+    workspaceId: string,
+    measurementId: string,
+    result: CachedPluginResult,
+  ) => void;
+  clearPluginResults: () => void;
+  correlationData: CorrelationRes | undefined;
+  setCorrelationData: (data: CorrelationRes) => void;
+}
 
-export function Hdf5DataProvider({ children }: { readonly children: ReactNode }) {
-  const [hdf5Data, setHdf5Data] = useState<Hdf5Response>({time_bins:[],counts:[],intensity_cps:[]})// holds data for intensity graph plotting
-  const [cpaData, setCpaData] = useState<ChangePointResult>() // holds data for levlels plotting ("Resolve")
-  const [hdf5Metadata, setHdf5Metadata] = useState<UploadMetadata | undefined>() // holds the metadata of an hdf5 file name, number of measurements etc
-  const [isParsing, setIsParsing] = useState<boolean>(true) // boolean for when an hdf5 is being parsed through or not
+const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(
+  undefined,
+);
+
+export function Hdf5DataProvider({
+  children,
+}: {
+  readonly children: ReactNode;
+}) {
+  const [hdf5Data, setHdf5Data] = useState<Hdf5Response>({
+    time_bins: [],
+    counts: [],
+    intensity_cps: [],
+  }); // holds data for intensity graph plotting
+  const [cpaData, setCpaData] = useState<ChangePointResult>(); // holds data for levlels plotting ("Resolve")
+  const [hdf5Metadata, setHdf5Metadata] = useState<
+    UploadMetadata | undefined
+  >(); // holds the metadata of an hdf5 file name, number of measurements etc
+  const [isParsing, setIsParsing] = useState<boolean>(true); // boolean for when an hdf5 is being parsed through or not
   const [currentUpload, setCurrentUpload] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       return localStorage.getItem("currentUpload") || "";
     }
     return "";
-  })// lets the analysis hub the current_upload id so the api knows which data to pull from the redis cache or db
+  }); // lets the analysis hub the current_upload id so the api knows which data to pull from the redis cache or db
   const [currentMeasurement, setCurrentMeasurement] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       return localStorage.getItem("currentMeasurement") || "0";
     }
     return "0";
-  })// holds the id of the current selected measurement in the measurementbar/tree, so the right measurement is fetched from the cache or db
-  const [bin, setBin] = useState<number>(10)// set by the bin slider in the intensity toolbar, sent in the intensity analysis payload
-  const [confidence, setConfidence] = useState<Confidence>(90)// set by the confidence input in the analysis toolbar, sent in the Resolve levels payload
-  const [groupingData, setGroupingData] = useState<ClusteringRes>()
-  const [currentUploadName, setCurrentUploadName] = useState<string>("")
-  const [ heatMapColor, setHeatMapColor] = useState<string>("")
-  const [spectraHeatMapColor, setSpectraHeatMapColor] = useState<string>("")
-  const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string | null>(()=>{
-    if(typeof window !=='undefined')
-        return localStorage.getItem("currentWorkspaceId") || null
-    return null
-  }) ///the id of the current workspace so the uploads associated with that workspace are fetched, or to associate a new upload with the current workspace
+  }); // holds the id of the current selected measurement in the measurementbar/tree, so the right measurement is fetched from the cache or db
+  const [bin, setBin] = useState<number>(10); // set by the bin slider in the intensity toolbar, sent in the intensity analysis payload
+  const [confidence, setConfidence] = useState<Confidence>(90); // set by the confidence input in the analysis toolbar, sent in the Resolve levels payload
+  const [groupingData, setGroupingData] = useState<ClusteringRes>();
+  const [currentUploadName, setCurrentUploadName] = useState<string>("");
+  const [heatMapColor, setHeatMapColor] = useState<string>("");
+  const [spectraHeatMapColor, setSpectraHeatMapColor] = useState<string>("");
+  const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string | null>(
+    () => {
+      if (typeof window !== "undefined")
+        return localStorage.getItem("currentWorkspaceId") || null;
+      return null;
+    },
+  ); ///the id of the current workspace so the uploads associated with that workspace are fetched, or to associate a new upload with the current workspace
 
-  const [selectedMeasurements, setSelectedMeasurements] = useState<Set<string>>(new Set())
-  const [pluginResultsCache, setPluginResultsCache] = useState<Record<string, CachedPluginResult>>({});
+  const [correlationData, setCorrelationData] = useState<CorrelationRes>();
 
-  const getPluginResult = useCallback((pluginId: string, workspaceId: string, measurementId: string): CachedPluginResult | null =>{
-    const key = `${pluginId}-${workspaceId}-${measurementId}`;
-    return pluginResultsCache[key] || null;
-  }, [pluginResultsCache]);
+  const [selectedMeasurements, setSelectedMeasurements] = useState<Set<string>>(
+    new Set(),
+  );
+  const [pluginResultsCache, setPluginResultsCache] = useState<
+    Record<string, CachedPluginResult>
+  >({});
 
-  const setPluginResult = useCallback((pluginId: string, workspaceId: string, measurementId: string, result: CachedPluginResult) => {
+  const getPluginResult = useCallback(
+    (
+      pluginId: string,
+      workspaceId: string,
+      measurementId: string,
+    ): CachedPluginResult | null => {
       const key = `${pluginId}-${workspaceId}-${measurementId}`;
-      setPluginResultsCache(prev => ({
+      return pluginResultsCache[key] || null;
+    },
+    [pluginResultsCache],
+  );
+
+  const setPluginResult = useCallback(
+    (
+      pluginId: string,
+      workspaceId: string,
+      measurementId: string,
+      result: CachedPluginResult,
+    ) => {
+      const key = `${pluginId}-${workspaceId}-${measurementId}`;
+      setPluginResultsCache((prev) => ({
         ...prev,
-        [key]: result
+        [key]: result,
       }));
-    }, []);
+    },
+    [],
+  );
 
   const clearPluginResults = useCallback(() => {
     setPluginResultsCache({});
   }, []);
-  
-  function toggleSelectedmeasurement(measurement_id: string) { //clicking checkbxs
+
+  function toggleSelectedmeasurement(measurement_id: string) {
+    //clicking checkbxs
+
     setSelectedMeasurements((previous) => {
-      const next = new Set(previous)
+      const next = new Set(previous);
       if (next.has(measurement_id)) {
-        next.delete(measurement_id)
+        next.delete(measurement_id);
       } else {
-        next.add(measurement_id)
+        next.add(measurement_id);
       }
-      return next
-      
-    })
+      return next;
+    });
   }
 
   function selectAllmeasurements(total: number) {
-    const all = new Set<string>()
+    const all = new Set<string>();
     for (let i = 1; i <= total; i++) {
-      all.add(i.toString())
+      all.add(i.toString());
     }
-    setSelectedMeasurements(all)
+    setSelectedMeasurements(all);
   }
 
   function clearSelectedMeasurements() {
-    setSelectedMeasurements(new Set())
+    setSelectedMeasurements(new Set());
   }
-
 
   useEffect(() => {
     if (currentWorkspaceId) {
@@ -171,53 +221,76 @@ export function Hdf5DataProvider({ children }: { readonly children: ReactNode })
     }
   }, [currentMeasurement]);
 
-  const contextValue = useMemo(()=>({
-    hdf5Data, 
-    setHdf5Data, 
-    isParsing, 
-    setIsParsing, 
-    setCurrentUpload, 
-    currentUpload,
-    setCurrentMeasurement,
-    currentMeasurement,
-    hdf5Metadata,
-    setHdf5Metadata,
-    bin,
-    setBin,
-    confidence, 
-    setConfidence,
-    setCpaData,
-    cpaData,
-    setCurrentWorkspaceId,
-    currentWorkspaceId,
-    groupingData,
-    setGroupingData,
-    currentUploadName,
-    setCurrentUploadName,
-    heatMapColor,
-    setHeatMapColor,
-    selectedMeasurements,
-    toggleSelectedmeasurement,
-    selectAllmeasurements,
-    clearSelectedMeasurements,
-    spectraHeatMapColor,
-    setSpectraHeatMapColor,
-    getPluginResult,
-    setPluginResult,
-    clearPluginResults,
-  }),[hdf5Data, isParsing, hdf5Metadata, currentUpload, currentMeasurement, bin, confidence,cpaData, currentWorkspaceId, groupingData, currentUploadName, heatMapColor, selectedMeasurements, spectraHeatMapColor, getPluginResult, setPluginResult, clearPluginResults])
+  const contextValue = useMemo(
+    () => ({
+      hdf5Data,
+      setHdf5Data,
+      isParsing,
+      setIsParsing,
+      setCurrentUpload,
+      currentUpload,
+      setCurrentMeasurement,
+      currentMeasurement,
+      hdf5Metadata,
+      setHdf5Metadata,
+      bin,
+      setBin,
+      confidence,
+      setConfidence,
+      setCpaData,
+      cpaData,
+      setCurrentWorkspaceId,
+      currentWorkspaceId,
+      groupingData,
+      setGroupingData,
+      currentUploadName,
+      setCurrentUploadName,
+      heatMapColor,
+      setHeatMapColor,
+      selectedMeasurements,
+      toggleSelectedmeasurement,
+      selectAllmeasurements,
+      clearSelectedMeasurements,
+      spectraHeatMapColor,
+      setSpectraHeatMapColor,
+      getPluginResult,
+      setPluginResult,
+      clearPluginResults,
+      correlationData,
+      setCorrelationData
+    }),
+    [
+      hdf5Data,
+      isParsing,
+      hdf5Metadata,
+      currentUpload,
+      currentMeasurement,
+      bin,
+      confidence,
+      cpaData,
+      currentWorkspaceId,
+      groupingData,
+      currentUploadName,
+      heatMapColor,
+      selectedMeasurements,
+      spectraHeatMapColor,
+      getPluginResult,
+      setPluginResult,
+      clearPluginResults,
+      correlationData,
+      setCorrelationData
+    ],
+  );
 
-
-  
   return (
     <Hdf5DataContext.Provider value={contextValue}>
       {children}
     </Hdf5DataContext.Provider>
-  )
+  );
 }
 
 export function useHdf5Data() {
-  const ctx = useContext(Hdf5DataContext)
-  if (!ctx) throw new Error("useHdf5Data must be used within Hdf5DataProvider")
-  return ctx
+  const ctx = useContext(Hdf5DataContext);
+  if (!ctx) throw new Error("useHdf5Data must be used within Hdf5DataProvider");
+  return ctx;
 }

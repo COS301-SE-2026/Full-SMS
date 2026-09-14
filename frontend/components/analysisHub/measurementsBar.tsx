@@ -1,147 +1,202 @@
-'use client';
+"use client";
 
-
-import {FileText} from 'lucide-react';
-import { useEffect, useState } from 'react'
-import { cn } from '@/lib/utils';
-import { UploadMetadata, UploadResultRecord } from '@/types/hdf5';
-import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
-import { getHdf5UploadResult } from '@/services/hdf5services';
-import { Intensity_Req } from '@/types/analysis';
-import { intensityAnalysis } from '@/services/analysisServices';
-import { Button, Checkbox} from '@/components/ui';
-
-export interface Measurement{
-name: string
-checked?:boolean
-}
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import { UploadMetadata, UploadResultRecord } from "@/types/hdf5";
+import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
+import { getHdf5UploadResult } from "@/services/hdf5services";
+import { Intensity_Req } from "@/types/analysis";
+import { intensityAnalysis } from "@/services/analysisServices";
+import { Button, Checkbox } from "@/components/ui";
 
 export interface MeasurementsBarProps {
-  readonly showSelectionCheckboxes?: boolean
+  readonly showSelectionCheckboxes?: boolean;
 }
 
-export function MeasurementsBar({showSelectionCheckboxes= false} : MeasurementsBarProps) {
-  const [num_measurements, setNum_measurements] = useState<number>(0)
-  const {currentMeasurement, setCurrentMeasurement, currentUpload, setHdf5Data, setHdf5Metadata, bin, selectedMeasurements, toggleSelectedmeasurement, selectAllmeasurements, clearSelectedMeasurements,} = useHdf5Data();
-  const fetchUploadResult = async ()=>{
-      if(currentUpload){
-        console.log("CURRENT UPLOAD:", currentUpload);
-        const response: UploadResultRecord = await getHdf5UploadResult(currentUpload)
-        return response}
+export function MeasurementsBar({
+  showSelectionCheckboxes = false,
+}: MeasurementsBarProps) {
+  const [num_measurements, setNum_measurements] = useState<number>(0);
+  const {
+    currentMeasurement,
+    setCurrentMeasurement,
+    currentUpload,
+    setHdf5Data,
+    setHdf5Metadata,
+    hdf5Metadata,
+    bin,
+    selectedMeasurements,
+    toggleSelectedmeasurement,
+    selectAllmeasurements,
+    clearSelectedMeasurements,
+  } = useHdf5Data();
 
+  const [shownChannels, setShownChannels] = useState<number[]>([]);
+
+  const toggleChannelTree = (id: number) => {
+    if (shownChannels.includes(id)) {
+      setShownChannels(shownChannels.filter((ids) => ids !== id));
+    } else {
+      setShownChannels([...shownChannels, id]);
     }
-  
-  const fetchIntensityTrace= async ()=>{
-      if(currentUpload){
-        const request: Intensity_Req ={
-        upload_id:currentUpload,
-        measurement_id:currentMeasurement,
+  };
+
+  const fetchUploadResult = async () => {
+    if (currentUpload) {
+      const response: UploadResultRecord =
+        await getHdf5UploadResult(currentUpload);
+      return response;
+    }
+  };
+
+  const fetchIntensityTrace = async () => {
+    if (currentUpload) {
+      const request: Intensity_Req = {
+        upload_id: currentUpload,
+        measurement_id: currentMeasurement,
         bin_size_ms: Number(bin),
-      }
-      const response = await intensityAnalysis(request)
-      setHdf5Data(response)
-      }
-
+      };
+      const response = await intensityAnalysis(request);
+      setHdf5Data(response);
     }
-  
-  
-    useEffect(()=>{
-      fetchIntensityTrace()
-      },[currentMeasurement, bin, currentUpload]);
+  };
 
-    useEffect(()=>{
-      const loadData = async () => {
-        try {
-          const record = await fetchUploadResult();
-          if(record){
+  useEffect(() => {
+    fetchIntensityTrace();
+  }, [currentMeasurement, bin, currentUpload]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const record = await fetchUploadResult();
+        if (record) {
           const metadata: UploadMetadata = record.metadata_json;
           setNum_measurements(metadata.num_measurements);
           setHdf5Metadata(metadata);
-          }
-        } catch (error) {
-          console.error("Failed to fetch or parse upload result:", error);
+          console.log(metadata);
         }
-      };
-  
-      loadData();
-    },[currentUpload])
+      } catch (error) {
+        console.error("Failed to fetch or parse upload result:", error);
+      }
+    };
 
-    
+    loadData();
+  }, [currentUpload]);
 
-  const measurements: Measurement[] = []
-  
-  for(let i: number =1; i <= num_measurements; i++){
-    const element:Measurement ={name: `Measurement ${i}`,checked:i==1}
-    measurements.push(element)
-  }
-
-
-
+  useEffect(() => {
+    console.log(currentMeasurement);
+  }, [currentMeasurement]);
   const onClickMeasurement = (id: number) => {
-    setCurrentMeasurement((id+1).toString())
-  }
+    // toggleChannelTree(id)
+    setCurrentMeasurement(id.toString());
+  };
 
   return (
     <div className="flex flex-col border-t border-border overflow-hidden">
       <div className="mt-3 px-3.5 flex items-center justify-between">
-        <span className="text-xs text-foreground/60 tracking-wider">MEASUREMENTS</span>
-        
-        {showSelectionCheckboxes && (
-        <div className='flex items-center gap-1'>
-          <Button variant="ghost" size="sm" 
-          disabled={num_measurements === 0}
-            onClick={() => selectAllmeasurements(num_measurements)}>
-            All
-          </Button>
-          <Button variant="ghost" size="sm"
-           disabled={num_measurements === 0}
-           onClick={clearSelectedMeasurements}>
-            Clear
-          </Button>
-        </div>
-      )}
-      </div>
-    
-      <div className="flex flex-col mt-1 overflow-y-auto flex-1">
-        {measurements.map((m, i) =>{
-          const measurementID= (i+1).toString()
-          const currentM = measurementID === currentMeasurement
-          const MultiSelected = selectedMeasurements.has(measurementID)
-        
-        
-         return(
-          <div key={m.name} className={cn("flex items-center gap-1.5 px-3.5 py-1", currentM ? "bg-card" : "")}>
-            {showSelectionCheckboxes && (
-            <Checkbox checked={MultiSelected}
-              onCheckedChange={()=> toggleSelectedmeasurement(measurementID)}
-              onClick={(e) => e.stopPropagation()} 
-            />
-          )}
-            <button 
-            className="flex items-center gap-1.5 px-3.5 py-1 cursor-pointer"
-            onClick={()=>onClickMeasurement(i)}
-            >
+        <span className="text-xs text-foreground/60 tracking-wider">
+          MEASUREMENTS
+        </span>
 
-              <FileText size={12} className="text-foreground/70" />
-              <span
-                className={cn(
-                  'text-xs truncate',
-                  currentM ? 'text-primary' : 'text-foreground'
-                )}
-              >
-                {m.name}
-              </span>
-            </button>
+        {showSelectionCheckboxes && (
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={num_measurements === 0}
+              onClick={() => selectAllmeasurements(num_measurements)}
+            >
+              All
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={num_measurements === 0}
+              onClick={clearSelectedMeasurements}
+            >
+              Clear
+            </Button>
           </div>
         )}
-        )}
       </div>
-      {num_measurements>0 && (
-      <p className="px-3.5 py-1.5 text-[11px] text-foreground/50">
-        {selectedMeasurements.size} selected
-      </p>
+
+      <div className="flex flex-col mt-1 overflow-y-auto flex-1">
+        {hdf5Metadata?.measurements_summary?.map((m, i) => {
+          const measurementID = m.id.toString();
+          const currentM = measurementID === currentMeasurement;
+          const isMultiChannel = (m.channels?.length ?? 0) > 1;
+          const MultiSelected = selectedMeasurements.has(measurementID);
+          const isOpen = shownChannels.includes(m.id);
+
+          return (
+            <div
+              key={m.name}
+              className={cn(
+                "flex flex-col items-start px-3.5 py-1",
+                currentM ? "bg-card" : "",
+              )}
+            >
+              {showSelectionCheckboxes && (
+                <Checkbox
+                  checked={MultiSelected}
+                  onCheckedChange={() =>
+                    toggleSelectedmeasurement(measurementID)
+                  }
+                  onClick={(e) => e.stopPropagation()}
+                />
+              )}
+              <span className="flex flex-col items-center gap-1.5 px-3.5 py-1">
+                <div className="flex flex-row">
+                  <button
+                    onClick={() => toggleChannelTree(m.id)}
+                    className=""
+                  >
+                    {isOpen ? (
+                      <ChevronDown size={12} className="text-primary" />
+                    ) : (
+                      <ChevronRight size={12} className="hover:text-primary" />
+                    )}
+                  </button>
+                  <button
+                    className={cn(
+                      "text-xs truncate h-full w-full cursor-pointer",
+                      currentM ? "text-primary" : "text-foreground",
+                    )}
+                    onClick={() => onClickMeasurement(m.id)}
+                  >
+                    {m.name}
+                  </button>
+                </div>
+              </span>
+              {isOpen && isMultiChannel && (
+                <div className="flex flex-col pl-7 pr-3 py-1 ml-3 my-0.5 border-l-2 border-primary/30 gap-0.5 transition-all duration-200 ease-in-out transform origin-top">
+                  {m.channels!.map((channelName, chIdx) => {
+                    // const channelNum = chIdx + 1;
+                    return (
+                      <button
+                        key={channelName}
+                        onClick={() => {
+                          //setCurrentChannel(channelNum)
+                        }}
+                        className="flex items-center gap-1.5 px-2 py-1 rounded text-xs text-foreground/80 hover:bg-card text-left transition-colors cursor-pointer"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+                        <span className="truncate">{channelName}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {num_measurements > 0 && (
+        <p className="px-3.5 py-1.5 text-[11px] text-foreground/50">
+          {selectedMeasurements.size} selected
+        </p>
       )}
     </div>
-  )
+  );
 }
-

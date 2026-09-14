@@ -65,26 +65,29 @@ export default function SpectraMap() {
   return (
     <div>
       <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
-      <h3 className="text-foreground">Spectra</h3>
-      <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
-        <div className="flex items-center gap-2">
-          <label className="text-xs text-foreground/70 whitespace-nowrap" htmlFor="heat-map">
-            Colormap
-          </label>
-          <select
-            name="heat-map"
-            value={spectraHeatMapColor}
-            onChange={(e) => setSpectraHeatMapColor(e.target.value)}
-            className="w-20 h-7 px-2 rounded bg-card border border-border text-xs text-foreground text-right font-mono focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary appearance-none cursor-pointer"
-          >
-            {colourmaps.map((map) => (
-              <option key={map} value={map}>
-                {map}
-              </option>
-            ))}
-          </select>
+        <h3 className="text-foreground">Spectra</h3>
+        <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
+          <div className="flex items-center gap-2">
+            <label
+              className="text-xs text-foreground/70 whitespace-nowrap"
+              htmlFor="heat-map"
+            >
+              Colormap
+            </label>
+            <select
+              name="heat-map"
+              value={spectraHeatMapColor}
+              onChange={(e) => setSpectraHeatMapColor(e.target.value)}
+              className="w-20 h-7 px-2 rounded bg-card border border-border text-xs text-foreground text-right font-mono focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary appearance-none cursor-pointer"
+            >
+              {colourmaps.map((map) => (
+                <option key={map} value={map}>
+                  {map}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-      </div>
       </div>
 
       <Card className="flex flex-col w-[83vw] h-[85vh] p-2 mt-1 gap-4">
@@ -101,7 +104,7 @@ export default function SpectraMap() {
               zmax: plotData?.scale_max,
               colorscale: spectraHeatMapColor,
               colorbar: {
-                title: "Intensity",
+                title: { text: "Intensity" },
                 tickfont: { color: colors.foreground },
                 titlefont: { color: colors.foreground },
               },
@@ -113,17 +116,22 @@ export default function SpectraMap() {
               font: { color: colors.foreground },
             },
             xaxis: {
-              title: "Time (s)",
+              title: { text: "Time (s)" },
               color: colors.foreground,
               gridcolor: colors.border,
             },
             yaxis: {
-              title: "Wavelength (nm)",
+              title: { text: "Wavelength (nm)" },
               color: colors.foreground,
               gridcolor: colors.border,
             },
             paper_bgcolor: colors.card,
             plot_bgcolor: colors.background,
+            font: {
+              family: "JetBrains Mono, monospace",
+              size: 14,
+              color: colors.foreground,
+            },
             autosize: true,
             margin: { l: 60, r: 20, t: 40, b: 50 },
           }}

@@ -21,11 +21,23 @@ export interface UploadRecord{
   updated_at: string,
   parsed_at: string
 }
+
+export interface MeasurementSummary {
+  id: number;
+  name: string;
+  description?: string;
+  tcspc_card?: string;
+  channelWidth?: number;
+  has_spectra?: boolean;
+  has_raster?: boolean;
+  channels?: string[];
+}
 export interface UploadMetadata {
   filename: string;
   has_rasters: boolean;
   has_spectra: boolean;
   num_measurements: number;
+   measurements_summary?: MeasurementSummary[]
 }
 
 export interface UploadResultRecord {
