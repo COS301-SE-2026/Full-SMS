@@ -103,7 +103,7 @@ export function Hdf5DataProvider({
   const [hdf5Metadata, setHdf5Metadata] = useState<
     UploadMetadata | undefined
   >(); // holds the metadata of an hdf5 file name, number of measurements etc
-  const [isParsing, setIsParsing] = useState<boolean>(true); // boolean for when an hdf5 is being parsed through or not
+  const [isParsing, setIsParsing] = useState<boolean>(false); // boolean for when an hdf5 is being parsed through or not
   const [currentUpload, setCurrentUpload] = useState<string>(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("currentUpload") || "";
