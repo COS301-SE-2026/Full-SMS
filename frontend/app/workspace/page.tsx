@@ -76,6 +76,15 @@ export default function WorkspacePage() {
     router.push("/analysisHub");
   };
 
+  const fetchWorkspaceUploads = async () => {
+    if (!currentWorkspaceId) return;
+    const uploads =
+      await workspaceService.getWorkspaceUploads(currentWorkspaceId);
+    if (uploads.success) {
+      setUploads(uploads.uploads);
+    }
+  };
+
   useEffect(() => {
     if (currentWorkspaceId) {
       const fetchWorkspace = async () => {
@@ -85,19 +94,9 @@ export default function WorkspacePage() {
           setData(workspaceData.workspace);
           setIsLoading(false);
         }
-        console.log(workspaceData);
-      };
-
-      const fetchWorspaceUploads = async () => {
-        const uploads =
-          await workspaceService.getWorkspaceUploads(currentWorkspaceId);
-        if (uploads.success) {
-          console.log(uploads);
-          setUploads(uploads.uploads);
-        }
       };
       fetchWorkspace();
-      fetchWorspaceUploads();
+      fetchWorkspaceUploads();
     }
   }, [currentWorkspaceId]);
 
@@ -239,9 +238,17 @@ export default function WorkspacePage() {
       <Sidebar />
       <Modal
         open={fileUploadModalOpen}
-        onClose={() => setFileUploadModalOpen(false)}
+        onClose={() => {
+          setFileUploadModalOpen(false);
+          fetchWorkspaceUploads();
+        }}
       >
-        <UploadPage />
+        <UploadPage
+          onComplete={() => {
+            setFileUploadModalOpen(false);
+            fetchWorkspaceUploads();
+          }}
+        />
       </Modal>
       <Modal open={showPicker} onClose={() => setShowPicker(false)}>
         <OneDrivePicker
@@ -254,7 +261,11 @@ export default function WorkspacePage() {
           <Loader centered={true} />
         ) : (
           <div className="p-16 h-[vh] overflow-y-auto">
-            <BackButton href="/dashboard" label="Back to Workspaces" className="mb-4" />
+            <BackButton
+              href="/dashboard"
+              label="Back to Workspaces"
+              className="mb-4"
+            />
             <h1 className="font-bold">{data?.name?.toUpperCase()}</h1>
             <p>{data?.description}</p>
             <Badge variant="success" className="mt-2">
