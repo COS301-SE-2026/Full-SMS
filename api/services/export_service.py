@@ -199,7 +199,8 @@ def _export_bic_plot(request, analysis_getter, data, measurement_name) -> tuple[
         return None
     analysis = analysis_getter()
     if not analysis["groups"]:
-        return None
+        raise MissingAnalysisDataError("BIC plot is unavailable. Please run the groups analysis and save your current analysis session first.")
+            
     result = clustering_result(analysis)
 
     fd, temp_path = tempfile.mkstemp()
