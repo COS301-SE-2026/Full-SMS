@@ -18,7 +18,13 @@ from api.legacy.models.group import GroupData, ClusteringResult, ClusteringStep
 from api.legacy.models.fit import FitResult
 
 class MissingAnalysisDataError(Exception):
-    pass
+    def __init__(self, category: str, measurement_name: str, message: str | None=None):
+        self.category = category
+        self.measurement_name = measurement_name
+        super().__init__(
+            f"No saved analysis data found for {measurement_name}. "
+            f"Run and save analysis before exporting."
+        )
 
 def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> dict :
     cached_measurement = get_cached_measurement(upload_id, measurement_id)
@@ -49,7 +55,7 @@ def _get_saved_analysis(upload_id: str, measurement_id:str, user_id:str) -> dict
     sessions = get_sessions(user_id)
     match = [ s for s in sessions if s.get("dataset_ref") == upload_id]
     if not match:
-        raise NotImplementedError("NO saved session for this upload. Run and save analysis first.")
+        raise MissingAnalysisDataError("session", f"upload {upload_id}")
 
     match.sort(key=lambda s: s.get("created_at", ""), reverse=True)
     latest = match[0]
@@ -59,7 +65,7 @@ def _get_saved_analysis(upload_id: str, measurement_id:str, user_id:str) -> dict
     fits = results.get("fits")
 
     if levels and levels.get("measurement_id") != measurement_id:
-        raise NotImplementedError("Saved session does not match this measurement.")
+        raise MissingAnalysisDataError("analysis", f"measurement {measurement_id}")                                 
     return {"levels": levels, "groups":groups, "fits": fits}
 
 
@@ -85,11 +91,11 @@ def _export_intensity_data(request, data, channel, measurement_name) -> tuple[Pa
 
 
 def _export_levels_data(request, analysis, measurement_name) -> tuple[Path, str] | None:
-    if not (request.export_levels and analysis["levels"]):
+    if not request.export_levels:
         return None
 
     if not analysis["levels"]:
-        raise MissingAnalysisDataError("Levels data is unavailable. Please run the levels analysis and save your current analysis session first.")
+        raise MissingAnalysisDataError("levels", measurement_name)
     
     level_list = [LevelData(**lvl) for lvl in analysis["levels"]["levels"]]
     fd, temp_path = tempfile.mkstemp()
@@ -105,11 +111,11 @@ def _export_levels_data(request, analysis, measurement_name) -> tuple[Path, str]
 
 
 def _export_groups_data(request, analysis, measurement_name) -> tuple[Path, str] | None:
-    if not (request.export_groups and analysis["groups"]):
+    if not request.export_groups:
         return None
     
-    if not analysis["levels"]:
-        raise MissingAnalysisDataError("Groups data is unavailable. Please run the groups analysis and save your current analysis session first.")
+    if not analysis["groups"]:
+        raise MissingAnalysisDataError("groups", measurement_name)
     
     selected_step =analysis["groups"]["selected_step_index"]
     groups_raw = analysis["groups"]["steps"][selected_step]["groups"]
@@ -130,7 +136,7 @@ def _export_fits_data(request, analysis, measurement_id, channel, measurement_na
         return None
     
     if not analysis["fits"]:
-        raise MissingAnalysisDataError("Lifetime fit data is unavailable. Please run the lifetime fit analysis and save your current analysis session first.")
+        raise MissingAnalysisDataError("lifetime fit", measurement_name)
             
     fit_data = analysis["fits"]
     fit_result = FitResult(
@@ -203,7 +209,7 @@ def _export_bic_plot(request, analysis_getter, data, measurement_name) -> tuple[
         return None
     analysis = analysis_getter()
     if not analysis["groups"]:
-        raise MissingAnalysisDataError("BIC plot is unavailable. Please run the groups analysis and save your current analysis session first.")
+        raise MissingAnalysisDataError("BIC plot", measurement_name)
             
     result = clustering_result(analysis)
 
