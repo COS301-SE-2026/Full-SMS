@@ -126,8 +126,12 @@ def _export_groups_data(request, analysis, measurement_name) -> tuple[Path, str]
 
 
 def _export_fits_data(request, analysis, measurement_id, channel, measurement_name) -> tuple[Path, str] | None:
-    if not (request.export_fits and analysis["fits"]):
+    if not request.export_fits:
         return None
+    
+    if not analysis["fits"]:
+        raise MissingAnalysisDataError("Lifetime fit data is unavailable. Please run the lifetime fit analysis and save your current analysis session first.")
+            
     fit_data = analysis["fits"]
     fit_result = FitResult(
     tau=tuple(fit_data["tau"]),
