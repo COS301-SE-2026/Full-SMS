@@ -87,6 +87,10 @@ def _export_intensity_data(request, data, channel, measurement_name) -> tuple[Pa
 def _export_levels_data(request, analysis, measurement_name) -> tuple[Path, str] | None:
     if not (request.export_levels and analysis["levels"]):
         return None
+
+    if not analysis["levels"]:
+        raise MissingAnalysisDataError("Levels data is unavailable. Please run the levels analysis and save your current analysis session first.")
+    
     level_list = [LevelData(**lvl) for lvl in analysis["levels"]["levels"]]
     fd, temp_path = tempfile.mkstemp()
     os.close(fd)
@@ -103,6 +107,10 @@ def _export_levels_data(request, analysis, measurement_name) -> tuple[Path, str]
 def _export_groups_data(request, analysis, measurement_name) -> tuple[Path, str] | None:
     if not (request.export_groups and analysis["groups"]):
         return None
+    
+    if not analysis["levels"]:
+        raise MissingAnalysisDataError("Groups data is unavailable. Please run the groups analysis and save your current analysis session first.")
+    
     selected_step =analysis["groups"]["selected_step_index"]
     groups_raw = analysis["groups"]["steps"][selected_step]["groups"]
     groups_list = [GroupData(**grp) for grp in groups_raw]
