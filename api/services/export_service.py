@@ -17,6 +17,8 @@ from api.legacy.io import plot_exporters
 from api.legacy.models.group import GroupData, ClusteringResult, ClusteringStep
 from api.legacy.models.fit import FitResult
 
+class MissingAnalysisDataError(Exception):
+    pass
 
 def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> dict :
     cached_measurement = get_cached_measurement(upload_id, measurement_id)
