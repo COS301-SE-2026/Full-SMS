@@ -133,6 +133,9 @@ export function useExportform() {
                     setErrorMsg(detail || "Something in this selection is not available yet.");
                 } else if(status === 400) {
                     setErrorMsg("Select at least one export option before exporting.");
+                } else if (status === 422){
+                    setErrorMsg(detail || "Run and save the current analysis first.");
+ 
                 } else{
                     setErrorMsg("Export failed. Please try again.");
                 }
