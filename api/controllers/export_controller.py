@@ -4,6 +4,7 @@ from fastapi import HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
 from api.models.export_request import ExportRequest
 from api.services import export_service
+from api.services.export_service import MissingAnalysisDataError
 
 def handle_export(request: ExportRequest, background_tasks: BackgroundTasks, user_id: str):
     if not any([request.export_intensity, request.export_levels, request.export_groups, request.export_fits, request.plot_intensity, request.plot_bic,]):
@@ -14,6 +15,8 @@ def handle_export(request: ExportRequest, background_tasks: BackgroundTasks, use
     
     try:
         output_path, normal_name = export_service.export_data(request, user_id)
+    except MissingAnalysisDataError as e:
+        raise HTTPException(status_code=422, detail=str(e))
     except NotImplementedError as e:
         raise HTTPException(status_code=501, detail=str(e))
     except Exception as e:
