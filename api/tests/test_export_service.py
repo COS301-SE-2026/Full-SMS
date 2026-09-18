@@ -75,7 +75,8 @@ class TestExportLevelsData:
 
     def test_noLevels_in_analysis(self):
         levels_request = make_request(export_levels=True)
-        assert _export_levels_data(levels_request, {"levels": None}, "m1") is None
+        with pytest.raises(export_service.MissingAnalysisDataError): 
+            _export_levels_data(levels_request, {"levels": None}, "m1") 
 
     
     def test_levels_data(self,tmp_path):
@@ -147,7 +148,8 @@ class TestExportFitsData:
 
     def test_noFits_analysis(self):
         fits_request=make_request(export_fits=True)
-        assert _export_fits_data(fits_request, {"fits": None}, "m1", 1, "m1") is None
+        with pytest.raises(export_service.MissingAnalysisDataError):
+            _export_fits_data(fits_request, {"fits": None}, "m1", 1, "m1") 
 
     def test_fitsData(self, tmp_path):
         fits_request=make_request(export_fits=True)
@@ -494,9 +496,8 @@ class TestExportBicPlot:
             def analysisGetter_fake():
                 return{"levels": None, "groups": None}
     
-            assert _export_bic_plot(
-                request, analysisGetter_fake, data,"m1"
-            )is None
+            with pytest.raises(export_service.MissingAnalysisDataError):
+                _export_bic_plot(request, analysisGetter_fake, data,"m1")
 
     def test_bicPlot_successfulExport(self, tmp_path):
         request = make_request(plot_bic = True)
