@@ -139,6 +139,11 @@ class TestExportGroupsData:
         assert path == outpt_file
         assert name == "m1_groups.csv"
 
+    def test_noGroupsAnalysis(self):
+        groups_request = make_request(export_groups=True)
+        with pytest.raises(export_service.MissingAnalysisDataError):
+            _export_groups_data(groups_request, {"groups": None}, "m1")
+
 
 class TestExportFitsData:
     def test_uncheckedBox_lifetime(self):
