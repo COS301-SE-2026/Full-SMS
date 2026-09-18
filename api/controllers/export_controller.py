@@ -15,10 +15,10 @@ def handle_export(request: ExportRequest, background_tasks: BackgroundTasks, use
     
     try:
         output_path, normal_name = export_service.export_data(request, user_id)
-    except NotImplementedError as e:
-        raise HTTPException(status_code=501, detail=str(e))
     except MissingAnalysisDataError as e:
         raise HTTPException(status_code=422, detail=str(e))
+    except NotImplementedError as e:
+        raise HTTPException(status_code=501, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Export failed: {e}")
     
