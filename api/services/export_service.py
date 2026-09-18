@@ -17,8 +17,8 @@ from api.legacy.io import plot_exporters
 from api.legacy.models.group import GroupData, ClusteringResult, ClusteringStep
 from api.legacy.models.fit import FitResult
 
-class MissingAnalysisDataError(Exception):
-    def __init__(self, category: str, measurement_name: str, message: str | None=None):
+class MissingAnalysisDataError(NotImplementedError):
+    def __init__(self, category: str, measurement_name: str):
         self.category = category
         self.measurement_name = measurement_name
         super().__init__(
