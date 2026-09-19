@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 
 
 class HistoryEntryCreate(BaseModel):
-    upload_id: str 
+    upload_id: str = Field(..., min_length=1)
     measurement_id: str | None = None
     tab: str
     parameter: str 
