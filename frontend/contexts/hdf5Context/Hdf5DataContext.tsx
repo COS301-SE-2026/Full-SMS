@@ -86,9 +86,14 @@ interface Hdf5DataContextType {
   setCurrentWorkspaceId: (id: string) => void;
   currentWorkspaceId: string | null;
 
-  //single grouping analysis result
+  //grouping analysis results
   groupingData: ClusteringRes | undefined;
   setGroupingData: (data: ClusteringRes) => void;
+  groupingResults: Record<string, ClusteringRes>;
+  setGroupingResultForMeasurement: (
+    measurementId: string,
+    result: ClusteringRes,
+  ) => void;
 
   //upload filename
   currentUploadName: string;
@@ -99,9 +104,15 @@ interface Hdf5DataContextType {
 
   //selected measurements(checkbox selection)
   selectedMeasurements: Set<string>;
-  toggleSelectedmeasurement: (measurement_id: string) => void;
-  selectAllmeasurements: (total: number) => void;
+  toggleSelectedMeasurement: (measurement_id: string) => void;
+  selectAllMeasurements: (total: number) => void;
   clearSelectedMeasurements: () => void;
+
+  //selected channels (checkbox selection)
+  selectedChannels: Set<string>;
+  toggleSelectedChannel: (channel_id: string) => void;
+  selectAllChannels: (total: number) => void;
+  clearSelectedChannels: () => void;
 
   spectraHeatMapColor: string;
   setSpectraHeatMapColor: (colour: string) => void;
@@ -122,9 +133,9 @@ interface Hdf5DataContextType {
   //single correlation analysis result
   correlationData: CorrelationRes | undefined;
   setCorrelationData: (data: CorrelationRes) => void;
+
+  isMultiChannel: boolean;
 }
-
-
 
 const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(
   undefined,
@@ -140,14 +151,20 @@ export function Hdf5DataProvider({
     counts: [],
     intensity_cps: [],
   });
-  
-  // --- Multi-measurement CPA state ---
-  const [cpaResults, setCpaResults] = useState<Record<string, ChangePointResult>>({});
-  const [cpaProcessingIds, setCpaProcessingIds] = useState<Set<string>>(new Set());
 
-  const [hdf5Metadata, setHdf5Metadata] = useState<UploadMetadata | undefined>();
+  // Multi-measurement CPA state
+  const [cpaResults, setCpaResults] = useState<
+    Record<string, ChangePointResult>
+  >({});
+  const [cpaProcessingIds, setCpaProcessingIds] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const [hdf5Metadata, setHdf5Metadata] = useState<
+    UploadMetadata | undefined
+  >();
   const [isParsing, setIsParsing] = useState<boolean>(true);
-  
+
   const [currentUpload, setCurrentUpload] = useState<string>(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("currentUpload") || "";
@@ -164,10 +181,17 @@ export function Hdf5DataProvider({
 
   const [bin, setBin] = useState<number>(10);
   const [confidence, setConfidence] = useState<Confidence>(90);
-  const [groupingData, setGroupingData] = useState<ClusteringRes>();
+
+  const [groupingResults, setGroupingResults] = useState<
+    Record<string, ClusteringRes>
+  >({});
+  const [correlationData, setCorrelationData] = useState<CorrelationRes>();
+
   const [currentUploadName, setCurrentUploadName] = useState<string>("");
+
   const [heatMapColor, setHeatMapColor] = useState<string>("");
   const [spectraHeatMapColor, setSpectraHeatMapColor] = useState<string>("");
+
   const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string | null>(
     () => {
       if (typeof window !== "undefined")
@@ -176,14 +200,24 @@ export function Hdf5DataProvider({
     },
   );
 
-  const [correlationData, setCorrelationData] = useState<CorrelationRes>();
-  const [selectedMeasurements, setSelectedMeasurements] = useState<Set<string>>(new Set());
-  const [pluginResultsCache, setPluginResultsCache] = useState<Record<string, CachedPluginResult>>({});
+  const [selectedMeasurements, setSelectedMeasurements] = useState<Set<string>>(
+    new Set(),
+  );
 
-  // Reset CPA results if user switches to a different upload
+  const [selectedChannels, setSelectedChannels] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const [pluginResultsCache, setPluginResultsCache] = useState<
+    Record<string, CachedPluginResult>
+  >({});
+
+  // Reset results if user switches to a different upload
   useEffect(() => {
     setCpaResults({});
     setCpaProcessingIds(new Set());
+    setGroupingResults({});
+    // setCorrelationResults({});
   }, [currentUpload]);
 
   // Derived: cpaData is always the result for currentMeasurement (backward-compatible)
@@ -192,14 +226,17 @@ export function Hdf5DataProvider({
   }, [cpaResults, currentMeasurement]);
 
   // Backward-compatible setter for cpaData (updates cpaResults for the measurement)
-  const setCpaData = useCallback((data: ChangePointResult | undefined) => {
-    if (!data) return;
-    const targetId = data.measurement_id || currentMeasurement;
-    setCpaResults((prev) => ({
-      ...prev,
-      [targetId]: data,
-    }));
-  }, [currentMeasurement]);
+  const setCpaData = useCallback(
+    (data: ChangePointResult | undefined) => {
+      if (!data) return;
+      const targetId = data.measurement_id || currentMeasurement;
+      setCpaResults((prev) => ({
+        ...prev,
+        [targetId]: data,
+      }));
+    },
+    [currentMeasurement],
+  );
 
   // Helper to commit a single measurement result from batch processing
   const setCpaResultForMeasurement = useCallback(
@@ -215,6 +252,30 @@ export function Hdf5DataProvider({
   const clearCpaResults = useCallback(() => {
     setCpaResults({});
   }, []);
+
+  const groupingData = useMemo(() => {
+    return groupingResults[currentMeasurement] || undefined;
+  }, [groupingResults, currentMeasurement]);
+
+  const setGroupingData = useCallback(
+    (data: ClusteringRes) => {
+      setGroupingResults((prev) => ({
+        ...prev,
+        [currentMeasurement]: data,
+      }));
+    },
+    [currentMeasurement],
+  );
+
+  const setGroupingResultForMeasurement = useCallback(
+    (measurementId: string, result: ClusteringRes) => {
+      setGroupingResults((prev) => ({
+        ...prev,
+        [measurementId]: result,
+      }));
+    },
+    [],
+  );
 
   // Aggregates all levels across all resolved measurements (for Grouping / Export)
   const getAllResolvedLevels = useCallback((): LevelData[] => {
@@ -259,7 +320,7 @@ export function Hdf5DataProvider({
     setPluginResultsCache({});
   }, []);
 
-  function toggleSelectedmeasurement(measurement_id: string) {
+  function toggleSelectedMeasurement(measurement_id: string) {
     setSelectedMeasurements((previous) => {
       const next = new Set(previous);
       if (next.has(measurement_id)) {
@@ -271,7 +332,19 @@ export function Hdf5DataProvider({
     });
   }
 
-  function selectAllmeasurements(total: number) {
+  function toggleSelectedChannel(channel_id: string) {
+    setSelectedChannels((previous) => {
+      const next = new Set(previous);
+      if (next.has(channel_id)) {
+        next.delete(channel_id);
+      } else {
+        next.add(channel_id);
+      }
+      return next;
+    });
+  }
+
+  function selectAllMeasurements(total: number) {
     const all = new Set<string>();
     for (let i = 1; i <= total; i++) {
       all.add(i.toString());
@@ -279,8 +352,28 @@ export function Hdf5DataProvider({
     setSelectedMeasurements(all);
   }
 
+  function selectAllChannels() {
+    const all = new Set<string>();
+    const summaries = hdf5Metadata?.measurements_summary;
+    if (!summaries) {
+      return;
+    }
+
+    for (const m of summaries) {
+      const numChannels = m.channels?.length ?? 1;
+      for (let ch = 1; ch <= numChannels; ch++) {
+        all.add(`${m.id}:${ch}`);
+      }
+    }
+    setSelectedChannels(all);
+  }
+
   function clearSelectedMeasurements() {
     setSelectedMeasurements(new Set());
+  }
+
+  function clearSelectedChannels() {
+    setSelectedChannels(new Set());
   }
 
   useEffect(() => {
@@ -306,6 +399,12 @@ export function Hdf5DataProvider({
       localStorage.setItem("currentMeasurement", "0");
     }
   }, [currentMeasurement]);
+
+  const isMultiChannel = useMemo(() => {
+    const summaries = hdf5Metadata?.measurements_summary;
+    if (!summaries || summaries.length === 0) return false;
+    return summaries.some((m) => (m.channels?.length ?? 0) > 1);
+  }, [hdf5Metadata]);
 
   const contextValue = useMemo(
     () => ({
@@ -337,16 +436,27 @@ export function Hdf5DataProvider({
 
       setCurrentWorkspaceId,
       currentWorkspaceId,
+      //grouping
       groupingData,
       setGroupingData,
+      setGroupingResults,
+      setGroupingResultForMeasurement,
+
       currentUploadName,
       setCurrentUploadName,
       heatMapColor,
       setHeatMapColor,
+
       selectedMeasurements,
-      toggleSelectedmeasurement,
-      selectAllmeasurements,
+      toggleSelectedMeasurement,
+      selectAllMeasurements,
       clearSelectedMeasurements,
+
+      selectedChannels,
+      toggleSelectedChannel,
+      selectAllChannels,
+      clearSelectedChannels,
+      isMultiChannel,
       spectraHeatMapColor,
       setSpectraHeatMapColor,
       getPluginResult,
@@ -380,6 +490,8 @@ export function Hdf5DataProvider({
       setPluginResult,
       clearPluginResults,
       correlationData,
+      selectedChannels,
+      isMultiChannel,
     ],
   );
 

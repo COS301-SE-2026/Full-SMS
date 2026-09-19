@@ -37,7 +37,7 @@ export interface UploadMetadata {
   has_rasters: boolean;
   has_spectra: boolean;
   num_measurements: number;
-   measurements_summary?: MeasurementSummary[]
+  measurements_summary?: MeasurementSummary[]
 }
 
 export interface UploadResultRecord {

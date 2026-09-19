@@ -249,74 +249,101 @@ export default function WorkspacePage() {
           onCancel={() => setShowPicker(false)}
         />
       </Modal>
-      <div className="flex justify-center">
-        {isLoading && data ? (
-          <Loader centered={true} />
-        ) : (
+      <div className="flex justify-center w-full h-full">
+        {isLoading ? (
           <div className="p-16 h-[vh] overflow-y-auto">
-            <BackButton href="/dashboard" label="Back to Workspaces" className="mb-4" />
-            <h1 className="font-bold">{data?.name?.toUpperCase()}</h1>
-            <p>{data?.description}</p>
-            <Badge variant="success" className="mt-2">
-              {data?.status}
-            </Badge>
-
-            <div className="mt-4 flex justify-between h-min">
-              <h2>Workspace Uploads</h2>
-              <div className="flex gap-2">
-                <Button
-                  leftIcon={<GrOnedrive size={24} />}
-                  onClick={OneDriveLogin}
-                >
-                  OneDrive
-                </Button>
-                <Button
-                  variant="outline"
-                  className=""
-                  size="sm"
-                  onClick={() => {
-                    setFileUploadModalOpen(true);
-                  }}
-                >
-                  Upload File
-                </Button>
+            <div className="h-8 w-36 mb-4 rounded bg-foreground/10 animate-pulse" />
+            <div className="animate-pulse">
+              <div className="h-6 w-56 rounded bg-foreground/10" />
+              <div className="mt-2 h-4 w-80 max-w-full rounded bg-foreground/10" />
+              <div className="mt-2 h-5 w-16 rounded bg-foreground/10" />
+              <div className="mt-4 flex justify-between items-center h-min">
+                <div className="h-5 w-44 rounded bg-foreground/10" />
+                <div className="flex gap-2 items-center">
+                  <div className="h-11 w-32 rounded bg-foreground/10" />
+                  <div className="h-7 w-24 rounded bg-foreground/10" />
+                </div>
               </div>
             </div>
-            <div>
-              {activeUpload && <ProgressTracker activeUpload={activeUpload} />}
+            <div className="mt-6 space-y-4 animate-pulse">
+              <div className="h-20 w-[70vw] rounded-lg border border-border/40 bg-card/60" />
+              <div className="h-20 w-[70vw] rounded-lg border border-border/40 bg-card/60" />
             </div>
-            {!uploads || uploads.length === 0 ? (
-              <div>
-                <p>No Uploads yet. Load your first h5/hdf5 file.</p>
-              </div>
-            ) : (
-              uploads.map((upload, index) => (
-                <Card
-                  key={upload.id || index}
-                  className="upload-item w-[70vw] mt-4 flex flex-row justify-between items-center"
-                  onClick={() => {
-                    handleUploadOpen(upload.id);
-                  }}
-                >
-                  <div>
-                    <CardHeader className="font-bold">
-                      {upload.filename}
-                    </CardHeader>
-                    <CardContent>
-                      {(upload.size_bytes / (1024 * 1024)).toPrecision(2)} MB
-                    </CardContent>
-                  </div>
-                  <Button
-                    variant={"ghost"}
-                    className="mr-10 hover:bg-destructive/10"
-                    onClick={(e) => handleDeleteUpload(e, upload.id)}
-                  >
-                    <TrashIcon className="text-destructive" />
-                  </Button>
-                </Card>
-              ))
-            )}
           </div>
+        ) : (
+            <div className="p-16 h-[vh] overflow-y-auto w-full">
+              <BackButton
+                href="/dashboard"
+                label="Back to Workspaces"
+                className="mb-4"
+              />
+              <div>
+                <h1 className="font-bold">{data?.name?.toUpperCase()}</h1>
+                <p>{data?.description}</p>
+                <Badge variant="success" className="mt-2">
+                  {data?.status}
+                </Badge>
+
+                <div className="mt-4 flex justify-between h-min">
+                  <h2>Workspace Uploads</h2>
+                  <div className="flex gap-2">
+                    <Button
+                      leftIcon={<GrOnedrive size={24} />}
+                      onClick={OneDriveLogin}
+                    >
+                      OneDrive
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className=""
+                      size="sm"
+                      onClick={() => {
+                        setFileUploadModalOpen(true);
+                      }}
+                    >
+                      Upload File
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                {activeUpload && (
+                  <ProgressTracker activeUpload={activeUpload} />
+                )}
+              </div>
+              {!uploads || uploads.length === 0 ? (
+                <div>
+                  <p>No Uploads yet. Load your first h5/hdf5 file.</p>
+                </div>
+              ) : (
+                uploads.map((upload, index) => (
+                  <Card
+                    key={upload.id || index}
+                    className="upload-item w-full mt-4 flex flex-row justify-between items-center"
+                    onClick={() => {
+                      handleUploadOpen(upload.id);
+                    }}
+                  >
+                    <div>
+                      <CardHeader className="font-bold">
+                        {upload.filename}
+                      </CardHeader>
+                      <CardContent>
+                        {(upload.size_bytes / (1024 * 1024)).toPrecision(2)} MB
+                      </CardContent>
+                    </div>
+                    <Button
+                      variant={"ghost"}
+                      className="mr-10 hover:bg-destructive/10"
+                      onClick={(e) => handleDeleteUpload(e, upload.id)}
+                    >
+                      <TrashIcon className="text-destructive" />
+                    </Button>
+                  </Card>
+                ))
+              )}
+            </div>
         )}
       </div>
     </div>

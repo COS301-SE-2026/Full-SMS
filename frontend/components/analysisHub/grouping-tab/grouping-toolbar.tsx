@@ -45,11 +45,29 @@ export default function GroupingToolbar() {
       <Button
         size="sm"
         variant="primary"
-        leftIcon={(isProcessing ? (<Loader size="sm" variant='dark'/>):(<Play size={14} fill="currentColor" />))}
+        leftIcon={(isProcessing ? (<Loader size="sm" variant='dark'/>):(<></>))}
         className="min-h-[28px] px-3 cursor:pointer hover:h-[20px]"
         onClick={()=>{handleGroupCurrent()}}
       >
         Group Current
+      </Button>
+            <Button
+        size="sm"
+        variant="primary"
+        leftIcon={(isProcessing ? (<Loader size="sm" variant='dark'/>):(<></>))}
+        className="min-h-[28px] px-3 cursor:pointer hover:h-[20px]"
+        // onClick={()=>{handleGroupCurrent()}}
+      >
+        Group Selected
+      </Button>
+            <Button
+        size="sm"
+        variant="primary"
+        leftIcon={(isProcessing ? (<Loader size="sm" variant='dark'/>):(<></>))}
+        className="min-h-[28px] px-3 cursor:pointer hover:h-[20px]"
+        // onClick={()=>{handleGroupCurrent()}}
+      >
+        Group All
       </Button>
       <div className="ml-auto">
         <Button
