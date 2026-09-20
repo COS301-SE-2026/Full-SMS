@@ -36,12 +36,12 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
 
   return (
     <>
-    <div className="flex items-center h-7 px-2 border-b border-border bg-background">
-        <BackButton className="px-3 h-full text-xs hover:bg-card rounded-sm" />
+    <div className="flex items-center h-8 px-2 border-b border-border bg-background">
+        <BackButton className="px-3 h-full text-sm hover:bg-card rounded-sm" />
         <Button
           variant = "ghost"
           onClick={onOpenFileUpload}
-          className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
+          className="px-3 h-full text-sm text-foreground hover:bg-card rounded-sm transition-colors"
         >
           File
         </Button>
@@ -49,7 +49,7 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
         <Button
           variant = "ghost"
           onClick={() => setSaveModalOpen(true)}
-          className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
+          className="px-3 h-full text-sm text-foreground hover:bg-card rounded-sm transition-colors"
         >
           Save
         </Button>
@@ -57,7 +57,7 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
         <Button
           variant = "ghost"
           onClick={() => setRecentSessionsModalOpen(true)}
-          className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
+          className="px-3 h-full text-sm text-foreground hover:bg-card rounded-sm transition-colors"
         >
           Sessions
         </Button>
@@ -65,22 +65,22 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
         <Button
           variant = "ghost"
           onClick={() => {router.push("/profile");}}
-          className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
+          className="px-3 h-full text-sm text-foreground hover:bg-card rounded-sm transition-colors"
         >
           Account
         </Button>
 
-      <ThemeToggle
+      {/* <ThemeToggle
         toggleType='button'
-       className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
+       className="px-3 h-full text-md text-foreground hover:bg-card rounded-sm transition-colors"
       >
         Theme
-      </ThemeToggle>
+      </ThemeToggle> */}
 
       <Button
         variant="ghost"
         onClick={() => {router.push("/plugins");}}
-        className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
+        className="px-3 h-full text-sm text-foreground hover:bg-card rounded-sm transition-colors"
       >
         Plugins
       </Button>
@@ -88,7 +88,7 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
       <Button
         variant = "ghost"
         onClick={() => {router.push("/help");}}
-        className="px-3 h-full text-xs text-foreground hover:bg-card rounded-sm transition-colors"
+        className="px-3 h-full text-sm text-foreground hover:bg-card rounded-sm transition-colors"
       >
         Help
       </Button>

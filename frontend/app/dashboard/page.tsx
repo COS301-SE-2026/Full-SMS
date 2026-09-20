@@ -86,6 +86,8 @@ export default function DashboardPage() {
       return true;
     });
   }, [workspaces, statusFilter, searchQuery]);
+  console.log("Rendering WorkspaceTable with workspaces:", filteredWorkspaces);
+
 
   useEffect(() => {
     if (!user) {

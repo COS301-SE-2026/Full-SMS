@@ -76,29 +76,34 @@ export default function WorkspacePage() {
     router.push("/analysisHub");
   };
 
-  useEffect(() => {
-    if (currentWorkspaceId) {
-      const fetchWorkspace = async () => {
-        const workspaceData =
-          await workspaceService.getWorkspace(currentWorkspaceId);
-        if (workspaceData.success) {
-          setData(workspaceData.workspace);
-          setIsLoading(false);
-        }
-        console.log(workspaceData);
-      };
-
-      const fetchWorspaceUploads = async () => {
-        const uploads =
-          await workspaceService.getWorkspaceUploads(currentWorkspaceId);
-        if (uploads.success) {
-          console.log(uploads);
-          setUploads(uploads.uploads);
-        }
-      };
-      fetchWorkspace();
-      fetchWorspaceUploads();
+  const fetchWorkspaceUploads = async () => {
+    if (!currentWorkspaceId) return;
+    const uploads =
+      await workspaceService.getWorkspaceUploads(currentWorkspaceId);
+    if (uploads.success) {
+      setUploads(uploads.uploads);
     }
+  };
+
+  useEffect(() => {
+    if (!currentWorkspaceId) return;
+
+    const loadData = async () => {
+      const workspaceData =
+        await workspaceService.getWorkspace(currentWorkspaceId);
+      if (workspaceData.success) {
+        setData(workspaceData.workspace);
+        setIsLoading(false);
+      }
+
+      const uploadsData =
+        await workspaceService.getWorkspaceUploads(currentWorkspaceId);
+      if (uploadsData.success) {
+        setUploads(uploadsData.uploads);
+      }
+    };
+
+    loadData();
   }, [currentWorkspaceId]);
 
   const handleOneDriveFileSelection = async (
@@ -239,9 +244,17 @@ export default function WorkspacePage() {
       <Sidebar />
       <Modal
         open={fileUploadModalOpen}
-        onClose={() => setFileUploadModalOpen(false)}
+        onClose={() => {
+          setFileUploadModalOpen(false);
+          fetchWorkspaceUploads();
+        }}
       >
-        <UploadPage />
+        <UploadPage
+          onComplete={() => {
+            setFileUploadModalOpen(false);
+            fetchWorkspaceUploads();
+          }}
+        />
       </Modal>
       <Modal open={showPicker} onClose={() => setShowPicker(false)}>
         <OneDrivePicker
