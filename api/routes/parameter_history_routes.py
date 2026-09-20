@@ -5,6 +5,7 @@ from api.controllers.auth_controller import verify_token_controller
 from api.controllers.parameter_history_controller import(
     list_history_controller,
     add_history_controller,
+    revert_history_controller
 )
 from api.models.parameter_history import HistoryEntryCreate
 router = APIRouter(prefix="/workspaces", tags=["Parameter History"])
@@ -26,5 +27,9 @@ def list_history_route(workspace_id: str, upload_id: str, tab: str, current_user
 def add_history_route(workspace_id: str, request: HistoryEntryCreate, current_user: CurrentUser):
     return add_history_controller(workspace_id, request, current_user["id"])
 
+
+@router.post("/{workspace_id}/history/{entry_id}/revert", summary="Revert a parameter change", status_code=201)
+def revert_history_route(workspace_id: str, entry_id: str, current_user: CurrentUser):
+    return revert_history_controller(workspace_id, entry_id, current_user["id"])
 
 
