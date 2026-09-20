@@ -15,6 +15,7 @@ def list_history(workspace_id:str, user_id: str, upload_id: str, tab:str, limit:
         .eq("upload_id", upload_id)
         .eq("tab", tab)
         .order("created_at", desc=True)
+        .limit(limit)
         .execute()
     )
     return response.data or []
