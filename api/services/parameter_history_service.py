@@ -45,4 +45,19 @@ def add_history_entry(workspace_id: str, user_id: str, upload_id: str, tab: str,
     return response.data[0]
 
 def revert_history_entry(workspace_id: str, user_id: str, entry_id: str) -> dict:
+    get_workspace_by_id(workspace_id, user_id)
+    
+    supabase = get_supabase_admin()
+    response = (
+            supabase.table("parameter_history")
+            .select("*")
+            .eq("id", entry_id)
+            .eq("workspace_id", workspace_id)
+            .execute()
+        )
+    if not response.data:
+            raise ValueError("History entry not found.")
+
+    original = response.data[0]
+    
     return{}
