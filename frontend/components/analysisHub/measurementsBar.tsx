@@ -35,7 +35,6 @@ export function MeasurementsBar({
     clearSelectedChannels,
     selectedChannels,
     isMultiChannel,
-    setIsMultiChannel,
   } = useHdf5Data();
 
   const [shownChannels, setShownChannels] = useState<number[]>([]);
@@ -137,7 +136,7 @@ export function MeasurementsBar({
                 size="sm"
                 disabled={num_measurements === 0}
                 onClick={() => {
-                  selectAllChannels(num_measurements);
+                  selectAllChannels();
                 }}
               >
                 Select All
