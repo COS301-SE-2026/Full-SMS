@@ -111,7 +111,7 @@ interface Hdf5DataContextType {
   //selected channels (checkbox selection)
   selectedChannels: Set<string>;
   toggleSelectedChannel: (channel_id: string) => void;
-  selectAllChannels: (total: number) => void;
+  selectAllChannels: () => void;
   clearSelectedChannels: () => void;
 
   spectraHeatMapColor: string;
@@ -214,6 +214,7 @@ export function Hdf5DataProvider({
 
   // Reset results if user switches to a different upload
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCpaResults({});
     setCpaProcessingIds(new Set());
     setGroupingResults({});
@@ -441,6 +442,7 @@ export function Hdf5DataProvider({
       setGroupingData,
       setGroupingResults,
       setGroupingResultForMeasurement,
+      groupingResults,
 
       currentUploadName,
       setCurrentUploadName,
@@ -475,6 +477,9 @@ export function Hdf5DataProvider({
       confidence,
       cpaData,
       setCpaData,
+      setGroupingResultForMeasurement,
+      setGroupingData,
+      selectAllChannels,
       cpaResults,
       setCpaResultForMeasurement,
       clearCpaResults,
@@ -492,6 +497,7 @@ export function Hdf5DataProvider({
       correlationData,
       selectedChannels,
       isMultiChannel,
+      groupingResults
     ],
   );
 

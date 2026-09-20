@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { Card } from "@/components/ui";
 import Plot from "react-plotly.js";
@@ -7,11 +7,12 @@ import { colors } from "@/lib/tokens";
 export default function GroupingCharts() {
   let x_coords_intensity: number[] = [];
   let y_coords_intensity: number[] = [];
-  const [selectedGroup, setSelectedGroup] = useState<number>();
-  const { hdf5Data, groupingData, cpaData, bin, currentMeasurement } =
-    useHdf5Data();
+  const [selectedGroupState, setSelectedGroupState] = useState<{measurementId: string;group: number;} | null>(null);
 
-  if (
+  const { hdf5Data, groupingData, cpaData, bin, currentMeasurement } = useHdf5Data();
+  const selectedGroup = (selectedGroupState?.measurementId === currentMeasurement) ? selectedGroupState.group : undefined;
+  
+    if (
     hdf5Data &&
     hdf5Data?.counts.length !== 0 &&
     hdf5Data?.time_bins.length !== 0
@@ -55,7 +56,7 @@ export default function GroupingCharts() {
   }, [cpaData]);
 
   const groupingOverlays = useMemo(() => {
-    if (!groupingData?.steps) {
+    if (!groupingData?.steps || groupingData.steps.length === 0) {
       return [];
     }
 
@@ -65,7 +66,7 @@ export default function GroupingCharts() {
         : groupingData.optimal_step_index;
     const currentStep = groupingData.steps[currentStepidx];
 
-    const sortedStepGroups = [...currentStep.groups].sort(
+    const sortedStepGroups = [...currentStep?.groups].sort(
       (a, b) => a.intensity_cps - b.intensity_cps,
     );
     const groupIntensities = sortedStepGroups.map(
@@ -128,8 +129,8 @@ export default function GroupingCharts() {
 
   const handleGroupSelect = (e: any) => {
     if (e.points && e.points.length > 0) {
-      const groupIdx = e.points[0].pointIndex;
-      setSelectedGroup(groupIdx);
+      const groupIdx = e.points[0].pointIndex
+       setSelectedGroupState({ measurementId: currentMeasurement, group: groupIdx })
     }
   };
 
@@ -186,12 +187,12 @@ export default function GroupingCharts() {
               showgrid: true,
               gridcolor: colors.border,
               gridwidth: 1,
-              title: {text:"Time (ms)"},
+              title: { text: "Time (ms)" },
             },
             yaxis: {
               range: [0, Math.max(...y_coords_intensity)],
               autorange: false,
-              title: {text:"Counts/bin"}
+              title: { text: "Counts/bin" },
             },
             font: {
               family: "JetBrains Mono, monospace",
@@ -235,13 +236,13 @@ export default function GroupingCharts() {
               plot_bgcolor: colors.card,
               paper_bgcolor: colors.card,
               xaxis: {
-                title: {text:"Number of groups"},
+                title: { text: "Number of groups" },
                 showgrid: true,
                 gridcolor: colors.border,
                 zeroline: false,
               },
               yaxis: {
-                title: {text:"BIC"},
+                title: { text: "BIC" },
                 showgrid: true,
                 gridcolor: colors.border,
                 zeroline: false,
@@ -268,20 +269,30 @@ export default function GroupingCharts() {
               </tr>
             </thead>
             <tbody>
-              {groupingData?.steps[
-                selectedGroup ? selectedGroup : groupingData?.optimal_step_index
-              ].groups.map((group) => (
-                <tr key={group.group_id}>
-                  <td className="text-center">{group.group_id + 1}</td>
-                  <td className="text-center">{group.level_indices.length}</td>
-                  <td className="text-center">
-                    {Math.round(group.intensity_cps)}
-                  </td>
-                  <td className="text-center">
-                    {group.total_dwell_time_s.toPrecision(4)}
-                  </td>
-                </tr>
-              ))}
+              {(() => {
+                const stepIdx =
+                  selectedGroup !== undefined
+                    ? selectedGroup
+                    : groupingData?.optimal_step_index;
+                const step =
+                  stepIdx !== undefined
+                    ? groupingData?.steps?.[stepIdx]
+                    : undefined;
+                return step?.groups?.map((group) => (
+                  <tr key={group.group_id}>
+                    <td className="text-center">{group.group_id + 1}</td>
+                    <td className="text-center">
+                      {group.level_indices.length}
+                    </td>
+                    <td className="text-center">
+                      {Math.round(group.intensity_cps)}
+                    </td>
+                    <td className="text-center">
+                      {group.total_dwell_time_s.toPrecision(4)}
+                    </td>
+                  </tr>
+                ));
+              })()}
             </tbody>
           </table>
         </div>

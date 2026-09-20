@@ -16,7 +16,7 @@ export default function ExportPanel() {
                     <div className = "flex items-center gap-2 text-sm text-foreground/60">
                         <span>{form.selectedMeasurements.size} of {form.totalMeasurements} Measurements selected</span>
                         
-                        <Button variant="secondary" size="sm" onClick={() => form.selectAllmeasurements(form.totalMeasurements)}>
+                        <Button variant="secondary" size="sm" onClick={() => form.selectAllMeasurements(form.totalMeasurements)}>
                             Select all
                         </Button>
                         <Button variant="secondary" size="sm" onClick={form.clearSelectedMeasurements}>
