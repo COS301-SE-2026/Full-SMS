@@ -22,6 +22,9 @@ def list_history_route(workspace_id: str, upload_id: str, tab: str, current_user
     return list_history_controller(workspace_id, current_user["id"], upload_id, tab)
 
 
-@router.get("/{workspace_id}/history", summary="Record a parameter change", status_code=201)
+@router.post("/{workspace_id}/history", summary="Record a parameter change", status_code=201)
 def add_history_route(workspace_id: str, request: HistoryEntryCreate, current_user: CurrentUser):
     return add_history_controller(workspace_id, request, current_user["id"])
+
+
+
