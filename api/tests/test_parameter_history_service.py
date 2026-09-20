@@ -52,3 +52,26 @@ class TestaddHistoryEntry:
         with pytest.raises(RuntimeError):
             add_history_entry(sample_workspace_id, sample_user_id, "u1", "intensity", "bin", new_value=20)
 
+
+class testRevertHistoryEntry:
+    def test_revert_(self, mocks, sample_workspace_id, sample_user_id):
+        owner, client = mocks
+        original = {"id": "h1", "upload_id": "u1", "tab": "intensity", "parameter": "bin", "old_value": 10, "new_value": 20, "measurement_id": None}
+
+        found = MagicMock()
+        found.data = [original]
+        (client.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value) = found
+        inserted = MagicMock()
+        inserted.data = [{"id": "h2"}]
+        client.table.return_value.insert.return_value.execute.return_value = inserted
+
+        from api.services.parameter_history_service import revert_history_entry
+        result = revert_history_entry(sample_workspace_id, sample_user_id, "h1")
+
+        row = client.table.return_value.insert.call_args[0][0]
+        assert row["old_value"] == 20
+        assert row["new_value"] == 10
+        assert row["author_id"] == sample_user_id
+        assert result == {"id": "h2"}
+        client.table.return_value.update.assert_not_called()
+        client.table.return_value.delete.assert_not_called()
