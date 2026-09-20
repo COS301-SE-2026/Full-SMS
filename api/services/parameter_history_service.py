@@ -36,6 +36,10 @@ def add_historyEntry(workspace_id: str, user_id: str, upload_id: str, tab: str, 
         "author_id": user_id,
         
     }
-    
+
     response = supabase.table("parameter_history").insert(row).execute()
+
+    if not response.data:
+        raise ValueError("Could not record history entry")
+    
     return response.data[0]
