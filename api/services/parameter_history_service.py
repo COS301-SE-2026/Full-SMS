@@ -43,3 +43,6 @@ def add_history_entry(workspace_id: str, user_id: str, upload_id: str, tab: str,
         raise RuntimeError("Failed to record history entry.")
     
     return response.data[0]
+
+def revert_history_entry(workspace_id: str, user_id: str, entry_id: str) -> dict:
+    return{}
