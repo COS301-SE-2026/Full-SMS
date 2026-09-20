@@ -13,6 +13,7 @@ def list_history(workspace_id:str, user_id: str, upload_id: str, tab:str, limit:
         .select("*")
         .eq("workspace_id", workspace_id)
         .eq("upload_id", upload_id)
+        .eq("tab", tab)
         .execute()
     )
     return response.data or []
