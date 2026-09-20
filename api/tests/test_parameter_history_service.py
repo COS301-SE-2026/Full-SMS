@@ -23,4 +23,21 @@ class TestListHistory:
 
         assert result == [{"id": "h1", "parameter": "bin"}]
         owner.assert_called_once_with(sample_workspace_id, sample_user_id)
- 
+
+
+class TestaddHistoryEntry:
+    def test_insertrow(self, mocks, sample_workspace_id, sample_user_id):
+        owner, client = mocks
+        response = MagicMock()
+        response.data = [{"id": "h1"}]
+        client.table.return_value.insert.return_value.execute.return_value = response
+
+        from api.services.parameter_history_service import add_history_entry
+        result = add_history_entry(sample_workspace_id, sample_user_id, "u1", "intensity", "bin", new_value=20, old_value=10)
+
+        row = client.table.return_value.insert.call_args[0][0]
+        assert row["author_id"] == sample_user_id
+        assert row["old_value"] == 10
+        assert row["new_value"] == 20
+        assert result == {"id": "h1"}
+
