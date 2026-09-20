@@ -41,3 +41,14 @@ class TestaddHistoryEntry:
         assert row["new_value"] == 20
         assert result == {"id": "h1"}
 
+    def test_insert_returns_nothing(self, mocks, sample_workspace_id, sample_user_id):
+        owner, client = mocks
+        response = MagicMock()
+        response.data = []
+        client.table.return_value.insert.return_value.execute.return_value = response
+
+
+        from api.services.parameter_history_service import add_history_entry
+        with pytest.raises(RuntimeError):
+            add_history_entry(sample_workspace_id, sample_user_id, "u1", "intensity", "bin", new_value=20)
+
