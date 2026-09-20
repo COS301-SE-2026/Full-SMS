@@ -21,4 +21,5 @@ def list_history(workspace_id:str, user_id: str, upload_id: str, tab:str, limit:
     return response.data or []
 
 def add_historyEntry(workspace_id: str, user_id: str, upload_id: str, tab: str, parameter:str, new_value, old_value=None, measurement_id: str | None = None) -> dict:
+    get_workspace_by_id(workspace_id, user_id)
     return {}
