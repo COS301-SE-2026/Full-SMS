@@ -59,5 +59,14 @@ def revert_history_entry(workspace_id: str, user_id: str, entry_id: str) -> dict
             raise ValueError("History entry not found.")
 
     original = response.data[0]
-    
-    return{}
+
+    return add_history_entry(
+         workspace_id=workspace_id,
+         user_id=user_id,
+         upload_id=original["upload_id"],
+         tab=original["tab"],
+         parameter=original["parameter"],
+         new_value=original["old_value"],
+         old_value=original["new_value"],
+         measurement_id=original["measurement_id"], 
+    )
