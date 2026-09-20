@@ -2,6 +2,7 @@ from fastapi import HTTPException, status
 from api.services.parameter_history_service import(
     list_history,
     add_history_entry,
+    revert_history_entry,
 )
 from api.models.parameter_history import HistoryEntryCreate
 
@@ -33,3 +34,16 @@ def add_history_controller(workspace_id: str, request: HistoryEntryCreate, user_
         raise HTTPException( status_code=status.HTTP_404_NOT_FOUND, detail=str(valueError))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+def revert_history_controller(workspace_id: str, entry_id: str, user_id: str) -> dict:
+    try:
+        entry = revert_history_entry(workspace_id, user_id, entry_id)
+        return {"success": True, "entry": entry}
+    except ValueError as valerror:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(valerror))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+    
