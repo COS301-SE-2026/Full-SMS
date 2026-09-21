@@ -1,0 +1,88 @@
+import pytest
+from unittest.mock import MagicMock, patch
+
+
+@pytest.fixture
+def mocks():
+    with patch("api.services.parameter_history_service.get_workspace_by_id") as owner, \
+        patch("api.services.parameter_history_service.get_supabase_admin") as admin:
+        mock_client = MagicMock()
+        admin.return_value = mock_client
+        yield owner, mock_client
+    
+class TestListHistory:
+    def test_returns_entries(self, mocks, sample_workspace_id, sample_user_id):
+        owner, client = mocks
+        response = MagicMock()
+        response.data = [{"id": "h1", "parameter": "bin"}]
+        (client.table.return_value.select.return_value.eq.return_value.eq.return_value.eq.return_value.order.return_value
+         .limit.return_value.execute.return_value) = response
+
+        from api.services.parameter_history_service import list_history
+        result = list_history(sample_workspace_id, sample_user_id, "u1", "intensity")
+
+        assert result == [{"id": "h1", "parameter": "bin"}]
+        owner.assert_called_once_with(sample_workspace_id, sample_user_id)
+
+
+class TestAddHistoryEntry:
+    def test_inserts_row_with_author_from_user(self, mocks, sample_workspace_id, sample_user_id):
+        owner, client = mocks
+        response = MagicMock()
+        response.data = [{"id": "h1"}]
+        client.table.return_value.insert.return_value.execute.return_value = response
+
+        from api.services.parameter_history_service import add_history_entry
+        result = add_history_entry(sample_workspace_id, sample_user_id, "u1", "intensity", "bin", new_value=20, old_value=10)
+
+        row = client.table.return_value.insert.call_args[0][0]
+        assert row["author_id"] == sample_user_id
+        assert row["old_value"] == 10
+        assert row["new_value"] == 20
+        assert result == {"id": "h1"}
+
+    def test_raises_when_insert_returns_nothing(self, mocks, sample_workspace_id, sample_user_id):
+        owner, client = mocks
+        response = MagicMock()
+        response.data = []
+        client.table.return_value.insert.return_value.execute.return_value = response
+
+
+        from api.services.parameter_history_service import add_history_entry
+        with pytest.raises(RuntimeError):
+            add_history_entry(sample_workspace_id, sample_user_id, "u1", "intensity", "bin", new_value=20)
+
+
+class TestRevertHistoryEntry:
+    def test_revert_adds_new_entry_with_swapped_values(self, mocks, sample_workspace_id, sample_user_id):
+        owner, client = mocks
+        original = {"id": "h1", "upload_id": "u1", "tab": "intensity", "parameter": "bin", "old_value": 10, "new_value": 20, "measurement_id": None}
+
+        found = MagicMock()
+        found.data = [original]
+        (client.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value) = found
+        inserted = MagicMock()
+        inserted.data = [{"id": "h2"}]
+        client.table.return_value.insert.return_value.execute.return_value = inserted
+
+        from api.services.parameter_history_service import revert_history_entry
+        result = revert_history_entry(sample_workspace_id, sample_user_id, "h1")
+
+        row = client.table.return_value.insert.call_args[0][0]
+        assert row["old_value"] == 20
+        assert row["new_value"] == 10
+        assert row["author_id"] == sample_user_id
+        assert result == {"id": "h2"}
+        client.table.return_value.update.assert_not_called()
+        client.table.return_value.delete.assert_not_called()
+
+    def test_entry_notFound(self, mocks, sample_workspace_id, sample_user_id):
+        owner, client = mocks
+        found = MagicMock()
+        found.data = []
+        (client.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value) = found
+        
+        from api.services.parameter_history_service import revert_history_entry
+        with pytest.raises(ValueError):
+            revert_history_entry(sample_workspace_id, sample_user_id, "missing")
+        client.table.return_value.insert.assert_not_called() 
