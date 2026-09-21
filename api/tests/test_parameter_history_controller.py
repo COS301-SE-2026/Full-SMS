@@ -11,3 +11,10 @@ class TestListHistoryController:
             from api.controllers.parameter_history_controller import list_history_controller
             result = list_history_controller("ws1", "user1", "u1", "intensity")
         assert result == {"success": True, "history": [{"id": "h1"}]}
+
+
+    def test_workspace_notFound(self):
+            with patch(PATH, side_effect=ValueError("Workspace not found")):
+                from api.controllers.parameter_history_controller import list_history_controller
+                with pytest.raises(HTTPException) as exc: list_history_controller("ws1", "user1", "u1", "intensity")
+            assert exc.value.status_code == 404
