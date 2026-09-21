@@ -210,3 +210,44 @@ def delete_workspace_upload(workspace_id: str, upload_id: str, user_id: str) -> 
         .execute()
     )
     return {"deleted": True, "upload_id": upload_id}
+
+def add_workspace_member (workspace_id: str, user_id: str) -> dict:
+    supabase = get_supabase_admin()
+    response = (
+        supabase.table("workspaces")
+        .select("*")
+        .eq("id", workspace_id)
+        .single()
+        .execute()
+    )
+
+   
+    if not response.data:
+        raise ValueError("Workspace not found")
+
+    data = response.data
+    members = data["member_ids"]
+    is_owner = user_id == data["user_id"] 
+    is_member = user_id in members
+
+    if is_owner or is_member:
+        data["already_member"] = True
+        return data
+    else:
+        members.append(user_id)
+        update_data = {"member_ids": members}
+        response = (
+                supabase.table("workspaces")
+                .update(update_data)
+                .eq("id", workspace_id)
+                .execute()
+            )
+    if not response.data:
+            raise ValueError("Workspace not found or update failed.")
+    
+    result = response.data[0]
+    result["already_member"] = False
+    return result
+    
+
+
