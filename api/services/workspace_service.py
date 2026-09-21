@@ -31,7 +31,6 @@ def get_workspace_by_id(workspace_id: str, user_id: str) -> Optional[dict]:
         supabase.table("workspaces")
         .select("*, workspace_files(count)")
         .eq("id", workspace_id)
-        .eq("user_id", user_id)
         .single()
         .execute()
     )
@@ -40,7 +39,13 @@ def get_workspace_by_id(workspace_id: str, user_id: str) -> Optional[dict]:
         raise ValueError("Workspace not found")
 
     data = response.data
+    members = data["member_ids"]
+    is_owner = user_id == data["user_id"] 
+    is_member = user_id in members
 
+    if not is_owner and not is_member:
+        raise ValueError("Workspace not found")
+    
     file_count = 0
     if "workspace_files" in data and len(data["workspace_files"]) > 0:
         file_count = data["workspace_files"][0].get("count", 0)
@@ -105,8 +110,12 @@ def update_workspace(workspace_id: str, user_id: str, name: Optional[str] = None
                 "Invalid workspace status. Must be 'active' or 'archived'.")
         update_data["status"] = workspace_status
 
+   
     if not update_data:
-        return get_workspace_by_id(workspace_id, user_id)
+        workspace = get_workspace_by_id(workspace_id, user_id)
+        if workspace["user_id"] != user_id:
+            raise ValueError("Workspace not found")
+        return workspace
 
     response = (
         supabase.table("workspaces")
@@ -127,6 +136,9 @@ def delete_workspace(workspace_id: str, user_id: str) -> bool:
 
     workspace = get_workspace_by_id(workspace_id, user_id)
 
+    if workspace["user_id"] != user_id:
+        raise ValueError("Workspace not found")
+    
     if workspace.get("storage_bucket_path"):
         try:
             files = supabase.storage.from_(
@@ -165,12 +177,14 @@ def unarchive_workspace(workspace_id: str, user_id: str) -> dict:
 
 def get_workspace_uploads(workspace_id: str, user_id: str) -> dict:
     supabase = get_supabase_admin()
+
+    get_workspace_by_id(workspace_id, user_id)
+
     response = (supabase.table("hdf5_uploads")
                 .select("*")
                 .eq("workspace_id", workspace_id)
-                .eq("user_id", user_id)
                 .execute()
-                )
+                    )
     return response.data
 
 def delete_workspace_upload(workspace_id: str, upload_id: str, user_id: str) -> dict:
