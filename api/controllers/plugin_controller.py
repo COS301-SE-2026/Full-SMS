@@ -1,4 +1,6 @@
 from fastapi import HTTPException, status
+from fastapi.responses import Response
+from typing import List, Optional
 from api.services.plugin_service import (
     get_user_plugins,
     get_plugin_by_id,
@@ -7,15 +9,22 @@ from api.services.plugin_service import (
     toggle_plugin,
     delete_plugin,
     update_installed_plugin,
+    get_available_outputs_for_chaining,
 )
 from api.models.plugin import (
     PluginCreate,
     PluginUpdate,
     PluginToggle,
     PluginExecute,
+    PluginExportRequest,
+    PluginExportAllRequest,
 )
 from api.services.plugin_execution_service import execute_plugin
 from api.services.measurement_service import get_measurement_data
+from api.services.plugin_export_service import (
+    export_plugin_output,
+    export_all_outputs,
+)
 
 
 def get_user_plugins_controller(user_id: str):
@@ -199,6 +208,75 @@ def update_installed_plugin_controller(plugin_id: str, user_id: str) -> dict:
         }
     except ValueError as ve:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
+
+
+def export_plugin_output_controller(request: PluginExportRequest, user_id: str):
+    try:
+        result = export_plugin_output(
+            execution_id=request.execution_id,
+            output_id=request.output_id,
+            format=request.format.value,
+            user_id=user_id,
+        )
+        return Response(
+            content=result["content"],
+            media_type=result["content_type"],
+            headers={
+                "Content-Disposition": f'attachment; filename="{result["filename"]}"'
+            },
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+    except ImportError as ie:
+        raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail=str(ie))
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
+
+
+def export_all_outputs_controller(request: PluginExportAllRequest, user_id: str):
+    try:
+        result = export_all_outputs(
+            execution_id=request.execution_id,
+            format=request.format.value,
+            user_id=user_id,
+        )
+        return Response(
+            content=result["content"],
+            media_type=result["content_type"],
+            headers={
+                "Content-Disposition": f'attachment; filename="{result["filename"]}"'
+            },
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
+
+
+def get_available_outputs_controller(
+    workspace_id: str,
+    measurement_id: str,
+    user_id: str,
+    accepted_types: Optional[List[str]] = None,
+    accepted_plugin_ids: Optional[List[str]] = None,
+) -> dict:
+    try:
+        outputs = get_available_outputs_for_chaining(
+            workspace_id=workspace_id,
+            measurement_id=measurement_id,
+            user_id=user_id,
+            accepted_types=accepted_types,
+            accepted_plugin_ids=accepted_plugin_ids,
+        )
+        return {"success": True, "outputs": outputs}
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
