@@ -162,6 +162,11 @@ export function MeasurementsBar({
             const MultiSelected = selectedMeasurements.has(measurementID);
             const isOpen = shownChannels.includes(m.id);
 
+            const channelIcon = 
+            isMultiChannel 
+            ? (isOpen ? (<ChevronDown size={12} className="text-primary" />) : (<ChevronRight size={12} className="hover:text-primary" />)) 
+            : null;
+
             return (
               <div
                 key={m.name}
@@ -182,20 +187,12 @@ export function MeasurementsBar({
                         className="mr-2"
                       />
                     )}
-                    <span
+                    <button
                       onClick={() => toggleChannelTree(m.id)}
                       className=""
                     >
-                      {isMultiChannel && (
-                        <button onClick={() => toggleChannelTree(m.id)}>
-                          {isOpen ? (
-                            <ChevronDown size={12} className="text-primary" />
-                          ) : (
-                            <ChevronRight size={12} className="hover:text-primary" />
-                          )}
-                        </button>
-                      )}
-                    </span>
+                      {channelIcon}
+                    </button>
                     <button
                       className={cn(
                         "text-xs truncate h-full w-full cursor-pointer",
