@@ -4,9 +4,9 @@ from typing import List, Optional, Dict, Any
 from supabase import create_client, Client
 from api.services.plugin_marketplace_service import get_marketplace_plugin_by_id
 
-
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
+DATA_OUTPUT_TYPES = ["dataset", "array", "timeseries", "fitresult", "dataframe"]
 
 
 def get_supabase_admin() -> Client:
@@ -278,3 +278,140 @@ def update_installed_plugin(plugin_id: str, user_id: str) -> dict:
         raise RuntimeError("failed to update plugin")
 
     return get_plugin_by_id(plugin_id, user_id)
+
+
+def get_execution_by_id(execution_id: str) -> Optional[dict]:
+    supabase = get_supabase_admin()
+
+    response = (
+        supabase.table("plugin_executions")
+        .select("*, user_plugins!inner(user_id, name, config)")
+        .eq("id", execution_id)
+        .single()
+        .execute()
+    )
+
+    if not response.data:
+        return None
+
+    return response.data
+
+
+def _is_valid_chainable_output(
+    output: dict, accepted_types: Optional[List[str]]
+) -> bool:
+    output_type = output.get("type")
+    if output_type not in DATA_OUTPUT_TYPES:
+        return False
+    if output.get("chainable") is False:
+        return False
+    if accepted_types and output_type not in accepted_types:
+        return False
+    return True
+
+
+def _build_output_reference(
+    execution: dict,
+    plugin_info: dict,
+    output: dict,
+    workspace_id: str,
+    measurement_id: str,
+) -> dict:
+    return {
+        "plugin_id": plugin_info.get("id"),
+        "plugin_name": plugin_info.get("name"),
+        "execution_id": execution.get("id"),
+        "output_id": output.get("id"),
+        "output_label": output.get("label"),
+        "output_type": output.get("type"),
+        "executed_at": execution.get("created_at"),
+        "workspace_id": workspace_id,
+        "measurement_id": measurement_id,
+    }
+
+
+def _extract_outputs_from_execution(
+    execution: dict,
+    workspace_id: str,
+    measurement_id: str,
+    accepted_types: Optional[List[str]],
+    accepted_plugin_ids: Optional[List[str]],
+) -> List[dict]:
+    plugin_info = execution.get("user_plugins", {})
+
+    if accepted_plugin_ids and plugin_info.get("id") not in accepted_plugin_ids:
+        return []
+
+    outputs = plugin_info.get("config", {}).get("outputs", [])
+    results = execution.get("results", {})
+    extracted = []
+
+    for output in outputs:
+        if not _is_valid_chainable_output(output, accepted_types):
+            continue
+        if results.get(output.get("id")) is None:
+            continue
+        extracted.append(
+            _build_output_reference(
+                execution, plugin_info, output, workspace_id, measurement_id
+            )
+        )
+
+    return extracted
+
+
+def get_available_outputs_for_chaining(
+    workspace_id: str,
+    measurement_id: str,
+    user_id: str,
+    accepted_types: Optional[List[str]] = None,
+    accepted_plugin_ids: Optional[List[str]] = None,
+) -> List[dict]:
+    supabase = get_supabase_admin()
+
+    response = (
+        supabase.table("plugin_executions")
+        .select(
+            "id, plugin_id, results, created_at, user_plugins!inner(id, user_id, name, config)"
+        )
+        .eq("workspace_id", workspace_id)
+        .eq("measurement_id", measurement_id)
+        .eq("status", "success")
+        .eq("user_plugins.user_id", user_id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+
+    if not response.data:
+        return []
+
+    available_outputs = []
+    for execution in response.data:
+        available_outputs.extend(
+            _extract_outputs_from_execution(
+                execution,
+                workspace_id,
+                measurement_id,
+                accepted_types,
+                accepted_plugin_ids,
+            )
+        )
+
+    return available_outputs
+
+
+def get_chained_input_data(execution_id: str, output_id: str, user_id: str) -> Any:
+    execution = get_execution_by_id(execution_id)
+
+    if not execution:
+        raise ValueError("Execution not found")
+
+    plugin_info = execution.get("user_plugins", {})
+    if plugin_info.get("user_id") != user_id:
+        raise ValueError("Access denied")
+
+    results = execution.get("results", {})
+    if output_id not in results:
+        raise ValueError(f"Output '{output_id}' not found in execution results")
+
+    return results[output_id]
