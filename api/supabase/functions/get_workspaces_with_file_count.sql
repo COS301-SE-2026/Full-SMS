@@ -17,7 +17,7 @@ AS $$
     COUNT(f.id) AS file_count
   FROM public.workspaces w
   LEFT JOIN public.workspace_files f ON w.id = f.workspace_id
-  WHERE w.user_id = p_user_id
+  WHERE w.user_id = p_user_id OR p_user_id = ANY(w.member_ids)
   GROUP BY w.id;
 $$;
 
