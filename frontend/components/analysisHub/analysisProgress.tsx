@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface ProgressBarProps {
-    totalMeasurements: number,
-    measurementsLeft: number
+    readonly totalMeasurements: number,
+    readonly measurementsLeft: number
 }
 
 export function AnalysisProgress({totalMeasurements, measurementsLeft}: ProgressBarProps){

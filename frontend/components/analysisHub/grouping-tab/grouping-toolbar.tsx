@@ -1,4 +1,4 @@
-import { Button, Loader } from "@/components/ui";
+import { Button } from "@/components/ui";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { UseCeleryPolling } from "@/hooks/useCeleryPolling";
 import { ClusteringReq, ClusteringRes, LevelData } from "@/types/analysis";
@@ -35,10 +35,8 @@ async function runGroupingJob(levels: LevelData[]): Promise<ClusteringRes> {
 
 export default function GroupingToolbar() {
   const {
-    groupingData,
     setGroupingData,
     cpaData,
-    getAllResolvedLevels,
     cpaResults,
     selectedMeasurements,
     setGroupingResultForMeasurement
@@ -46,7 +44,7 @@ export default function GroupingToolbar() {
   const { errorToast } = useToast()
   const [isBatchProcessing, setIsBatchProcessing] = useState(false)
   const [batchRemaining, setBatchRemaining] = useState(0)
-  const { execute, isProcessing, result, error } = UseCeleryPolling<
+  const { execute, isProcessing } = UseCeleryPolling<
     ClusteringReq,
     ClusteringRes
   >(

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { Card } from "@/components/ui";
 import Plot from "react-plotly.js";

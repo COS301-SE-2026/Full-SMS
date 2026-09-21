@@ -93,9 +93,6 @@ export function AnalysisToolbar() {
     currentUpload,
     currentMeasurement,
     setCpaData,
-    selectedChannels,
-    selectAllChannels,
-    selectAllMeasurements,
     selectedMeasurements,
     setCpaResultForMeasurement,
     cpaResults,
@@ -179,10 +176,6 @@ export function AnalysisToolbar() {
     }
     resolve("selected");
   };
-
-  const summary = hdf5Metadata?.measurements_summary?.filter(
-    (summ) => summ.id.toString() === currentMeasurement,
-  );
 
   return (
     <div className="flex flex-col border-b border-border bg-background flex-wrap  px-4 ">
