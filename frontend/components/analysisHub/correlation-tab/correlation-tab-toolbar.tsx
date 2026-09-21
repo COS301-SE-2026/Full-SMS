@@ -93,9 +93,9 @@ export default function CorrelationTabToolbar() {
     <div className="flex flex-row justify-between items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap">
       <div className="flex flex-row items-center gap-4">
         <h3 className="text-foreground">Correlation</h3>
-        <NumberField label="Window (ns)" value={window} onChange={setWindow} />
-        <NumberField label="Bin (ns)" value={bin} onChange={setBin} />
-        <NumberField label="Offset (ns)" value={offset} onChange={setOffset} />
+        <NumberField label="Window (ns)" value={window} onChange={setWindow} slider={false}/>
+        <NumberField label="Bin (ns)" value={bin} onChange={setBin} slider={false}/>
+        <NumberField label="Offset (ns)" value={offset} onChange={setOffset} slider={false}/>
         <Button variant={"primary"} size={"sm"} onClick={onCorrelationClick} disabled={!dualChannel}>
           Correlate
         </Button>

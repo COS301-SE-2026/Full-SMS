@@ -1,38 +1,38 @@
 import { useState } from "react";
-import { Play, Maximize2 } from "lucide-react";
+import { Maximize2 } from "lucide-react";
 import { Button } from "../../ui/Button";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { changePoint_Req } from "@/types/analysis";
 import { changePointAnalysis } from "@/services/analysisServices";
-import { Loader } from "../../ui";
 import { useToast } from "@/contexts/toastContext/ToastContext";
-import { AnalysisProgress } from "../analysisProgress";
+
+interface NumberFieldProps {
+  readonly label: string;
+  readonly value: number;
+  readonly slider?: boolean;
+  readonly onChange: (v: number) => void;
+}
 
 export function NumberField({
   label,
   value,
   onChange,
   slider = true,
-}: {
-  label: string;
-  value: number;
-  slider?: boolean;
-  onChange: (v: number) => void;
-}) {
+}: NumberFieldProps) {
   return (
     <div className="flex items-center gap-2">
       <label className="text-xs text-foreground/70 whitespace-nowrap">
         {label}
       </label>
 
-      <input
+      {slider && (<input
         type="range"
         min={0.1}
         max={1000}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className={`w-24 h-1.5 rounded-lg appearance-none bg-border cursor-pointer accent-primary ${slider ? "hidden" : ""}`}
-      />
+        className={`w-24 h-1.5 rounded-lg appearance-none bg-border cursor-pointer accent-primary`}
+      />)}
 
       <input
         type="number"
@@ -129,9 +129,21 @@ export function AnalysisToolbar() {
     }
   };
 
-  const resolveSelected = async () => {
-    if (selectedMeasurements.size === 0) return;
-    const ids = Array.from(selectedMeasurements);
+  const resolve = async (mode: string) => {
+    let ids: string[] = []
+    if (mode === "selected") {
+      if (selectedMeasurements.size === 0) return;
+       ids = Array.from(selectedMeasurements);
+    } 
+    else if (mode === "all") {
+      const summaries = hdf5Metadata?.measurements_summary;
+      if (!summaries || summaries.length === 0) return;
+       ids = summaries.map((m) => m.id.toString());
+    }
+    else{
+      errorToast("Invalid resolution mode selected")
+      return
+    }
     setCpaProcessingIds(new Set(ids));
     setIsLoading(true);
     for (const mId of ids) {
@@ -155,35 +167,9 @@ export function AnalysisToolbar() {
     setIsLoading(false);
   };
 
-  const resolveAll = async () => {
-    const summaries = hdf5Metadata?.measurements_summary;
-    if (!summaries || summaries.length === 0) return;
-    const ids = summaries.map((m) => m.id.toString());
-    setCpaProcessingIds(new Set(ids));
-    setIsLoading(true);
-    for (const mId of ids) {
-      const request: changePoint_Req = {
-        upload_id: currentUpload,
-        measurement_id: mId,
-        confidence: confidence,
-      };
-      try {
-        const response = await changePointAnalysis(request);
-        setCpaResultForMeasurement(mId, response);
-      } catch (e) {
-        console.error(`CPA failed for measurement ${mId}`, e);
-      }
-      setCpaProcessingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(mId);
-        return next;
-      });
-    }
-    setIsLoading(false);
-  };
 
   const onResolveAllClick = () => {
-    resolveAll();
+    resolve("all");
   };
 
   const onResolveSelectedClick = () => {
@@ -191,11 +177,13 @@ export function AnalysisToolbar() {
       errorToast("No measurements selected");
       return;
     }
-    resolveSelected();
+    resolve("selected");
   };
 
-  const summary = hdf5Metadata?.measurements_summary?.filter( summ => (summ.id).toString() === currentMeasurement)
-  
+  const summary = hdf5Metadata?.measurements_summary?.filter(
+    (summ) => summ.id.toString() === currentMeasurement,
+  );
+
   return (
     <div className="flex flex-col border-b border-border bg-background flex-wrap  px-4 ">
       <div className="flex items-center gap-4 h-12">
@@ -247,14 +235,18 @@ export function AnalysisToolbar() {
           </Button>
         </div>
       </div>
-        <div>
-          {isLoading && (
-            <span className="font-mono text-sm text-primary animate-pulse">
-              Resolving {cpaProcessingIds.size} Measurements ...
-            </span>
-          )}
-          {currentMeasurement in cpaResults && <p className="text-success text-xs font-mono">{cpaResults[currentMeasurement].levels?.length} levels</p>}
-        </div>
+      <div>
+        {isLoading && (
+          <span className="font-mono text-sm text-primary animate-pulse">
+            Resolving {cpaProcessingIds.size} Measurements ...
+          </span>
+        )}
+        {currentMeasurement in cpaResults && (
+          <p className="text-success text-xs font-mono">
+            {cpaResults[currentMeasurement].levels?.length} levels
+          </p>
+        )}
+      </div>
     </div>
   );
 }
