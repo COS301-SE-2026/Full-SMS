@@ -182,25 +182,20 @@ export function MeasurementsBar({
                         className="mr-2"
                       />
                     )}
-                    <button
+                    <span
                       onClick={() => toggleChannelTree(m.id)}
                       className=""
                     >
-                      {isOpen ? (
-                        isMultiChannel ? (
-                          <ChevronDown size={12} className="text-primary" />
-                        ) : (
-                          <></>
-                        )
-                      ) : isMultiChannel ? (
-                        <ChevronRight
-                          size={12}
-                          className="hover:text-primary"
-                        />
-                      ) : (
-                        <></>
+                      {isMultiChannel && (
+                        <button onClick={() => toggleChannelTree(m.id)}>
+                          {isOpen ? (
+                            <ChevronDown size={12} className="text-primary" />
+                          ) : (
+                            <ChevronRight size={12} className="hover:text-primary" />
+                          )}
+                        </button>
                       )}
-                    </button>
+                    </span>
                     <button
                       className={cn(
                         "text-xs truncate h-full w-full cursor-pointer",

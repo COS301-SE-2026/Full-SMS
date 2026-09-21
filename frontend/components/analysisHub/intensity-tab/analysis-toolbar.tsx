@@ -100,7 +100,7 @@ export function AnalysisToolbar() {
     cpaProcessingIds,
     hdf5Metadata,
   } = useHdf5Data();
-  const { errorToast, successToast } = useToast();
+  const { errorToast } = useToast();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -129,13 +129,21 @@ export function AnalysisToolbar() {
   const resolve = async (mode: string) => {
     let ids: string[] = []
     if (mode === "selected") {
-      if (selectedMeasurements.size === 0) return;
-       ids = Array.from(selectedMeasurements);
+      if (selectedMeasurements.size === 0) {
+        return
+      }
+      else{
+      ids = Array.from(selectedMeasurements);
+      }
     } 
     else if (mode === "all") {
       const summaries = hdf5Metadata?.measurements_summary;
-      if (!summaries || summaries.length === 0) return;
-       ids = summaries.map((m) => m.id.toString());
+      if (!summaries || summaries.length === 0) {
+        return
+      }
+      else{
+        ids = summaries.map((m) => m.id.toString());
+      }
     }
     else{
       errorToast("Invalid resolution mode selected")
