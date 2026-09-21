@@ -62,6 +62,8 @@ class TestGetWorkspaceById:
             with pytest.raises(ValueError, match="Workspace not found"):
                 get_workspace_by_id(sample_workspace_id, sample_user_id)
 
+    def test_add_workspace_member
+
 
 class TestCreateWorkspace:
     def test_creates_workspace(self, sample_user_id):
@@ -139,3 +141,9 @@ class TestUnarchiveWorkspace:
                 sample_workspace_id, sample_user_id, workspace_status="active"
             )
             assert result["status"] == "active"
+"""to be tested:
+    1. add_workspace_member
+    2. updated get_workspace_by_id
+    3. updated get_workspace_uploads
+    4. updated delete_workspace
+    5. updated update_workspace"""

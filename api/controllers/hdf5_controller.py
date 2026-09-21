@@ -6,6 +6,7 @@ import api.services.hdf5_services as read_hdf5_service
 import api.services.hdf5_upload_service as hdf5_upload_service
 import api.services.storage_service as storage_service
 import api.services.hdf5_job_service as hdf5_job_service
+import api.services.workspace_service as workspace_service
 from api.utils.supabase_client import supabaseClient
 
 def init_hdf5_upload(payload: dict, current_user: dict) -> dict:
@@ -17,6 +18,14 @@ def init_hdf5_upload(payload: dict, current_user: dict) -> dict:
         current_user (dict)
     """
 
+    try:
+        workspace = workspace_service.get_workspace_by_id(payload["workspace_id"], current_user["user"]["id"])
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+
+    if workspace["user_id"] != current_user["user"]["id"]:
+        raise HTTPException(status_code=403, detail="Only the owner can upload files")
+    
     hdf5_upload_service.validate_upload_request(payload["filename"], payload["size_bytes"])
     hdf5_upload_record = hdf5_upload_service.create_upload_record(user_id=current_user["user"]["id"], filename=payload["filename"],workspace_id=payload["workspace_id"] ,size_bytes=payload["size_bytes"], sha256=payload["sha256"])
     print(f"Created upload record: {hdf5_upload_record}")
@@ -29,8 +38,6 @@ def init_hdf5_upload(payload: dict, current_user: dict) -> dict:
         "file_size_bytes": hdf5_upload_record["size_bytes"],
         "filename": hdf5_upload_record["filename"],
     }
-
-
 
 def complete_hdf5_upload(upload_id: str, current_user: dict) -> dict:
     """
@@ -47,8 +54,6 @@ def complete_hdf5_upload(upload_id: str, current_user: dict) -> dict:
     hdf5_job_service.enqueue_parse(upload_id, current_user["user"]["id"], hdf5_upload["storage_key"])
 
     return {"status": "uploaded", "message": "Upload completed and parsing job queued."}
-
-
 
 def get_hdf5_upload_status(upload_id: str, current_user: dict) -> dict:
     """
