@@ -2,6 +2,9 @@ from fastapi import APIRouter, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from api.controllers.auth_controller import verify_token_controller
 from api.controllers.plugin_controller import (
+    export_all_outputs_controller,
+    export_plugin_output_controller,
+    get_available_outputs_controller,
     get_user_plugins_controller,
     get_plugin_by_id_controller,
     create_plugin_controller,
@@ -13,6 +16,9 @@ from api.controllers.plugin_controller import (
 )
 from api.models.plugin import (
     PluginCreate,
+    PluginExportAllRequest,
+    PluginExportAllRequest,
+    PluginExportRequest,
     PluginUpdate,
     PluginToggle,
     PluginExecute,
@@ -74,3 +80,28 @@ def execute_plugin(plugin_id: str, request: PluginExecute, current_user: Current
 )
 def update_installed_plugin(plugin_id: str, current_user: CurrentUser):
     return update_installed_plugin_controller(plugin_id, current_user["id"])
+
+
+@router.post("/export", summary="Export a single plugin output")
+def export_plugin_output(request: PluginExportRequest, current_user: CurrentUser):
+    return export_plugin_output_controller(request, current_user["id"])
+
+
+@router.post("/export/all", summary="Export all outputs from an execution")
+def export_all_outputs(request: PluginExportAllRequest, current_user: CurrentUser):
+    return export_all_outputs_controller(request, current_user["id"])
+
+
+@router.get("/outputs/available", summary="Get available outputs for chaining")
+def get_available_outputs(
+    workspace_id: str,
+    measurement_id: str,
+    current_user: CurrentUser,
+    accepted_types: str = None,
+    accepted_plugin_ids: str = None,
+):
+    types_list = accepted_types.split(",") if accepted_types else None
+    plugins_list = accepted_plugin_ids.split(",") if accepted_plugin_ids else None
+    return get_available_outputs_controller(
+        workspace_id, measurement_id, current_user["id"], types_list, plugins_list
+    )
