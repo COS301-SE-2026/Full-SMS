@@ -7,12 +7,19 @@ import { colors } from "@/lib/tokens";
 export default function GroupingCharts() {
   let x_coords_intensity: number[] = [];
   let y_coords_intensity: number[] = [];
-  const [selectedGroupState, setSelectedGroupState] = useState<{measurementId: string;group: number;} | null>(null);
+  const [selectedGroupState, setSelectedGroupState] = useState<{
+    measurementId: string;
+    group: number;
+  } | null>(null);
 
-  const { hdf5Data, groupingData, cpaData, bin, currentMeasurement } = useHdf5Data();
-  const selectedGroup = (selectedGroupState?.measurementId === currentMeasurement) ? selectedGroupState.group : undefined;
-  
-    if (
+  const { hdf5Data, groupingData, cpaData, bin, currentMeasurement } =
+    useHdf5Data();
+  const selectedGroup =
+    selectedGroupState?.measurementId === currentMeasurement
+      ? selectedGroupState.group
+      : undefined;
+
+  if (
     hdf5Data &&
     hdf5Data?.counts.length !== 0 &&
     hdf5Data?.time_bins.length !== 0
@@ -60,13 +67,16 @@ export default function GroupingCharts() {
       return [];
     }
 
-    const currentStepidx =
+    const currentStepIdx =
       selectedGroup !== undefined
         ? selectedGroup
         : groupingData.optimal_step_index;
-    const currentStep = groupingData.steps[currentStepidx];
+    const currentStep = groupingData.steps[currentStepIdx];
 
-    const sortedStepGroups = [...currentStep?.groups].sort(
+    if (!currentStep?.groups) {
+      return [];
+    }
+    const sortedStepGroups = [...currentStep.groups].sort(
       (a, b) => a.intensity_cps - b.intensity_cps,
     );
     const groupIntensities = sortedStepGroups.map(
@@ -129,8 +139,11 @@ export default function GroupingCharts() {
 
   const handleGroupSelect = (e: any) => {
     if (e.points && e.points.length > 0) {
-      const groupIdx = e.points[0].pointIndex
-       setSelectedGroupState({ measurementId: currentMeasurement, group: groupIdx })
+      const groupIdx = e.points[0].pointIndex;
+      setSelectedGroupState({
+        measurementId: currentMeasurement,
+        group: groupIdx,
+      });
     }
   };
 
