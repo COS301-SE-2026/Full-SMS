@@ -14,12 +14,8 @@ import {
   ChangePointResult,
   ClusteringRes,
   CorrelationRes,
+  LevelData,
 } from "@/types/analysis";
-
-// class IntensityRes(BaseModel):
-//     time_bins: List[float]       # X-axis ( time in milliseconds)
-//     counts: List[int]            # Y-axis (Raw photon counts per bin)
-//     intensity_cps: List[float]
 
 type Hdf5Response = {
   time_bins: number[];
@@ -39,36 +35,88 @@ export interface CachedPluginResult {
 }
 
 interface Hdf5DataContextType {
+  //initial intensity response
   hdf5Data: Hdf5Response | undefined;
   setHdf5Data: (data: Hdf5Response) => void;
+
+  //for client side upload progress updates
   isParsing: boolean;
   setIsParsing: (is_parsing: boolean) => void;
+
+  //currently loaded upload in analysis hub
   currentUpload: string;
   setCurrentUpload: (upload_id: string) => void;
+
+  //currently selected measuremnt
   currentMeasurement: string;
   setCurrentMeasurement: (measurement_id: string) => void;
+
+  //upload metadata
   setHdf5Metadata: (metadata: UploadMetadata) => void;
   hdf5Metadata: UploadMetadata | undefined;
+
   bin: number;
   setBin: (bin: number) => void;
+
   confidence: Confidence;
   setConfidence: (conf: Confidence) => void;
+
+  //single change point analysis result (derived from cpaResults for currentMeasurement)
   cpaData: ChangePointResult | undefined;
   setCpaData: (data: ChangePointResult) => void;
+
+  //collection of all CPA results for current upload
+  cpaResults: Record<string, ChangePointResult>;
+  setCpaResults: React.Dispatch<
+    React.SetStateAction<Record<string, ChangePointResult>>
+  >;
+  setCpaResultForMeasurement: (
+    measurementId: string,
+    result: ChangePointResult,
+  ) => void;
+  clearCpaResults: () => void;
+
+  //measurement IDs actively resolving (for sidebar spinners)
+  cpaProcessingIds: Set<string>;
+  setCpaProcessingIds: React.Dispatch<React.SetStateAction<Set<string>>>;
+
+  //aggregate all levels across all resolved measurements for grouping
+  getAllResolvedLevels: () => LevelData[];
+
   setCurrentWorkspaceId: (id: string) => void;
   currentWorkspaceId: string | null;
+
+  //grouping analysis results
   groupingData: ClusteringRes | undefined;
   setGroupingData: (data: ClusteringRes) => void;
+  groupingResults: Record<string, ClusteringRes>;
+  setGroupingResultForMeasurement: (
+    measurementId: string,
+    result: ClusteringRes,
+  ) => void;
+
+  //upload filename
   currentUploadName: string;
   setCurrentUploadName: (name: string) => void;
+
   heatMapColor: string;
   setHeatMapColor: (colour: string) => void;
+
+  //selected measurements(checkbox selection)
   selectedMeasurements: Set<string>;
-  toggleSelectedmeasurement: (measurement_id: string) => void;
-  selectAllmeasurements: (total: number) => void;
+  toggleSelectedMeasurement: (measurement_id: string) => void;
+  selectAllMeasurements: (total: number) => void;
   clearSelectedMeasurements: () => void;
+
+  //selected channels (checkbox selection)
+  selectedChannels: Set<string>;
+  toggleSelectedChannel: (channel_id: string) => void;
+  selectAllChannels: () => void;
+  clearSelectedChannels: () => void;
+
   spectraHeatMapColor: string;
   setSpectraHeatMapColor: (colour: string) => void;
+
   getPluginResult: (
     pluginId: string,
     workspaceId: string,
@@ -81,8 +129,12 @@ interface Hdf5DataContextType {
     result: CachedPluginResult,
   ) => void;
   clearPluginResults: () => void;
+
+  //single correlation analysis result
   correlationData: CorrelationRes | undefined;
   setCorrelationData: (data: CorrelationRes) => void;
+
+  isMultiChannel: boolean;
 }
 
 const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(
@@ -98,46 +150,144 @@ export function Hdf5DataProvider({
     time_bins: [],
     counts: [],
     intensity_cps: [],
-  }); // holds data for intensity graph plotting
-  const [cpaData, setCpaData] = useState<ChangePointResult>(); // holds data for levlels plotting ("Resolve")
+  });
+
+  // Multi-measurement CPA state
+  const [cpaResults, setCpaResults] = useState<
+    Record<string, ChangePointResult>
+  >({});
+  const [cpaProcessingIds, setCpaProcessingIds] = useState<Set<string>>(
+    new Set(),
+  );
+
   const [hdf5Metadata, setHdf5Metadata] = useState<
     UploadMetadata | undefined
-  >(); // holds the metadata of an hdf5 file name, number of measurements etc
-  const [isParsing, setIsParsing] = useState<boolean>(false); // boolean for when an hdf5 is being parsed through or not
+  >();
+  const [isParsing, setIsParsing] = useState<boolean>(true);
+
   const [currentUpload, setCurrentUpload] = useState<string>(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("currentUpload") || "";
     }
     return "";
-  }); // lets the analysis hub the current_upload id so the api knows which data to pull from the redis cache or db
+  });
+
   const [currentMeasurement, setCurrentMeasurement] = useState<string>(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("currentMeasurement") || "0";
     }
     return "0";
-  }); // holds the id of the current selected measurement in the measurementbar/tree, so the right measurement is fetched from the cache or db
-  const [bin, setBin] = useState<number>(10); // set by the bin slider in the intensity toolbar, sent in the intensity analysis payload
-  const [confidence, setConfidence] = useState<Confidence>(90); // set by the confidence input in the analysis toolbar, sent in the Resolve levels payload
-  const [groupingData, setGroupingData] = useState<ClusteringRes>();
+  });
+
+  const [bin, setBin] = useState<number>(10);
+  const [confidence, setConfidence] = useState<Confidence>(90);
+
+  const [groupingResults, setGroupingResults] = useState<
+    Record<string, ClusteringRes>
+  >({});
+  const [correlationData, setCorrelationData] = useState<CorrelationRes>();
+
   const [currentUploadName, setCurrentUploadName] = useState<string>("");
+
   const [heatMapColor, setHeatMapColor] = useState<string>("");
   const [spectraHeatMapColor, setSpectraHeatMapColor] = useState<string>("");
+
   const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string | null>(
     () => {
       if (typeof window !== "undefined")
         return localStorage.getItem("currentWorkspaceId") || null;
       return null;
     },
-  ); ///the id of the current workspace so the uploads associated with that workspace are fetched, or to associate a new upload with the current workspace
-
-  const [correlationData, setCorrelationData] = useState<CorrelationRes>();
+  );
 
   const [selectedMeasurements, setSelectedMeasurements] = useState<Set<string>>(
     new Set(),
   );
+
+  const [selectedChannels, setSelectedChannels] = useState<Set<string>>(
+    new Set(),
+  );
+
   const [pluginResultsCache, setPluginResultsCache] = useState<
     Record<string, CachedPluginResult>
   >({});
+
+  // Reset results if user switches to a different upload
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCpaResults({});
+    setCpaProcessingIds(new Set());
+    setGroupingResults({});
+    // setCorrelationResults({});
+  }, [currentUpload]);
+
+  // Derived: cpaData is always the result for currentMeasurement (backward-compatible)
+  const cpaData = useMemo(() => {
+    return cpaResults[currentMeasurement] || undefined;
+  }, [cpaResults, currentMeasurement]);
+
+  // Backward-compatible setter for cpaData (updates cpaResults for the measurement)
+  const setCpaData = useCallback(
+    (data: ChangePointResult | undefined) => {
+      if (!data) return;
+      const targetId = data.measurement_id || currentMeasurement;
+      setCpaResults((prev) => ({
+        ...prev,
+        [targetId]: data,
+      }));
+    },
+    [currentMeasurement],
+  );
+
+  // Helper to commit a single measurement result from batch processing
+  const setCpaResultForMeasurement = useCallback(
+    (measurementId: string, result: ChangePointResult) => {
+      setCpaResults((prev) => ({
+        ...prev,
+        [measurementId]: result,
+      }));
+    },
+    [],
+  );
+
+  const clearCpaResults = useCallback(() => {
+    setCpaResults({});
+  }, []);
+
+  const groupingData = useMemo(() => {
+    return groupingResults[currentMeasurement] || undefined;
+  }, [groupingResults, currentMeasurement]);
+
+  const setGroupingData = useCallback(
+    (data: ClusteringRes) => {
+      setGroupingResults((prev) => ({
+        ...prev,
+        [currentMeasurement]: data,
+      }));
+    },
+    [currentMeasurement],
+  );
+
+  const setGroupingResultForMeasurement = useCallback(
+    (measurementId: string, result: ClusteringRes) => {
+      setGroupingResults((prev) => ({
+        ...prev,
+        [measurementId]: result,
+      }));
+    },
+    [],
+  );
+
+  // Aggregates all levels across all resolved measurements (for Grouping / Export)
+  const getAllResolvedLevels = useCallback((): LevelData[] => {
+    const allLevels: LevelData[] = [];
+    for (const result of Object.values(cpaResults)) {
+      if (result?.levels) {
+        allLevels.push(...result.levels);
+      }
+    }
+    return allLevels;
+  }, [cpaResults]);
 
   const getPluginResult = useCallback(
     (
@@ -171,9 +321,7 @@ export function Hdf5DataProvider({
     setPluginResultsCache({});
   }, []);
 
-  function toggleSelectedmeasurement(measurement_id: string) {
-    //clicking checkbxs
-
+  function toggleSelectedMeasurement(measurement_id: string) {
     setSelectedMeasurements((previous) => {
       const next = new Set(previous);
       if (next.has(measurement_id)) {
@@ -185,7 +333,19 @@ export function Hdf5DataProvider({
     });
   }
 
-  function selectAllmeasurements(total: number) {
+  function toggleSelectedChannel(channel_id: string) {
+    setSelectedChannels((previous) => {
+      const next = new Set(previous);
+      if (next.has(channel_id)) {
+        next.delete(channel_id);
+      } else {
+        next.add(channel_id);
+      }
+      return next;
+    });
+  }
+
+  function selectAllMeasurements(total: number) {
     const all = new Set<string>();
     for (let i = 1; i <= total; i++) {
       all.add(i.toString());
@@ -193,8 +353,28 @@ export function Hdf5DataProvider({
     setSelectedMeasurements(all);
   }
 
+  function selectAllChannels() {
+    const all = new Set<string>();
+    const summaries = hdf5Metadata?.measurements_summary;
+    if (!summaries) {
+      return;
+    }
+
+    for (const m of summaries) {
+      const numChannels = m.channels?.length ?? 1;
+      for (let ch = 1; ch <= numChannels; ch++) {
+        all.add(`${m.id}:${ch}`);
+      }
+    }
+    setSelectedChannels(all);
+  }
+
   function clearSelectedMeasurements() {
     setSelectedMeasurements(new Set());
+  }
+
+  function clearSelectedChannels() {
+    setSelectedChannels(new Set());
   }
 
   useEffect(() => {
@@ -221,6 +401,12 @@ export function Hdf5DataProvider({
     }
   }, [currentMeasurement]);
 
+  const isMultiChannel = useMemo(() => {
+    const summaries = hdf5Metadata?.measurements_summary;
+    if (!summaries || summaries.length === 0) return false;
+    return summaries.some((m) => (m.channels?.length ?? 0) > 1);
+  }, [hdf5Metadata]);
+
   const contextValue = useMemo(
     () => ({
       hdf5Data,
@@ -237,27 +423,49 @@ export function Hdf5DataProvider({
       setBin,
       confidence,
       setConfidence,
-      setCpaData,
+
+      // CPA
       cpaData,
+      setCpaData,
+      cpaResults,
+      setCpaResults,
+      setCpaResultForMeasurement,
+      clearCpaResults,
+      cpaProcessingIds,
+      setCpaProcessingIds,
+      getAllResolvedLevels,
+
       setCurrentWorkspaceId,
       currentWorkspaceId,
+      //grouping
       groupingData,
       setGroupingData,
+      setGroupingResults,
+      setGroupingResultForMeasurement,
+      groupingResults,
+
       currentUploadName,
       setCurrentUploadName,
       heatMapColor,
       setHeatMapColor,
+
       selectedMeasurements,
-      toggleSelectedmeasurement,
-      selectAllmeasurements,
+      toggleSelectedMeasurement,
+      selectAllMeasurements,
       clearSelectedMeasurements,
+
+      selectedChannels,
+      toggleSelectedChannel,
+      selectAllChannels,
+      clearSelectedChannels,
+      isMultiChannel,
       spectraHeatMapColor,
       setSpectraHeatMapColor,
       getPluginResult,
       setPluginResult,
       clearPluginResults,
       correlationData,
-      setCorrelationData
+      setCorrelationData,
     }),
     [
       hdf5Data,
@@ -268,6 +476,15 @@ export function Hdf5DataProvider({
       bin,
       confidence,
       cpaData,
+      setCpaData,
+      setGroupingResultForMeasurement,
+      setGroupingData,
+      selectAllChannels,
+      cpaResults,
+      setCpaResultForMeasurement,
+      clearCpaResults,
+      cpaProcessingIds,
+      getAllResolvedLevels,
       currentWorkspaceId,
       groupingData,
       currentUploadName,
@@ -278,7 +495,9 @@ export function Hdf5DataProvider({
       setPluginResult,
       clearPluginResults,
       correlationData,
-      setCorrelationData
+      selectedChannels,
+      isMultiChannel,
+      groupingResults
     ],
   );
 

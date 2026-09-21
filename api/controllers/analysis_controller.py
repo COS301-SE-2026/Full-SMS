@@ -1,6 +1,7 @@
 from dataclasses import asdict
 from celery.result import AsyncResult
 from fastapi import HTTPException
+from kombu.common import logger
 from api.models.analysis_models import ClusteringReq, CpaReq, IntensityReq, IntensityRes, RasterScanReq, LifetimeReq, RebinCorrelationReq, CorrelationReq
 from api.services.analysis_services.clustering_job_service import clustering_job
 from api.services.analysis_services.correlation import get_correlation_result, get_rebin
@@ -47,6 +48,7 @@ def init_clustering_analysis_controller(req: ClusteringReq):
     """
     try:
         json_serializable_levels = [asdict(levels) for levels in req.levels]
+        logger.info("GROUPING payload received: %s", req)
         job = clustering_job.delay(json_serializable_levels)
         return {"task_id": job.id, "status": "executing"}
     

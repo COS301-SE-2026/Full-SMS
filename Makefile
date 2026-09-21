@@ -47,4 +47,4 @@ backend-test: setup-backend
 
 # the solo tag is for windows devices
 run-celery:
-	celery -A api.workers.celery_app.celery_app worker --loglevel=info -P solo
+	celery -A api.workers.celery_app.celery_app worker --loglevel=info --pool=gevent -c 8

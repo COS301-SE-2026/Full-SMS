@@ -123,7 +123,7 @@ export function Sidebar() {
         </Panel>
         
         <Panel>
-          <MeasurementsBar showSelectionCheckboxes={activeTab === "export"} />
+          <MeasurementsBar />
         </Panel>
       </Group>
     </aside>
