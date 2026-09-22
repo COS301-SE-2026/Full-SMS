@@ -415,3 +415,31 @@ def get_chained_input_data(execution_id: str, output_id: str, user_id: str) -> A
         raise ValueError(f"Output '{output_id}' not found in execution results")
 
     return results[output_id]
+
+def get_latest_execution(
+    plugin_id: str,
+    workspace_id: str,
+    measurement_id: str,
+    user_id: str
+) -> Optional[dict]:
+    """Get the most recent successful execution for a measurement."""
+    supabase = get_supabase_admin()
+
+    get_plugin_by_id(plugin_id, user_id)
+
+    response = (
+        supabase.table("plugin_executions")
+        .select("*")
+        .eq("plugin_id", plugin_id)
+        .eq("workspace_id", workspace_id)
+        .eq("measurement_id", measurement_id)
+        .eq("status", "success")
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+
+    if response.data and len(response.data) > 0:
+        return response.data[0]
+
+    return None
