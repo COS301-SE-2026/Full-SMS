@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Maximize2 } from "lucide-react";
 import { Button } from "../../ui/Button";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
@@ -10,16 +10,21 @@ interface NumberFieldProps {
   readonly label: string;
   readonly value: number;
   readonly slider?: boolean;
+  readonly min?: number;
+  readonly max?: number;
   readonly onChange: (v: number) => void;
+  readonly onMouseUp?: (v: number) => void;
 }
 
 export function NumberField({
   label,
   value,
   onChange,
+  onMouseUp = () =>{},
   slider = true,
 }: NumberFieldProps) {
   return (
+
     <div className="flex items-center gap-2">
       <label className="text-xs text-foreground/70 whitespace-nowrap">
         {label}
@@ -31,6 +36,8 @@ export function NumberField({
         max={1000}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        onPointerUp={(e) => onMouseUp(Number(e.currentTarget.value))}
+        onKeyUp={(e)=> onMouseUp(Number(e.currentTarget.value))}
         className={`w-24 h-1.5 rounded-lg appearance-none bg-border cursor-pointer accent-primary`}
       />)}
 
@@ -40,6 +47,12 @@ export function NumberField({
         max={1000}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        onBlur={(e) => onMouseUp(Number(e.target.value))}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            onMouseUp(Number(e.currentTarget.value))
+            }
+          }}
         className="w-16 h-7 px-2 rounded bg-card border border-border 
         text-xs text-foreground text-right font-mono focus-visible:outline-none 
         focus-visible:ring-1 focus-visible:ring-primary 
@@ -103,6 +116,19 @@ export function AnalysisToolbar() {
   const { errorToast } = useToast();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [localBinValue, setLocalBinValue] = useState<number>()
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLocalBinValue(bin);
+  }, [bin]);
+
+
+
+
+  const handleSliderRelease = (finalBinValue: number) =>{
+    setBin(finalBinValue)
+  }
 
   const resolveCurrent = async () => {
     const request: changePoint_Req = {
@@ -190,7 +216,7 @@ export function AnalysisToolbar() {
       <div className="flex items-center gap-4 h-12">
         <h3 className="text-foreground">Intensity Analysis</h3>
 
-        <NumberField label="Bin (ms)" value={bin} onChange={setBin} />
+        <NumberField label="Bin (ms)" value={localBinValue!} onChange={setLocalBinValue} onMouseUp={handleSliderRelease} />
         <ConfidenceField
           label="Confidence %"
           value={confidence}
