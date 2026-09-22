@@ -13,6 +13,7 @@ from api.controllers.plugin_controller import (
     delete_plugin_controller,
     execute_plugin_controller,
     update_installed_plugin_controller,
+    get_latest_execution_controller,
 )
 from api.models.plugin import (
     PluginCreate,
@@ -80,6 +81,20 @@ def execute_plugin(plugin_id: str, request: PluginExecute, current_user: Current
 )
 def update_installed_plugin(plugin_id: str, current_user: CurrentUser):
     return update_installed_plugin_controller(plugin_id, current_user["id"])
+
+@router.get(
+    "/{plugin_id}/executions/latest",
+    summary="Get the most recent execution for a measurement"
+)
+def get_latest_execution(
+    plugin_id: str,
+    workspace_id: str,
+    measurement_id: str,
+    current_user: CurrentUser
+):
+    return get_latest_execution_controller(
+        plugin_id, workspace_id, measurement_id, current_user["id"]
+    )
 
 
 @router.post("/export", summary="Export a single plugin output")
