@@ -61,6 +61,7 @@ class IntensityReq(BaseModel):
     upload_id: str
     measurement_id: str
     bin_size_ms: float
+    channel: Optional[int]
 
 class IntensityRes(BaseModel):
     time_bins: List[float]       # X-axis ( time in milliseconds)
@@ -72,6 +73,7 @@ class CpaReq(BaseModel):
     upload_id: str
     measurement_id: str
     confidence: int
+    channel: Optional[int]
     
 class SelectedMeasurements(BaseModel):
     measurements: List[CpaReq]
@@ -81,6 +83,7 @@ class SelectedMeasurements(BaseModel):
 
 class ClusteringReq(BaseModel):
     levels: List[LevelData]
+    channel: Optional[int]
 class RasterScanReq(BaseModel):
     upload_id: str
     measurement_id:str

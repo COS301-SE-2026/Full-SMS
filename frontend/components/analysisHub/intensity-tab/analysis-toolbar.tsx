@@ -112,6 +112,7 @@ export function AnalysisToolbar() {
     setCpaProcessingIds,
     cpaProcessingIds,
     hdf5Metadata,
+    currentChannel
   } = useHdf5Data();
   const { errorToast } = useToast();
 
@@ -135,6 +136,7 @@ export function AnalysisToolbar() {
       upload_id: currentUpload,
       measurement_id: currentMeasurement,
       confidence: confidence,
+      channel: currentChannel
     };
 
     const response = await changePointAnalysis(request);

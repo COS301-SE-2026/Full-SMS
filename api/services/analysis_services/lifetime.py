@@ -19,10 +19,11 @@ def lifetime_fitting(payload: LifetimeReq):
             upload_id=upload_id, measurement_id=measurement_id
         )
 
+    channel_key = f"channel{getattr(payload, 'channel', 1) or 1}"
     if isinstance(cached_measurement, dict):
-        channel_width = cached_measurement["channelwidth"]
+        microtimes = cached_measurement[channel_key]["microtimes"]
     else:
-        channel_width = cached_measurement.channelwidth
+        microtimes = getattr(cached_measurement, channel_key).microtimes
 
     fit_result = fit_decay(
         counts=np.array(payload.counts, dtype=np.float64),

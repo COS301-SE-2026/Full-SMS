@@ -35,6 +35,8 @@ export function MeasurementsBar({
     clearSelectedChannels,
     selectedChannels,
     isMultiChannel,
+    currentChannel,
+    setCurrentChannel
   } = useHdf5Data();
 
   const [shownChannels, setShownChannels] = useState<number[]>([]);
@@ -55,21 +57,22 @@ export function MeasurementsBar({
     }
   };
 
-  const fetchIntensityTrace = async () => {
-    if (currentUpload) {
-      const request: Intensity_Req = {
-        upload_id: currentUpload,
-        measurement_id: currentMeasurement,
-        bin_size_ms: Number(bin),
-      };
-      const response = await intensityAnalysis(request);
-      setHdf5Data(response);
-    }
-  };
+  // const fetchIntensityTrace = async () => {
+  //   if (currentUpload) {
+  //     const request: Intensity_Req = {
+  //       upload_id: currentUpload,
+  //       measurement_id: currentMeasurement,
+  //       bin_size_ms: Number(bin),
 
-  useEffect(() => {
-    fetchIntensityTrace();
-  }, [currentMeasurement, bin, currentUpload]);
+  //     };
+  //     const response = await intensityAnalysis(request);
+  //     setHdf5Data(response);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   fetchIntensityTrace();
+  // }, [currentMeasurement, bin, currentUpload]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -95,6 +98,7 @@ export function MeasurementsBar({
   const onClickMeasurement = (id: number) => {
     // toggleChannelTree(id)
     setCurrentMeasurement(id.toString());
+    setCurrentChannel(1)
   };
 
   useEffect(() => {
@@ -207,16 +211,28 @@ export function MeasurementsBar({
                 {isOpen && isMultiChannel && (
                   <div className="flex flex-col pl-7 pr-3 py-1 ml-3 my-0.5 border-l-2 border-primary/30 gap-0.5 transition-all duration-200 ease-in-out transform origin-top">
                     {m.channels!.map((channelName, chIdx) => {
-                      // const channelNum = chIdx + 1;
-                      const channelKey = `${m.id}:${chIdx + 1}`;
+                      const channelNum = chIdx + 1;
+                      const channelKey = `${m.id}:${channelNum}`;
                       const channelSelected = selectedChannels.has(channelKey);
+                      const isCurrentChannel = currentM && currentChannel === channelNum
+                      console.log("CURRENT M", currentM)
+                      console.log("CURRENT CHANNEL", currentChannel);
+                      console.log("CHANNEL NUM", channelNum);
+
+                      console.log("CURRENT CHANNEL", isCurrentChannel);
+                      
                       return (
                         <button
                           key={channelName}
                           onClick={() => {
-                            //setCurrentChannel(channelNum)
+                            setCurrentChannel(channelNum)
                           }}
-                          className="flex items-center gap-1.5 px-2 py-1 rounded text-xs text-foreground/80 hover:bg-card text-left transition-colors cursor-pointer"
+                          className={cn(
+                            "flex items-center gap-1.5 px-2 py-1 rounded text-xs text-left transition-colors cursor-pointer",
+                            isCurrentChannel
+                              ? "bg-card text-primary font-medium"
+                              : "text-foreground/80 hover:bg-card/50",
+                          )}
                         >
                           {showChannelSelectionCheckboxes && (
                             <Checkbox

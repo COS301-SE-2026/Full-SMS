@@ -12,7 +12,16 @@ export default function SpectraMap() {
     currentMeasurement,
     spectraHeatMapColor,
     setSpectraHeatMapColor,
+    hdf5Metadata
   } = useHdf5Data();
+
+  if(!hdf5Metadata?.has_spectra){
+    return(
+      <Card className="w-[83vw] h-[85vh] mt-1 text-warning p-4 flex flex-col text-center justify-center">
+        <p>This Measurement does not have spectra scan data.</p>
+      </Card>
+    )
+  }
   const [spectraData, setSpectraData] = useState<SpectraData>();
   const colourmaps = [
     "Plasma",

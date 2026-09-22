@@ -7,8 +7,14 @@ import Plot from "react-plotly.js";
 
 export function RasterHeatmap() {
   const [rasterData, setRasterData] = useState<any>(null);
-  const { currentMeasurement, currentUpload, heatMapColor } = useHdf5Data();
-
+  const { currentMeasurement, currentUpload, heatMapColor, hdf5Metadata } = useHdf5Data();
+  if(!hdf5Metadata?.has_rasters){
+    return(
+      <Card className="w-[83vw] h-[85vh] mt-1 text-warning p-4 flex flex-col text-center justify-center">
+        <p>This Measurement does not have raster scan data.</p>
+      </Card>
+    )
+  }
   useEffect(() => {
     const fetchRasterData = async () => {
       // Prevent fetching if we don't have the context IDs yet
