@@ -10,6 +10,7 @@ from api.services.plugin_service import (
     delete_plugin,
     update_installed_plugin,
     get_available_outputs_for_chaining,
+    get_latest_execution,
 )
 from api.models.plugin import (
     PluginCreate,
@@ -212,6 +213,31 @@ def update_installed_plugin_controller(plugin_id: str, user_id: str) -> dict:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
+        
+def get_latest_execution_controller(
+    plugin_id: str,
+    workspace_id: str,
+    measurement_id: str,
+    user_id: str
+) -> dict:
+    try:
+        execution = get_latest_execution(
+            plugin_id=plugin_id,
+            workspace_id=workspace_id,
+            measurement_id=measurement_id,
+            user_id=user_id,
+        )
+        return {
+            "success": True,
+            "execution": execution,
+            "has_previous_result": execution is not None,
+        }
+    except ValueError as ve:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
 def export_plugin_output_controller(request: PluginExportRequest, user_id: str):
