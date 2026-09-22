@@ -18,7 +18,6 @@ from api.controllers.plugin_controller import (
 from api.models.plugin import (
     PluginCreate,
     PluginExportAllRequest,
-    PluginExportAllRequest,
     PluginExportRequest,
     PluginUpdate,
     PluginToggle,
@@ -38,6 +37,31 @@ def get_current_user(
 
 
 CurrentUser = Annotated[dict, Depends(get_current_user)]
+
+
+@router.post("/export", summary="Export a single plugin output")
+def export_plugin_output(request: PluginExportRequest, current_user: CurrentUser):
+    return export_plugin_output_controller(request, current_user["id"])
+
+
+@router.post("/export/all", summary="Export all outputs from an execution")
+def export_all_outputs(request: PluginExportAllRequest, current_user: CurrentUser):
+    return export_all_outputs_controller(request, current_user["id"])
+
+
+@router.get("/outputs/available", summary="Get available outputs for chaining")
+def get_available_outputs(
+    workspace_id: str,
+    measurement_id: str,
+    current_user: CurrentUser,
+    accepted_types: str = None,
+    accepted_plugin_ids: str = None,
+):
+    types_list = accepted_types.split(",") if accepted_types else None
+    plugins_list = accepted_plugin_ids.split(",") if accepted_plugin_ids else None
+    return get_available_outputs_controller(
+        workspace_id, measurement_id, current_user["id"], types_list, plugins_list
+    )
 
 
 @router.get("", summary="Get all plugins for the current user")
@@ -82,41 +106,14 @@ def execute_plugin(plugin_id: str, request: PluginExecute, current_user: Current
 def update_installed_plugin(plugin_id: str, current_user: CurrentUser):
     return update_installed_plugin_controller(plugin_id, current_user["id"])
 
+
 @router.get(
     "/{plugin_id}/executions/latest",
-    summary="Get the most recent execution for a measurement"
+    summary="Get the most recent execution for a measurement",
 )
 def get_latest_execution(
-    plugin_id: str,
-    workspace_id: str,
-    measurement_id: str,
-    current_user: CurrentUser
+    plugin_id: str, workspace_id: str, measurement_id: str, current_user: CurrentUser
 ):
     return get_latest_execution_controller(
         plugin_id, workspace_id, measurement_id, current_user["id"]
-    )
-
-
-@router.post("/export", summary="Export a single plugin output")
-def export_plugin_output(request: PluginExportRequest, current_user: CurrentUser):
-    return export_plugin_output_controller(request, current_user["id"])
-
-
-@router.post("/export/all", summary="Export all outputs from an execution")
-def export_all_outputs(request: PluginExportAllRequest, current_user: CurrentUser):
-    return export_all_outputs_controller(request, current_user["id"])
-
-
-@router.get("/outputs/available", summary="Get available outputs for chaining")
-def get_available_outputs(
-    workspace_id: str,
-    measurement_id: str,
-    current_user: CurrentUser,
-    accepted_types: str = None,
-    accepted_plugin_ids: str = None,
-):
-    types_list = accepted_types.split(",") if accepted_types else None
-    plugins_list = accepted_plugin_ids.split(",") if accepted_plugin_ids else None
-    return get_available_outputs_controller(
-        workspace_id, measurement_id, current_user["id"], types_list, plugins_list
     )
