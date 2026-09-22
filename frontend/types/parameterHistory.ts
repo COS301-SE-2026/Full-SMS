@@ -12,3 +12,12 @@ export interface HistoryEntry {
     author_id: string;
     created_at: string;
 }
+
+export interface AddHistory {
+    upload_id: string;
+    measurement_id: string | null;
+    tab: HistoryTab;
+    parameter: string;
+    old_value: any;
+    new_value: any;
+}
