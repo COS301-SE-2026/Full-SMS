@@ -21,3 +21,6 @@ export interface AddHistory {
     old_value: any;
     new_value: any;
 }
+
+export interface HistoryListResponse { success: boolean; history: HistoryEntry[];}
+export interface HistoryEntryResponse { success: boolean; entry: HistoryEntry[];}
