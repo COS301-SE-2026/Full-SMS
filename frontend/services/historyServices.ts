@@ -38,5 +38,22 @@ export const historyService = {
             );
         }
     },
-    
+
+    revertEntry: async(
+        workspaceId: string,
+        entryId: string,
+    ): Promise<HistoryEntryResponse> => {
+        try {
+            const response = await axiosInstance.post (
+                `/api/py/workspaces/${workspaceId}/history/${entryId}/revert`,
+            );
+
+            return response.data;
+        }catch (error: any) {
+            throw new Error(
+                error.response?.data?.detail || "Failed to revert change"
+            );
+        }
+    },
+
 };
