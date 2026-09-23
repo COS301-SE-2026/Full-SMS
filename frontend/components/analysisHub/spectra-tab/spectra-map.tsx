@@ -15,13 +15,6 @@ export default function SpectraMap() {
     hdf5Metadata
   } = useHdf5Data();
 
-  if(!hdf5Metadata?.has_spectra){
-    return(
-      <Card className="w-[83vw] h-[85vh] mt-1 text-warning p-4 flex flex-col text-center justify-center">
-        <p>This Measurement does not have spectra scan data.</p>
-      </Card>
-    )
-  }
   const [spectraData, setSpectraData] = useState<SpectraData>();
   const colourmaps = [
     "Plasma",
@@ -45,7 +38,10 @@ export default function SpectraMap() {
         console.error("Unable to fetch spectra data: ", error);
       }
     };
-    fetchSpectraData();
+    if(hdf5Metadata?.has_spectra){
+      fetchSpectraData();
+    }
+
   }, [currentMeasurement, currentUpload]);
 
   const plotData = useMemo(() => {
@@ -70,6 +66,14 @@ export default function SpectraMap() {
 
     return { z, t_min, wl_min, dt, dwl, scale_min, scale_max, exposure_time };
   }, [spectraData]);
+
+  if(!hdf5Metadata?.has_spectra){
+    return(
+      <Card className="w-[83vw] h-[85vh] mt-1 text-warning p-4 flex flex-col text-center justify-center">
+        <p>This Measurement does not have spectra scan data.</p>
+      </Card>
+    )
+  }
 
   return (
     <div>

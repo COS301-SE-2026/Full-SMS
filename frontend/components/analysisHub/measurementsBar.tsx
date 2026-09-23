@@ -6,8 +6,6 @@ import { cn } from "@/lib/utils";
 import { UploadMetadata, UploadResultRecord } from "@/types/hdf5";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { getHdf5UploadResult } from "@/services/hdf5services";
-import { Intensity_Req } from "@/types/analysis";
-import { intensityAnalysis } from "@/services/analysisServices";
 import { Button, Checkbox } from "@/components/ui";
 
 export interface MeasurementsBarProps {
@@ -22,10 +20,8 @@ export function MeasurementsBar({
     currentMeasurement,
     setCurrentMeasurement,
     currentUpload,
-    setHdf5Data,
     setHdf5Metadata,
     hdf5Metadata,
-    bin,
     selectedMeasurements,
     toggleSelectedMeasurement,
     selectAllMeasurements,
@@ -57,23 +53,6 @@ export function MeasurementsBar({
     }
   };
 
-  // const fetchIntensityTrace = async () => {
-  //   if (currentUpload) {
-  //     const request: Intensity_Req = {
-  //       upload_id: currentUpload,
-  //       measurement_id: currentMeasurement,
-  //       bin_size_ms: Number(bin),
-
-  //     };
-  //     const response = await intensityAnalysis(request);
-  //     setHdf5Data(response);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   fetchIntensityTrace();
-  // }, [currentMeasurement, bin, currentUpload]);
-
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -92,9 +71,6 @@ export function MeasurementsBar({
     loadData();
   }, [currentUpload]);
 
-  useEffect(() => {
-    console.log(currentMeasurement);
-  }, [currentMeasurement]);
   const onClickMeasurement = (id: number) => {
     // toggleChannelTree(id)
     setCurrentMeasurement(id.toString());
@@ -215,17 +191,13 @@ export function MeasurementsBar({
                       const channelKey = `${m.id}:${channelNum}`;
                       const channelSelected = selectedChannels.has(channelKey);
                       const isCurrentChannel = currentM && currentChannel === channelNum
-                      console.log("CURRENT M", currentM)
-                      console.log("CURRENT CHANNEL", currentChannel);
-                      console.log("CHANNEL NUM", channelNum);
-
-                      console.log("CURRENT CHANNEL", isCurrentChannel);
                       
                       return (
                         <button
                           key={channelName}
                           onClick={() => {
-                            setCurrentChannel(channelNum)
+                            setCurrentChannel(channelNum);
+                            setCurrentMeasurement(measurementID)
                           }}
                           className={cn(
                             "flex items-center gap-1.5 px-2 py-1 rounded text-xs text-left transition-colors cursor-pointer",
