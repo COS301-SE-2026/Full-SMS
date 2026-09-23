@@ -296,3 +296,6 @@ class TestGetWorkspaceUploads:
     1. add_workspace_member<done>
     2. updated get_workspace_by_id<done>
     3. updated get_workspace_uploads<done>
+    4. updated delete_workspace<done>
+    5. updated update_workspace<done>
+    6. remove_workspace_member <done>"""
