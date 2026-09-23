@@ -53,3 +53,22 @@ class TestInitHdf5Upload:
 
             assert exception.value.status_code == 403
 
+    def test_rejects_when_user_has_no_access(self):
+        content = {
+            "filename": "sample.h5",
+            "size_bytes": 1024,
+            "workspace_id": "ws-1",
+            "sha256": "abc123"
+        }
+    
+        sample_user = {"user": {"id": "user1"}}
+    
+        with patch("controllers.hdf5_controller.workspace_service.get_workspace_by_id") as mock_get_workspace:
+            mock_get_workspace.side_effect = ValueError("Workspace not found")
+    
+            with pytest.raises(HTTPException) as exception:
+                init_hdf5_upload(content, sample_user)
+    
+            assert exception.value.status_code == 404
+    
+        
