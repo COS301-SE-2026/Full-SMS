@@ -112,10 +112,12 @@ export function AnalysisToolbar() {
     setCpaProcessingIds,
     cpaProcessingIds,
     hdf5Metadata,
-    currentChannel
+    currentChannel,
+    isMultiChannel,
+    selectedChannels,
   } = useHdf5Data();
   const { errorToast } = useToast();
-
+  const activeKey = `${currentMeasurement}:${currentChannel}`;
   const [isLoading, setIsLoading] = useState(false);
   const [localBinValue, setLocalBinValue] = useState<number>()
 
@@ -157,37 +159,50 @@ export function AnalysisToolbar() {
   const resolve = async (mode: string) => {
     let ids: string[] = []
     if (mode === "selected") {
-      if (selectedMeasurements.size === 0) {
-        return
+      ids = isMultiChannel
+        ? Array.from(selectedChannels)
+        : Array.from(selectedMeasurements);
+      if (ids.length === 0) {
+        errorToast(isMultiChannel ? "No channels selected" : "No measurements selected");
+        return;
       }
-      else{
-      ids = Array.from(selectedMeasurements);
-      }
-    } 
+    }
     else if (mode === "all") {
       const summaries = hdf5Metadata?.measurements_summary;
-      if (!summaries || summaries.length === 0) {
-        return
-      }
-      else{
+      if (!summaries || summaries.length === 0) return;
+      if (isMultiChannel) {
+        ids = summaries.flatMap((m) =>
+          (m.channels ?? [1]).map((_, idx) => `${m.id}:${idx + 1}`)
+        );
+        console.log("MULTI CHANNEL IDS", ids);
+        
+      } else {
         ids = summaries.map((m) => m.id.toString());
       }
     }
-    else{
-      errorToast("Invalid resolution mode selected")
-      return
-    }
+
     setCpaProcessingIds(new Set(ids));
     setIsLoading(true);
     for (const mId of ids) {
+      let targetChannel = currentChannel
+      let targetMeasuement = mId
+      if (isMultiChannel && mId.includes(":")){
+        const [meas, chnl] = mId.split(":")
+        targetChannel=Number(chnl)
+        targetMeasuement = meas
+      }
+
       const request: changePoint_Req = {
         upload_id: currentUpload,
-        measurement_id: mId,
+        measurement_id: targetMeasuement!,
         confidence: confidence,
+        channel: targetChannel!
       };
+
       try {
         const response = await changePointAnalysis(request);
         setCpaResultForMeasurement(mId, response);
+        
       } catch (e) {
         console.error(`CPA failed for measurement ${mId}`, e);
       }
@@ -202,6 +217,9 @@ export function AnalysisToolbar() {
 
 
   const onResolveAllClick = () => {
+    // selectAllChannels()
+    // console.log(selectedChannels);
+    
     resolve("all");
   };
 
@@ -270,9 +288,9 @@ export function AnalysisToolbar() {
             Resolving {cpaProcessingIds.size} Measurements ...
           </span>
         )}
-        {currentMeasurement in cpaResults && (
+        {activeKey in cpaResults && (
           <p className="text-success text-xs font-mono">
-            {cpaResults[currentMeasurement].levels?.length} levels
+            {cpaResults[activeKey].levels?.length} levels
           </p>
         )}
       </div>

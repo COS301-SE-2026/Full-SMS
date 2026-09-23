@@ -7,15 +7,17 @@ import { colors } from "@/lib/tokens";
 export default function GroupingCharts() {
   let x_coords_intensity: number[] = [];
   let y_coords_intensity: number[] = [];
+
+
+  const { hdf5Data, groupingData, cpaData, bin, currentMeasurement, currentChannel } =
+    useHdf5Data();
   const [selectedGroupState, setSelectedGroupState] = useState<{
-    measurementId: string;
+    key: string;
     group: number;
   } | null>(null);
-
-  const { hdf5Data, groupingData, cpaData, bin, currentMeasurement } =
-    useHdf5Data();
+  const activeKey = `${currentMeasurement}:${currentChannel}`;
   const selectedGroup =
-    selectedGroupState?.measurementId === currentMeasurement
+    selectedGroupState?.key === activeKey
       ? selectedGroupState.group
       : undefined;
 
@@ -141,7 +143,7 @@ export default function GroupingCharts() {
     if (e.points && e.points.length > 0) {
       const groupIdx = e.points[0].pointIndex;
       setSelectedGroupState({
-        measurementId: currentMeasurement,
+        key: activeKey,
         group: groupIdx,
       });
     }
