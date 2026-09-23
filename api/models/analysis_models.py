@@ -103,3 +103,15 @@ class RebinCorrelationReq(BaseModel):
     result: dict[str,Any]
     new_binsize_ns: float
     new_window_ns: float | None 
+    
+class MapIRFReq(BaseModel):
+    workspace_id: str
+    dataset_ref: str        # Which measurement file
+    measurement_id: Optional[int] = None  # None means apply to entire file, or specific measurement
+    channel: int            # 1 or 2
+    irf_id: str             # Which IRF to assign
+
+class UploadIRFReq(BaseModel):
+    workspace_id: str
+    user_id: str
+    name: str
