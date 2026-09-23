@@ -117,6 +117,20 @@ class TestCreateWorkspace:
 
 
 class TestUpdateWorkspace:
+    def test_rejects_update_from_not_owner(self, sample_workspace_id, sample_user_id):
+        external_user_id = str(uuid.uuid4())
+
+        with patch("api.services.workspace_service.get_workspace_by_id") as mock_get_workspace:
+            mock_get_workspace.return_value = {
+                "id": sample_workspace_id,
+                "user_id": sample_user_id
+            }
+
+            from api.services.workspace_service import update_workspace
+
+            with pytest.raises(ValueError, match="Workspace not found"):
+                update_workspace(sample_workspace_id, external_user_id)
+
     def test_rejects_invalid_status(self, sample_workspace_id, sample_user_id):
         from api.services.workspace_service import update_workspace
 
