@@ -35,3 +35,21 @@ class TestInitHdf5Upload:
             assert result["upload_url"] == "https://signed-url.exampledomain.com"
             mock_validate.assert_called_with("sample.h5", 1024)
 
+    def test_rejects_not_owner_user(self):
+        content = {
+            "filename": "sample.h5",
+            "size_bytes": 1024,
+            "workspace_id": "ws-1",
+            "sha256": "abc123"
+        }
+
+        sample_user = {"user": {"id": "user1"}}
+
+        with patch("controllers.hdf5_controller.workspace_service.get_workspace_by_id") as mock_get_workspace:
+            mock_get_workspace.return_value = {"id": "ws-1", "user_id": "owner0"}
+
+            with pytest.raises(HTTPException) as exception:
+                init_hdf5_upload(content, sample_user)
+
+            assert exception.value.status_code == 403
+
