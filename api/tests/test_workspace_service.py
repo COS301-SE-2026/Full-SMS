@@ -290,9 +290,9 @@ class TestGetWorkspaceUploads:
                 get_workspace_uploads(sample_workspace_id, sample_user_id)
 
 
+
+
 """to be tested:
-    1. add_workspace_member
-    2. updated get_workspace_by_id
-    3. updated get_workspace_uploads
-    4. updated delete_workspace
-    5. updated update_workspace"""
+    1. add_workspace_member<done>
+    2. updated get_workspace_by_id<done>
+    3. updated get_workspace_uploads<done>
