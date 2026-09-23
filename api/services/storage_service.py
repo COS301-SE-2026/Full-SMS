@@ -6,7 +6,8 @@ from supabase import create_client
 from api.utils.supabase_client import supabaseClient
 
 
-BUCKET = os.environ.get("SUPABASE_BUCKET_NAME")
+BUCKET = os.environ.get("SUPABASE_H5_BUCKET_NAME")
+
 
 def build_storage_key(user_id: str, upload_id: str, file_name: str) -> str:
     """

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from api.models.analysis_models import UploadIRFReq
 from api.routes.profile_routes import get_current_user
-from api.controllers.hdf5_controller import (get_user_uploads_by_id, read_hdf5_file, init_hdf5_upload, complete_hdf5_upload, get_hdf5_upload_status, get_hdf5_upload_result, get_upload_by_id)
+from api.controllers.hdf5_controller import (get_user_uploads_by_id, read_hdf5_file, init_hdf5_upload, complete_hdf5_upload, get_hdf5_upload_status, get_hdf5_upload_result, get_upload_by_id, upload_irf_controller)
 from typing import Annotated
 
 router = APIRouter(prefix="/hdf5", tags=["hdf5"])
@@ -33,3 +34,7 @@ async def read(file: UploadFile = File(...)):
 @router.get("/upload/{upload_id}")
 async def get_upload(upload_id: str ,current_user: Annotated[dict, Depends(get_current_user)]):
     return get_upload_by_id(user_id=current_user["user"]["id"], upload_id=upload_id)
+
+@router.post("/upload-irf")
+def upload_irf(payload: UploadIRFReq, current_user: Annotated[dict, Depends(get_current_user)]):
+    return upload_irf_controller(payload=payload, user_id=current_user["user"]["id"])

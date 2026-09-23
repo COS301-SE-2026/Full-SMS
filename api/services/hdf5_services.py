@@ -58,7 +58,7 @@ def read_hdf5(path):
         
     }   
 
-def read_ifr(path):
+def read_irf(path):
     result = load_irf(path)
     if result is None:
         return None

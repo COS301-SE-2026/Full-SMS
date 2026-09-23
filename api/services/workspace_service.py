@@ -169,6 +169,7 @@ def get_workspace_uploads(workspace_id: str, user_id: str) -> dict:
                 .select("*")
                 .eq("workspace_id", workspace_id)
                 .eq("user_id", user_id)
+                .eq("status", "parsed")
                 .execute()
                 )
     return response.data
