@@ -65,7 +65,7 @@ def lifetime_fitting(payload: LifetimeReq):
 def fluorescence_decay(payload):
     upload_id = payload.upload_id
     measurement_id = payload.measurement_id
-
+    channel_key = f"channel{getattr(payload, 'channel', 1) or 1}"       
     cached_measurement = get_cached_measurement(upload_id, measurement_id)
 
     if not cached_measurement:
@@ -74,10 +74,12 @@ def fluorescence_decay(payload):
         )
 
     if isinstance(cached_measurement, dict):
-        microtimes = cached_measurement["channel1"]["microtimes"]
+        channel_data = cached_measurement.get(channel_key) or cached_measurement["channel1"]
+        microtimes = channel_data["microtimes"]
         channel_width = cached_measurement["channelwidth"]
     else:
-        microtimes = cached_measurement.channel1.microtimes
+        channel_data = getattr(cached_measurement, channel_key, cached_measurement.channel1)
+        microtimes = channel_data.microtimes
         channel_width = cached_measurement.channelwidth
 
     times, counts = build_decay_histogram(

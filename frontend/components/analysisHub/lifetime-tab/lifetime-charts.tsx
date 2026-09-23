@@ -7,7 +7,7 @@ import React, { useEffect } from 'react'
 import Plot from 'react-plotly.js'
 
 export default function LifetimeCharts() {
-    const { currentMeasurement, currentUpload, bin} = useHdf5Data()
+    const { currentMeasurement, currentUpload, bin, currentChannel} = useHdf5Data()
     const {useLogScale, decayCounts, setDecayCounts, decayTimes, setDecayTimes, fitResult} = useAnalysisTab()
     
 
@@ -18,7 +18,8 @@ export default function LifetimeCharts() {
         const payload = {
           "upload_id": currentUpload,
           "measurement_id": currentMeasurement,
-          "bin_size_ms": bin
+          "bin_size_ms": bin,
+          "channel": currentChannel
         };
         try {
           const response = await getFluorescenceDecay(payload)
@@ -30,7 +31,7 @@ export default function LifetimeCharts() {
       };
       
       fetchLifetimeData();
-    }, [currentMeasurement, currentUpload])
+    }, [currentMeasurement, currentUpload, currentChannel])
   return (
 <div>
       <Card className="flex-1 flex flex-col p-2 min-w-0">
