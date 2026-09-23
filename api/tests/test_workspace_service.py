@@ -127,6 +127,28 @@ class TestUpdateWorkspace:
 
 
 class TestDeleteWorkspace:
+    def test_rejects_not_owner(self, sample_workspace_id, sample_user_id):
+        external_user_id = str(uuid.uuid4())
+
+        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin, \
+        patch("api.services.workspace_service.get_workspace_by_id") as mock_get_workspace:
+
+            mock_get_workspace.return_value = {
+                "id": sample_workspace_id,
+                "user_id": sample_user_id,
+                "storage_bucket_path": "/path",
+            }
+
+            mock_client = MagicMock()
+            mock_admin.return_value = mock_client
+
+            from api.services.workspace_service import delete_workspace
+
+            with pytest.raises(ValueError, match="Workspace not found"):
+                delete_workspace(sample_workspace_id, external_user_id)
+
+            mock_client.storage.from_.assert_not_called()
+           
     def test_raises_when_not_found(self, sample_workspace_id, sample_user_id):
         with patch("api.services.workspace_service.get_workspace_by_id") as mock_get:
             mock_get.side_effect = ValueError("Workspace not found")
