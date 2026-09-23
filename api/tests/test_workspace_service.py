@@ -1,4 +1,5 @@
 import pytest
+import uuid
 from unittest.mock import MagicMock, patch
 
 
@@ -27,6 +28,7 @@ class TestGetWorkspaceById:
             mock_response.data = {
                 "id": sample_workspace_id,
                 "user_id": sample_user_id,
+                "member_ids" : [],
                 "name": "Test",
                 "description": None,
                 "storage_bucket_path": "/path",
@@ -35,7 +37,7 @@ class TestGetWorkspaceById:
                 "updated_at": "2024-01-01",
                 "workspace_files": [{"count": 5}],
             }
-            mock_client.table.return_value.select.return_value.eq.return_value.eq.return_value.single.return_value.execute.return_value = (
+            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = (
                 mock_response
             )
             mock_admin.return_value = mock_client
@@ -52,7 +54,7 @@ class TestGetWorkspaceById:
             mock_client = MagicMock()
             mock_response = MagicMock()
             mock_response.data = None
-            mock_client.table.return_value.select.return_value.eq.return_value.eq.return_value.single.return_value.execute.return_value = (
+            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = (
                 mock_response
             )
             mock_admin.return_value = mock_client
@@ -62,9 +64,31 @@ class TestGetWorkspaceById:
             with pytest.raises(ValueError, match="Workspace not found"):
                 get_workspace_by_id(sample_workspace_id, sample_user_id)
 
-    def test_add_workspace_member
+    def test_raises_when_user_has_no_access(self, sample_workspace_id, sample_user_id):
+        stranger_id = str(uuid.uuid4())
+        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin:
+            mock_client = MagicMock()
+            mock_response = MagicMock()
+            mock_response.data = {
+                "id": sample_workspace_id,
+                "user_id": sample_user_id,
+                "member_ids" : [],
+                "name": "Test",
+                "description": None,
+                "storage_bucket_path": "/path",
+                "status": "active",
+                "created_at": "2024-01-01",
+                "updated_at": "2024-01-01",
+                "workspace_files": [],
+            }
 
+            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = mock_response
+            mock_admin.return_value = mock_client
 
+            from api.services.workspace_service import get_workspace_by_id
+
+            with pytest.raises(ValueError, match="Workspace not found"):
+                get_workspace_by_id(sample_workspace_id, stranger_id)
 class TestCreateWorkspace:
     def test_creates_workspace(self, sample_user_id):
         with patch("api.services.workspace_service.get_supabase_admin") as mock_admin:
