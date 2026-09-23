@@ -201,6 +201,95 @@ class TestUnarchiveWorkspace:
                 sample_workspace_id, sample_user_id, workspace_status="active"
             )
             assert result["status"] == "active"
+
+class TestAddWorkspaceMember:
+    def test_add_workspace_member(self, sample_workspace_id, sample_user_id):
+        new_member_id = str(uuid.uuid4())
+
+        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin:
+            mock_client = MagicMock()
+
+            read_response = MagicMock()
+            read_response.data = {"user_id":sample_user_id, "member_ids": []}
+
+            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = read_response
+
+            write_response = MagicMock()
+            write_response.data = [
+                {"user_id": sample_user_id, "member_ids": [new_member_id]}
+            ]
+
+            mock_client.table.return_value.update.return_value.eq.return_value.execute.return_value = write_response
+            mock_admin.return_value = mock_client
+
+            from api.services.workspace_service import add_workspace_member
+
+            result = add_workspace_member(sample_workspace_id, new_member_id)
+            assert result["already_member"] is False
+            assert new_member_id in result["member_ids"]
+
+class TestRemoveWorkspaceMember:
+    def test_removes_existing_member(self, sample_workspace_id, sample_user_id):
+        existing_member_id = str(uuid.uuid4())
+
+        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin:
+            mock_client = MagicMock()
+
+            read_response = MagicMock()
+            read_response.data = {"user_id":sample_user_id, "member_ids": [existing_member_id]}
+            
+            
+                        
+            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = read_response
+            
+            write_response = MagicMock()
+            write_response.data = [
+                {"user_id": sample_user_id, "member_ids": []}
+                ]
+            
+            mock_client.table.return_value.update.return_value.eq.return_value.execute.return_value = write_response
+            mock_admin.return_value = mock_client
+            
+            from api.services.workspace_service import remove_workspace_member
+
+            result = remove_workspace_member(sample_workspace_id, sample_user_id, existing_member_id)
+            assert result["was_member"] is True
+            assert existing_member_id not in result["member_ids"]
+
+class TestGetWorkspaceUploads:
+    def test_gets_files_when_user_has_access(self, sample_workspace_id, sample_user_id):
+        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin, \
+            patch("api.services.workspace_service.get_workspace_by_id") as mock_get_workspace:
+
+            mock_get_workspace.return_value = {"id": sample_workspace_id, "user_id": sample_user_id}
+
+            mock_client = MagicMock()
+            mock_response = MagicMock()
+            mock_response.data = [
+                {"id": "file1", "workspace_id": sample_workspace_id},
+                {"id": "file2", "workspace_id": sample_workspace_id}
+            ]
+
+            mock_client.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_response
+            mock_admin.return_value = mock_client
+
+            from api.services.workspace_service import get_workspace_uploads
+
+            result = get_workspace_uploads(sample_workspace_id, sample_user_id)
+
+            assert len(result) == 2
+            mock_get_workspace.assert_called_with(sample_workspace_id, sample_user_id)
+
+    def test_raises_when_user_has_no_access(self, sample_workspace_id, sample_user_id):
+        with patch("api.services.workspace_service.get_workspace_by_id") as mock_get_workspace:
+            mock_get_workspace.side_effect = ValueError("Workspace not found")
+
+            from api.services.workspace_service import get_workspace_uploads
+
+            with pytest.raises(ValueError, match="Workspace not found"):
+                get_workspace_uploads(sample_workspace_id, sample_user_id)
+
+
 """to be tested:
     1. add_workspace_member
     2. updated get_workspace_by_id
