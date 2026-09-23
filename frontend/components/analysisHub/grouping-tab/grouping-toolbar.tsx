@@ -36,7 +36,6 @@ async function runGroupingJob(levels: LevelData[]): Promise<ClusteringRes> {
 export default function GroupingToolbar() {
   const {
     setGroupingData,
-    setOptimalGroup,
     cpaData,
     cpaResults,
     selectedMeasurements,
