@@ -1,6 +1,7 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { HistoryEntry, HistoryTab } from "@/types/parameterHistory";
 import { historyService } from "@/services/historyServices";
+import { refresh } from "next/cache";
 
 export function useHistory(
     workspaceId: string | null,
@@ -24,6 +25,10 @@ export function useHistory(
             setLoading(false);
         }
     }, [workspaceId, uploadId, tab]); 
+
+    useEffect(() => {
+        refresh();
+    }, [refresh]);
 
     return {entries, loading, error, fetchHistory}; 
 }
