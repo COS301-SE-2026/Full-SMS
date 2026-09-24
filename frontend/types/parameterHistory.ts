@@ -23,4 +23,4 @@ export interface AddHistory {
 }
 
 export interface HistoryListResponse { success: boolean; history: HistoryEntry[];}
-export interface HistoryEntryResponse { success: boolean; entry: HistoryEntry[];}
+export interface HistoryEntryResponse { success: boolean; entry: HistoryEntry;}
