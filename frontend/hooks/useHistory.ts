@@ -1,7 +1,6 @@
 import { useCallback, useState, useEffect } from "react";
 import { HistoryEntry, HistoryTab } from "@/types/parameterHistory";
 import { historyService } from "@/services/historyServices";
-import { refresh } from "next/cache";
 
 export function useHistory(
     workspaceId: string | null,
@@ -20,15 +19,15 @@ export function useHistory(
             const res = await historyService.getHistory(workspaceId, uploadId, tab);
             setEntries(res.history);
         }catch(e: any) {
-            setError(e.messsage);
+            setError(e.message);
         }finally {
             setLoading(false);
         }
     }, [workspaceId, uploadId, tab]); 
 
     useEffect(() => {
-        refresh();
-    }, [refresh]);
+        fetchHistory();
+    }, [fetchHistory]);
 
     return {entries, loading, error, fetchHistory}; 
 }
