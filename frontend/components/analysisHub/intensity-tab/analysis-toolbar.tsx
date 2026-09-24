@@ -104,6 +104,7 @@ export function AnalysisToolbar() {
   } = useHdf5Data();
 
   const recordHist=useHistoryRecorder(currentWorkspaceId, currentUpload, "intensity");
+
   const { errorToast } = useToast();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -194,11 +195,17 @@ export function AnalysisToolbar() {
       <div className="flex items-center gap-4 h-12">
         <h3 className="text-foreground">Intensity Analysis</h3>
 
-        <NumberField label="Bin (ms)" value={bin} onChange={setBin} />
+        <NumberField label="Bin (ms)" value={bin} onChange={(v) => {
+          setBin(v);
+          recordHist("bin", v);
+          }} />
         <ConfidenceField
           label="Confidence %"
           value={confidence}
-          onChange={setConfidence}
+          onChange={(v) => {
+            setConfidence(v);
+          recordHist("confidence", v);
+          }}
         />
 
         <Button
