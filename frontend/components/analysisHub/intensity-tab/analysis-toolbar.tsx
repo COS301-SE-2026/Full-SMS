@@ -5,6 +5,7 @@ import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { changePoint_Req } from "@/types/analysis";
 import { changePointAnalysis } from "@/services/analysisServices";
 import { useToast } from "@/contexts/toastContext/ToastContext";
+import { useHistoryRecorder } from "@/hooks/useHistoryRecorder";
 
 interface NumberFieldProps {
   readonly label: string;
@@ -92,6 +93,7 @@ export function AnalysisToolbar() {
     setConfidence,
     currentUpload,
     currentMeasurement,
+    currentWorkspaceId,
     setCpaData,
     selectedMeasurements,
     setCpaResultForMeasurement,
