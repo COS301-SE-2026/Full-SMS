@@ -102,6 +102,8 @@ export function AnalysisToolbar() {
     cpaProcessingIds,
     hdf5Metadata,
   } = useHdf5Data();
+
+  const recordHist=useHistoryRecorder(currentWorkspaceId, currentUpload, "intensity");
   const { errorToast } = useToast();
 
   const [isLoading, setIsLoading] = useState(false);
