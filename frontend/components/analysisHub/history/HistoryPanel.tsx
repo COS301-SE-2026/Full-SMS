@@ -4,9 +4,10 @@ interface HistoryPanelProps {
     entries: HistoryEntry[];
     loading: boolean;
     error: string | null;
+    onRevert: (entry: HistoryEntry) => void;
 }
 
-export function historyPanel({entries, loading, error}: HistoryPanelProps) {
+export function historyPanel({entries, loading, error, onRevert}: HistoryPanelProps) {
     if(loading) return <p className="text-sm">Loading history...</p>;
     if(error) return < p className="text-sm text-red-600">{error}</p>;
     if(entries.length === 0) return <p className="text-sm">No changes yet.</p>;
@@ -22,6 +23,10 @@ export function historyPanel({entries, loading, error}: HistoryPanelProps) {
                     <span className="text-xs text-gray-500">
                         {new Date(e.created_at).toLocaleString()}
                     </span>
+
+                    <button className="text-xs underline" onClick={() => onRevert(e)}>
+                        Revert
+                    </button>
                 </li>
             ))}
         </ul>
