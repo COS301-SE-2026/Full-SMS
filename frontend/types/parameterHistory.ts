@@ -15,7 +15,7 @@ export interface HistoryEntry {
 
 export interface AddHistory {
     upload_id: string;
-    measurement_id: string | null;
+    measurement_id?: string | null;
     tab: HistoryTab;
     parameter: string;
     old_value: any;
