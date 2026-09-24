@@ -26,7 +26,8 @@ export function useHistoryRecorder(
 
                 if(!workspaceId || oldVal === newValue) return;
 
-                historyService.addEntry(workspaceId, {
+                historyService
+                .addEntry(workspaceId, {
                     upload_id: uploadId,
                     tab,
                     parameter,
