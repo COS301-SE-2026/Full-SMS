@@ -6,6 +6,9 @@ import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsContext'
 import { LifetimeReq, StartpointMode } from '@/types/analysis'
 import { getLifetimeData } from '@/services/analysisServices'
+import { useHistory } from '@/hooks/useHistory';
+import { useRef } from 'react'
+import { useHistoryRecorder } from '@/hooks/useHistoryRecorder'
 
 export default function FittingDialog() {
     const [background, setBackground] = useState<boolean>(true)
@@ -28,9 +31,16 @@ export default function FittingDialog() {
     const [startChannel, setStartChannel] = useState<number>(0)
     const [endChannel, setEndChannel] = useState<number>(4096) // only send this in the request if auto detect is set to false
     const [backgroundValue, setBackgroundValue] = useState<number>(0)
-
+    
     const {setFittingDialogOpen, decayCounts, decayTimes, setFitResult} = useAnalysisTab()
     const {currentMeasurement, currentUpload} = useHdf5Data()
+
+    const { currentWorkspaceId} = useHdf5Data();
+    const recordHist = useHistoryRecorder(currentWorkspaceId, currentUpload, "lifetime");
+
+    const initailSettings = useRef({
+        numExponents,tauInit,boundsMin,boundsMax,background,detectEndpoint,useIRF,useSimulatedIRF,fitFWHM,fhwm,fwhmBoundsMin,fwhmBoundsMax,
+    });
 
     const fetchLifetimeFitting = async ()=>{
         const request: LifetimeReq = {
@@ -52,6 +62,7 @@ export default function FittingDialog() {
     }
 
     const handleFit = (()=>{
+        
         fetchLifetimeFitting();
         setFittingDialogOpen(false)
     })
