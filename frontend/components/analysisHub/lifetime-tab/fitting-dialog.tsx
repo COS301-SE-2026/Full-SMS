@@ -62,7 +62,11 @@ export default function FittingDialog() {
     }
 
     const handleFit = (()=>{
-        
+        const newSettings = {
+            numExponents,tauInit,boundsMin,boundsMax,background,detectEndpoint,useIRF,useSimulatedIRF,fitFWHM,fhwm,fwhmBoundsMin,fwhmBoundsMax,
+        };
+        recordHist("fit_settings", initailSettings.current, newSettings);
+        initailSettings.current = newSettings;
         fetchLifetimeFitting();
         setFittingDialogOpen(false)
     })
