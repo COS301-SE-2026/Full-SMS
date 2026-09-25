@@ -7,7 +7,7 @@ interface HistoryPanelProps {
     onRevert: (entry: HistoryEntry) => void;
 }
 
-export function historyPanel({entries, loading, error, onRevert}: HistoryPanelProps) {
+export function HistoryPanel({entries, loading, error, onRevert}: HistoryPanelProps) {
     if(loading) return <p className="text-sm">Loading history...</p>;
     if(error) return < p className="text-sm text-red-600">{error}</p>;
     if(entries.length === 0) return <p className="text-sm">No changes yet.</p>;
