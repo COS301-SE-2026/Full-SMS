@@ -11,6 +11,8 @@ from api.services.plugin_service import (
     update_installed_plugin,
     get_available_outputs_for_chaining,
     get_latest_execution,
+    save_plugin_execution,
+    get_chained_input_data,
 )
 from api.models.plugin import (
     PluginCreate,
@@ -148,16 +150,42 @@ def delete_plugin_controller(plugin_id: str, user_id: str) -> dict:
         )
 
 
+def _resolve_chained_parameters(parameters: dict, user_id: str) -> dict:
+    if not parameters:
+        return parameters
+
+    resolved = {}
+    for key, value in parameters.items():
+        if isinstance(value, str) and ":" in value and len(value.split(":")) == 2:
+            parts = value.split(":")
+            execution_id, output_id = parts[0], parts[1]
+            if len(execution_id) >= 32:
+                try:
+                    chained_data = get_chained_input_data(
+                        execution_id, output_id, user_id
+                    )
+                    resolved[key] = chained_data
+                except Exception:
+                    resolved[key] = value
+            else:
+                resolved[key] = value
+        else:
+            resolved[key] = value
+
+    return resolved
+
+
 def execute_plugin_controller(
     plugin_id: str, request: PluginExecute, user_id: str
 ) -> dict:
     try:
         plugin = get_plugin_by_id(plugin_id, user_id)
 
+        resolved_parameters = _resolve_chained_parameters(request.parameters, user_id)
+
         measurement_data = None
         if request.measurement_data:
             measurement_data = request.measurement_data.model_dump()
-
         elif request.upload_id and request.measurement_id:
             measurement_data = get_measurement_data(
                 upload_id=request.upload_id,
@@ -166,17 +194,31 @@ def execute_plugin_controller(
 
         result = execute_plugin(
             script=plugin["script"],
-            parameters=request.parameters,
+            parameters=resolved_parameters,
             measurement_data=measurement_data,
         )
 
         result_id = None
+        execution_id = ""
 
         if result["success"]:
+            if request.workspace_id and request.measurement_id:
+                saved = save_plugin_execution(
+                    plugin_id=plugin_id,
+                    workspace_id=request.workspace_id,
+                    measurement_id=request.measurement_id,
+                    user_id=user_id,
+                    parameters=request.parameters or {},
+                    results=result.get("results", {}),
+                    execution_time_ms=int(result.get("execution_time", 0)),
+                )
+                execution_id = saved["id"]
+                result_id = saved["id"]
+
             return {
                 "success": True,
                 "message": "Plugin executed successfully",
-                "execution_id": result.get("execution_id", ""),
+                "execution_id": execution_id,
                 "execution_time": result.get("execution_time", 0),
                 "results": result.get("results", {}),
                 "result_id": result_id,
@@ -185,10 +227,10 @@ def execute_plugin_controller(
             return {
                 "success": False,
                 "message": "Plugin execution failed",
-                "execution_id": result.get("execution_id", ""),
+                "execution_id": "",
                 "execution_time": result.get("execution_time", 0),
                 "error": result.get("error"),
-                "result_id": result_id,
+                "result_id": None,
             }
 
     except ValueError as valerror:
@@ -213,12 +255,10 @@ def update_installed_plugin_controller(plugin_id: str, user_id: str) -> dict:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
-        
+
+
 def get_latest_execution_controller(
-    plugin_id: str,
-    workspace_id: str,
-    measurement_id: str,
-    user_id: str
+    plugin_id: str, workspace_id: str, measurement_id: str, user_id: str
 ) -> dict:
     try:
         execution = get_latest_execution(
@@ -233,11 +273,11 @@ def get_latest_execution_controller(
             "has_previous_result": execution is not None,
         }
     except ValueError as ve:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(ve))
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
 
 
 def export_plugin_output_controller(request: PluginExportRequest, user_id: str):
