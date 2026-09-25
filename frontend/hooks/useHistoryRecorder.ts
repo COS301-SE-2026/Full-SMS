@@ -13,9 +13,9 @@ export function useHistoryRecorder(
 
 
     return useCallback(
-        (parameter: string, newValue: number) => {
+        (parameter: string, oldVal: number, newValue: number) => {
             if(!(parameter in firstValues.current)){
-                firstValues.current[parameter] = newValue;
+                firstValues.current[parameter] = oldVal;
             }
             if (timers.current[parameter]){
                 clearTimeout(timers.current[parameter]);

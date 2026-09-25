@@ -197,14 +197,14 @@ export function AnalysisToolbar({ onHistoryChange }: { onHistoryChange?:() => vo
 
         <NumberField label="Bin (ms)" value={bin} onChange={(v) => {
           setBin(v);
-          recordHist("bin", v);
-          }} />
+          recordHist("bin", bin,  v);
+          }} /> 
         <ConfidenceField
           label="Confidence %"
           value={confidence}
           onChange={(v) => {
             setConfidence(v);
-          recordHist("confidence", v);
+          recordHist("confidence",confidence, v);
           }}
         />
 
