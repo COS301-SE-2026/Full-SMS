@@ -9,11 +9,11 @@ export function useHistoryRecorder(
     onRecorded?: () => void,
 ){
     const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-    const firstValues = useRef<Record<string, number>>({});
+    const firstValues = useRef<Record<string, any>>({});
 
 
     return useCallback(
-        (parameter: string, oldVal: number, newValue: number) => {
+        (parameter: string, oldVal: any, newValue: any) => {
             if(!(parameter in firstValues.current)){
                 firstValues.current[parameter] = oldVal;
             }
