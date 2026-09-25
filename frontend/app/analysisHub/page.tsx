@@ -21,6 +21,10 @@ import { Plugin } from "@/types/plugin";
 import ExportPanel from "@/components/analysisHub/export-tab/export-tab-panel";
 import { Card } from "@/components/ui";
 import CorrelationTab from "@/components/analysisHub/correlation-tab/correlation-tab";
+import { HistoryPanel } from "@/components/analysisHub/history/HistoryPanel";
+import { useHistory } from "@/hooks/useHistory";
+import { historyService } from "@/services/historyServices";
+import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 
 export default function App() {
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
@@ -28,6 +32,8 @@ export default function App() {
     useAnalysisTab();
   const [currentPlugin, setCurrentPlugin] = useState<Plugin | null>(null);
 
+  const { currentWorkspaceId, currentUpload} = useHdf5Data();
+  const { entries, loading, error, fetchHistory} = useHistory(currentWorkspaceId, currentUpload, "intensity",);
   const isPluginTab = activeTab.startsWith("plugin:");
   const pluginId = isPluginTab ? activeTab.replace("plugin:", "") : null;
 
@@ -86,6 +92,15 @@ export default function App() {
             <AnalysisToolbar />
             <div className="flex flex-1 gap-3 p-3 min-h-0">
               <IntensityChart />
+              <HistoryPanel
+                entries={entries}
+                loading={loading}
+                error={error}
+                onRevert={async (entry) => {
+                  await historyService.revertEntry(currentWorkspaceId!, entry.id);
+                  fetchHistory();
+                }}
+               />
             </div>
           </div>
         )}
