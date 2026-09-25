@@ -416,11 +416,9 @@ def get_chained_input_data(execution_id: str, output_id: str, user_id: str) -> A
 
     return results[output_id]
 
+
 def get_latest_execution(
-    plugin_id: str,
-    workspace_id: str,
-    measurement_id: str,
-    user_id: str
+    plugin_id: str, workspace_id: str, measurement_id: str, user_id: str
 ) -> Optional[dict]:
     """Get the most recent successful execution for a measurement."""
     supabase = get_supabase_admin()
@@ -443,3 +441,39 @@ def get_latest_execution(
         return response.data[0]
 
     return None
+
+
+def save_plugin_execution(
+    plugin_id: str,
+    workspace_id: str,
+    measurement_id: str,
+    user_id: str,
+    parameters: Dict[str, Any],
+    results: Dict[str, Any],
+    execution_time_ms: int = 0,
+) -> dict:
+    supabase = get_supabase_admin()
+
+    execution_id = str(uuid.uuid4())
+
+    response = (
+        supabase.table("plugin_executions")
+        .insert(
+            {
+                "id": execution_id,
+                "plugin_id": plugin_id,
+                "workspace_id": workspace_id,
+                "measurement_id": measurement_id,
+                "status": "success",
+                "parameters": parameters,
+                "results": results,
+                "execution_time_ms": execution_time_ms,
+            }
+        )
+        .execute()
+    )
+
+    if not response.data:
+        raise RuntimeError("Failed to save plugin execution")
+
+    return response.data[0]

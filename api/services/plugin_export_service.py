@@ -385,9 +385,9 @@ def export_plugin_output(
 
 def get_valid_formats_for_type(output_type: str) -> list:
     format_map = {
-        "plot": ["png", "pdf", "svg", "json"],
-        "histogram": ["png", "pdf", "svg", "json"],
-        "heatmap": ["png", "pdf", "svg", "json"],
+        "plot": ["json"],
+        "histogram": ["json"],
+        "heatmap": ["json"],
         "table": ["csv", "json", "excel"],
         "dataframe": ["csv", "json", "excel"],
         "value": ["json"],
