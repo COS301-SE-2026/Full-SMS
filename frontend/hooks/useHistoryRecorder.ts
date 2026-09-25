@@ -6,6 +6,7 @@ export function useHistoryRecorder(
     workspaceId: string | null,
     uploadId: string,
     tab: HistoryTab,
+    onRecorded?: () => void,
 ){
     const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
     const firstValues = useRef<Record<string, number>>({});
@@ -33,9 +34,11 @@ export function useHistoryRecorder(
                     parameter,
                     old_value: oldVal,
                     new_value: newValue,
-                }).catch((err) => console.error("Failed to record history:", err));
+                })
+                .then(() => onRecorded?.())
+                .catch((err) => console.error("Failed to record history:", err));
             }, 800);
         },
-        [workspaceId, uploadId, tab],
+        [workspaceId, uploadId, tab, onRecorded],
     ); 
 }

@@ -89,7 +89,7 @@ export default function App() {
 
         {activeTab === "intensity" && (
           <div className="flex flex-col flex-1 min-w-0">
-            <AnalysisToolbar />
+            <AnalysisToolbar onHistoryChange={fetchHistory} />
             <div className="flex flex-1 gap-3 p-3 min-h-0">
               <IntensityChart />
               <HistoryPanel

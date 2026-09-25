@@ -85,7 +85,7 @@ function ConfidenceField({
   );
 }
 
-export function AnalysisToolbar() {
+export function AnalysisToolbar({ onHistoryChange }: { onHistoryChange?:() => void }) {
   const {
     bin,
     setBin,
@@ -103,7 +103,7 @@ export function AnalysisToolbar() {
     hdf5Metadata,
   } = useHdf5Data();
 
-  const recordHist=useHistoryRecorder(currentWorkspaceId, currentUpload, "intensity");
+  const recordHist=useHistoryRecorder(currentWorkspaceId, currentUpload, "intensity", onHistoryChange);
 
   const { errorToast } = useToast();
 
