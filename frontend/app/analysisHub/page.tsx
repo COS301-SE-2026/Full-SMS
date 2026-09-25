@@ -32,7 +32,7 @@ export default function App() {
     useAnalysisTab();
   const [currentPlugin, setCurrentPlugin] = useState<Plugin | null>(null);
 
-  const { currentWorkspaceId, currentUpload} = useHdf5Data();
+  const { currentWorkspaceId, currentUpload, setBin, setConfidence } = useHdf5Data();
   const { entries, loading, error, fetchHistory} = useHistory(currentWorkspaceId, currentUpload, "intensity",);
   const isPluginTab = activeTab.startsWith("plugin:");
   const pluginId = isPluginTab ? activeTab.replace("plugin:", "") : null;
@@ -97,7 +97,9 @@ export default function App() {
                 loading={loading}
                 error={error}
                 onRevert={async (entry) => {
-                  await historyService.revertEntry(currentWorkspaceId!, entry.id);
+                  const { entry: reverted}=await historyService.revertEntry(currentWorkspaceId!, entry.id);
+                  if(reverted.parameter === "bin") setBin(reverted.new_value);
+                  if(reverted.parameter === "confidence") setConfidence(reverted.new_value as any);
                   fetchHistory();
                 }}
                />
