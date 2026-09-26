@@ -1,5 +1,7 @@
 import { Card } from "@/components/ui";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
+import { useHistory } from "@/hooks/useHistory";
+import { useHistoryRecorder } from "@/hooks/useHistoryRecorder";
 import { colors } from "@/lib/tokens";
 import { getSpectraData } from "@/services/analysisServices";
 import { SpectraData } from "@/types/analysis";
@@ -12,7 +14,10 @@ export default function SpectraMap() {
     currentMeasurement,
     spectraHeatMapColor,
     setSpectraHeatMapColor,
+    currentWorkspaceId,
   } = useHdf5Data();
+  const { entries, loading, error, fetchHistory}= useHistory(currentWorkspaceId, currentUpload, "spectra");
+  const recordHistory = useHistoryRecorder(currentWorkspaceId, currentUpload, "spectra", fetchHistory);
   const [spectraData, setSpectraData] = useState<SpectraData>();
   const colourmaps = [
     "Plasma",
@@ -77,7 +82,10 @@ export default function SpectraMap() {
             <select
               name="heat-map"
               value={spectraHeatMapColor}
-              onChange={(e) => setSpectraHeatMapColor(e.target.value)}
+              onChange={(e) => {
+                setSpectraHeatMapColor(e.target.value);
+                recordHistory("colormap", spectraHeatMapColor, e.target.value);
+              }}
               className="w-20 h-7 px-2 rounded bg-card border border-border text-xs text-foreground text-right font-mono focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary appearance-none cursor-pointer"
             >
               {colourmaps.map((map) => (
