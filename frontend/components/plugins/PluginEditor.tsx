@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Plus, Trash2, Code, Settings, Save, HelpCircle } from "lucide-react";
-import { useFormik, FieldArray, FormikProvider } from "formik";
+import { useFormik, FormikProvider } from "formik";
 import * as Yup from "yup";
 import CodeEditor from "./CodeEditor";
 import { DEFAULT_SCRIPT, SCRIPT_HELP_TEXT } from "./constants";
@@ -49,11 +49,14 @@ const PluginSchema = Yup.object({
     .min(1, "At least one output is required"),
 });
 
+const sanitizeId = (value: string): string => {
+  return value.replace(/\s+/g, "_").replace(/\W/g, "").toLowerCase();
+};
 export default function PluginEditor({
   plugin,
   onSave,
   onCancel,
-}: PluginEditorProps) {
+}: Readonly<PluginEditorProps>) {
   const [activeTab, setActiveTab] = useState<"code" | "config">("code");
   const [showHelp, setShowHelp] = useState(false);
 
@@ -347,7 +350,7 @@ export default function PluginEditor({
                         onChange={(e) =>
                           formik.setFieldValue(
                             `parameters.${index}.id`,
-                            e.target.value,
+                            sanitizeId(e.target.value),
                           )
                         }
                         className="w-24 px-2 py-1 text-xs bg-background border border-border rounded"
@@ -437,7 +440,7 @@ export default function PluginEditor({
                       onChange={(e) =>
                         formik.setFieldValue(
                           `outputs.${index}.id`,
-                          e.target.value,
+                          sanitizeId(e.target.value),
                         )
                       }
                       className="w-24 px-2 py-1 text-xs bg-background border border-border rounded"
