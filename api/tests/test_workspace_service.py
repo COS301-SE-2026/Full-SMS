@@ -48,6 +48,7 @@ class TestGetWorkspaceById:
 
             assert result["id"] == sample_workspace_id
             assert result["file_count"] == 5
+            assert result["is_owner"] is True
 
     def test_raises_when_not_found(self, sample_workspace_id, sample_user_id):
         with patch("api.services.workspace_service.get_supabase_admin") as mock_admin:
@@ -115,6 +116,33 @@ class TestCreateWorkspace:
         with pytest.raises(ValueError, match="at least 3 characters"):
             create_workspace(sample_user_id, "ab", None)
 
+    def test_member_sees_is_owner_false(self, sample_workspace_id, sample_user_id):
+        member_id = str(uuid.uuid4())
+
+        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin:
+            mock_client = MagicMock()
+            mock_response = MagicMock()
+            mock_response.data = {
+                "id": sample_workspace_id,
+                "user_id": sample_user_id,
+                "member_ids": [member_id],
+                "name": "Test",
+                "description": None,
+                "storage_bucket_path": "/path",
+                "status": "active",
+                "created_at": "2026-01-01",
+                "updated_at": "2026-09-01",
+                "workspace_files": []
+            }
+
+            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = mock_response
+            mock_admin.return_value = mock_client
+
+            from api.services.workspace_service import get_workspace_by_id
+
+            result = get_workspace_by_id(sample_workspace_id, member_id)
+
+            assert result["is_owner"] is False
 
 class TestUpdateWorkspace:
     def test_rejects_update_from_not_owner(self, sample_workspace_id, sample_user_id):
