@@ -298,6 +298,19 @@ class TestGetWorkspaceUploads:
                 get_workspace_uploads(sample_workspace_id, sample_user_id)
 
 
+class TestUserCanAccessWorkspace:
+    def test_user_can_access_workspace(self, sample_workspace_id, sample_user_id):
+        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin:
+            mock_client = MagicMock()
+            mock_response = MagicMock()
+            mock_response.data = {"user_id": sample_user_id, "member_ids": []}
+            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = mock_response
+            mock_admin.return_value = mock_client
+
+            from api.services.workspace_service import user_can_access_workspace
+
+            assert user_can_access_workspace(sample_workspace_id, sample_user_id) is True
+
 
         
 
