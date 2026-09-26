@@ -31,7 +31,7 @@ export default function App() {
   const { activeTab, fittingDialogOpen, setFittingDialogOpen } =
     useAnalysisTab();
   const [currentPlugin, setCurrentPlugin] = useState<Plugin | null>(null);
-
+  const [historyOpen, setHistoryOpen] = useState(false);
   const { currentWorkspaceId, currentUpload, setBin, setConfidence } = useHdf5Data();
   const { entries, loading, error, fetchHistory} = useHistory(currentWorkspaceId, currentUpload, "intensity",);
   const isPluginTab = activeTab.startsWith("plugin:");
@@ -89,10 +89,10 @@ export default function App() {
 
         {activeTab === "intensity" && (
           <div className="flex flex-col flex-1 min-w-0">
-            <AnalysisToolbar onHistoryChange={fetchHistory} />
+            <AnalysisToolbar onHistoryChange={fetchHistory} historyOpen={historyOpen} onToggleHistory={() => setHistoryOpen((v) => !v)}/>
             <div className="flex flex-1 gap-3 p-3 min-h-0">
               <IntensityChart />
-              <HistoryPanel
+              {historyOpen && (<HistoryPanel
                 entries={entries}
                 loading={loading}
                 error={error}
@@ -103,6 +103,7 @@ export default function App() {
                   fetchHistory();
                 }}
                />
+              )}
             </div>
           </div>
         )}

@@ -6,6 +6,7 @@ import { changePoint_Req } from "@/types/analysis";
 import { changePointAnalysis } from "@/services/analysisServices";
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import { useHistoryRecorder } from "@/hooks/useHistoryRecorder";
+import { History } from "lucide-react";
 
 interface NumberFieldProps {
   readonly label: string;
@@ -85,7 +86,7 @@ function ConfidenceField({
   );
 }
 
-export function AnalysisToolbar({ onHistoryChange }: { onHistoryChange?:() => void }) {
+export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory }: { onHistoryChange?:() => void; historyOpen: boolean; onToggleHistory: () => void }) {
   const {
     bin,
     setBin,
@@ -236,7 +237,7 @@ export function AnalysisToolbar({ onHistoryChange }: { onHistoryChange?:() => vo
         >
           Resolve Selected
         </Button>
-        <div className="ml-auto">
+        <div className="ml-auto flex gap-2">
           <Button
             size="sm"
             variant="secondary"
@@ -245,6 +246,12 @@ export function AnalysisToolbar({ onHistoryChange }: { onHistoryChange?:() => vo
           >
             Fit View
           </Button>
+          <Button variant="ghost" size="sm" 
+            title="View Parameter history"
+            onClick={onToggleHistory}
+            className={`px-2 py-0.5 min-h-0 ${historyOpen ? "bg-card" : ""}`}
+            leftIcon={<History size={14} />}
+          />
         </div>
       </div>
       <div>
