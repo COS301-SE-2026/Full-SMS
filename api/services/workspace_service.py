@@ -228,6 +228,11 @@ def delete_workspace_upload(workspace_id: str, upload_id: str, user_id: str) -> 
 
 def add_workspace_member (workspace_id: str, user_id: str, member_id: str) -> dict:
     supabase = get_supabase_admin()
+
+    # deny permission if the caller is not the same person being added
+    if user_id != member_id:
+        raise ValueError("Permission denied")
+    
     response = (
         supabase.table("workspaces")
         .select("*")
@@ -240,9 +245,6 @@ def add_workspace_member (workspace_id: str, user_id: str, member_id: str) -> di
     if not response.data:
         raise ValueError(WORKSPACE_NOT_FOUND)
 
-    # deny permission if the caller is not the same person being added
-    if user_id != member_id:
-        raise ValueError("Permission denied")
 
     data = response.data
     members = data["member_ids"]
