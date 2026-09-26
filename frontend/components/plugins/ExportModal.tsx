@@ -97,12 +97,12 @@ export default function ExportModal({
           outputId,
           selectedFormat,
         );
-        const extension =
-          selectedFormat === "excel"
-            ? "xlsx"
-            : selectedFormat === "hdf5"
-              ? "h5"
-              : selectedFormat;
+        let extension = selectedFormat;
+        if (selectedFormat === "excel") {
+          extension = "xlsx";
+        } else if (selectedFormat === "hdf5") {
+          extension = "h5";
+        }
         const filename = `${pluginName.replace(/\s+/g, "_")}_${output.label.replace(/\s+/g, "_")}.${extension}`;
         downloadBlob(blob, filename);
         exportedCount++;
@@ -147,9 +147,9 @@ export default function ExportModal({
       <div className="space-y-4">
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-foreground">
+            <div className="text-sm font-medium text-foreground">
               Select Outputs
-            </label>
+            </div>
             <button
               onClick={selectAll}
               className="text-xs text-primary hover:underline"
@@ -164,7 +164,8 @@ export default function ExportModal({
               const formats = getFormatsForOutput(output);
               const isSelected = selectedOutputs.has(output.id);
               const supportsFormat = formats.includes(selectedFormat);
-              const isChainable = isDataOutputType(output.type) && output.chainable !== false;
+              const isChainable =
+                isDataOutputType(output.type) && output.chainable !== false;
 
               return (
                 <label

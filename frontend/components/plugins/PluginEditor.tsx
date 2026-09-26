@@ -164,7 +164,10 @@ export default function PluginEditor({
         {activeTab === "code" && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-foreground">
+              <label
+                htmlFor="plugin-script"
+                className="block text-sm font-medium text-foreground"
+              >
                 Python Script
               </label>
               <Button
@@ -295,6 +298,7 @@ export default function PluginEditor({
             )}
 
             <CodeEditor
+              id="plugin-script"
               value={formik.values.script}
               onChange={(value) => formik.setFieldValue("script", value)}
               height="320px"
@@ -341,7 +345,7 @@ export default function PluginEditor({
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {formik.values.parameters.map((param, index) => (
                     <div
-                      key={index}
+                      key={param.id}
                       className="flex items-center gap-2 p-2 bg-card border border-border rounded-lg"
                     >
                       <input
@@ -431,7 +435,7 @@ export default function PluginEditor({
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {formik.values.outputs.map((output, index) => (
                   <div
-                    key={index}
+                    key={output.id}
                     className="flex items-center gap-2 p-2 bg-card border border-border rounded-lg"
                   >
                     <input
