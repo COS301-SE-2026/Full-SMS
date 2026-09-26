@@ -1,7 +1,9 @@
 import os
 import tempfile
 from pathlib import Path
+import uuid
 from fastapi import UploadFile, HTTPException
+from api.models.analysis_models import UploadIRFReq
 import api.services.hdf5_services as read_hdf5_service
 import api.services.hdf5_upload_service as hdf5_upload_service
 import api.services.storage_service as storage_service
@@ -111,5 +113,57 @@ def get_upload_by_id(user_id: str, upload_id: str):
  
     return upload
 
+def init_irf_upload(payload: dict, user_id: str) -> dict:
+    filename = payload["filename"]
+    
+    # IRFs can be .h5, .hdf5, or 2-column .txt/.dat
+    if not filename.endswith((".h5", ".hdf5", ".txt", ".dat")):
+        raise HTTPException(status_code=400, detail="Invalid IRF file format (.h5, .hdf5, .txt, .dat supported)")
+    
+    irf_id = str(uuid.uuid4())
+    storage_key = storage_service.build_storage_key(user_id=user_id, upload_id=irf_id, file_name=filename)
+    upload_url = storage_service.create_signed_upload_url(storage_key)
+    
+    supabaseClient.table("workspace_irfs").insert({
+        "id": irf_id,
+        "workspace_id": payload["workspace_id"],
+        "user_id": user_id,
+        "name": payload.get("name") or filename,
+        "storage_key": storage_key,
+        "status": "initialized",
+    }).execute()
+    
+    
+    return {
+        "irf_id": irf_id,
+        "upload_url": upload_url,
+    }
 
-
+def complete_irf_upload(irf_id: str, user_id: str) -> dict:
+    res = supabaseClient.table("workspace_irfs").select("*").eq("id", irf_id).eq("user_id", user_id).execute()
+    
+    if not res.data:
+        raise HTTPException(status_code=404, detail="IRF not found")
+    irf_record = res.data[0]
+    
+    if not storage_service.object_exists(irf_record["storage_key"]):
+        raise HTTPException(status_code=404, detail="Uploaded IRF file not found in storage")
+    
+    
+    suffix = Path(irf_record["storage_key"]).suffix
+    temp_path = storage_service.download_to_temp(irf_record["storage_key"], file_extension=suffix)
+    
+    try:
+        parsed_irf = read_hdf5_service.read_irf(temp_path)
+        if not parsed_irf:
+            raise HTTPException(status_code=400, detail="Could not parse IRF data from file")
+        
+        supabaseClient.table("workspace_irfs").update({
+            "status": "parsed"
+        }).eq("id", irf_id).execute()
+        return {"status": "ready", "irf_id": irf_id, "data": parsed_irf}
+    
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
+            

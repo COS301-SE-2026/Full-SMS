@@ -25,6 +25,7 @@ import axiosInstance from "@/lib/api/axiosInstance";
 import { getHdf5UploadStatus } from "@/services/hdf5services";
 import { DeleteIcon, TrashIcon } from "lucide-react";
 import BackButton from "@/components/ui/BackButton";
+import { getWorkspaceIrfs } from "@/services/irfServices";
 
 interface ProgressTrackerProps {
   activeUpload: {
@@ -70,6 +71,10 @@ export default function WorkspacePage() {
     status: string;
     progress: number;
   } | null>(null);
+
+  useEffect(()=>{
+    currentWorkspaceId && getWorkspaceIrfs(currentWorkspaceId)  
+}, [currentWorkspaceId])
 
   const handleUploadOpen = (upload_id: string) => {
     setCurrentUpload(upload_id);
@@ -300,6 +305,12 @@ export default function WorkspacePage() {
                 <div className="mt-4 flex justify-between h-min">
                   <h2>Workspace Uploads</h2>
                   <div className="flex gap-2">
+                    <Button className="font-black border-0 text-primary bg-primary/10" 
+                      variant={"secondary"}
+                      onClick={() => router.push("/irfManagement")}
+                      >
+                      IRF Mapping
+                    </Button>
                     <Button
                       leftIcon={<GrOnedrive size={24} />}
                       onClick={OneDriveLogin}
