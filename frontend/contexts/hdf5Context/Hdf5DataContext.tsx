@@ -26,13 +26,14 @@ type Hdf5Response = {
 type Confidence = 69 | 90 | 95 | 99;
 
 export interface CachedPluginResult {
-  status: "success" | "error";
-  results?: Record<string, unknown>;
-  error?: string;
-  executionTimeMs?: number;
-  executedAt: string;
-  parameters?: Record<string, unknown>;
-}
+    status: "success" | "error";
+    results?: Record<string, unknown>;
+    error?: string;
+    executionTimeMs?: number;
+    executedAt: string;
+    parameters?: Record<string, unknown>;
+    executionId?: string;
+  }
 
 interface Hdf5DataContextType {
   //initial intensity response
