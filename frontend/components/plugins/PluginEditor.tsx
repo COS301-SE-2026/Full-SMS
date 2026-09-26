@@ -298,7 +298,6 @@ export default function PluginEditor({
             )}
 
             <CodeEditor
-              id="plugin-script"
               value={formik.values.script}
               onChange={(value) => formik.setFieldValue("script", value)}
               height="320px"

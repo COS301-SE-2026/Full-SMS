@@ -97,7 +97,7 @@ export default function ExportModal({
           outputId,
           selectedFormat,
         );
-        let extension = selectedFormat;
+        let extension: string = selectedFormat;
         if (selectedFormat === "excel") {
           extension = "xlsx";
         } else if (selectedFormat === "hdf5") {

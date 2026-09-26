@@ -48,7 +48,7 @@ export default function ExportButton({
         outputId,
         format,
       );
-      let extension = format;
+      let extension: string = format;
       if (format === "excel") {
         extension = "xlsx";
       } else if (format === "hdf5") {
