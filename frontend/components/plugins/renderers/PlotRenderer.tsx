@@ -11,7 +11,7 @@ interface PlotRendererProps {
   label: string;
 }
 
-export default function PlotRenderer({ data, label }: PlotRendererProps) {
+export default function PlotRenderer({ data, label }: Readonly<PlotRendererProps>) {
   const { x, y, xlabel, ylabel, title, type = "line", series } = data;
 
   const allSeries = series || [{ x, y, label: "Data" }];

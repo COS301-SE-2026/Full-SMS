@@ -29,7 +29,7 @@ export default function TimeseriesRenderer({
 
   const stats = {
     points: values.length,
-    duration: time.length > 1 ? time[time.length - 1] - time[0] : 0,
+    duration: time.length > 1 ? time.at(-1)! - time[0] : 0,
     mean:
       values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0,
   };
@@ -76,7 +76,12 @@ export default function TimeseriesRenderer({
                 border: "1px solid hsl(var(--border))",
                 fontSize: 12,
               }}
-              formatter={(value: number) => [value.toExponential(3), "Value"]}
+              formatter={(value) => [
+                typeof value === "number"
+                  ? value.toExponential(3)
+                  : String(value),
+                "Value",
+              ]}
               labelFormatter={(label) => `Time: ${label} ${timeUnit}`}
             />
             <Line

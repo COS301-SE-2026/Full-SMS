@@ -49,12 +49,15 @@ export default function PluginTab({ plugin }: Readonly<PluginTabProps>) {
   const [executionTime, setExecutionTime] = useState<number | null>(null);
   const [lastExecutedAt, setLastExecutedAt] = useState<string | null>(null);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [prevPluginId, setPrevPluginId] = useState(plugin.id);
 
   const fetchedRef = useRef<string | null>(null);
 
-  useEffect(() => {
+  // Reset params when plugin changes (React pattern for derived state)
+  if (prevPluginId !== plugin.id) {
+    setPrevPluginId(plugin.id);
     setParams(getDefaultValues(plugin));
-  }, [plugin.id]);
+  }
 
   useEffect(() => {
     const loadResult = async () => {
