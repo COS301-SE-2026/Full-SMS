@@ -8,9 +8,9 @@ import { historyService } from "@/services/historyServices";
 
 function CorrelationTab() {
   const [window, setWindow] = useState<number>(450);
-    const [bin, setBin] = useState<number>(0.5);
-    const [offset, setOffset] = useState<number>(0);
-
+  const [bin, setBin] = useState<number>(0.5);
+  const [offset, setOffset] = useState<number>(0);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const { currentWorkspaceId, currentUpload, currentMeasurement, setCorrelationData} = useHdf5Data();
   const {entries, loading, error, fetchHistory} = useHistory(currentWorkspaceId, currentUpload, "correlation");
   
@@ -18,10 +18,11 @@ function CorrelationTab() {
     <div className="w-full h-full flex gap-3">
       <div className="flex flex-col flex-1">
         <CorrelationTabToolbar
-          window={window} setWindow={setWindow} bin={bin} setBin={setBin} offset={offset} setOffset={setOffset} onHistoryRecorded={fetchHistory}
+          window={window} setWindow={setWindow} bin={bin} setBin={setBin} offset={offset} setOffset={setOffset} onHistoryRecorded={fetchHistory} historyOpen={historyOpen} onToggleHistory={() => setHistoryOpen((v) => !v)}
         />
         <CorrelationChart/>
       </div>
+      {historyOpen && (
       <HistoryPanel
         entries={entries}
         loading={loading}
@@ -33,6 +34,7 @@ function CorrelationTab() {
           historyService.revertEntry(currentWorkspaceId!, entry.id).then(fetchHistory);
          }}
       />
+      )}
     </div>
   );
 }
