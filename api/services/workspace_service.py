@@ -6,6 +6,8 @@ from api.services.storage_service import BUCKET
 from api.utils.redis_Client import redisClient
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+WORKSPACE_NOT_FOUND = "Workspace not found"
+WORKSPACE_UPDATE_FAILED = "Workspace not found or update failed"
 
 
 def get_supabase_admin() -> Client:
@@ -27,24 +29,22 @@ def get_user_workspaces(user_id: str) -> List[dict]:
 
 def get_workspace_by_id(workspace_id: str, user_id: str) -> Optional[dict]:
     supabase = get_supabase_admin()
+
+    if not user_can_access_workspace(workspace_id, user_id):
+        raise ValueError(WORKSPACE_NOT_FOUND)
+
     response = (
-        supabase.table("workspaces")
-        .select("*, workspace_files(count)")
-        .eq("id", workspace_id)
-        .single()
-        .execute()
-    )
+            supabase.table("workspaces")
+            .select("*, workspace_files(count)")
+            .eq("id", workspace_id)
+            .single()
+            .execute()
+        )
 
     if not response.data:
-        raise ValueError("Workspace not found")
+        raise ValueError(WORKSPACE_NOT_FOUND)
 
     data = response.data
-    members = data["member_ids"]
-    is_owner = user_id == data["user_id"] 
-    is_member = user_id in members
-
-    if not is_owner and not is_member:
-        raise ValueError("Workspace not found")
     
     file_count = 0
     if "workspace_files" in data and len(data["workspace_files"]) > 0:
@@ -53,6 +53,7 @@ def get_workspace_by_id(workspace_id: str, user_id: str) -> Optional[dict]:
     return {
         "id": data["id"],
         "user_id": data["user_id"],
+        "is_owner": data["user_id"] == user_id,
         "name": data["name"],
         "description": data["description"],
         "storage_bucket_path": data["storage_bucket_path"],
@@ -114,7 +115,7 @@ def update_workspace(workspace_id: str, user_id: str, name: Optional[str] = None
     if not update_data:
         workspace = get_workspace_by_id(workspace_id, user_id)
         if workspace["user_id"] != user_id:
-            raise ValueError("Workspace not found")
+            raise ValueError(WORKSPACE_NOT_FOUND)
         return workspace
 
     response = (
@@ -126,7 +127,7 @@ def update_workspace(workspace_id: str, user_id: str, name: Optional[str] = None
     )
 
     if not response.data:
-        raise ValueError("Workspace not found or update failed.")
+        raise ValueError(WORKSPACE_UPDATE_FAILED)
 
     return response.data[0]
 
@@ -137,7 +138,7 @@ def delete_workspace(workspace_id: str, user_id: str) -> bool:
     workspace = get_workspace_by_id(workspace_id, user_id)
 
     if workspace["user_id"] != user_id:
-        raise ValueError("Workspace not found")
+        raise ValueError(WORKSPACE_NOT_FOUND)
     
     if workspace.get("storage_bucket_path"):
         try:
@@ -163,7 +164,7 @@ def delete_workspace(workspace_id: str, user_id: str) -> bool:
     )
 
     if not response.data:
-        raise ValueError("Workspace not found")
+        raise ValueError(WORKSPACE_NOT_FOUND)
 
     return True
 
@@ -225,7 +226,7 @@ def delete_workspace_upload(workspace_id: str, upload_id: str, user_id: str) -> 
     )
     return {"deleted": True, "upload_id": upload_id}
 
-def add_workspace_member (workspace_id: str, user_id: str) -> dict:
+def add_workspace_member (workspace_id: str, user_id: str, member_id: str) -> dict:
     supabase = get_supabase_admin()
     response = (
         supabase.table("workspaces")
@@ -237,18 +238,22 @@ def add_workspace_member (workspace_id: str, user_id: str) -> dict:
 
    
     if not response.data:
-        raise ValueError("Workspace not found")
+        raise ValueError(WORKSPACE_NOT_FOUND)
+
+    # deny permission if the caller is not the same person being added
+    if user_id != member_id:
+        raise ValueError("Permission denied")
 
     data = response.data
     members = data["member_ids"]
-    is_owner = user_id == data["user_id"] 
-    is_member = user_id in members
+    is_owner = member_id == data["user_id"] 
+    is_member = member_id in members
 
     if is_owner or is_member:
         data["already_member"] = True
         return data
     else:
-        members.append(user_id)
+        members.append(member_id)
         update_data = {"member_ids": members}
         response = (
                 supabase.table("workspaces")
@@ -256,8 +261,9 @@ def add_workspace_member (workspace_id: str, user_id: str) -> dict:
                 .eq("id", workspace_id)
                 .execute()
             )
+        
     if not response.data:
-            raise ValueError("Workspace not found or update failed.")
+        raise ValueError(WORKSPACE_UPDATE_FAILED)
     
     result = response.data[0]
     result["already_member"] = False
@@ -274,13 +280,13 @@ def remove_workspace_member(workspace_id: str, user_id: str, member_id: str) -> 
     )
 
     if not response.data:
-        raise ValueError("Workspace not found")
+        raise ValueError(WORKSPACE_NOT_FOUND)
 
     data = response.data
     members = data["member_ids"]
 
     if user_id != data["user_id"]:
-        raise ValueError("Workspace not found")
+        raise ValueError(WORKSPACE_NOT_FOUND)
 
     if member_id not in members:
         data["was_member"] = False
@@ -296,16 +302,28 @@ def remove_workspace_member(workspace_id: str, user_id: str, member_id: str) -> 
     )
 
     if not response.data:
-        raise ValueError("Workspace not found or update failed")
+        raise ValueError(WORKSPACE_UPDATE_FAILED)
 
     result = response.data[0]
     result["was_member"] = True
     return result
 
-    
+def user_can_access_workspace(workspace_id: str, user_id: str) -> bool:
+    supabase = get_supabase_admin()
+    response = (
+        supabase.table("workspaces")
+        .select("user_id, member_ids")
+        .eq("id", workspace_id)
+        .single()
+        .execute()
+    )
 
-    
-    
+    if not response.data:
+        return False
 
+    data = response.data
+    is_owner = user_id == data["user_id"]
+    is_member = user_id in data["member_ids"]
 
+    return is_owner or is_member
 
