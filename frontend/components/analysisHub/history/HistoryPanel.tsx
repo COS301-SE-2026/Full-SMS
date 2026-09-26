@@ -17,7 +17,7 @@ export function HistoryPanel({entries, loading, error, onRevert}: HistoryPanelPr
             {entries.map((e) => (
                 <li key={e.id} className="flex items-center justify-between gap-2">
                     <span>
-                        {e.parameter}: {typeof e.old_value === "object" ? "updated" : `${e.old_value || "initial"} to ${e.new_value || "initial"}`}
+                        {e.parameter}: {typeof e.old_value === "object" ? "updated" : `${e.old_value || "Plasma"} to ${e.new_value || "Plasma"}`}
                     </span>
 
                     <span className="text-xs text-gray-500">
