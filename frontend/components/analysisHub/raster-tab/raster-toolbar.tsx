@@ -2,10 +2,10 @@ import React from 'react'
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { useHistoryRecorder } from '@/hooks/useHistoryRecorder'
 
-export default function RasterToolbar() {
+export default function RasterToolbar({onHistoryRecorded}: {onHistoryRecorded: () => void}) {
     const {setHeatMapColor, heatMapColor, currentUpload, currentWorkspaceId} = useHdf5Data()
     const colourmaps = ["Plasma","Viridis", "Inferno", "Hot", "Cool", "Twilight"]
-    const recordHistory = useHistoryRecorder(currentWorkspaceId, currentUpload, "raster");
+    const recordHistory = useHistoryRecorder(currentWorkspaceId, currentUpload, "raster", onHistoryRecorded);
 
     return (
     <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">

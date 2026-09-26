@@ -12,7 +12,7 @@ export default function RasterTab() {
   return (
     <div className='h-full w-full flex gap-3'>
       <div className='flex flex-col flex-1'>
-        <RasterToolbar/>
+        <RasterToolbar onHistoryRecorded={fetchHistory}/>
         <RasterHeatmap/>
       </div>
       <HistoryPanel
