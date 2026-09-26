@@ -29,7 +29,7 @@ function getG2AtZero(tau?: number[], g2?: number[]): number {
   }
 
 export default function CorrelationTabToolbar({
-  window, setWindow, bin, setBin, offset, setOffset,
+  window, setWindow, bin, setBin, offset, setOffset,onHistoryRecorded
 }: {
   window: number; setWindow: (v:number) => void;
   bin: number; setBin: (v:number) => void;
@@ -48,7 +48,7 @@ export default function CorrelationTabToolbar({
     currentWorkspaceId
   } = useHdf5Data();
 
-  const recordHist = useHistoryRecorder(currentWorkspaceId, currentUpload, "correlation");
+  const recordHist = useHistoryRecorder(currentWorkspaceId, currentUpload, "correlation", onHistoryRecorded);
 
   const fetchCorrelationResult = async () => {
     const payload: CorrelationReq = {
