@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
-from api.controllers.irf_mapping_controller import get_workspace_irfs
-from api.models.analysis_models import UploadIRFReq
+from fastapi import APIRouter, Depends, UploadFile, File
+from api.controllers.irf_mapping_controller import create_irf_mapping, get_workspace_irfs
+from api.models.analysis_models import MapIRFReq, UploadIRFReq
 from api.routes.profile_routes import get_current_user
 from api.controllers.hdf5_controller import (complete_irf_upload, get_user_uploads_by_id, init_irf_upload, read_hdf5_file, init_hdf5_upload, complete_hdf5_upload, get_hdf5_upload_status, get_hdf5_upload_result, get_upload_by_id)
 from typing import Annotated
@@ -47,3 +47,7 @@ def complete_irf(irf_id: str, current_user: Annotated[dict, Depends(get_current_
 @router.get("/irf/{workspace_id}")
 def get_irfs(workspace_id: str, current_user: Annotated[dict, Depends(get_current_user)]):
     return get_workspace_irfs(workspace_id=workspace_id, user_id=current_user["user"]["id"])
+
+@router.post("/irf/{workspace_id}/map")
+def create_mapping(payload: MapIRFReq, current_user: Annotated[dict, Depends(get_current_user)]):
+    return create_irf_mapping(payload=payload)

@@ -203,3 +203,11 @@ export type RebinCorrelationReq = {
     new_binsize_ns: number,
     new_window_ns?: number
 }
+
+export type MapIRFReq = {
+    workspace_id: string,
+    dataset_ref: string,      
+    measurement_id?: number,
+    channel: number,  
+    irf_id: string  
+}

@@ -6,12 +6,18 @@ import React, { useState, useRef } from 'react';
 
 interface FileUploadZoneProps {
   onFilesSelected: (files: File[]) => void;
+  acceptedExtensions?: string[]; 
+  label?: string; 
 }
 
 const ALLOWED_EXTENSIONS = ['.pt3', '.csv', '.h5', '.hdf5','.txt,' , 'dat'];
 
 
-export default function FileUploadZone({ onFilesSelected }: FileUploadZoneProps) {
+export default function FileUploadZone({ 
+  onFilesSelected,
+  acceptedExtensions = ALLOWED_EXTENSIONS,
+  label = "Drag and drop your spectroscopy files here"
+ }: FileUploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -27,11 +33,11 @@ export default function FileUploadZone({ onFilesSelected }: FileUploadZoneProps)
      
       const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
 
-      if (ALLOWED_EXTENSIONS.includes(fileExtension)) {
+      if (acceptedExtensions.includes(fileExtension)) {
         validFiles.push(file);
       } else {
         
-        setError(`Unsupported file type: ${file.name}. Only ${ALLOWED_EXTENSIONS.join(', ')} files are allowed.`);
+        setError(`Unsupported file type: ${file.name}. Only ${acceptedExtensions.join(', ')} files are allowed.`);
       }
     }
 
@@ -80,7 +86,7 @@ export default function FileUploadZone({ onFilesSelected }: FileUploadZoneProps)
           type="file"
           ref={fileInputRef}
           onChange={handleFileInputChange}
-          accept={ALLOWED_EXTENSIONS.join(',')}
+          accept={acceptedExtensions.join(',')}
           multiple
           className="hidden"
         />
@@ -101,10 +107,10 @@ export default function FileUploadZone({ onFilesSelected }: FileUploadZoneProps)
         </svg>
 
         <p className="font-medium text-zinc-200">
-          Drag and drop your spectroscopy files here, or <span className="text-[#4fd1c5] hover:underline">browse</span>
+          {label}, or <span className="text-[#4fd1c5] hover:underline">browse</span>
         </p>
         <p className="text-xs text-zinc-500 mt-2">
-          Accepts: {ALLOWED_EXTENSIONS.join(', ')} up to 500MB
+          Accepts: {acceptedExtensions.join(', ')} up to 50MB
         </p>
       </div>
 
