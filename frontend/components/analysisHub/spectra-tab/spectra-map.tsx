@@ -7,6 +7,8 @@ import { getSpectraData } from "@/services/analysisServices";
 import { SpectraData } from "@/types/analysis";
 import React, { useEffect, useMemo, useState } from "react";
 import Plot from "react-plotly.js";
+import { HistoryPanel } from "../history/HistoryPanel";
+import { historyService } from "@/services/historyServices";
 
 export default function SpectraMap() {
   const {
@@ -68,7 +70,8 @@ export default function SpectraMap() {
   }, [spectraData]);
 
   return (
-    <div>
+    <div className="flex gap-3">
+      <div className="flex flex-col flex-1">
       <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
         <h3 className="text-foreground">Spectra</h3>
         <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
@@ -147,6 +150,16 @@ export default function SpectraMap() {
           style={{ width: "100%", height: "100%", minHeight: "400px" }}
         />
       </Card>
+    </div>
+    <HistoryPanel
+      entries={entries}
+      loading={loading}
+      error={error}
+      onRevert={(entry) =>{
+        setSpectraHeatMapColor(entry.old_value);
+        historyService.revertEntry(currentWorkspaceId!, entry.id).then(fetchHistory);
+      }}
+    />
     </div>
   );
 }
