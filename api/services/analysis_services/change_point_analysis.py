@@ -15,7 +15,7 @@ def resolve_current_measurement(payload: CpaReq) -> dict:
     upload_id = payload.upload_id
 
     measurement_id = payload.measurement_id
-
+    channel_key = f"channel{getattr(payload, 'channel', 1) or 1}"
     cached_measurement = get_cached_measurement(upload_id, measurement_id)
 
     if not cached_measurement:
@@ -26,9 +26,11 @@ def resolve_current_measurement(payload: CpaReq) -> dict:
         cached_measurement = json.loads(cached_measurement)
 
     if isinstance(cached_measurement, dict):
-        abstimes = np.array(cached_measurement["channel1"]["abstimes"], dtype=np.float64)
+        channel_data = cached_measurement.get(channel_key) or cached_measurement["channel1"]
+        abstimes = np.array(channel_data["abstimes"], dtype=np.float64)
     else:
-        abstimes = cached_measurement.channel1.abstimes
+        channel_data = getattr(cached_measurement, channel_key, cached_measurement.channel1)
+        abstimes = channel_data.abstimes
     confidence = payload.confidence/100
 
     result = find_change_points(abstimes=abstimes, confidence=confidence)

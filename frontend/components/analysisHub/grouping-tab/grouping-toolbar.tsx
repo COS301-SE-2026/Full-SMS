@@ -39,7 +39,9 @@ export default function GroupingToolbar() {
     cpaData,
     cpaResults,
     selectedMeasurements,
-    setGroupingResultForMeasurement
+    setGroupingResultForMeasurement,
+    isMultiChannel,
+    selectedChannels
   } = useHdf5Data();
   const { errorToast } = useToast()
   const [isBatchProcessing, setIsBatchProcessing] = useState(false)
@@ -101,22 +103,24 @@ export default function GroupingToolbar() {
   }
 
   const handleGroupSelected = async() => {
-    if (selectedMeasurements.size === 0) {
-      errorToast("No measurements selected");
+    const targets = isMultiChannel
+      ? Array.from(selectedChannels)
+      : Array.from(selectedMeasurements);
+    if (targets.length === 0) {
+      errorToast(isMultiChannel ? "No channels selected" : "No measurements selected");
       return;
     }
+    const targetIds = targets.filter((id) => cpaResults[id]?.levels);
 
-    const measurementIds = Array.from(selectedMeasurements).filter(mId => cpaResults[mId]?.levels)
-
-    if (measurementIds.length === 0) {
+    if (targetIds.length === 0) {
       errorToast("Selected measurements have not been resolved yet")
       return
     }
 
     setIsBatchProcessing(true)
-    setBatchRemaining(measurementIds.length)
+    setBatchRemaining(targetIds.length)
 
-    for (const mId of measurementIds) {
+    for (const mId of targetIds) {
       try{
         const result =  await runGroupingJob(cpaResults[mId].levels! )
         setGroupingResultForMeasurement(mId, result)
@@ -128,7 +132,6 @@ export default function GroupingToolbar() {
     }
     setIsBatchProcessing(false)
   };
-
   const busy = isProcessing || isBatchProcessing
 
   return (
@@ -168,11 +171,11 @@ export default function GroupingToolbar() {
         >
           Group All
         </Button>
-        <div className="ml-auto">
+        {/* <div className="ml-auto">
           <Button size="sm" variant="secondary" className="min-h-[28px] px-3">
             Reset to optimal
           </Button>
-        </div>
+        </div> */}
       </div>
       {isBatchProcessing && (
         <span className="font-mono text-sm text-primary animate-pulse">

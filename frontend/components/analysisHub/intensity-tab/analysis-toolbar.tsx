@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Maximize2 } from "lucide-react";
 import { Button } from "../../ui/Button";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
@@ -12,16 +12,21 @@ interface NumberFieldProps {
   readonly label: string;
   readonly value: number;
   readonly slider?: boolean;
+  readonly min?: number;
+  readonly max?: number;
   readonly onChange: (v: number) => void;
+  readonly onMouseUp?: (v: number) => void;
 }
 
 export function NumberField({
   label,
   value,
   onChange,
+  onMouseUp = () =>{},
   slider = true,
 }: NumberFieldProps) {
   return (
+
     <div className="flex items-center gap-2">
       <label className="text-xs text-foreground/70 whitespace-nowrap">
         {label}
@@ -33,6 +38,8 @@ export function NumberField({
         max={1000}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        onPointerUp={(e) => onMouseUp(Number(e.currentTarget.value))}
+        onKeyUp={(e)=> onMouseUp(Number(e.currentTarget.value))}
         className={`w-24 h-1.5 rounded-lg appearance-none bg-border cursor-pointer accent-primary`}
       />)}
 
@@ -42,6 +49,12 @@ export function NumberField({
         max={1000}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        onBlur={(e) => onMouseUp(Number(e.target.value))}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            onMouseUp(Number(e.currentTarget.value))
+            }
+          }}
         className="w-16 h-7 px-2 rounded bg-card border border-border 
         text-xs text-foreground text-right font-mono focus-visible:outline-none 
         focus-visible:ring-1 focus-visible:ring-primary 
@@ -102,19 +115,37 @@ export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory 
     setCpaProcessingIds,
     cpaProcessingIds,
     hdf5Metadata,
+    currentChannel,
+    isMultiChannel,
+    selectedChannels,
   } = useHdf5Data();
 
   const recordHist=useHistoryRecorder(currentWorkspaceId, currentUpload, "intensity", onHistoryChange);
 
   const { errorToast } = useToast();
-
+  const activeKey = `${currentMeasurement}:${currentChannel}`;
   const [isLoading, setIsLoading] = useState(false);
+  const [localBinValue, setLocalBinValue] = useState<number>()
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLocalBinValue(bin);
+  }, [bin]);
+
+
+
+
+  const handleSliderRelease = (finalBinValue: number) =>{
+    setBin(finalBinValue)
+    recordHist("bin", bin, finalBinValue)
+  }
 
   const resolveCurrent = async () => {
     const request: changePoint_Req = {
       upload_id: currentUpload,
       measurement_id: currentMeasurement,
       confidence: confidence,
+      channel: currentChannel
     };
 
     const response = await changePointAnalysis(request);
@@ -135,37 +166,50 @@ export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory 
   const resolve = async (mode: string) => {
     let ids: string[] = []
     if (mode === "selected") {
-      if (selectedMeasurements.size === 0) {
-        return
+      ids = isMultiChannel
+        ? Array.from(selectedChannels)
+        : Array.from(selectedMeasurements);
+      if (ids.length === 0) {
+        errorToast(isMultiChannel ? "No channels selected" : "No measurements selected");
+        return;
       }
-      else{
-      ids = Array.from(selectedMeasurements);
-      }
-    } 
+    }
     else if (mode === "all") {
       const summaries = hdf5Metadata?.measurements_summary;
-      if (!summaries || summaries.length === 0) {
-        return
-      }
-      else{
+      if (!summaries || summaries.length === 0) return;
+      if (isMultiChannel) {
+        ids = summaries.flatMap((m) =>
+          (m.channels ?? [1]).map((_, idx) => `${m.id}:${idx + 1}`)
+        );
+        console.log("MULTI CHANNEL IDS", ids);
+        
+      } else {
         ids = summaries.map((m) => m.id.toString());
       }
     }
-    else{
-      errorToast("Invalid resolution mode selected")
-      return
-    }
+
     setCpaProcessingIds(new Set(ids));
     setIsLoading(true);
     for (const mId of ids) {
+      let targetChannel = currentChannel
+      let targetMeasuement = mId
+      if (isMultiChannel && mId.includes(":")){
+        const [meas, chnl] = mId.split(":")
+        targetChannel=Number(chnl)
+        targetMeasuement = meas
+      }
+
       const request: changePoint_Req = {
         upload_id: currentUpload,
-        measurement_id: mId,
+        measurement_id: targetMeasuement!,
         confidence: confidence,
+        channel: targetChannel!
       };
+
       try {
         const response = await changePointAnalysis(request);
         setCpaResultForMeasurement(mId, response);
+        
       } catch (e) {
         console.error(`CPA failed for measurement ${mId}`, e);
       }
@@ -180,6 +224,9 @@ export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory 
 
 
   const onResolveAllClick = () => {
+    // selectAllChannels()
+    // console.log(selectedChannels);
+    
     resolve("all");
   };
 
@@ -196,10 +243,8 @@ export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory 
       <div className="flex items-center gap-4 h-12">
         <h3 className="text-foreground">Intensity Analysis</h3>
 
-        <NumberField label="Bin (ms)" value={bin} onChange={(v) => {
-          setBin(v);
-          recordHist("bin", bin,  v);
-          }} /> 
+
+        <NumberField label="Bin (ms)" value={localBinValue!} onChange={setLocalBinValue} onMouseUp={handleSliderRelease} />
         <ConfidenceField
           label="Confidence %"
           value={confidence}
@@ -260,9 +305,9 @@ export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory 
             Resolving {cpaProcessingIds.size} Measurements ...
           </span>
         )}
-        {currentMeasurement in cpaResults && (
+        {activeKey in cpaResults && (
           <p className="text-success text-xs font-mono">
-            {cpaResults[currentMeasurement].levels?.length} levels
+            {cpaResults[activeKey].levels?.length} levels
           </p>
         )}
       </div>

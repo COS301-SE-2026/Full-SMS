@@ -7,15 +7,17 @@ import { colors } from "@/lib/tokens";
 export default function GroupingCharts() {
   let x_coords_intensity: number[] = [];
   let y_coords_intensity: number[] = [];
+
+
+  const { hdf5Data, groupingData, cpaData, bin, currentMeasurement, currentChannel } =
+    useHdf5Data();
   const [selectedGroupState, setSelectedGroupState] = useState<{
-    measurementId: string;
+    key: string;
     group: number;
   } | null>(null);
-
-  const { hdf5Data, groupingData, cpaData, bin, currentMeasurement } =
-    useHdf5Data();
+  const activeKey = `${currentMeasurement}:${currentChannel}`;
   const selectedGroup =
-    selectedGroupState?.measurementId === currentMeasurement
+    selectedGroupState?.key === activeKey
       ? selectedGroupState.group
       : undefined;
 
@@ -141,11 +143,19 @@ export default function GroupingCharts() {
     if (e.points && e.points.length > 0) {
       const groupIdx = e.points[0].pointIndex;
       setSelectedGroupState({
-        measurementId: currentMeasurement,
+        key: activeKey,
         group: groupIdx,
       });
     }
   };
+
+  if(!groupingData){
+    return(
+      <Card className=" flex flex-col text-center justify-center w-[83vw] h-[85vh] p-2 mt-1 gap-4 font-mono text-muted">
+        <p>Run change point analysis and grouping to view BIC Optimization curve.</p>
+      </Card>
+    )
+  }
 
   return (
     <Card className="flex flex-col w-[83vw] h-[85vh] p-2 mt-1 gap-4 font-mono">

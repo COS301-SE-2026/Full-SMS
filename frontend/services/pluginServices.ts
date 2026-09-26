@@ -6,6 +6,9 @@ import {
   UpdatePluginRequest,
   ExecutePluginRequest,
   ExecutePluginResponse,
+  LatestExecutionResponse,
+  AvailableOutputsResponse,
+  ExportFormat,
 } from "@/types/plugin";
 
 export const pluginService = {
@@ -129,4 +132,106 @@ export const pluginService = {
       throw new Error(message);
     }
   },
+  getLatestExecution: async (
+    pluginId: string,
+    workspaceId: string,
+    measurementId: string,
+  ): Promise<LatestExecutionResponse> => {
+    try {
+      const response = await axiosInstance.get<LatestExecutionResponse>(
+        `/api/py/plugins/${pluginId}/executions/latest`,
+        {
+          params: { workspace_id: workspaceId, measurement_id: measurementId },
+        },
+      );
+      return response.data;
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch latest execution";
+      throw new Error(message);
+    }
+  },
+
+  exportOutput: async (
+    executionId: string,
+    outputId: string,
+    format: ExportFormat,
+  ): Promise<Blob> => {
+    try {
+      const response = await axiosInstance.post(
+        "/api/py/plugins/export",
+        { execution_id: executionId, output_id: outputId, format },
+        { responseType: "blob" },
+      );
+      return response.data;
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Failed to export output";
+      throw new Error(message);
+    }
+  },
+
+  exportAllOutputs: async (
+    executionId: string,
+    format: ExportFormat,
+  ): Promise<Blob> => {
+    try {
+      const response = await axiosInstance.post(
+        "/api/py/plugins/export/all",
+        { execution_id: executionId, format },
+        { responseType: "blob" },
+      );
+      return response.data;
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Failed to export outputs";
+      throw new Error(message);
+    }
+  },
+
+  getAvailableOutputs: async (
+    workspaceId: string,
+    measurementId: string,
+    acceptedTypes?: string[],
+    acceptedPluginIds?: string[],
+  ): Promise<AvailableOutputsResponse> => {
+    try {
+      const params: Record<string, string> = {
+        workspace_id: workspaceId,
+        measurement_id: measurementId,
+      };
+      if (acceptedTypes?.length) {
+        params.accepted_types = acceptedTypes.join(",");
+      }
+      if (acceptedPluginIds?.length) {
+        params.accepted_plugin_ids = acceptedPluginIds.join(",");
+      }
+      const response = await axiosInstance.get<AvailableOutputsResponse>(
+        "/api/py/plugins/outputs/available",
+        {
+          params,
+        },
+      );
+      return response.data;
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch available outputs";
+      throw new Error(message);
+    }
+  },
 };
+
+export function downloadBlob(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();  // Changed from: document.body.removeChild(link)
+    URL.revokeObjectURL(url);
+  }

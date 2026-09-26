@@ -9,7 +9,7 @@ import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext';
 export function IntensityChart() {
   let x_coords: number[] = []
   let y_coords: number[] = []
-  const {setHdf5Data,hdf5Data, currentMeasurement, bin, cpaData, currentUpload} = useHdf5Data();
+  const {setHdf5Data,hdf5Data, currentMeasurement, bin, cpaData, currentUpload, currentChannel} = useHdf5Data();
   if(hdf5Data && hdf5Data?.counts.length !== 0 && hdf5Data?.time_bins.length !== 0){
     x_coords = hdf5Data.time_bins
     y_coords = hdf5Data.counts
@@ -21,6 +21,7 @@ export function IntensityChart() {
         upload_id:currentUpload,
         measurement_id:currentMeasurement,
         bin_size_ms: Number(bin),
+        channel: currentChannel
       }
       const response = await intensityAnalysis(request)
       setHdf5Data(response)
@@ -31,7 +32,7 @@ export function IntensityChart() {
   
     useEffect(()=>{
       fetchIntensityTrace()
-      },[currentMeasurement, bin, currentUpload])
+      },[currentMeasurement, currentChannel, bin, currentUpload])
 
       
     const CpaLevels = useMemo(()=>{

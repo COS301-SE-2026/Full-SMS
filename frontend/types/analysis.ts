@@ -17,9 +17,10 @@ export interface ChangePointResult {
 
 
 export type Intensity_Req = {
-    upload_id: string;
-    measurement_id: string;
+    upload_id: string
+    measurement_id: string
     bin_size_ms: number
+    channel?: number
 }
 
 export type Intensity_Res = {
@@ -33,10 +34,12 @@ export type changePoint_Req = {
     upload_id: string
     measurement_id: string
     confidence: number
+    channel?: number
 }
 
 export type ClusteringReq = {
     levels: LevelData[] | undefined
+    channel?: number
 }
 
 export interface GroupData {
@@ -84,6 +87,7 @@ export type SpectraData = {
 export type LifetimeReq = {
     upload_id: string,
     measurement_id: string | string[]
+    channel?: number
     times: Float64Array | number[];
     counts: BigInt64Array | number[] // Use BigInt64Array for exact 64-bit ints, or number[] if within safe limits
     channelwidth?: number;
