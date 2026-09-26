@@ -339,6 +339,17 @@ class TestUserCanAccessWorkspace:
 
             assert user_can_access_workspace(sample_workspace_id, stranger_id) is False
 
+    def test_nonexistent_workspace_has_no_access(self, sample_workspace_id, sample_user_id):
+        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin:
+            mock_client = MagicMock()
+            mock_response = MagicMock()
+            mock_response.data = None
+            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = mock_response
+            mock_admin.return_value = mock_client
+            
+            from api.services.workspace_service import user_can_access_workspace
+    
+            assert user_can_access_workspace(sample_workspace_id, sample_user_id) is False
 
         
 
