@@ -312,12 +312,19 @@ export default function WorkspacePage() {
         currentWorkspaceId,
         uploadId,
       );
+
       // Optimistically remove the deleted upload from local state
       setUploads((prev) => prev?.filter((u) => u.id !== uploadId));
     } catch (error) {
       console.error("Failed to delete upload:", error);
     }
   };
+
+  const handleOpenIRFConfig = (e: React.MouseEvent, uploadId: string) =>{
+    e.stopPropagation();
+    setCurrentUpload(uploadId)
+    router.push("/irfManagement")
+  }
 
   return (
     <div className="size-full flex h-screen bg-background text-foreground">
@@ -342,7 +349,7 @@ export default function WorkspacePage() {
           onCancel={() => setShowPicker(false)}
         />
       </Modal>
-      <div className="flex justify-center w-full h-full">
+      <div className="flex ustify-center w-full h-full">
         {isLoading ? (
           <div className="p-16 h-[vh] overflow-y-auto">
             <div className="h-8 w-36 mb-4 rounded bg-foreground/10 animate-pulse" />
@@ -446,13 +453,22 @@ export default function WorkspacePage() {
                         {(upload.size_bytes / (1024 * 1024)).toPrecision(2)} MB
                       </CardContent>
                     </div>
-                    <Button
-                      variant={"ghost"}
-                      className="mr-10 hover:bg-destructive/10"
-                      onClick={(e) => handleDeleteUpload(e, upload.id)}
-                    >
-                      <TrashIcon className="text-destructive" />
-                    </Button>
+                    <div className="flex flex-row items-center">
+                      <Button 
+                        variant={"ghost"}
+                        className=" hover:bg-primary/10 text-primary/50 hover:text-primary font-black"
+                        onClick={(e) => {handleOpenIRFConfig(e, upload.id)}}
+                      >
+                        <span >IRF</span>
+                      </Button>
+                      <Button
+                        variant={"ghost"}
+                        className="mr-10 hover:bg-destructive/10"
+                        onClick={(e) => handleDeleteUpload(e, upload.id)}
+                      >
+                        <TrashIcon className="text-destructive" />
+                      </Button>
+                    </div>
                   </Card>
                 ))
               )}
