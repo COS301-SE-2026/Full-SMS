@@ -1,14 +1,41 @@
 "use client";
 
-import { PluginParameter, ParameterFormProps } from "@/types/plugin";
+import {
+  PluginParameter,
+  ParameterFormProps,
+  PluginOutputReference,
+} from "@/types/plugin";
+import OutputSelector from "./OutputSelector";
 
 export default function ParameterForm({
   parameters,
   values,
   onChange,
-}: Readonly<ParameterFormProps>) {
+  availableOutputs,
+  workspaceId,
+  measurementId,
+  onChainedInputChange,
+}: Readonly<
+  ParameterFormProps & {
+    workspaceId?: string;
+    measurementId?: string;
+    onChainedInputChange?: (
+      parameterId: string,
+      reference?: PluginOutputReference,
+    ) => void;
+  }
+>) {
   const handleChange = (id: string, value: unknown) => {
     onChange({ ...values, [id]: value });
+  };
+
+  const handleOutputSelect = (
+    parameterId: string,
+    value: string | undefined,
+    reference?: PluginOutputReference,
+  ) => {
+    handleChange(parameterId, value);
+    onChainedInputChange?.(parameterId, reference);
   };
 
   const renderParameter = (param: PluginParameter) => {
@@ -55,7 +82,7 @@ export default function ParameterForm({
               className="w-20 h-7 px-2 rounded bg-card border border-border text-xs text-foreground font-mono focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary appearance-none cursor-pointer"
             >
               {param.options?.map((opt) => (
-                <option key={opt.value} value={opt.value}>
+                <option key={String(opt.value)} value={String(opt.value)}>
                   {opt.label}
                 </option>
               ))}
@@ -97,6 +124,36 @@ export default function ParameterForm({
           </div>
         );
 
+      case "plugin_output":
+        if (!workspaceId || !measurementId) {
+          return (
+            <div key={param.id} className="flex items-center gap-2">
+              <label className="text-xs text-foreground/70 whitespace-nowrap">
+                {param.label}
+              </label>
+              <span className="text-xs text-muted-foreground">
+                Workspace required for chaining
+              </span>
+            </div>
+          );
+        }
+        return (
+          <div key={param.id} className="flex items-center gap-2 min-w-[220px]">
+            <label className="text-xs text-foreground/70 whitespace-nowrap">
+              {param.label}
+            </label>
+            <OutputSelector
+              workspaceId={workspaceId}
+              measurementId={measurementId}
+              acceptedTypes={param.acceptedOutputTypes}
+              acceptedPluginIds={param.acceptedPluginIds}
+              value={currentValue as string}
+              onChange={(val, ref) => handleOutputSelect(param.id, val, ref)}
+              placeholder="Select plugin output..."
+            />
+          </div>
+        );
+
       default:
         return null;
     }
@@ -107,7 +164,7 @@ export default function ParameterForm({
   }
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-4 flex-wrap">
       {parameters.map(renderParameter)}
     </div>
   );
