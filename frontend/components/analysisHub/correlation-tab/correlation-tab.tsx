@@ -5,6 +5,8 @@ import { Card } from "@/components/ui";
 import CorrelationChart from "./correlation-chart";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { useHistory } from "@/hooks/useHistory";
+import { HistoryPanel } from "../history/HistoryPanel";
+import { getCorrelationResult } from "@/services/analysisServices";
 
 function CorrelationTab() {
   const { currentWorkspaceId, currentUpload, currentMeasurement, setCorrelationData} = useHdf5Data();
@@ -16,6 +18,19 @@ function CorrelationTab() {
         <CorrelationTabToolbar />
         <CorrelationChart/>
       </div>
+      <HistoryPanel
+        entries={entries}
+        loading={loading}
+        error={error}
+         onRevert={async (entry) => {
+            const response = await getCorrelationResult({
+              ...entry.old_value,
+              upload_id: currentUpload,
+              measurement_id: currentMeasurement,
+            });
+            setCorrelationData(response);
+         }}
+      />
     </div>
   );
 }
