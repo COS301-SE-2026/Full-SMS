@@ -134,6 +134,19 @@ export const workspaceService = {
       );
     }
   },
+
+  removeWorkspaceMember: async (workspaceId: string, memberId: string) => {
+    try{
+      const response = await axiosInstance.delete(
+        `/api/py/workspaces/${workspaceId}/members/${memberId}`
+      );
+      return response.data;
+    } catch(error: any){
+      throw new Error(
+        error.response?.data?.detail || "Failed to remove workspace member"
+      );
+    }
+  },
 };
 
 
