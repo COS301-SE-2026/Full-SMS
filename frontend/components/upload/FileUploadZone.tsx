@@ -8,7 +8,7 @@ interface FileUploadZoneProps {
   onFilesSelected: (files: File[]) => void;
 }
 
-const ALLOWED_EXTENSIONS = ['.pt3', '.csv', '.h5', '.hdf5'];
+const ALLOWED_EXTENSIONS = ['.pt3', '.csv', '.h5', '.hdf5','.txt,' , 'dat'];
 
 
 export default function FileUploadZone({ onFilesSelected }: FileUploadZoneProps) {
