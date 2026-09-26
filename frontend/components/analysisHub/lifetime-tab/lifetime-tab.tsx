@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useState} from 'react'
 import LifetimeToolbar from './lifetime-toolbar'
 import LifetimeCharts from './lifetime-charts'
 import { useHistory } from '@/hooks/useHistory'
@@ -13,15 +13,16 @@ export default function LifetimeTab() {
   const{ currentWorkspaceId, currentUpload, currentMeasurement} = useHdf5Data()
   const {entries, loading, error, fetchHistory}= useHistory(currentWorkspaceId, currentUpload, "lifetime")
   const { decayCounts, decayTimes, setFitResult} = useAnalysisTab()
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   return (
     <div className='w-full h-full flex gap-3'>
       <div className='flex flex-col flex-1'>
-        <LifetimeToolbar/>
+        <LifetimeToolbar historyOpen={historyOpen} onToggleHistory={() => setHistoryOpen((v) => !v)}/>
         <LifetimeCharts/>
       </div>
 
-      <HistoryPanel
+      {historyOpen && (<HistoryPanel
         entries={entries}
         loading={loading}
         error={error}
@@ -43,6 +44,7 @@ export default function LifetimeTab() {
           fetchHistory()
         }}
       />
+      )}
     </div>
   )
 }
