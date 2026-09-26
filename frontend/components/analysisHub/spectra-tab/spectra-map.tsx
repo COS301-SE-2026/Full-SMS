@@ -9,6 +9,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import Plot from "react-plotly.js";
 import { HistoryPanel } from "../history/HistoryPanel";
 import { historyService } from "@/services/historyServices";
+import { History } from "lucide-react";
+import { Button } from "@/components/ui";
 
 export default function SpectraMap() {
   const {
@@ -21,6 +23,7 @@ export default function SpectraMap() {
   const { entries, loading, error, fetchHistory}= useHistory(currentWorkspaceId, currentUpload, "spectra");
   const recordHistory = useHistoryRecorder(currentWorkspaceId, currentUpload, "spectra", fetchHistory);
   const [spectraData, setSpectraData] = useState<SpectraData>();
+  const [historyOpen, setHistoryOpen] = useState(false);
   const colourmaps = [
     "Plasma",
     "Viridis",
@@ -74,7 +77,7 @@ export default function SpectraMap() {
       <div className="flex flex-col flex-1">
       <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
         <h3 className="text-foreground">Spectra</h3>
-        <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
+        <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10 flex-1">
           <div className="flex items-center gap-2">
             <label
               className="text-xs text-foreground/70 whitespace-nowrap"
@@ -98,6 +101,12 @@ export default function SpectraMap() {
               ))}
             </select>
           </div>
+          <Button variant="ghost" size="sm" 
+            title="View Parameter history"
+            onClick={() => setHistoryOpen((v) => !v)}
+            className={`ml-auto ${historyOpen ? "bg-card" : ""}`}
+            leftIcon={<History size={14} />}
+          />
         </div>
       </div>
 
@@ -151,7 +160,7 @@ export default function SpectraMap() {
         />
       </Card>
     </div>
-    <HistoryPanel
+    {historyOpen && (<HistoryPanel
       entries={entries}
       loading={loading}
       error={error}
@@ -160,6 +169,7 @@ export default function SpectraMap() {
         historyService.revertEntry(currentWorkspaceId!, entry.id).then(fetchHistory);
       }}
     />
+    )}
     </div>
   );
 }
