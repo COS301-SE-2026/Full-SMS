@@ -55,6 +55,7 @@ def get_workspace_by_id(workspace_id: str, user_id: str) -> Optional[dict]:
         "user_id": data["user_id"],
         "is_owner": data["user_id"] == user_id,
         "name": data["name"],
+        "member_ids": data["member_ids"],
         "description": data["description"],
         "storage_bucket_path": data["storage_bucket_path"],
         "status": data["status"],
