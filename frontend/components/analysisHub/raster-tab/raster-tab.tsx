@@ -3,6 +3,7 @@ import RasterToolbar from './raster-toolbar'
 import { RasterHeatmap } from './rater-heatmap'
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { useHistory } from '@/hooks/useHistory'
+import { HistoryPanel } from '../history/HistoryPanel'
 
 export default function RasterTab() {
   const {currentWorkspaceId, currentUpload, setHeatMapColor} = useHdf5Data()
@@ -12,7 +13,15 @@ export default function RasterTab() {
       <div className='flex flex-col flex-1'>
         <RasterToolbar/>
         <RasterHeatmap/>
-    </div>
+      </div>
+      <HistoryPanel
+        entries={entries}
+        loading={loading}
+        error={error}
+        onRevert={(entry) => {
+          setHeatMapColor(entry.old_value)
+        }}
+      />
   </div>
   )
 }
