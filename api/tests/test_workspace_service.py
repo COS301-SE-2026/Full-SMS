@@ -224,9 +224,17 @@ class TestAddWorkspaceMember:
 
             from api.services.workspace_service import add_workspace_member
 
-            result = add_workspace_member(sample_workspace_id, new_member_id)
+            result = add_workspace_member(sample_workspace_id, new_member_id, new_member_id)
             assert result["already_member"] is False
             assert new_member_id in result["member_ids"]
+
+    def test_rejects_adding_member(self, sample_workspace_id, sample_user_id):
+        new_member_id = str(uuid.uuid4())
+
+        from api.services.workspace_service import add_workspace_member
+
+        with pytest.raises(ValueError, match="Permission denied"):
+            add_workspace_member(sample_workspace_id, sample_user_id, new_member_id)
 
 class TestRemoveWorkspaceMember:
     def test_removes_existing_member(self, sample_workspace_id, sample_user_id):
@@ -291,11 +299,5 @@ class TestGetWorkspaceUploads:
 
 
 
+        
 
-"""to be tested:
-    1. add_workspace_member<done>
-    2. updated get_workspace_by_id<done>
-    3. updated get_workspace_uploads<done>
-    4. updated delete_workspace<done>
-    5. updated update_workspace<done>
-    6. remove_workspace_member <done>"""
