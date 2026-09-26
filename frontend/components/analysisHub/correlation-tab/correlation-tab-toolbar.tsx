@@ -8,7 +8,8 @@ import {
 import { CorrelationReq, RebinCorrelationReq } from "@/types/analysis";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { useToast } from "@/contexts/toastContext/ToastContext";
-
+import { useHistoryRecorder } from "@/hooks/useHistoryRecorder";
+import { useRef } from "react";
 
 function getG2AtZero(tau?: number[], g2?: number[]): number {
     if (!tau?.length || !g2?.length) {
@@ -39,8 +40,12 @@ export default function CorrelationTabToolbar() {
     currentUpload,
     setCorrelationData,
     correlationData,
-    hdf5Metadata
+    hdf5Metadata,
+    currentWorkspaceId
   } = useHdf5Data();
+
+  const recordHist = useHistoryRecorder(currentWorkspaceId, currentUpload, "correlation");
+  const initailSettings = useRef({ window_ns: window, binsize_ns: bin, difftime_ns: offset });
 
   const fetchCorrelationResult = async () => {
     const payload: CorrelationReq = {
@@ -50,6 +55,10 @@ export default function CorrelationTabToolbar() {
       binsize_ns: bin,
       difftime_ns: offset,
     };
+    const newSettings = { window_ns: window, binsize_ns: bin, difftime_ns: offset };
+    recordHist("correlation settings", initailSettings.current, newSettings);
+    initailSettings.current = newSettings;
+    
     const response = await getCorrelationResult(payload);
     return response;
   };
