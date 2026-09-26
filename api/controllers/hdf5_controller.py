@@ -24,7 +24,7 @@ def init_hdf5_upload(payload: dict, current_user: dict) -> dict:
         raise HTTPException(status_code=404, detail="Workspace not found")
 
     if workspace["user_id"] != current_user["user"]["id"]:
-        raise HTTPException(status_code=403, detail="Only the owner can upload files")
+        raise HTTPException(status_code=404, detail="Only the owner can upload files")
     
     hdf5_upload_service.validate_upload_request(payload["filename"], payload["size_bytes"])
     hdf5_upload_record = hdf5_upload_service.create_upload_record(user_id=current_user["user"]["id"], filename=payload["filename"],workspace_id=payload["workspace_id"] ,size_bytes=payload["size_bytes"], sha256=payload["sha256"])

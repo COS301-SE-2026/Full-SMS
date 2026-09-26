@@ -4,6 +4,8 @@ from fastapi import UploadFile, HTTPException
 from unittest.mock import patch
 from controllers.hdf5_controller import (read_hdf5_file, init_hdf5_upload, complete_hdf5_upload, get_hdf5_upload_status, get_hdf5_upload_result)
 
+WORKSPACE_NOT_FOUND = "Workspace not found"
+WORKSPACE_UPDATE_FAILED = "Workspace not found or update failed"
 class TestInitHdf5Upload:
     def test_owner_can_initiate_upload(self):
         content = {
@@ -51,7 +53,7 @@ class TestInitHdf5Upload:
             with pytest.raises(HTTPException) as exception:
                 init_hdf5_upload(content, sample_user)
 
-            assert exception.value.status_code == 403
+            assert exception.value.status_code == 404
 
     def test_rejects_when_user_has_no_access(self):
         content = {
@@ -64,7 +66,7 @@ class TestInitHdf5Upload:
         sample_user = {"user": {"id": "user1"}}
     
         with patch("controllers.hdf5_controller.workspace_service.get_workspace_by_id") as mock_get_workspace:
-            mock_get_workspace.side_effect = ValueError("Workspace not found")
+            mock_get_workspace.side_effect = ValueError("WORKSPACE_NOT_FOUND")
     
             with pytest.raises(HTTPException) as exception:
                 init_hdf5_upload(content, sample_user)
