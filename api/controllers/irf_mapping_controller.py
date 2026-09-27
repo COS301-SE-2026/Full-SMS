@@ -75,6 +75,7 @@ def get_irf_mappings(payload: dict):
     }
     
 def delete_irf_mapping(payload: MapIRFReq):
+    print(f"\n\n\n{payload}\n\n\n")
     measurement_id = payload.measurement_id if payload.measurement_id is not None else -1
     
     response = (supabaseClient

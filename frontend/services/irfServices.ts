@@ -44,7 +44,7 @@ return data
 }
 
 export const deleteMapping = async (payload: MapIRFReq) => {
-	const {data} = await axiosInstance.post(`/irf/${payload.workspace_id}/map/delete`)
+	const {data} = await axiosInstance.post(`/api/py/hdf5/irf/${payload.workspace_id}/map/delete`, payload)
 	return data
 }
 
