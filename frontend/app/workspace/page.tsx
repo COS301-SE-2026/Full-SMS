@@ -11,7 +11,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Loader,
 } from "@/components/ui";
 import { UploadRecord } from "@/types/hdf5";
 import { Modal } from "@/components/ui/Modal";
