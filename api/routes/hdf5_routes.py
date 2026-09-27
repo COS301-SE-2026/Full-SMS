@@ -59,4 +59,6 @@ def get_mappings(payload: dict, current_user: Annotated[dict, Depends(get_curren
 
 @router.post("/irf/{workspace_id}/map/delete")
 def delete_mapping(payload: MapIRFReq, current_user: Annotated[dict, Depends(get_current_user)]):
+    print(f"\n\n\n{payload}\n\n\n")
+
     return delete_irf_mapping(payload=payload)

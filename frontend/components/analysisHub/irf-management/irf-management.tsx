@@ -87,10 +87,12 @@ export default function IrfManagement() {
         console.error("Failed to fetch or parse upload result:", error);
       }
     };
+
     const getIrfs = async () => {
       const IRFs = await getWorkspaceIrfs(currentWorkspaceId!);
       setWorkspaceIRFs(IRFs.data);
     };
+
     const getMappings = async () => {
       const payload = {
         workspace_id: currentWorkspaceId,
@@ -98,22 +100,7 @@ export default function IrfManagement() {
       };
       const mappings = await getIRFMappings(payload);
       if (mappings.status == "ok") {
-        const data = mappings.data.data;
-        setDbmappings(data);
-        const restored: Record<string, string | null> = {};
-        data.forEach((mapping: MapIRFReq) => {
-          if (mapping.measurement_id == -1) {
-            //-1 means all measurements are mapped to this IRF
-            measurementSummaries?.forEach((summ) => {
-              restored[`${summ.id}:${mapping.channel}`] =
-                mapping.irf_id || null;
-            });
-          } else {
-            restored[`${mapping.measurement_id}:${mapping.channel}`] =
-              mapping.irf_id || null;
-          }
-        });
-        setMappings(restored);
+        setDbmappings(mappings.data.data); // Just store the raw data
       }
     };
 
@@ -121,6 +108,28 @@ export default function IrfManagement() {
     getIrfs();
     getMappings();
   }, [currentUpload, currentWorkspaceId, refreshIRFs]);
+
+  useEffect(() => {
+    if (!measurementSummaries || !dbmappings) return;
+    const restored: Record<string, string | null> = {};
+
+    dbmappings.forEach((mapping) => {
+      if (Number(mapping.measurement_id) === -1) {
+        measurementSummaries.forEach((summ) => {
+          restored[`${summ.id}:${mapping.channel}`] = mapping.irf_id || null;
+        });
+      }
+    });
+
+    dbmappings.forEach((mapping) => {
+      if (mapping.measurement_id !== -1) {
+        restored[`${mapping.measurement_id}:${mapping.channel}`] =
+          mapping.irf_id || null;
+      }
+    });
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMappings(restored);
+  }, [measurementSummaries, dbmappings]);
 
   const handleIrfFilesSelected = async (files: File[]) => {
     infoToast("Uploading IRF, just a sec.");
@@ -135,10 +144,6 @@ export default function IrfManagement() {
       }
     }
   };
-
-  useEffect(() => {
-    console.log(dbmappings);
-  }, [dbmappings]);
 
   const handleSaveMapping = async (summ: MeasurementSummary) => {
     try {
@@ -166,7 +171,7 @@ export default function IrfManagement() {
 
   const handleApplyAll = async () => {
     if (!bulkIrfId || !measurementSummaries) return;
-	infoToast("Applying IRF to all measurements and channels")
+    infoToast("Applying IRF to all measurements and channels");
     try {
       const dualChannel = measurementSummaries.some(
         (s) => s.channels && s.channels.length > 1,
@@ -204,7 +209,7 @@ export default function IrfManagement() {
 
   const handleClearMapping = async (summ: MeasurementSummary) => {
     try {
-	infoToast("Removing mapping.")
+      infoToast("Removing mapping.");
       const channels = summ.channels ?? ["channel1"];
 
       for (let idx = 0; idx < channels.length; idx++) {
