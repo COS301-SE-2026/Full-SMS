@@ -1,5 +1,6 @@
 import { HistoryEntry } from "@/types/parameterHistory";
 import { Button } from "@/components/ui";
+import { useEffect, useRef } from "react";
 
 interface HistoryPanelProps {
     entries: HistoryEntry[];
@@ -9,12 +10,17 @@ interface HistoryPanelProps {
 }
 
 export function HistoryPanel({entries, loading, error, onRevert}: HistoryPanelProps) {
-    if(loading) return <p className="text-sm">Loading history...</p>;
+    const panelRef=useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        panelRef.current?.scrollIntoView({behavior:"smooth", block: "nearest", inline:"end"});
+    }, [loading, entries.length]);
+    if(loading) return <div ref={panelRef} className="w-80 shrink-0"><p className="text-sm">Loading history...</p></div>;
     if(error) return <p className="text-sm text-red-600">{error}</p>;
-    if(entries.length === 0) return <p className="text-sm">No changes yet.</p>;
+    if(entries.length === 0) return <div ref={panelRef} className="w-80 shrink-0"><p className="text-sm">No changes yet.</p></div>;
 
     return (
-        <div className="w-80 shrink-0">
+        <div ref={panelRef} className="w-80 shrink-0 max-h-[85vh] overflow-y-auto">
         <h4 className="text-xs font-semibold text-foreground/70 mb-2">Parameter History</h4>
         <ul className="space-y-1 text-sm">
             {entries.map((e) => (
