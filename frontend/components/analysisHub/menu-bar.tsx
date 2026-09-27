@@ -11,6 +11,9 @@ import { Button } from "../ui";
 import ThemeToggle from "../ui/ThemeToggle";
 import BackButton from "@/components/ui/BackButton";
 import { useRouter } from "next/navigation";
+import { NotificationBell } from "./notification-bell";
+import { useNotifications } from "@/hooks/useNotifications";
+
 interface MenuBarProps {
   readonly onOpenFileUpload: () => void;
 }
@@ -21,6 +24,9 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
   const {user} = useAuth()
   const {activeTab, fitResult} = useAnalysisTab()
   const {successToast, errorToast} = useToast()
+  const { notifications, markRead} = useNotifications();
+  const unreadCount = notifications.filter((n) => !n.read).length;
+  const [notifOpen, setNotifOpen] = useState(false);
   const callSave = async (name: string) => {
     try{
       await sessionsService.saveSession({name: name, dataset_ref: currentUpload, dataset_name: currentUploadName, parameters: {bin_size: bin, confidence: confidence}, results: {levels: cpaData, groups:groupingData, fits: fitResult, hdf5Data: hdf5Data, hdf5Metadata: hdf5Metadata, currentMeasurement: currentMeasurement, currentWorkspaceId: currentWorkspaceId, activeTab: activeTab, heatMapColor: heatMapColor, spectraHeatMapColor:spectraHeatMapColor}})
