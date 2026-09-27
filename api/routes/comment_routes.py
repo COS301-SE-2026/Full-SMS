@@ -13,7 +13,7 @@ def list_comments_route(workspace_id: str, upload_id: str, tab: str, current_use
     return list_comments_controller(workspace_id, current_user["id"], upload_id, tab)
 
 
-@router.get("/{workspace_id}/comments", summary="Add a comment", status_code=201)
+@router.post("/{workspace_id}/comments", summary="Add a comment", status_code=201)
 def add_comment_route(workspace_id: str, request: CommentCreate, current_user: CurrentUser):
     return add_comment_controller(workspace_id, request, current_user["id"])
 
