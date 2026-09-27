@@ -99,6 +99,27 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
         Help
       </Button>
 
+      <div className="relative ml-auto">
+        <NotificationBell unreadCount={unreadCount} onClick={() => setNotifOpen(!notifOpen)} />
+          {notifOpen && (
+            <div className="absolute right-0 top-8 w-72 bg-background border border-border rounded-sm shadow-lg z-50">
+              <h4 className="text-xs font-semibold text-foreground/70 px-3 py-2 border-b border-border"> Notifications</h4>
+              {notifications.length === 0 && <p className="text-sm px-3 py-2">No notifications yet.</p>}
+              <ul className="max-h-80 overflow-y-auto">
+                {notifications.map((n) =>(
+                  <li
+                    key={n.id}
+                    onClick={() => markRead(n.id)}
+                    className={`px-3 py-2 text-xs cursor-pointer border-b border-border/40 ${n.read ? "text-foreground/50": "text-foreground"}`}
+                    >
+                      {n.message}
+                    </li>
+                ))}
+              </ul>
+            </div>
+          )}
+      </div>
+
 
     </div>
     <SaveSessionModal
