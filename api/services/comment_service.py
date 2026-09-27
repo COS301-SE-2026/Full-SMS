@@ -37,3 +37,8 @@ def add_comment(workspace_id: str, user_id: str, upload_id: str, tab: str, conte
     }
 
     response = supabase.table("comments").insert(row).execute()
+
+    if not response.data:
+        raise RuntimeError("Failed to add comment.")
+
+    return response.data[0]
