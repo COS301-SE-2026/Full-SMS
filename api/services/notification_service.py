@@ -9,12 +9,12 @@ def list_notifications(user_id: str) -> List[dict]:
         supabase.table("notifications")
         .select("*")
         .eq("recipient_id", user_id)
-        .eq("created_at", desc=True)
+        .order("created_at", desc=True)
         .execute()
     )
     return response.data or []
 
-def add_notification(workspace_id: str, recipient_id: recipient_id, type: str, message: str) -> dict:
+def add_notification(workspace_id: str, recipient_id: str, type: str, message: str) -> dict:
     supabase = get_supabase_admin()
     
     row = {
@@ -24,7 +24,7 @@ def add_notification(workspace_id: str, recipient_id: recipient_id, type: str, m
         "message": message,
     }
 
-    response = (supabase.table("notifications").insert(row).execute())
+    response = supabase.table("notifications").insert(row).execute()
 
     if not response.data:
         raise RuntimeError("Failed to add notification.")
@@ -32,14 +32,14 @@ def add_notification(workspace_id: str, recipient_id: recipient_id, type: str, m
     return response.data[0]
 
 
-def readStatus(notification_id:str, user_id: str) -> dict:
+def read_status(notification_id:str, user_id: str) -> dict:
     supabase = get_supabase_admin()
 
     response = (
         supabase.table("notifications")
-        .update({"read", True})
+        .update({"read" : True})
         .eq("id", notification_id)
-        .eq("recicpient_id", user_id)
+        .eq("recipient_id", user_id)
         .execute()
     )
 
