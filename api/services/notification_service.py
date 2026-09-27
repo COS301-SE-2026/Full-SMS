@@ -30,3 +30,20 @@ def add_notification(workspace_id: str, recipient_id: recipient_id, type: str, m
         raise RuntimeError("Failed to add notification.")
     
     return response.data[0]
+
+
+def readStatus(notification_id:str, user_id: str) -> dict:
+    supabase = get_supabase_admin()
+
+    response = (
+        supabase.table("notifications")
+        .update({"read", True})
+        .eq("id", notification_id)
+        .eq("recicpient_id", user_id)
+        .execute()
+    )
+
+    if not response.data:
+        raise ValueError("Notification not found.")
+    
+    return response.data[0]
