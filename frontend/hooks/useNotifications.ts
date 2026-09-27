@@ -28,5 +28,12 @@ export function useNotifications() {
         return () => clearInterval(interval);
     }, [fetchNotifications]);
 
-    return {notifications, loading, error, fetchNotifications}; 
+    const markRead = async (notificationId: string) => {
+        await notificationService.markRead(notificationId);
+        setNotifications((prev) => 
+            prev.map((n) => (n.id === notificationId ? { ...n, read: true} : n))
+        );
+    };
+
+    return {notifications, loading, error, markRead}; 
 }
