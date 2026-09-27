@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { Notification } from "@/types/notifications";
 import { notificationService } from "@/services/notificationServices";
 
@@ -19,6 +19,14 @@ export function useNotifications() {
             setLoading(false);
         }
     }, []); 
+
+    useEffect(() => {
+        //eslint-disable-next-line react-hooks/set-state-in-effect
+        fetchNotifications();
+        const interval=setInterval(fetchNotifications, 30000);
+       
+        return () => clearInterval(interval);
+    }, [fetchNotifications]);
 
     return {notifications, loading, error, fetchNotifications}; 
 }
