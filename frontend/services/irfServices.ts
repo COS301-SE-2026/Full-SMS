@@ -1,3 +1,5 @@
+"use client"
+
 import axiosInstance from "@/lib/api/axiosInstance";
 import { uploadToSignedUrl } from "@/services/hdf5services";
 import { MapIRFReq } from "@/types/analysis";
@@ -32,6 +34,12 @@ export const getWorkspaceIrfs = async (workspace_id: string) => {
 }
 
 export const createIRFMapping = async (payload: MapIRFReq) => {
-	const {data} = await axiosInstance.post(`/api/py/hdf5/irf/${payload.workspace_id}`, payload)
+	const {data} = await axiosInstance.post(`/api/py/hdf5/irf/${payload.workspace_id}/map`, payload)
 	return data
 }
+
+export const getIRFMappings = async (payload: any) =>{
+const {data} = await axiosInstance.post(`/api/py/hdf5/irf/${payload.workspace_id}/mappings`, payload)
+return data
+}
+

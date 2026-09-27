@@ -205,9 +205,11 @@ export type RebinCorrelationReq = {
 }
 
 export type MapIRFReq = {
+    id?: string
     workspace_id: string,
     dataset_ref: string,      
     measurement_id?: number,
     channel: number,  
-    irf_id: string  
+    irf_id: string
+    createdAt?: string  
 }
