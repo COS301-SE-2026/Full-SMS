@@ -26,7 +26,7 @@ export function HistoryPanel({entries, loading, error, onRevert}: HistoryPanelPr
             {entries.map((e) => (
                 <li key={e.id} className="flex flex-col gap-1 border-b border-border/40 pb-1">
                     <span className="text-xs break-words">
-                        {e.parameter}: {typeof e.old_value === "object" ? "updated" : `${e.old_value || "Plasma"} to ${e.new_value || "Plasma"}`}
+                        {e.parameter}: {typeof e.old_value === "object" ? "updated" : `${e.old_value==="" || e.old_value==null ? "default": e.old_value} to ${e.new_value==="" || e.new_value==null ? "default": e.new_value} `}
                     </span>
 
                     <span className="text-xs text-gray-500">
