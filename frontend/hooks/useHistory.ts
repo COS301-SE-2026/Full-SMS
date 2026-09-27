@@ -26,6 +26,7 @@ export function useHistory(
     }, [workspaceId, uploadId, tab]); 
 
     useEffect(() => {
+        //eslint-disable-next-line react-hooks/set-state-in-effect
         fetchHistory();
     }, [fetchHistory]);
 
