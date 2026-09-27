@@ -101,15 +101,16 @@ export default function IrfManagement() {
         setDBMappings(data);
         const restored: Record<string, string | null> = {};
         data.forEach((mapping: MapIRFReq) => {
-          if (mapping.measurement_id == null) {
-            //apply to all measurements for channel
+          if (mapping.measurement_id == -1) {
+
+            //-1 means all measurements are mapped to this IRF
             measurementSummaries?.forEach((summ) => {
-              restored[`${summ.id}:${mapping.channel}`] =
-                mapping.irf_id || null;
-            });
+              restored[`${summ.id}:${mapping.channel}`] =mapping.irf_id || null })
+
           } else {
-            restored[`${mapping.measurement_id}:${mapping.channel}`] =
-              mapping.irf_id || null;
+
+            restored[`${mapping.measurement_id}:${mapping.channel}`] = mapping.irf_id || null
+			
           }
         });
         setMappings(restored);

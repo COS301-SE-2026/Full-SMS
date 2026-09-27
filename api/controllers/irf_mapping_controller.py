@@ -35,7 +35,7 @@ def create_irf_mapping(payload: MapIRFReq):
                     {"irf_id": payload.irf_id,
                     "workspace_id": payload.workspace_id,
                     "dataset_ref": payload.dataset_ref,
-                    "measurement_id": payload.measurement_id,
+                    "measurement_id": "measurement_id": payload.measurement_id if payload.measurement_id is not None else -1,
                     "channel": payload.channel
                     },
                     on_conflict="dataset_ref,measurement_id,channel"
