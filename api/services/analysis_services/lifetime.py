@@ -1,12 +1,53 @@
+from pathlib import Path
+
 from api.legacy.analysis.lifetime import fit_decay
 from api.legacy.analysis.histograms import build_decay_histogram
 from api.models.analysis_models import LifetimeReq, LifetimeRes
 from api.services.analysis_services.cache_fallback import cache_fallback_service
 from api.services.measurement_cache_service import get_cached_measurement
+from api.utils.supabase_client import supabaseClient
+from api.services.storage_service import storage_service
+from api.services.hdf5_services import read_irf
 from api.utils.redis_Client import redisClient
 import json
 import numpy as np
 
+def _fetch_irf_counts(dataset_ref: str, measurement_id: int, channel: int):
+    """
+    Find the IRF Mapping for this measurement, download it from supabase, parse it and return the counts array
+    """
+    mapping = (supabaseClient.table("irf_mappings")
+               .select("irf_id")
+               .eq("dataset_ref", dataset_ref)
+               .eq("measurement_id", measurement_id)
+               .eq("channel", channel)
+               .maybe_single()
+               .execute())
+    
+    if not mapping.data:
+        mapping = (supabaseClient.table("irf_mappings")
+                   .select("irf_id")
+                   .eq("dataset_ref", dataset_ref)
+                   .eq("measurement_id", -1)
+                   .eq("channel", channel)
+                   .maybe_single()
+                   .execute())
+
+    if not mapping.data:
+        return None # no irf mapping found
+    
+    storage_key = irf_record.data["storage_key"]
+    
+    suffix = Path(storage_key).suffix
+    temp_path = storage_service.download_to_temp(storage_key, file_extension=suffix)
+    
+    parsed_irf = read_irf(temp_path)
+    if parsed_irf:
+        # fit_decay only needs the counts array as a numpy array
+        return np.array(parsed_irf["counts"], dtype=np.float64)
+        
+    return None
+    
 
 def lifetime_fitting(payload: LifetimeReq):
     upload_id = payload.upload_id
