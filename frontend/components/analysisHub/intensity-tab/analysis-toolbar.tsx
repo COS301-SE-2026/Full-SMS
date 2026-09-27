@@ -125,7 +125,7 @@ export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory 
   const { errorToast } = useToast();
   const activeKey = `${currentMeasurement}:${currentChannel}`;
   const [isLoading, setIsLoading] = useState(false);
-  const [localBinValue, setLocalBinValue] = useState<number>()
+  const [localBinValue, setLocalBinValue] = useState<number>(bin)
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
