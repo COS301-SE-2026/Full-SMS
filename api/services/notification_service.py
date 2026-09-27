@@ -13,3 +13,20 @@ def list_notifications(user_id: str) -> List[dict]:
         .execute()
     )
     return response.data or []
+
+def add_notification(workspace_id: str, recipient_id: recipient_id, type: str, message: str) -> dict:
+    supabase = get_supabase_admin()
+    
+    row = {
+        "workspace_id": workspace_id,
+        "recipient_id": recipient_id,
+        "type": type,
+        "message": message,
+    }
+
+    response = (supabase.table("notifications").insert(row).execute())
+
+    if not response.data:
+        raise RuntimeError("Failed to add notification.")
+    
+    return response.data[0]
