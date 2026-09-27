@@ -13,11 +13,9 @@ def get_workspace_irfs(workspace_id: str, user_id: str):
                 .eq("user_id", user_id)
                 .execute()
                 )    
-    # if response.status == 404:
-    #     raise HTTPException(status_code=404, detail=response.error.details)
-    
-    # if response.data is None:
-    #      raise HTTPException(status_code=404, detail="No IRFs found for this workspace")
+
+    if response.data is None:
+         raise HTTPException(status_code=404, detail="No IRFs found for this workspace")
      
     return {
         "status": "ok",
@@ -32,10 +30,11 @@ def create_irf_mapping(payload: MapIRFReq):
     response = (supabaseClient
                 .table("irf_mappings")
                 .upsert(
-                    {"irf_id": payload.irf_id,
+                    {
+                    "irf_id": payload.irf_id,
                     "workspace_id": payload.workspace_id,
                     "dataset_ref": payload.dataset_ref,
-                    "measurement_id": "measurement_id": payload.measurement_id if payload.measurement_id is not None else -1,
+                    "measurement_id": payload.measurement_id if payload.measurement_id is not None else -1,
                     "channel": payload.channel
                     },
                     on_conflict="dataset_ref,measurement_id,channel"
@@ -74,3 +73,23 @@ def get_irf_mappings(payload: dict):
         "status": "ok",
         "data": response
     }
+    
+def delete_irf_mapping(payload: MapIRFReq):
+    measurement_id = payload.measurement_id if payload.measurement_id is not None else -1
+    
+    response = (supabaseClient
+                .table("irf_mappings")
+                .delete()
+                .eq("workspace_id", payload.workspace_id)
+                .eq("dataset_ref", payload.dataset_ref)
+                .eq("measurement_id", measurement_id)
+                .eq("channel", payload.channel)
+                .execute())
+    
+    if(response.data ==[]):
+        raise HTTPException(status_code=404, detail="No IRF mappings found for this workspace")
+    
+    return {
+        "status": "ok",
+        "data": response
+    } 

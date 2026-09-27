@@ -7,6 +7,7 @@ import FileUploadZone from "@/components/upload/FileUploadZone";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import {
   createIRFMapping,
+  deleteMapping,
   getIRFMappings,
   getWorkspaceIrfs,
   uploadIrfFile,
@@ -62,7 +63,7 @@ export default function IrfManagement() {
   const [refreshIRFs, setRefreshIRFs] = useState<boolean>(false);
   const [mappings, setMappings] = useState<Record<string, string | null>>({});
   const { successToast, infoToast, errorToast } = useToast();
-  const [dbmappings, setDBMappings] = useState<MapIRFReq[]>();
+  const [dbmappings, setDbmappings] = useState<MapIRFReq[]>();
   const [bulkIrfId, setBulkIrfId] = useState<string>("");
 
   const fetchUploadResult = async () => {
@@ -98,19 +99,18 @@ export default function IrfManagement() {
       const mappings = await getIRFMappings(payload);
       if (mappings.status == "ok") {
         const data = mappings.data.data;
-        setDBMappings(data);
+        setDbmappings(data);
         const restored: Record<string, string | null> = {};
         data.forEach((mapping: MapIRFReq) => {
           if (mapping.measurement_id == -1) {
-
             //-1 means all measurements are mapped to this IRF
             measurementSummaries?.forEach((summ) => {
-              restored[`${summ.id}:${mapping.channel}`] =mapping.irf_id || null })
-
+              restored[`${summ.id}:${mapping.channel}`] =
+                mapping.irf_id || null;
+            });
           } else {
-
-            restored[`${mapping.measurement_id}:${mapping.channel}`] = mapping.irf_id || null
-			
+            restored[`${mapping.measurement_id}:${mapping.channel}`] =
+              mapping.irf_id || null;
           }
         });
         setMappings(restored);
@@ -166,6 +166,7 @@ export default function IrfManagement() {
 
   const handleApplyAll = async () => {
     if (!bulkIrfId || !measurementSummaries) return;
+	infoToast("Applying IRF to all measurements and channels")
     try {
       const dualChannel = measurementSummaries.some(
         (s) => s.channels && s.channels.length > 1,
@@ -201,19 +202,37 @@ export default function IrfManagement() {
     }
   };
 
-  const handleClearMapping = async (summ) => {
-    setMappings((prev) => {
-      const next = { ...prev };
-      (summ.channels ?? ["channel1"]).forEach((_, idx) => {
-        delete next[`${summ.id}:${idx + 1}`];
-      });
-      return next;
-    });
-  };
+  const handleClearMapping = async (summ: MeasurementSummary) => {
+    try {
+	infoToast("Removing mapping.")
+      const channels = summ.channels ?? ["channel1"];
 
-  useEffect(() => {
-    console.log(mappings);
-  }, [mappings]);
+      for (let idx = 0; idx < channels.length; idx++) {
+        const channel = idx + 1;
+
+        await deleteMapping({
+          workspace_id: currentWorkspaceId!,
+          dataset_ref: currentUpload!,
+          measurement_id: Number(summ.id),
+          channel,
+          irf_id: "",
+        });
+      }
+
+      setMappings((prev) => {
+        const next = { ...prev };
+        channels.forEach((_, idx) => {
+          delete next[`${summ.id}:${idx + 1}`];
+        });
+        return next;
+      });
+
+      successToast("Mapping cleared");
+    } catch (err) {
+      errorToast("Failed to clear mapping");
+      console.error(err);
+    }
+  };
 
   return (
     <div className="p-16 h-[vh] overflow-y-auto w-full z-11">
@@ -313,7 +332,13 @@ export default function IrfManagement() {
                   >
                     <SaveIcon className="text-primary" />
                   </Button>
-                  <Button variant={"secondary"} className="border-0">
+                  <Button
+                    variant={"secondary"}
+                    className="border-0"
+                    onClick={() => {
+                      handleClearMapping(summ);
+                    }}
+                  >
                     <Eraser className="text-destructive" />
                   </Button>
                 </td>
