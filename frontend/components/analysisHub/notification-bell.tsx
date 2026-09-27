@@ -1,18 +1,17 @@
 import {Bell} from "lucide-react";
 import { Button } from "../ui";
-import { useState } from "react";
 
 interface NotificationBellProp{
     unreadCount: number;
+    onClick:() => void;
 }
 
-export function NotificationBell({unreadCount}: NotificationBellProp){
-    const [open, setOpen] = useState(false);
+export function NotificationBell({unreadCount, onClick}: NotificationBellProp){
 
     return(
         <div className="relative">
             <Button variant ="ghost"
-                onClick={() => setOpen(!open)}
+                onClick={onClick}
                 className="px-3 h-full text-sm text-foreground hover:bg-card rounded-sm transition-colors relative"
                 >
                     <Bell size={16} />
