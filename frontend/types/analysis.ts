@@ -88,6 +88,7 @@ export type LifetimeReq = {
     upload_id: string,
     measurement_id: string | string[]
     channel?: number
+    use_irf?: boolean
     times: Float64Array | number[];
     counts: BigInt64Array | number[] // Use BigInt64Array for exact 64-bit ints, or number[] if within safe limits
     channelwidth?: number;

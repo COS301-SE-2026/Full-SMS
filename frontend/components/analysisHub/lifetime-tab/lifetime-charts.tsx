@@ -7,10 +7,20 @@ import React, { useEffect } from 'react'
 import Plot from 'react-plotly.js'
 
 export default function LifetimeCharts() {
-    const { currentMeasurement, currentUpload, bin, currentChannel} = useHdf5Data()
-    const {useLogScale, decayCounts, setDecayCounts, decayTimes, setDecayTimes, fitResult} = useAnalysisTab()
-    
-
+    const { currentMeasurement, currentUpload, bin, currentChannel } = useHdf5Data()
+    const {
+      useLogScale,
+      decayCounts,
+      setDecayCounts,
+      decayTimes,
+      setDecayTimes,
+      fitResult,
+      showIRF,
+      irfCounts,
+      setIrfCounts,
+      irfTimes,
+      setIrfTimes
+    } = useAnalysisTab()
     useEffect(() => {
       const fetchLifetimeData = async () => {
         if (!currentUpload || !currentMeasurement) return; 
@@ -25,6 +35,13 @@ export default function LifetimeCharts() {
           const response = await getFluorescenceDecay(payload)
           setDecayTimes(response.times)
           setDecayCounts(response.counts)
+          if (response.irf) {
+            setIrfTimes(response.irf.t || response.times)
+            setIrfCounts(response.irf.counts || [])
+          } else {
+            setIrfTimes([])
+            setIrfCounts([])
+          }
         } catch (error) {
           console.error(error)
         }
@@ -32,6 +49,20 @@ export default function LifetimeCharts() {
       
       fetchLifetimeData();
     }, [currentMeasurement, currentUpload, currentChannel])
+    // Scale the IRF to the data peak (legacy behavior)
+    const scaledIrfCounts = React.useMemo(() => {
+      if (!irfCounts || irfCounts.length === 0 || !decayCounts || decayCounts.length === 0) return [];
+      let maxData = 0;
+      for (let i = 0; i < decayCounts.length; i++) {
+        if (decayCounts[i] > maxData) maxData = decayCounts[i];
+      }
+      let maxIrf = 0;
+      for (let i = 0; i < irfCounts.length; i++) {
+        if (irfCounts[i] > maxIrf) maxIrf = irfCounts[i];
+      }
+      const scale = maxIrf > 0 ? maxData / maxIrf : 1;
+      return irfCounts.map(c => c * scale);
+    }, [irfCounts, decayCounts]);
   return (
 <div>
       <Card className="flex-1 flex flex-col p-2 min-w-0">
@@ -52,6 +83,20 @@ export default function LifetimeCharts() {
                   width: 0.5,
                 }
               },
+              ...(showIRF && scaledIrfCounts.length > 0 ? [{
+                x: irfTimes.length === scaledIrfCounts.length ? irfTimes : decayTimes,
+                y: scaledIrfCounts,
+                type: 'scatter' as const,
+                mode: 'lines' as const,
+                name: 'IRF',
+                xaxis: 'x', 
+                yaxis: 'y', 
+                line: {
+                  color: colors.success, // '#00e676' green
+                  width: 1.5,
+                  dash: 'dash' as const,
+                }
+              }] : []),
               // The Fitting
               {
                 //  If the backend only returns the fitted curve for the sliced index range, 
@@ -73,7 +118,7 @@ export default function LifetimeCharts() {
                 x: decayTimes,
                 y: fitResult?.residuals,//residuals 
                 type: 'scatter',
-                mode: 'markers',
+                mode: 'lines',
                 name: 'Residuals',
                 xaxis: 'x',
                 yaxis: 'y2',

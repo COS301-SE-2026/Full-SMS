@@ -37,6 +37,7 @@ class LifetimePayload(BaseModel):
     upload_id: str
     measurement_id: str
     bin_size_ms: float
+    channel: int = 1
 
 @router.post("/lifetime/fit")
 def get_lifetime(req: LifetimeReq):

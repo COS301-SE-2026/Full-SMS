@@ -21,8 +21,8 @@ class LifetimeRes(BaseModel):
     chi_squared: float
     durbin_watson: float
     dw_bounds: Optional[list[float]] = None
-    residuals: list[float]
-    fitted_curve: list[float]
+    residuals: list[Optional[float]]
+    fitted_curve: list[Optional[float]]
     fit_start_index: int
     fit_end_index: int
     background: float
@@ -36,6 +36,8 @@ class LifetimeReq(BaseModel):
     measurement_id: str
     times: list[float]                # Changed from NDArray
     counts: list[int]                 # Changed from NDArray
+    channel: Optional[int] = 1
+    use_irf: bool = True
     channelwidth: Optional[float] = None
     irf: Optional[list[float]] = None # Changed from NDArray
     num_exponentials: int = 1
