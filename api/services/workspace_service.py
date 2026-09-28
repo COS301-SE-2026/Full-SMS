@@ -4,6 +4,7 @@ from typing import List, Optional
 from supabase import Client, create_client
 from api.services.storage_service import BUCKET
 from api.utils.redis_Client import redisClient
+from api.services.profile_service import get_user_profile
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 WORKSPACE_NOT_FOUND = "Workspace not found"
@@ -329,4 +330,37 @@ def user_can_access_workspace(workspace_id: str, user_id: str) -> bool:
     is_member = user_id in data["member_ids"]
 
     return is_owner or is_member
+
+def get_workspace_members(workspace_id: str, user_id: str) -> list[dict]:
+    supabase = get_supabase_admin()
+
+    if not user_can_access_workspace(workspace_id, user_id):
+        raise ValueError(WORKSPACE_NOT_FOUND)
+
+    response = (
+        supabase.table("workspaces")
+        .select("*, workspace_files(count)")
+        .eq("id", workspace_id)
+        .single()
+        .execute()
+    )
+
+    if not response.data:
+        raise ValueError(WORKSPACE_NOT_FOUND)
+
+    data = response.data
+
+    members_owners_list = list(set([data["user_id"]] + data["member_ids"]))
+
+    results = []
+    
+    for member_id in members_owners_list:
+        try:
+            user_profile = get_user_profile(member_id)
+        except ValueError:
+            continue
+        results.append(user_profile)
+    return results
+
+
 
