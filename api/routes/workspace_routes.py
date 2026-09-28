@@ -11,7 +11,8 @@ from api.controllers.workspace_controller import (
     archive_workspace_controller,
     unarchive_workspace_controller,
     delete_workspace_upload_controller,
-    remove_workspace_member_controller)
+    remove_workspace_member_controller,
+    get_workspace_members_controller)
 
 from api.models.workspace import WorkspaceCreate, WorkspaceUpdate
 from typing import Annotated
@@ -72,3 +73,7 @@ def delete_workspace_upload_route(workspace_id: str, upload_id: str, current_use
 @router.delete("/{workspace_id}/members/{member_id}", summary="Remove a workspace member")
 def remove_workspace_member_route(workspace_id: str, current_user: CurrentUser, member_id: str):
     return remove_workspace_member_controller(workspace_id, current_user["id"], member_id)
+
+@router.get("/{workspace_id}/members", summary="Gets list of members of a workspace")
+def get_workspace_members_route(workspace_id: str, current_user: CurrentUser):
+    return get_workspace_members_controller(workspace_id, current_user["id"])
