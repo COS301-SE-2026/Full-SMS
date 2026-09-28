@@ -9,7 +9,8 @@ from api.services.workspace_service import (
     archive_workspace,
     unarchive_workspace,
     delete_workspace_upload,
-    remove_workspace_member
+    remove_workspace_member,
+    get_workspace_members
 )
 from api.models.workspace import WorkspaceCreate, WorkspaceUpdate
 
@@ -125,6 +126,19 @@ def remove_workspace_member_controller(workspace_id: str, user_id: str, member_i
     try:
         response = remove_workspace_member(workspace_id, user_id, member_id)
         return {"success": True, "message": "Workspace member has been removed successfully", "workspace": response}
+    except ValueError as valerror:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(valerror)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
+
+def get_workspace_members_controller(workspace_id: str, user_id: str) -> dict:
+    try:
+        members_list = get_workspace_members(workspace_id, user_id)
+        return {"success": True, "message": "Workspace members retrieved successfully", "members": members_list}
     except ValueError as valerror:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(valerror)
