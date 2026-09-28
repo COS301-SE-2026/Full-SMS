@@ -30,23 +30,50 @@ export default function FittingDialog() {
     const [backgroundValue, setBackgroundValue] = useState<number>(0)
 
     const {setFittingDialogOpen, decayCounts, decayTimes, setFitResult} = useAnalysisTab()
-    const {currentMeasurement, currentUpload} = useHdf5Data()
+    const {currentMeasurement, currentUpload, currentChannel} = useHdf5Data()
 
-    const fetchLifetimeFitting = async ()=>{
+        const fetchLifetimeFitting = async ()=>{
+        
+        const mapStartMode = (mode: string): StartpointMode => {
+            switch(mode) {
+                case "Manual": return StartpointMode.MANUAL;
+                case "Rise middle": return StartpointMode.RISE_MIDDLE;
+                case "Rise start": return StartpointMode.RISE_START;
+                case "Safe rise middle": return StartpointMode.SAFE_RISE_START;
+                default: return StartpointMode.CLOSE_TO_MAX;
+            }
+        };
+
         const request: LifetimeReq = {
             upload_id: currentUpload,
             measurement_id: currentMeasurement,
+            channel: currentChannel,
+            use_irf: useIRF,
             times: decayTimes,
             counts: decayCounts,
             num_exponentials: numExponents,
-            tau_init: tauInit,
+            tau_init: tauInit, // Python backend will duplicate this if numExponents > 1
             tau_bounds: [boundsMin, boundsMax],
-            autostart: StartpointMode.CLOSE_TO_MAX,
+            autostart: mapStartMode(startMode),
             autoend: detectEndpoint,
-            fit_irf_fwhm: useSimulatedIRF,
-            irf_fwhm_init: useSimulatedIRF && fitFWHM ? fhwm : null,
-            irf_fwhm_bounds: useSimulatedIRF && fitFWHM ? [fwhmBoundsMin, fwhmBoundsMax] : null,
+            
+            // Send start/end channels only if manual mode is active
+            start: startMode === "Manual" ? startChannel : null,
+            end: !detectEndpoint ? endChannel : null,
+
+            // Send background only if auto-estimate is toggled off
+            background: !background ? backgroundValue : null,
+
+            // Send Shift parameters
+            shift_init: shiftInit,
+            shift_bounds: [shiftBoundsMin, shiftBoundsMax],
+
+            // IRF / FWHM
+            fit_irf_fwhm: useIRF && useSimulatedIRF && fitFWHM,
+            irf_fwhm_init: useIRF && useSimulatedIRF && fitFWHM ? fhwm : null,
+            irf_fwhm_bounds: useIRF && useSimulatedIRF && fitFWHM ? [fwhmBoundsMin, fwhmBoundsMax] : null,
         }
+        
         const response = await getLifetimeData(request);
         setFitResult(response)
     }
@@ -73,7 +100,7 @@ export default function FittingDialog() {
                 <select name='Scope' 
                     id='Scope' 
                     className='border 
-                    p-2 rounded-sm font-mono'
+                    p-2 rounded-sm font-mono bg-card'
                     value={scope}
                     onChange={(e) => setScope(e.target.value)}
                 >
@@ -89,7 +116,7 @@ export default function FittingDialog() {
 
             <select name='Number of exponentials' 
             className='border p-2 
-            rounded-sm w-[20vw] font-mono'
+            rounded-sm w-[20vw] font-mono bg-card'
             value={numExponents}
             onChange={(e=> setNumExponents(Number(e.target.value)))}
             >
@@ -257,7 +284,7 @@ export default function FittingDialog() {
             <label htmlFor="Start Mode" className='mr-2'>Start Mode: </label>
             <select name='Start Mode'
                 id='Start Mode'
-                className='border p-2 rounded-sm w-[25vw] font-mono'
+                className='border p-2 rounded-sm w-[25vw] font-mono bg-card'
                 value={startMode}
                 onChange={(e) => setStartMode(e.target.value)}
               >
@@ -290,7 +317,7 @@ export default function FittingDialog() {
             onCheckedChange={setDetectEndpoint}
             />
             {
-                detectEndpoint && (
+                 !detectEndpoint && (
                     <div className='mt-2'>
                         <label htmlFor="End Channel" className='mr-2'>End channel: </label>
                         <input className='border rounded-sm p-1 mr-4' 

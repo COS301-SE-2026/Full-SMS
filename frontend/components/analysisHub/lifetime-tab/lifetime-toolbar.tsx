@@ -7,8 +7,7 @@ import React, { useState } from 'react'
 
 
 export default function LifetimeToolbar() {
-    const [showIRF, setShowIRF] = useState<boolean>(true)
-    const {setFittingDialogOpen, useLogScale, setUseLogScale, fitResult} = useAnalysisTab()
+    const {setFittingDialogOpen, useLogScale, setUseLogScale, fitResult, showIRF, setShowIRF} = useAnalysisTab()
 
   return (
     <div className="flex flex-col gap-4 h-12 px-4 border-b border-border bg-background mb-4 h-fit pb-2">
@@ -29,7 +28,7 @@ export default function LifetimeToolbar() {
           </Button>
       </div>
         {
-          useLogScale && (
+          fitResult && (
             <div className='items-center flex flex-row gap-16'>
               <p>Fit Result:</p>
               <p className='text-primary text-sm'>tau = {fitResult?.tau}</p>

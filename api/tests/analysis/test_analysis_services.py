@@ -337,7 +337,8 @@ def test_resolve_current_measurement_cache_miss(mock_find_change_points, mock_ca
 @patch("api.services.analysis_services.lifetime.cache_fallback_service")
 @patch("api.services.analysis_services.lifetime.build_decay_histogram")
 @patch("api.services.analysis_services.lifetime.fit_decay")
-def test_lifetime_analysis_cache_hit_with_fitting(mock_fit_decay, mock_build_histogram, mock_cache_fallback, mock_get_cached):
+@patch("api.services.analysis_services.lifetime._fetch_irf_counts", return_value=None)
+def test_lifetime_analysis_cache_hit_with_fitting(mock_fetch_irf, mock_fit_decay, mock_build_histogram, mock_cache_fallback, mock_get_cached):
     mock_request = LifetimeReq(
         upload_id="123e4567-e89b-12d3-a456-676767676767",
         measurement_id="1",
@@ -369,7 +370,7 @@ def test_lifetime_analysis_cache_hit_with_fitting(mock_fit_decay, mock_build_his
     mock_fit_result.residuals = np.array([0.1, -0.1, 0.0])
     mock_fit_result.fitted_curve = np.array([99.9, 50.1, 24.8])
     mock_fit_result.fit_start_index = 0
-    mock_fit_result.fit_end_index = 2
+    mock_fit_result.fit_end_index = 3
     mock_fit_result.background = 1.0
     mock_fit_result.num_exponentials = 1
     mock_fit_result.average_lifetime = 2.5
@@ -391,11 +392,119 @@ def test_lifetime_analysis_cache_hit_with_fitting(mock_fit_decay, mock_build_his
     mock_fit_decay.assert_called_once()
 
 
+@pytest.mark.parametrize("use_irf", [True, False])
+def test_lifetime_fitting_uses_selected_channel_irf(use_irf):
+    from types import SimpleNamespace
+
+    from api.services.analysis_services import lifetime as lifetime_service
+
+    irf_counts = np.array([0.0, 3.0, 1.0])
+    fit_result = SimpleNamespace(
+        tau=(2.5,),
+        tau_std=(0.1,),
+        amplitude=(1.0,),
+        amplitude_std=(0.01,),
+        shift=0.0,
+        shift_std=0.0,
+        chi_squared=1.0,
+        durbin_watson=1.8,
+        dw_bounds=(1.5, 1.7),
+        residuals=np.array([0.0, 0.0]),
+        fitted_curve=np.array([90.0, 40.0]),
+        fit_start_index=0,
+        fit_end_index=2,
+        background=0.0,
+        num_exponentials=1,
+        average_lifetime=2.5,
+        fitted_irf_fwhm=None,
+        fitted_irf_fwhm_std=None,
+    )
+
+    request = LifetimeReq(
+        upload_id="dataset",
+        measurement_id="2",
+        channel=2,
+        use_irf=use_irf,
+        times=[0.0, 0.1, 0.2],
+        counts=[100, 50, 25],
+    )
+
+    with (
+        patch.object(
+            lifetime_service,
+            "get_cached_measurement",
+            return_value=MagicMock(channelwidth=0.05),
+        ),
+        patch.object(
+            lifetime_service, "_fetch_irf_counts", return_value=irf_counts
+        ) as fetch_irf,
+        patch.object(lifetime_service, "fit_decay", return_value=fit_result) as fit_decay,
+        patch.object(
+            lifetime_service,
+            "compute_convolved_fit_curve",
+            return_value=(np.array([95.0, 45.0, 20.0]), np.array([0.0, 0.0])),
+        ),
+    ):
+        lifetime_service.lifetime_fitting(request)
+
+    if use_irf:
+        fetch_irf.assert_called_once_with(
+            dataset_ref="dataset", measurement_id="2", channel=2
+        )
+        np.testing.assert_array_equal(fit_decay.call_args.kwargs["irf"], irf_counts)
+    else:
+        fetch_irf.assert_not_called()
+        assert fit_decay.call_args.kwargs["irf"] is None
+
+
+def test_fetch_irf_data_treats_none_mapping_responses_as_unmapped():
+    from api.services.analysis_services import lifetime as lifetime_service
+
+    query = MagicMock()
+    query.execute.return_value = None
+    supabase = MagicMock()
+    supabase.table.return_value = query
+    query.select.return_value = query
+    query.eq.return_value = query
+    query.maybe_single.return_value = query
+    query.single.return_value = query
+
+    with patch.object(lifetime_service, "supabaseClient", supabase):
+        result = lifetime_service._fetch_irf_data("dataset", "measurement", 2)
+
+    assert result is None
+    assert query.execute.call_count == 2
+
+
+def test_fetch_irf_data_treats_none_irf_record_as_unavailable():
+    from types import SimpleNamespace
+
+    from api.services.analysis_services import lifetime as lifetime_service
+
+    query = MagicMock()
+    query.execute.side_effect = [
+        SimpleNamespace(data={"irf_id": "irf-id"}),
+        None,
+    ]
+    supabase = MagicMock()
+    supabase.table.return_value = query
+    query.select.return_value = query
+    query.eq.return_value = query
+    query.maybe_single.return_value = query
+    query.single.return_value = query
+
+    with patch.object(lifetime_service, "supabaseClient", supabase):
+        result = lifetime_service._fetch_irf_data("dataset", "measurement", 2)
+
+    assert result is None
+
+
 @patch("api.services.analysis_services.lifetime.get_cached_measurement")
 @patch("api.services.analysis_services.lifetime.cache_fallback_service")
 @patch("api.services.analysis_services.lifetime.build_decay_histogram")
 @patch("api.services.analysis_services.lifetime.fit_decay")
-def test_lifetime_analysis_cache_miss_no_fitting(mock_fit_decay, mock_build_histogram, mock_cache_fallback, mock_get_cached):
+@patch("api.services.analysis_services.lifetime._fetch_irf_counts", return_value=None)
+def test_lifetime_analysis_cache_miss_no_fitting(mock_fetch_irf, mock_fit_decay, mock_build_histogram, mock_cache_fallback, mock_get_cached):
     mock_request = LifetimeReq(
         upload_id="123e4567-e89b-12d3-a456-676767676767",
         measurement_id="1",
@@ -440,7 +549,7 @@ def test_lifetime_analysis_cache_miss_no_fitting(mock_fit_decay, mock_build_hist
 
     response = lifetime_fitting(mock_request)
 
-    assert response.fitted_curve == []
+    assert response.fitted_curve == [None, None, None]
     assert response.tau == []
     
     mock_get_cached.assert_called_once_with("123e4567-e89b-12d3-a456-676767676767", "1")
