@@ -23,5 +23,7 @@ class ExportRequest(BaseModel):
     plotIntensity_levels: bool = False
     plotIntensity_groups: bool = False
     plot_bic: bool = False
-    
+    plot_correlation: bool = False
+    correlation_tau: list[float] | None=None
+    correlation_g2: list[float] | None=None
     use_roi: bool = False
