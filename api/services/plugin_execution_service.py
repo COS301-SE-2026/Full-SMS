@@ -48,7 +48,7 @@ def execute_plugin(
 
     validation = validate_script(script)
 
-    if not validation["success"]:
+    if not validation["valid"]:
         return {
             "success": False,
             "execution_id": "",
