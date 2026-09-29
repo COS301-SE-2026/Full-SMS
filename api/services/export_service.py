@@ -234,6 +234,14 @@ def _export_correlation_plot(request, data, measurement_name) -> tuple[Path, str
 
     fd, temp_path=tempfile.mkstemp()
     os.close(fd)
+    output_path = plot_exporters.export_correlation_plot(
+        tau=request.correlation_tau,
+        g2=request.correlation_g2,
+        output_path=Path(temp_path),
+        fmt=request.plot_format,
+        dpi=request.plot_dpi,
+        title=data.get("name", ""),
+    )
     
 
 def _process_selection(request, selection, user_id) -> list[tuple[Path, str]]:
