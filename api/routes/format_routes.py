@@ -17,9 +17,28 @@ from pathlib import Path
 
 from api.services import hdf5_upload_service
 from api.services.storage_service import download_to_temp
+from contextlib import asynccontextmanager
+import uuid
+from anyio import Path as AsyncPath
+
+
 
 router = APIRouter(prefix="/formats", tags=["File Formats"])
+FILE_NAME_ERROR = "File must have a filename"
 
+
+#sonarcloud suggestion for maintainability
+@asynccontextmanager
+async def async_named_temporary_file(suffix: str = ".tmp"):
+    """
+    Asynchronous temporary file context manager.
+    Yields an AsyncPath and automatically unlinks the file on exit.
+    """
+    temp_file = AsyncPath(tempfile.gettempdir()) / f"sms_{uuid.uuid4().hex}{suffix}"
+    try:
+        yield temp_file
+    finally:
+        await temp_file.unlink(missing_ok=True)
 
 @router.get("/supported")
 def list_supported_formats():
@@ -75,7 +94,7 @@ async def detect_file_format(
     if not file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File must have a filename",
+            detail=FILE_NAME_ERROR,
         )
 
     extension = os.path.splitext(file.filename)[1].lower()
@@ -92,11 +111,10 @@ async def detect_file_format(
         }
 
     suffix = extension or ".tmp"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        # Read enough bytes for format detection
+    async with async_named_temporary_file(suffix=suffix) as tmp_file:
         content = await file.read(4096)
-        tmp.write(content)
-        tmp_path = tmp.name
+        await tmp_file.write_bytes(content)
+        tmp_path = str(tmp_file)
 
     try:
         detected_format, metadata = detect_format(tmp_path)
@@ -123,9 +141,6 @@ async def detect_file_format(
             "can_process": False,
             "error": f"Error detecting format: {str(e)}",
         }
-    finally:
-        if os.path.exists(tmp_path):
-            os.unlink(tmp_path)
 
 
 @router.post("/preview")
@@ -148,7 +163,7 @@ async def preview_file(
     if not file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File must have a filename",
+            detail=FILE_NAME_ERROR,
         )
 
     # Parse column mapping if provided
@@ -163,13 +178,12 @@ async def preview_file(
             )
 
     extension = os.path.splitext(file.filename)[1].lower() or ".tmp"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=extension) as tmp:
+    async with async_named_temporary_file(suffix=extension) as tmp_file:
         content = await file.read()
-        tmp.write(content)
-        tmp_path = tmp.name
+        await tmp_file.write_bytes(content)
+        tmp_path = str(tmp_file)
 
     try:
-        
         result = read_file(tmp_path, options=options if options else None)
 
         if not result.success:
@@ -210,9 +224,6 @@ async def preview_file(
             "filename": file.filename,
             "error": f"Error reading file: {str(e)}",
         }
-    finally:
-        if os.path.exists(tmp_path):
-            os.unlink(tmp_path)
 
 
 @router.post("/validate")
@@ -228,14 +239,14 @@ async def validate_file(
     if not file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File must have a filename",
+            detail=FILE_NAME_ERROR,
         )
 
     extension = os.path.splitext(file.filename)[1].lower() or ".tmp"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=extension) as tmp:
+    async with async_named_temporary_file(suffix=extension) as tmp_file:
         content = await file.read()
-        tmp.write(content)
-        tmp_path = tmp.name
+        await tmp_file.write_bytes(content)
+        tmp_path = str(tmp_file)
 
     try:
         result = read_file(tmp_path)
@@ -286,9 +297,7 @@ async def validate_file(
             "error": f"Validation failed: {str(e)}",
             "warnings": [],
         }
-    finally:
-        if os.path.exists(tmp_path):
-            os.unlink(tmp_path)
+
 
 
 @router.post("/convert")
@@ -305,14 +314,14 @@ async def convert_file_to_cache_format(
     if not file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File must have a filename",
+            detail=FILE_NAME_ERROR,
         )
 
     extension = os.path.splitext(file.filename)[1].lower() or ".tmp"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=extension) as tmp:
+    async with async_named_temporary_file(suffix=extension) as tmp_file:
         content = await file.read()
-        tmp.write(content)
-        tmp_path = tmp.name
+        await tmp_file.write_bytes(content)
+        tmp_path = str(tmp_file)
 
     try:
         result = read_file(tmp_path)
@@ -339,9 +348,6 @@ async def convert_file_to_cache_format(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error converting file: {str(e)}",
         )
-    finally:
-        if os.path.exists(tmp_path):
-            os.unlink(tmp_path)
 
 
 def _get_native_blocks(upload_id: str, current_user: dict):
