@@ -260,7 +260,6 @@ async def validate_file(
                 f"{len(low_count)} measurement(s) have very low photon counts (<100)"
             )
 
-        # Check channel width
         no_channelwidth = [m for m in result.measurements if m.channelwidth <= 0]
         if no_channelwidth:
             warnings.append(
@@ -284,7 +283,6 @@ async def validate_file(
             "warnings": [],
         }
     finally:
-        # Clean up temp file
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
 
@@ -306,7 +304,6 @@ async def convert_file_to_cache_format(
             detail="File must have a filename",
         )
 
-    # Save to temp file
     extension = os.path.splitext(file.filename)[1].lower() or ".tmp"
     with tempfile.NamedTemporaryFile(delete=False, suffix=extension) as tmp:
         content = await file.read()
