@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { workspaceService } from "@/services/workspaceServices";
 import { useToast } from "@/contexts/toastContext/ToastContext";
+import { Button } from "../ui";
+import { X } from "lucide-react";
 
 interface WorkspaceMemberProfile{
     id: string;
@@ -74,8 +76,10 @@ export function ManageMembersModal({
     return(
         <Modal open={open} onClose={onClose}>
             <div className="p-4">
-                <h2 className="mb-4 text-lg font-bold">Manage Members</h2>
-
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="mb-4 text-lg font-bold">Manage Members</h2>
+                    <Button onClick={onClose} variant="ghost" size="sm"><X className="w-4 h-4"/></Button>
+                </div>
                 <div className="gap-2 mb-4 flex items-center">
                     <input 
                     type="email"
@@ -83,12 +87,12 @@ export function ManageMembersModal({
                     value={inviteInput}
                     placeholder="Workspace member's email"
                     onChange={(e) => setInviteInput(e.target.value)} />
-                    <button
+                    <Button
                     disabled={addProgress}
-                    className="text-sm text-white disabled:opacity-50 rounded-md bg-primary-500 py-2"
+                    variant="primary"
                     onClick={onAdd}>
                         {addProgress ? "Adding in progress":"Add"}
-                    </button>
+                    </Button>
                 </div>
 
                 
