@@ -11,7 +11,7 @@ async def test_valid_ptu_upload():
     result = await handle_upload(test_file)
     
     assert result["status"] == "pending"
-    assert result["filename"] == "experiment.ptu3"
+    assert result["filename"] == "experiment.ptu"
     assert result["message"] == "File uploaded successfully"
     assert result["size_bytes"] > 0
 
