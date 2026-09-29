@@ -65,21 +65,20 @@ class PicoQuantReader(FileReader):
                 # Decode photon records
                 decoded = ptu.decode_records()
 
-                if decoded is None:
-                    return self._create_error_result(
-                        "No photon records found in file. "
-                        "File may be empty or use an unsupported measurement mode."
-                    )
+                if decoded is None or decoded.size == 0:
+                    return self._create_error_result("No photon records found in file.")
 
-                # Unpack decoded data
-                # Returns tuple: (channel, dtime, nsync, marker, special)
-                channel, dtime, nsync, marker, special = decoded
+                # decoded is a structured record array, not a five-item tuple
+                times = decoded["time"]
+                dtime = decoded["dtime"]
+                channel = decoded["channel"]
+                marker = decoded["marker"]
 
                 # Filter out special/marker records (keep only actual photons)
-                photon_mask = ~special
-                channel = channel[photon_mask]
+                photon_mask = marker == 0
+                times = times[photon_mask]
                 dtime = dtime[photon_mask]
-                nsync = nsync[photon_mask]
+                channel = channel[photon_mask]
 
                 if len(channel) == 0:
                     return self._create_error_result(
@@ -91,7 +90,7 @@ class PicoQuantReader(FileReader):
                 tcspc_res_ns = ptu.tcspc_resolution * 1e9    # Convert s to ns
 
                 # Convert to absolute times in nanoseconds
-                abstimes = nsync.astype(np.float64) * global_res_ns
+                abstimes = times.astype(np.float64) * global_res_ns
                 microtimes = dtime.astype(np.float64) * tcspc_res_ns
 
                 # Group photons by detector channel
