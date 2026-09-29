@@ -10,9 +10,11 @@ from api.services.workspace_service import (
     unarchive_workspace,
     delete_workspace_upload,
     remove_workspace_member,
-    get_workspace_members
+    get_workspace_members,
+    add_workspace_member
 )
 from api.models.workspace import WorkspaceCreate, WorkspaceUpdate
+from api.services.profile_service import get_user_by_email
 
 
 def get_workspaces_controller(user_id: str):
@@ -139,6 +141,21 @@ def get_workspace_members_controller(workspace_id: str, user_id: str) -> dict:
     try:
         members_list = get_workspace_members(workspace_id, user_id)
         return {"success": True, "message": "Workspace members retrieved successfully", "members": members_list}
+    except ValueError as valerror:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(valerror)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
+
+def add_workspace_member_controller(workspace_id: str, user_id: str, email: str) -> dict:
+    try:
+        member_profile = get_user_by_email(email)
+        response = add_workspace_member(workspace_id, user_id, member_profile["id"])
+
+        return {"success": True, "message": "Member added successfully", "workspace": response}
     except ValueError as valerror:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(valerror)
