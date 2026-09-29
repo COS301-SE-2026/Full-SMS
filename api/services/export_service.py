@@ -27,6 +27,10 @@ class MissingAnalysisDataError(NotImplementedError):
             f"Run and save analysis before exporting."
         )
 
+class InvalidExportDataErr(ValueError):
+    def __init__(self, message: str):
+        super().__init__(message)
+
 def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> dict :
     cached_measurement = get_cached_measurement(upload_id, measurement_id)
     if not cached_measurement:
@@ -230,7 +234,7 @@ def _export_correlation_plot(request, data, measurement_name) -> tuple[Path, str
     if not request.plot_correlation:
         return None
     if not request.correlation_tau or not request.correlation_g2:
-        raise MissingAnalysisDataError("correlation plot", measurement_name)
+        raise InvalidExportDataErr("This measurement has only one TCSPC channel. Correlation analysis requires dual-channel data.")
 
     fd, temp_path=tempfile.mkstemp()
     os.close(fd)
