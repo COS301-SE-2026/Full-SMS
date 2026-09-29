@@ -1,196 +1,39 @@
-"""
-Becker & Hickl file format reader.
-
-Supports: .sdt, .spc formats
-Uses the sdtfile library (https://github.com/cgohlke/sdtfile)
-"""
-
-from pathlib import Path
-from typing import List, Optional
 import numpy as np
 
-from .base import FileReader, NativeDataBlock, ReaderResult
+from api.legacy.models.measurement import ChannelData, MeasurementData
+from api.services.file_readers.base import ChannelResult, MeasurementResult
 
 
-class BeckerHicklReader(FileReader):
-    """
-    Reader for Becker & Hickl TCSPC file formats.
+def _to_legacy_channel(channel: ChannelResult) -> ChannelData:
+    abstimes = np.asarray(channel.abstimes)
+    microtimes = np.asarray(channel.microtimes, dtype=np.float64)
 
-    Supported formats:
-    - .sdt: Setup and Data Time-resolved file
-    - .spc: SPC data file (raw FIFO data)
+    # legacy code assumes clean 1d arrays so check before converting
+    if abstimes.ndim != 1 or microtimes.ndim != 1:
+        raise ValueError("Photon time arrays must be one-dimensional")
+    if len(abstimes) != len(microtimes):
+        raise ValueError("Absolute and microtime arrays have different lengths")
+    if not np.all(np.isfinite(abstimes)) or not np.all(np.isfinite(microtimes)):
+        raise ValueError("Photon time arrays contain non-finite values")
+    if np.any(abstimes < 0) or np.any(microtimes < 0):
+        raise ValueError("Photon times must be non-negative")
 
-    Note: B&H files typically contain histogram data rather than
-    raw photon timestamps. This reader handles both histogram
-    and FIFO (raw photon) modes.
+    # legacy abstimes are uint64
+    abstimes = np.rint(abstimes).astype(np.uint64)
+    return ChannelData(abstimes=abstimes, microtimes=microtimes)
 
-    Requires: pip install sdtfile
-    """
 
-    def get_supported_extensions(self) -> List[str]:
-        return [".sdt", ".spc"]
-
-    def can_read(self, path: Path) -> bool:
-        """Check if file has a Becker & Hickl extension."""
-        return path.suffix.lower() in self.get_supported_extensions()
-
-    def read(self, path: Path) -> ReaderResult:
-        """
-        Read Becker & Hickl file and extract photon/histogram data.
-
-        SDT files can contain:
-        - Decay histograms (most common)
-        - FLIM images
-        - Time traces
-        - Raw FIFO data (rare)
-        """
-        # Check for sdtfile library
-        try:
-            import sdtfile
-        except ImportError:
-            return self._create_error_result(
-                "sdtfile library not installed. Install with: pip install sdtfile"
-            )
-
-        path = Path(path)
-
-        if not path.exists():
-            return self._create_error_result(f"File not found: {path}")
-
-        try:
-            sdt = sdtfile.SdtFile(path)
-
-            # Extract file metadata
-            file_metadata = self._extract_metadata(sdt)
-
-            native_blocks = []
-
-            for block_idx, data in enumerate(sdt.data):
-                if data is None or data.size == 0:
-                    continue
-
-                # Get corresponding time axis
-                times = self._get_time_axis(sdt, block_idx)
-
-                if times is None:
-                    # Create synthetic time axis based on data shape
-                    times = np.arange(data.shape[-1], dtype=np.float64) * 0.01  # 10 ps default
-
-                block = self._process_data_block(
-                    data, times, block_idx, file_metadata
-                )
-
-                if block:
-                    native_blocks.append(block)
-
-            if not native_blocks:
-                return self._create_error_result(
-                    "No valid data blocks found in B&H file."
-                )
-
-            return ReaderResult(
-                measurements=[],
-                file_metadata=file_metadata,
-                format_name="Becker & Hickl",
-                success=True,
-                native_blocks=native_blocks,
-                data_kind="native_data",
-            )
-
-        except Exception as e:
-            return self._create_error_result(f"Failed to read B&H file: {str(e)}")
-
-    def _extract_metadata(self, sdt) -> dict:
-        """Extract metadata from B&H file."""
-        metadata = {
-            "format": "Becker & Hickl SDT",
-            "num_blocks": len(sdt.data) if hasattr(sdt, "data") else 0,
-        }
-
-        # Extract info string if available
-        if hasattr(sdt, "info") and sdt.info:
-            metadata["info"] = sdt.info
-
-        # Extract measurement description
-        if hasattr(sdt, "measure_info"):
-            for i, info in enumerate(sdt.measure_info):
-                if info:
-                    metadata[f"block_{i}_info"] = str(info)
-
-        # Extract setup info
-        if hasattr(sdt, "setup"):
-            setup = sdt.setup
-            if hasattr(setup, "tac_range"):
-                metadata["tac_range_ns"] = setup.tac_range * 1e9
-            if hasattr(setup, "tac_gain"):
-                metadata["tac_gain"] = setup.tac_gain
-            if hasattr(setup, "adc_resolution"):
-                metadata["adc_resolution"] = setup.adc_resolution
-
-        return metadata
-
-    def _get_time_axis(self, sdt, block_idx: int) -> Optional[np.ndarray]:
-        """Get time axis for a data block."""
-        if not hasattr(sdt, "times") or not sdt.times:
-            return None
-
-        if block_idx < len(sdt.times) and sdt.times[block_idx] is not None:
-            times = sdt.times[block_idx]
-            # Convert to nanoseconds if in seconds
-            if times.max() < 1e-6:  # Likely in seconds
-                times = times * 1e9
-            return times
-
-        return None
-
-    def _process_data_block(
-        self,
-        data: np.ndarray,
-        times: np.ndarray,
-        block_idx: int,
-        file_metadata: dict,
-    ) -> Optional[NativeDataBlock]:
-        """
-        Process a single data block from B&H file.
-
-        B&H data can be:
-        - 1D: Single decay histogram
-        - 2D: Multiple decay curves or time trace
-        - 3D: FLIM image (y, x, time)
-        """
-        data = np.asarray(data)
-        times = np.asarray(times, dtype=np.float64)
-        if data.ndim not in (1, 2, 3):
-            return None
-
-        if data.shape[-1] != len(times):
-            times = np.arange(data.shape[-1], dtype=np.float64) * 0.01
-
-        if data.ndim == 1:
-            kind = "decay_histogram"
-        elif data.ndim == 2:
-            kind = "curve_matrix"
-        else:
-            kind = "flim"
-
-        axes = {"time": times}
-        axis_units = {"time": "ns"}
-        for axis_index, axis_size in enumerate(data.shape[:-1]):
-            axis_name = f"axis_{axis_index}"
-            axes[axis_name] = np.arange(axis_size)
-            axis_units[axis_name] = "index"
-
-        return NativeDataBlock(
-            id=block_idx + 1,
-            name=f"Block {block_idx + 1}",
-            kind=kind,
-            data=data,
-            axes=axes,
-            axis_units=axis_units,
-            metadata={
-                "original_shape": list(data.shape),
-                "total_counts": int(data.sum()),
-                "source_format": "becker_hickl",
-                **file_metadata,
-            },
-        )
+def to_legacy_measurement(measurement: MeasurementResult) -> MeasurementData:
+    return MeasurementData(
+        id=measurement.id,
+        name=measurement.name,
+        tcspc_card=measurement.tcspc_card,
+        channelwidth=measurement.channelwidth,
+        channel1=_to_legacy_channel(measurement.channel1),
+        channel2=(
+            _to_legacy_channel(measurement.channel2)
+            if measurement.channel2 is not None
+            else None
+        ),
+        description=measurement.description,
+    )

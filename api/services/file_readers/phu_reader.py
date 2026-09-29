@@ -1,5 +1,5 @@
-"""Reader for PicoQuant .phu files — TCSPC decay histograms, typically
-paired with .ptu FLIM data, read via the ptufile library."""
+# picoquant .phu reader, decay histograms (usually paired with .ptu flim data)
+# uses ptufile
 
 from pathlib import Path
 from typing import List
@@ -10,11 +10,6 @@ from .base import FileReader, NativeDataBlock, ReaderResult
 
 
 class PicoQuantPhuReader(FileReader):
-    """_summary_
-
-    Args:
-        FileReader (_type_): _description_
-    """
     def get_supported_extensions(self) -> List[str]:
         return [".phu"]
 
@@ -44,18 +39,15 @@ class PicoQuantPhuReader(FileReader):
                     if counts.ndim != 1 or counts.size == 0:
                         continue
 
-                    # Some files carry a resolution per channel; fall back to
-                    # the TCSPC resolution when that's not the case.
+                    # not every file has a resolution per channel, if not use the tcspc one
                     resolution_s = (
                         float(resolutions[index])
                         if index < len(resolutions) and resolutions[index]
                         else float(phu.tcspc_resolution)
                     )
-                    
-                    # Bin-center timestamps (hence the +0.5), converted to ns.
-                    time_ns = (
-                        np.arange(counts.size, dtype=np.float64) + 0.5
-                    ) * resolution_s * 1e9
+
+                    # bin centers (the +0.5) in ns
+                    time_ns = (np.arange(counts.size, dtype=np.float64) + 0.5) * resolution_s * 1e9
 
                     blocks.append(
                         NativeDataBlock(
@@ -75,9 +67,7 @@ class PicoQuantPhuReader(FileReader):
                     )
 
                 if not blocks:
-                    return self._create_error_result(
-                        "No histogram data found in PHU file."
-                    )
+                    return self._create_error_result("No histogram data found in PHU file.")
 
                 return ReaderResult(
                     measurements=[],
@@ -91,6 +81,4 @@ class PicoQuantPhuReader(FileReader):
                 )
 
         except Exception as error:
-            return self._create_error_result(
-                f"Failed to read PicoQuant PHU file: {error}"
-            )
+            return self._create_error_result(f"Failed to read PicoQuant PHU file: {error}")

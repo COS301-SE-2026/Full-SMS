@@ -1,9 +1,5 @@
-"""
-Reader factory for Universal File Format Support.
-
-Provides unified interface to read any supported file format.
-Auto-detects format and delegates to appropriate reader.
-"""
+# reader factory, picks the right reader for a file and reads it
+# read_file() is the main entry point
 
 from pathlib import Path
 from typing import Optional, List, Dict, Any
@@ -16,7 +12,7 @@ from .csv_reader import CSVReader
 from api.services.format_detection_service import detect_format, FileFormat
 from .phu_reader import PicoQuantPhuReader
 
-# Registry of all available readers
+# order matters here, first reader that says can_read wins
 _READERS: List[FileReader] = [
     PicoQuantReader(),
     BeckerHicklReader(),
@@ -30,25 +26,14 @@ def get_reader(
     path: str | Path,
     format_hint: Optional[FileFormat] = None,
 ) -> Optional[FileReader]:
-    """
-    Get appropriate reader for a file.
-
-    Args:
-        path: File path to read
-        format_hint: Optional format hint from detection (speeds up lookup)
-
-    Returns:
-        FileReader instance or None if no reader found
-    """
     path = Path(path)
 
-    # Use format hint if provided
+    # hint from detect_format skips the loop
     if format_hint is not None:
         reader = _get_reader_for_format(format_hint)
         if reader:
             return reader
 
-    # Try each reader
     for reader in _READERS:
         if reader.can_read(path):
             return reader
@@ -57,7 +42,6 @@ def get_reader(
 
 
 def _get_reader_for_format(fmt: FileFormat) -> Optional[FileReader]:
-    """Get reader for a specific format."""
     format_to_reader = {
         FileFormat.PICOQUANT_PTU: PicoQuantReader,
         FileFormat.BECKER_HICKL_SDT: BeckerHicklReader,
@@ -79,22 +63,8 @@ def read_file(
     format_hint: Optional[FileFormat] = None,
     options: Optional[Dict[str, Any]] = None,
 ) -> ReaderResult:
-    """
-    Auto-detect format and read file.
-
-    This is the main entry point for reading any supported file.
-
-    Args:
-        path: File path to read
-        format_hint: Optional format hint (skips detection if provided)
-        options: Optional reader-specific options (e.g., column mapping for CSV)
-
-    Returns:
-        ReaderResult with measurements or error
-    """
     path = Path(path)
 
-    # Check file exists
     if not path.exists():
         return ReaderResult(
             measurements=[],
@@ -104,18 +74,17 @@ def read_file(
             error=f"File not found: {path}",
         )
 
-    # Detect format if not provided
+    # only detect if we werent given a hint
     if format_hint is None:
         detected_format, metadata = detect_format(path)
     else:
         detected_format = format_hint
         metadata = {"format_hint": format_hint.value}
 
-    # Handle custom HDF5 format (use legacy reader)
+    # our own hdf5 layout goes through the legacy reader
     if detected_format == FileFormat.HDF5_CUSTOM:
         return _read_custom_hdf5(path, metadata)
 
-    # Get reader for detected format
     reader = get_reader(path, detected_format)
 
     if reader is None:
@@ -128,28 +97,21 @@ def read_file(
                   f"Supported formats: PicoQuant, Becker & Hickl, Photon-HDF5, CSV",
         )
 
-    # Apply reader-specific options
+    # only csv has options right now
     if options:
         if isinstance(reader, CSVReader) and "column_mapping" in options:
             reader.column_mapping = options["column_mapping"]
 
-    # Read file
     result = reader.read(path)
 
-    # Merge detection metadata into result
     result.file_metadata.update(metadata)
 
     return result
 
 
 def _read_custom_hdf5(path: Path, metadata: Dict[str, Any]) -> ReaderResult:
-    """
-    Read custom HDF5 format using legacy reader.
-
-    Falls back to the existing Full SMS HDF5 reader for backwards compatibility.
-    """
+    # falls back to the old Full SMS hdf5 reader so old files still work
     try:
-        # Import legacy reader
         from api.legacy.io.hdf5_reader import read_single_measurement
         from api.services.hdf5_services import read_hdf5
     except ImportError:
@@ -162,11 +124,9 @@ def _read_custom_hdf5(path: Path, metadata: Dict[str, Any]) -> ReaderResult:
         )
 
     try:
-        # Use existing read_hdf5 service
         result = read_hdf5(str(path))
 
         if isinstance(result, dict) and "measurements" in result:
-            # Convert to ReaderResult format
             from .base import MeasurementResult, ChannelResult
 
             measurements = []
@@ -225,12 +185,6 @@ def _read_custom_hdf5(path: Path, metadata: Dict[str, Any]) -> ReaderResult:
 
 
 def get_supported_formats() -> List[Dict[str, Any]]:
-    """
-    Get list of all supported file formats with metadata.
-
-    Returns:
-        List of format info dictionaries
-    """
     return [
         {
             "id": "hdf5_custom",
@@ -253,7 +207,7 @@ def get_supported_formats() -> List[Dict[str, Any]]:
             "description": "PicoQuant TCSPC formats (PTU, PicoHarp)",
             "reader": "PicoQuantReader",
         },
-        
+
         {
             "id": "becker_hickl",
             "name": "Becker & Hickl",
@@ -272,10 +226,9 @@ def get_supported_formats() -> List[Dict[str, Any]]:
 
 
 def get_all_supported_extensions() -> List[str]:
-    """Get flat list of all supported file extensions."""
     extensions = set()
     for reader in _READERS:
         extensions.update(reader.get_supported_extensions())
-    # Add HDF5 extensions for custom format
+    # custom hdf5 has no reader in the list so add it by hand
     extensions.update([".h5", ".hdf5"])
     return sorted(extensions)

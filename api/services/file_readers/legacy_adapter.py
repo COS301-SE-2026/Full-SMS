@@ -8,6 +8,7 @@ def _to_legacy_channel(channel: ChannelResult) -> ChannelData:
     abstimes = np.asarray(channel.abstimes)
     microtimes = np.asarray(channel.microtimes, dtype=np.float64)
 
+    # legacy code assumes clean 1d arrays so check before converting
     if abstimes.ndim != 1 or microtimes.ndim != 1:
         raise ValueError("Photon time arrays must be one-dimensional")
     if len(abstimes) != len(microtimes):
@@ -17,6 +18,7 @@ def _to_legacy_channel(channel: ChannelResult) -> ChannelData:
     if np.any(abstimes < 0) or np.any(microtimes < 0):
         raise ValueError("Photon times must be non-negative")
 
+    # legacy abstimes are uint64
     abstimes = np.rint(abstimes).astype(np.uint64)
     return ChannelData(abstimes=abstimes, microtimes=microtimes)
 

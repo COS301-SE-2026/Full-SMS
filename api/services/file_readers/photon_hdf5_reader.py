@@ -1,11 +1,9 @@
-"""
-Photon-HDF5 file format reader.
-
-Photon-HDF5 is an open file format for timestamp-based single-molecule data.
-Specification: https://photon-hdf5.github.io/
-
-Supports: .h5, .hdf5 files with Photon-HDF5 structure
-"""
+# photon-hdf5 reader (.h5, .hdf5), spec: https://photon-hdf5.github.io/
+# needs h5py
+#
+# formats i care about:
+#   /photon_data/timestamps, nanotimes, detectors (optional)
+#   /photon_data/timestamps_specs, nanotimes_specs for the units
 
 from pathlib import Path
 from typing import List, Optional, Dict, Any
@@ -15,35 +13,12 @@ from .base import FileReader, ReaderResult, MeasurementResult, ChannelResult
 
 
 class PhotonHDF5Reader(FileReader):
-    """
-    Reader for Photon-HDF5 format files.
-
-    Photon-HDF5 is an open, documented format for photon timestamp data.
-    Key features:
-    - Standardized structure for multi-spot, multi-channel data
-    - Rich metadata support
-    - Widely adopted in single-molecule community
-
-    Structure:
-    /photon_data/
-        timestamps           - Macro times (sync pulses)
-        nanotimes           - Micro times (TCSPC)
-        detectors           - Detector channel IDs (optional)
-        timestamps_specs/   - Time units and overflow handling
-        nanotimes_specs/    - TCSPC specs
-
-    Requires: h5py (usually already installed)
-    """
 
     def get_supported_extensions(self) -> List[str]:
         return [".h5", ".hdf5"]
 
     def can_read(self, path: Path) -> bool:
-        """
-        Check if file is a Photon-HDF5 file.
-
-        Photon-HDF5 files must have /photon_data group.
-        """
+        # has to have a /photon_data group with some kind of timestamps in it
         if path.suffix.lower() not in self.get_supported_extensions():
             return False
 
@@ -51,11 +26,9 @@ class PhotonHDF5Reader(FileReader):
             import h5py
 
             with h5py.File(path, "r") as f:
-                # Must have photon_data group
                 if "photon_data" not in f:
                     return False
 
-                # Check for required datasets
                 photon_data = f["photon_data"]
                 return "timestamps" in photon_data or any(
                     k.startswith("timestamps") for k in photon_data.keys()
@@ -64,9 +37,6 @@ class PhotonHDF5Reader(FileReader):
             return False
 
     def read(self, path: Path) -> ReaderResult:
-        """
-        Read Photon-HDF5 file and extract photon data.
-        """
         try:
             import h5py
         except ImportError:
@@ -81,10 +51,8 @@ class PhotonHDF5Reader(FileReader):
 
         try:
             with h5py.File(path, "r") as f:
-                # Extract file metadata
                 file_metadata = self._extract_metadata(f)
 
-                # Get photon data group
                 if "photon_data" not in f:
                     return self._create_error_result(
                         "Not a valid Photon-HDF5 file: missing /photon_data group"
@@ -92,7 +60,6 @@ class PhotonHDF5Reader(FileReader):
 
                 photon_data = f["photon_data"]
 
-                # Extract timestamps and nanotimes
                 abstimes, timestamps_unit = self._read_timestamps(photon_data)
                 microtimes, tcspc_unit = self._read_nanotimes(photon_data)
 
@@ -101,18 +68,17 @@ class PhotonHDF5Reader(FileReader):
                         "No timestamp data found in Photon-HDF5 file"
                     )
 
-                # Convert to nanoseconds
+                # units are in seconds, we want ns
                 abstimes_ns = abstimes.astype(np.float64) * timestamps_unit * 1e9
 
                 if microtimes is not None:
                     microtimes_ns = microtimes.astype(np.float64) * tcspc_unit * 1e9
                     channelwidth = float(tcspc_unit * 1e9)
                 else:
-                    # No nanotimes - create zeros
+                    # no nanotimes in the file, just zeros
                     microtimes_ns = np.zeros_like(abstimes_ns)
                     channelwidth = 0.0
 
-                # Check for multi-detector data
                 measurements = self._create_measurements(
                     photon_data, abstimes_ns, microtimes_ns, channelwidth, file_metadata
                 )
@@ -128,12 +94,10 @@ class PhotonHDF5Reader(FileReader):
             return self._create_error_result(f"Failed to read Photon-HDF5 file: {str(e)}")
 
     def _extract_metadata(self, f) -> Dict[str, Any]:
-        """Extract metadata from Photon-HDF5 file."""
         metadata = {
             "format": "Photon-HDF5",
         }
 
-        # Root attributes
         for attr in ["acquisition_duration", "description", "author", "sample_name"]:
             if attr in f.attrs:
                 val = f.attrs[attr]
@@ -141,7 +105,6 @@ class PhotonHDF5Reader(FileReader):
                     val = val.decode("utf-8")
                 metadata[attr] = val
 
-        # Identity group
         if "identity" in f:
             identity = f["identity"]
             for key in ["author", "author_affiliation", "creation_time", "format_name"]:
@@ -151,7 +114,6 @@ class PhotonHDF5Reader(FileReader):
                         val = val.decode("utf-8")
                     metadata[f"identity_{key}"] = val
 
-        # Setup group
         if "setup" in f:
             setup = f["setup"]
             if "num_pixels" in setup:
@@ -163,7 +125,6 @@ class PhotonHDF5Reader(FileReader):
             if "num_split_ch" in setup:
                 metadata["num_split_ch"] = int(setup["num_split_ch"][()])
 
-            # Detectors
             if "detectors" in setup:
                 det_group = setup["detectors"]
                 detector_info = {}
@@ -177,17 +138,11 @@ class PhotonHDF5Reader(FileReader):
         return metadata
 
     def _read_timestamps(self, photon_data) -> tuple:
-        """
-        Read timestamps from photon_data group.
-
-        Returns:
-            Tuple of (timestamps_array, unit_in_seconds)
-        """
-        # Look for timestamps dataset
+        # returns (timestamps, unit in seconds)
         if "timestamps" in photon_data:
             timestamps = photon_data["timestamps"][:]
         else:
-            # Multi-spot files might have timestamps0, timestamps1, etc.
+            # multi spot files can have timestamps0, timestamps1... just take the first
             for key in photon_data.keys():
                 if key.startswith("timestamps"):
                     timestamps = photon_data[key][:]
@@ -195,8 +150,7 @@ class PhotonHDF5Reader(FileReader):
             else:
                 return None, 1.0
 
-        # Get unit from specs
-        unit = 1.0  # Default: assume seconds
+        unit = 1.0  # assume seconds if specs are missing
         if "timestamps_specs" in photon_data:
             specs = photon_data["timestamps_specs"]
             if "timestamps_unit" in specs:
@@ -205,19 +159,13 @@ class PhotonHDF5Reader(FileReader):
         return timestamps, unit
 
     def _read_nanotimes(self, photon_data) -> tuple:
-        """
-        Read nanotimes from photon_data group.
-
-        Returns:
-            Tuple of (nanotimes_array, unit_in_seconds)
-        """
+        # returns (nanotimes, unit in seconds)
         if "nanotimes" not in photon_data:
             return None, 1.0
 
         nanotimes = photon_data["nanotimes"][:]
 
-        # Get TCSPC unit from specs
-        unit = 1e-12  # Default: 1 ps
+        unit = 1e-12  # 1 ps default
         if "nanotimes_specs" in photon_data:
             specs = photon_data["nanotimes_specs"]
             if "tcspc_unit" in specs:
@@ -233,20 +181,14 @@ class PhotonHDF5Reader(FileReader):
         channelwidth: float,
         file_metadata: Dict[str, Any],
     ) -> List[MeasurementResult]:
-        """
-        Create measurement objects from photon data.
-
-        Handles both single-detector and multi-detector files.
-        """
         measurements = []
 
-        # Check for detector channel information
         if "detectors" in photon_data:
             detectors = photon_data["detectors"][:]
             unique_detectors = np.unique(detectors)
 
             if len(unique_detectors) == 2:
-                # Common case: two detectors -> dual channel measurement
+                # two detectors -> one dual channel measurement
                 det0, det1 = unique_detectors
                 mask0 = detectors == det0
                 mask1 = detectors == det1
@@ -273,7 +215,7 @@ class PhotonHDF5Reader(FileReader):
                 )
                 measurements.append(measurement)
             else:
-                # Multiple detectors -> separate measurements
+                # otherwise one measurement per detector
                 for i, det in enumerate(unique_detectors):
                     mask = detectors == det
 
@@ -293,7 +235,7 @@ class PhotonHDF5Reader(FileReader):
                     )
                     measurements.append(measurement)
         else:
-            # Single detector
+            # no detector info, single measurement
             measurement = MeasurementResult(
                 id=1,
                 name="Measurement 1",
