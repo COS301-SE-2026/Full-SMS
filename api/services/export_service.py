@@ -280,6 +280,11 @@ def _process_selection(request, selection, user_id) -> list[tuple[Path, str]]:
     bic_result =_export_bic_plot(request, get_analysis, data, measurement_name)
     if bic_result:
             results.append(bic_result)
+
+    correlation_result = _export_correlation_plot(request, data, measurement_name)
+    if correlation_result:
+        results.append(correlation_result)
+    
     return results
     
 
