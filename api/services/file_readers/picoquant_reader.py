@@ -1,8 +1,6 @@
 """
-PicoQuant file format reader.
-
-Supports: .ptu, .pt3, .pt2, .ht3, .t3r formats
-Uses the ptufile library (https://github.com/cgohlke/ptufile)
+PicoQuant PTU file format reader.
+Uses the ptufile library.
 """
 
 from pathlib import Path
@@ -14,20 +12,13 @@ from .base import FileReader, ReaderResult, MeasurementResult, ChannelResult
 
 class PicoQuantReader(FileReader):
     """
-    Reader for PicoQuant TCSPC file formats.
-
-    Supported formats:
-    - .ptu: Unified TTTR format (PicoQuant unified)
-    - .pt3: PicoHarp 300 T3 mode
-    - .pt2: PicoHarp 300 T2 mode
-    - .ht3: HydraHarp 400 T3 mode
-    - .t3r: TimeHarp 200 T3 mode
+    Reader for PicoQuant PTU T3 files.
 
     Requires: pip install ptufile
     """
 
     def get_supported_extensions(self) -> List[str]:
-        return [".ptu", ".pt3", ".pt2", ".ht3", ".t3r"]
+        return [".ptu"]
 
     def can_read(self, path: Path) -> bool:
         """Check if file has a PicoQuant extension."""
@@ -62,6 +53,12 @@ class PicoQuantReader(FileReader):
                 # Extract file metadata
                 file_metadata = self._extract_metadata(ptu)
 
+                if int(ptu.measurement_mode) != 3:
+                    return self._create_error_result(
+                        "Only PicoQuant PTU T3 mode is supported. "
+                        "T2 mode does not provide the microtimes required for analysis."
+                    )
+                    
                 # Decode photon records
                 decoded = ptu.decode_records()
 
@@ -85,11 +82,11 @@ class PicoQuantReader(FileReader):
                         "No photon events found after filtering special records."
                     )
 
-                # Get time resolutions
-                global_res_ns = ptu.global_resolution * 1e9  # Convert s to ns
-                tcspc_res_ns = ptu.tcspc_resolution * 1e9    # Convert s to ns
+                # get time resolutions and convert s to ns
+                global_res_ns = ptu.global_resolution * 1e9  
+                tcspc_res_ns = ptu.tcspc_resolution * 1e9    
 
-                # Convert to absolute times in nanoseconds
+                # Convert to abstimes in nanoseconds
                 abstimes = times.astype(np.float64) * global_res_ns
                 microtimes = dtime.astype(np.float64) * tcspc_res_ns
                 print("time dtype/min:", times.dtype, times.min())
@@ -101,7 +98,7 @@ class PicoQuantReader(FileReader):
                     np.count_nonzero(dtime < 0),
                 )
                 print("record type/mode:", ptu.record_type, ptu.measurement_mode)
-                # Group photons by detector channel
+                # Group photons by channel
                 measurements = self._group_by_channel(
                     channel, abstimes, microtimes, tcspc_res_ns, ptu, file_metadata
                 )
