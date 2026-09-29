@@ -430,5 +430,4 @@ class TestUserCanAccessWorkspace:
     
             assert user_can_access_workspace(sample_workspace_id, sample_user_id) is False
 
-        
 

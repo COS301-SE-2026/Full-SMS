@@ -58,3 +58,43 @@ class TestUpdateProfile:
                 response = client.put("/api/py/profile/me", headers={"Authorization": f"Bearer {MOCK_TOKEN}"}, json={})
                 assert response.status_code == 400
 
+class TestGetUserByEmail:
+    def test_get_user_success(self):
+        with patch("api.services.profile_service.get_supabase_admin") as mock_admin:
+            mock_client = MagicMock()
+            sample_user = MagicMock()
+            sample_user.id = "uuid"
+            sample_user.email = "sampleuser@gmail.com"
+            sample_user.user_metadata = {"username":"sampleUser","role":"researcher"}
+
+            member_user = MagicMock()
+            member_user.id = "member-uuid"
+            member_user.email = "member@gmail.com"
+            member_user.user_metadata = {"username":"MemberUser", "role":"researcher"}
+
+            mock_client.auth.admin.list_users.return_value = [member_user,sample_user]
+            mock_admin.return_value = mock_client
+
+            from api.services.profile_service import get_user_by_email
+
+            result = get_user_by_email("sampleuser@gmail.com")
+
+            assert result["id"] == "uuid"
+            assert result["email"] == "sampleuser@gmail.com"
+            assert result["username"] == "sampleUser"
+
+    def test_rejects_getting_the_user(self):
+        with patch("api.services.profile_service.get_supabase_admin") as mock_admin:
+            mock_client = MagicMock()
+            invalid_user = MagicMock()
+            invalid_user.id = "invalid-uuid"
+            invalid_user.email = "invalid@example.com"
+            invalid_user.user_metadata = {"username":"invalidUser", "role":"researcher"}
+
+            mock_client.auth.admin.list_users.return_value = [invalid_user]
+            mock_admin.return_value = mock_client
+
+            from api.services.profile_service import get_user_by_email
+
+            with pytest.raises(ValueError):
+                get_user_by_email("invalidemail@example.com")
