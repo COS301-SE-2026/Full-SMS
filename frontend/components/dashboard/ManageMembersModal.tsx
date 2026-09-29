@@ -78,7 +78,7 @@ export function ManageMembersModal({
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="mb-4 text-lg font-bold">Manage Members</h2>
-                    <Button onClick={onClose} variant="ghost" size="sm"><X className="w-4 h-4"/></Button>
+                    <Button onClick={onClose} variant="ghost" size="sm"><X className="w-6 h-6"/></Button>
                 </div>
                 <div className="gap-2 mb-4 flex items-center">
                     <input 
