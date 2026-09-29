@@ -48,7 +48,6 @@ class PicoQuantReader(FileReader):
                 times = decoded["time"]
                 dtime = decoded["dtime"]
                 channel = decoded["channel"]
-                marker = decoded["marker"]
 
                 # drop special/marker records, keep only real photons
                 photon_mask = channel >= 0
