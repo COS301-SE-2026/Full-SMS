@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { pluginService } from "@/services/pluginServices";
 import { ValidationError } from "@/types/plugin";
 
@@ -37,6 +37,7 @@ export function usePluginValidation(
 
   const currentScriptRef = useRef(script);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isEmptyScript = useMemo(() => !script.trim(), [script]);
 
   const validate = useCallback(async (scriptToValidate: string) => {
     if (!scriptToValidate.trim()) {
@@ -58,13 +59,17 @@ export function usePluginValidation(
           setErrors([]);
           setIsValid(true);
         } else {
-          const errorMessage =
-            response.error || response.message || "Unknown validation error";
+          let errorMessage = "Validation failed";
+          if (response.error && typeof response.error === "string") {
+            errorMessage = response.error;
+          } else if (response.message && typeof response.message === "string") {
+            errorMessage = response.message;
+          }
           setErrors([parseValidationError(errorMessage)]);
           setIsValid(false);
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       if (currentScriptRef.current === scriptToValidate) {
         setErrors([
           {
@@ -88,16 +93,12 @@ export function usePluginValidation(
 
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
 
-    if (!script.trim()) {
-      setErrors([]);
-      setIsValid(null);
-      setIsValidating(false);
+    if (isEmptyScript) {
       return;
     }
-
-    setIsValidating(true);
 
     timeoutRef.current = setTimeout(() => {
       validate(script);
@@ -106,9 +107,14 @@ export function usePluginValidation(
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
     };
-  }, [script, debounceMs, validate]);
+  }, [script, debounceMs, validate, isEmptyScript]);
+
+  if (isEmptyScript) {
+    return { errors: [], isValidating: false, isValid: null };
+  }
 
   return { errors, isValidating, isValid };
 }

@@ -115,7 +115,6 @@ export default function CodeEditor({
             bracketPairs: true,
             highlightActiveIndentation: true,
           },
-          renderIndentGuides: true,
 
           quickSuggestions: true,
           suggestOnTriggerCharacters: true,
