@@ -242,7 +242,7 @@ def _export_correlation_plot(request, data, measurement_name) -> tuple[Path, str
         dpi=request.plot_dpi,
         title=data.get("name", ""),
     )
-    
+    return output_path, f"{measurement_name}_correlation_plot{output_path.suffix}"
 
 def _process_selection(request, selection, user_id) -> list[tuple[Path, str]]:
     measurement_id = selection.measurement_id
