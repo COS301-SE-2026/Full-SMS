@@ -232,6 +232,8 @@ def _export_correlation_plot(request, data, measurement_name) -> tuple[Path, str
     if not request.correlation_tau or not request.correlation_g2:
         raise MissingAnalysisDataError("correlation plot", measurement_name)
 
+    fd, temp_path=tempfile.mkstemp()
+    os.close(fd)
     
 
 def _process_selection(request, selection, user_id) -> list[tuple[Path, str]]:
