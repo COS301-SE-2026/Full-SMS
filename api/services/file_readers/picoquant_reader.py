@@ -75,7 +75,7 @@ class PicoQuantReader(FileReader):
                 marker = decoded["marker"]
 
                 # Filter out special/marker records (keep only actual photons)
-                photon_mask = marker == 0
+                photon_mask = channel >= 0
                 times = times[photon_mask]
                 dtime = dtime[photon_mask]
                 channel = channel[photon_mask]
@@ -92,7 +92,15 @@ class PicoQuantReader(FileReader):
                 # Convert to absolute times in nanoseconds
                 abstimes = times.astype(np.float64) * global_res_ns
                 microtimes = dtime.astype(np.float64) * tcspc_res_ns
-
+                print("time dtype/min:", times.dtype, times.min())
+                print(
+                    "dtime dtype/min/max/negative count:",
+                    dtime.dtype,
+                    dtime.min(),
+                    dtime.max(),
+                    np.count_nonzero(dtime < 0),
+                )
+                print("record type/mode:", ptu.record_type, ptu.measurement_mode)
                 # Group photons by detector channel
                 measurements = self._group_by_channel(
                     channel, abstimes, microtimes, tcspc_res_ns, ptu, file_metadata
@@ -133,7 +141,7 @@ class PicoQuantReader(FileReader):
             metadata["acquisition_time_s"] = ptu.acquisition_time
 
         return metadata
-
+    
     def _group_by_channel(
         self,
         channel: np.ndarray,
