@@ -12,6 +12,11 @@ from api.services.file_readers.reader_factory import (
     get_all_supported_extensions,
 )
 from api.routes.profile_routes import get_current_user
+import math
+from pathlib import Path
+
+from api.services import hdf5_upload_service
+from api.services.storage_service import download_to_temp
 
 router = APIRouter(prefix="/formats", tags=["File Formats"])
 
@@ -157,7 +162,6 @@ async def preview_file(
                 detail="Invalid column_mapping JSON",
             )
 
-    # Save to temp file
     extension = os.path.splitext(file.filename)[1].lower() or ".tmp"
     with tempfile.NamedTemporaryFile(delete=False, suffix=extension) as tmp:
         content = await file.read()
@@ -338,3 +342,118 @@ async def convert_file_to_cache_format(
     finally:
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
+
+
+def _get_native_blocks(upload_id: str, current_user: dict):
+    user_id = current_user["user"]["id"]
+    upload = hdf5_upload_service.get_upload(upload_id, user_id)
+
+    if not upload:
+        raise HTTPException(status_code=404, detail="Upload not found")
+
+    suffix = Path(upload["filename"]).suffix.lower() or ".tmp"
+    temp_path = download_to_temp(upload["storage_key"], suffix)
+
+    try:
+        result = read_file(temp_path)
+        if not result.success:
+            raise HTTPException(
+                status_code=400,
+                detail=result.error or "Could not read uploaded file",
+            )
+        if not result.native_blocks:
+            raise HTTPException(
+                status_code=400,
+                detail="Upload does not contain native data blocks",
+            )
+        return result.native_blocks
+    finally:
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)
+
+
+@router.get("/uploads/{upload_id}/blocks")
+def list_native_blocks(
+    upload_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    blocks = _get_native_blocks(upload_id, current_user)
+
+    return {
+        "blocks": [
+            {
+                "id": block.id,
+                "name": block.name,
+                "kind": block.kind,
+                "shape": list(block.data.shape),
+                "axis_units": block.axis_units,
+            }
+            for block in blocks
+        ]
+    }
+
+
+@router.get("/uploads/{upload_id}/blocks/{block_id}")
+def get_native_block_view(
+    upload_id: str,
+    block_id: int,
+    view: str = "histogram",
+    index: int = 0,
+    current_user: dict = Depends(get_current_user),
+):
+    blocks = _get_native_blocks(upload_id, current_user)
+    block = next((item for item in blocks if item.id == block_id), None)
+
+    if block is None:
+        raise HTTPException(status_code=404, detail="Data block not found")
+
+    if block.kind == "decay_histogram" and view == "histogram":
+        step = max(1, math.ceil(block.data.size / 2000))
+        return {
+            "kind": "histogram",
+            "title": block.name,
+            "xlabel": f"Time ({block.axis_units.get('time', 'ns')})",
+            "ylabel": "Counts",
+            "bins": block.axes["time"][::step].tolist(),
+            "counts": block.data[::step].tolist(),
+        }
+
+    if block.kind == "curve_matrix" and view == "curves":
+        step = max(1, math.ceil(block.data.shape[-1] / 2000))
+        times = block.axes["time"][::step]
+        return {
+            "kind": "curves",
+            "title": block.name,
+            "xlabel": f"Time ({block.axis_units.get('time', 'ns')})",
+            "ylabel": "Counts",
+            "series": [
+                {
+                    "label": f"Curve {curve_index + 1}",
+                    "x": times.tolist(),
+                    "y": curve[::step].tolist(),
+                }
+                for curve_index, curve in enumerate(block.data[:16])
+            ],
+        }
+
+    if block.kind == "flim" and view == "flim_slice":
+        if index < 0 or index >= block.data.shape[-1]:
+            raise HTTPException(status_code=400, detail="Slice index is out of range")
+
+        image = block.data[:, :, index]
+        row_step = max(1, math.ceil(image.shape[0] / 256))
+        col_step = max(1, math.ceil(image.shape[1] / 256))
+
+        return {
+            "kind": "heatmap",
+            "title": f"{block.name}, time slice {index}",
+            "xlabel": "X pixel",
+            "ylabel": "Y pixel",
+            "time": float(block.axes["time"][index]),
+            "values": image[::row_step, ::col_step].tolist(),
+        }
+
+    raise HTTPException(
+        status_code=400,
+        detail="View is not supported for this data block",
+    )

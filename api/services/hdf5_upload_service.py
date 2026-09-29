@@ -7,7 +7,7 @@ from api.utils.supabase_client import supabaseClient
 from api.services import storage_service
 
 SUPPORTED_EXTENSIONS = {
-    ".h5", ".hdf5", ".ptu",
+    ".h5", ".hdf5", ".ptu",".phu",
     ".sdt", ".spc", ".csv", ".txt", ".tsv",
 }
 MAX_UPLOAD_SIZE_BYTES = 500 * 1024 * 1024
@@ -22,6 +22,7 @@ def validate_upload_request(filename: str, size_bytes: int) -> None:
         size_bytes (int): The size of the uploaded file in bytes.
     """
     extension = Path(filename).suffix.lower()
+    print(extension)
     if extension not in SUPPORTED_EXTENSIONS:
         allowed = ", ".join(sorted(SUPPORTED_EXTENSIONS))
         raise HTTPException(status_code=400, detail=f"Unsupported file type: {extension}. Allowed: {allowed}")

@@ -15,6 +15,7 @@ class FileFormat(str, Enum):
     HDF5_CUSTOM = "hdf5_custom"          # Full SMS native format
     PHOTON_HDF5 = "photon_hdf5"          # Photon-HDF5 open standard
     PICOQUANT_PTU = "picoquant_ptu"      # PicoQuant unified format
+    PICOQUANT_PHU = "picoquant_phu"
     BECKER_HICKL_SDT = "bh_sdt"          # Becker & Hickl SDT
     BECKER_HICKL_SPC = "bh_spc"          # Becker & Hickl SPC
     CSV = "csv"                           # CSV/text with column mapping
@@ -27,6 +28,7 @@ MAGIC_SIGNATURES = [
     (b"\x89HDF\r\n\x1a\n", 0, "hdf5"),           # HDF5 signature
     (b"PQTTTR", 0, FileFormat.PICOQUANT_PTU),    # PTU header (unified format)
     (b"PicoQuant", 0, FileFormat.PICOQUANT_PTU), # Alternative PTU header
+    (b"PQHISTO\x00", 0, FileFormat.PICOQUANT_PHU), #PHU header
 ]
 
 # Extension to format mapping
@@ -35,6 +37,7 @@ EXTENSION_MAP = {
     ".hdf5": "hdf5",
     ".hdf": "hdf5",
     ".ptu": FileFormat.PICOQUANT_PTU,
+    ".phu": FileFormat.PICOQUANT_PHU,
     ".sdt": FileFormat.BECKER_HICKL_SDT,
     ".spc": FileFormat.BECKER_HICKL_SPC,
     ".csv": FileFormat.CSV,

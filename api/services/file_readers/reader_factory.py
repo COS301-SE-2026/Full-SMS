@@ -14,7 +14,7 @@ from .bh_reader import BeckerHicklReader
 from .photon_hdf5_reader import PhotonHDF5Reader
 from .csv_reader import CSVReader
 from api.services.format_detection_service import detect_format, FileFormat
-
+from .phu_reader import PicoQuantPhuReader
 
 # Registry of all available readers
 _READERS: List[FileReader] = [
@@ -22,6 +22,7 @@ _READERS: List[FileReader] = [
     BeckerHicklReader(),
     PhotonHDF5Reader(),
     CSVReader(),
+    PicoQuantPhuReader()
 ]
 
 
@@ -63,6 +64,7 @@ def _get_reader_for_format(fmt: FileFormat) -> Optional[FileReader]:
         FileFormat.BECKER_HICKL_SPC: BeckerHicklReader,
         FileFormat.PHOTON_HDF5: PhotonHDF5Reader,
         FileFormat.CSV: CSVReader,
+        FileFormat.PICOQUANT_PHU: PicoQuantPhuReader
     }
 
     reader_class = format_to_reader.get(fmt)
@@ -247,10 +249,11 @@ def get_supported_formats() -> List[Dict[str, Any]]:
         {
             "id": "picoquant",
             "name": "PicoQuant",
-            "extensions": [".ptu", ".pt3", ".pt2", ".ht3", ".t3r"],
-            "description": "PicoQuant TCSPC formats (PTU, PicoHarp, HydraHarp)",
+            "extensions": [".ptu", ".phu"],
+            "description": "PicoQuant TCSPC formats (PTU, PicoHarp)",
             "reader": "PicoQuantReader",
         },
+        
         {
             "id": "becker_hickl",
             "name": "Becker & Hickl",
