@@ -1,10 +1,16 @@
 import { Card } from "@/components/ui";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
+import { useHistory } from "@/hooks/useHistory";
+import { useHistoryRecorder } from "@/hooks/useHistoryRecorder";
 import { colors } from "@/lib/tokens";
 import { getSpectraData } from "@/services/analysisServices";
 import { SpectraData } from "@/types/analysis";
 import React, { useEffect, useMemo, useState } from "react";
 import Plot from "react-plotly.js";
+import { HistoryPanel } from "../history/HistoryPanel";
+import { historyService } from "@/services/historyServices";
+import { History } from "lucide-react";
+import { Button } from "@/components/ui";
 
 export default function SpectraMap() {
   const {
@@ -12,10 +18,14 @@ export default function SpectraMap() {
     currentMeasurement,
     spectraHeatMapColor,
     setSpectraHeatMapColor,
-    hdf5Metadata
+    currentWorkspaceId,
+    hdf5Metadata,
   } = useHdf5Data();
+  const { entries, loading, error, fetchHistory}= useHistory(currentWorkspaceId, currentUpload, "spectra");
+  const recordHistory = useHistoryRecorder(currentWorkspaceId, currentUpload, "spectra", fetchHistory);
 
   const [spectraData, setSpectraData] = useState<SpectraData>();
+  const [historyOpen, setHistoryOpen] = useState(false);
   const colourmaps = [
     "Plasma",
     "Viridis",
@@ -76,10 +86,11 @@ export default function SpectraMap() {
   }
 
   return (
-    <div>
+    <div className="flex gap-3">
+      <div className="flex flex-col flex-1">
       <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
         <h3 className="text-foreground">Spectra</h3>
-        <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
+        <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10 flex-1">
           <div className="flex items-center gap-2">
             <label
               className="text-xs text-foreground/70 whitespace-nowrap"
@@ -90,7 +101,10 @@ export default function SpectraMap() {
             <select
               name="heat-map"
               value={spectraHeatMapColor}
-              onChange={(e) => setSpectraHeatMapColor(e.target.value)}
+              onChange={(e) => {
+                setSpectraHeatMapColor(e.target.value);
+                recordHistory("colormap", spectraHeatMapColor, e.target.value);
+              }}
               className="w-20 h-7 px-2 rounded bg-card border border-border text-xs text-foreground text-right font-mono focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary appearance-none cursor-pointer"
             >
               {colourmaps.map((map) => (
@@ -100,6 +114,12 @@ export default function SpectraMap() {
               ))}
             </select>
           </div>
+          <Button variant="ghost" size="sm" 
+            title="View Parameter history"
+            onClick={() => setHistoryOpen((v) => !v)}
+            className={`ml-auto ${historyOpen ? "bg-card" : ""}`}
+            leftIcon={<History size={14} />}
+          />
         </div>
       </div>
 
@@ -152,6 +172,17 @@ export default function SpectraMap() {
           style={{ width: "100%", height: "100%", minHeight: "400px" }}
         />
       </Card>
+    </div>
+    {historyOpen && (<HistoryPanel
+      entries={entries}
+      loading={loading}
+      error={error}
+      onRevert={(entry) =>{
+        setSpectraHeatMapColor(entry.old_value);
+        historyService.revertEntry(currentWorkspaceId!, entry.id).then(fetchHistory);
+      }}
+    />
+    )}
     </div>
   );
 }

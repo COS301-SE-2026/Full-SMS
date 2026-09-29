@@ -3,10 +3,11 @@
 import { Button, Toggle } from '@/components/ui'
 import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsContext'
 import React, { useState } from 'react'
+import { History } from 'lucide-react'
 
 
 
-export default function LifetimeToolbar() {
+export default function LifetimeToolbar({historyOpen, onToggleHistory}: {historyOpen:boolean; onToggleHistory: () => void}) {
     const [showIRF, setShowIRF] = useState<boolean>(true)
     const {setFittingDialogOpen, useLogScale, setUseLogScale, fitResult} = useAnalysisTab()
 
@@ -27,6 +28,13 @@ export default function LifetimeToolbar() {
           <Button variant='primary'  size={"sm"} onClick={()=>setFittingDialogOpen(true)}>
               Fit... 
           </Button>
+
+          <Button variant="ghost" size="sm" 
+            title="View Parameter history"
+            onClick={onToggleHistory}
+            className={`ml-auto px-2 py-0.5 min-h-0 ${historyOpen ? "bg-card" : ""}`}
+            leftIcon={<History size={14} />}
+          />
       </div>
         {
           useLogScale && (

@@ -8,7 +8,8 @@ import {
 import { CorrelationReq, RebinCorrelationReq } from "@/types/analysis";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { useToast } from "@/contexts/toastContext/ToastContext";
-
+import { useHistoryRecorder } from "@/hooks/useHistoryRecorder";
+import { History } from "lucide-react";
 
 function getG2AtZero(tau?: number[], g2?: number[]): number {
     if (!tau?.length || !g2?.length) {
@@ -28,10 +29,17 @@ function getG2AtZero(tau?: number[], g2?: number[]): number {
     return g2[zeroIdx] ?? 0;
   }
 
-export default function CorrelationTabToolbar() {
-  const [window, setWindow] = useState<number>(450);
-  const [bin, setBin] = useState<number>(0.5);
-  const [offset, setOffset] = useState<number>(0);
+export default function CorrelationTabToolbar({
+  window, setWindow, bin, setBin, offset, setOffset,onHistoryRecorded, historyOpen, onToggleHistory
+}: {
+  window: number; setWindow: (v:number) => void;
+  bin: number; setBin: (v:number) => void;
+  offset: number; setOffset: (v:number) => void;
+  onHistoryRecorded: () =>void;
+  historyOpen: boolean;
+  onToggleHistory: () => void;
+}) {
+  
   const [g2AtZero, setG2AtZero] = useState<number>(0);
   const { successToast, errorToast } = useToast();
   const {
@@ -39,8 +47,11 @@ export default function CorrelationTabToolbar() {
     currentUpload,
     setCorrelationData,
     correlationData,
-    hdf5Metadata
+    hdf5Metadata,
+    currentWorkspaceId
   } = useHdf5Data();
+
+  const recordHist = useHistoryRecorder(currentWorkspaceId, currentUpload, "correlation", onHistoryRecorded);
 
   const fetchCorrelationResult = async () => {
     const payload: CorrelationReq = {
@@ -50,6 +61,8 @@ export default function CorrelationTabToolbar() {
       binsize_ns: bin,
       difftime_ns: offset,
     };
+    
+    
     const response = await getCorrelationResult(payload);
     return response;
   };
@@ -93,9 +106,9 @@ export default function CorrelationTabToolbar() {
     <div className="flex flex-row justify-between items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap">
       <div className="flex flex-row items-center gap-4">
         <h3 className="text-foreground">Correlation</h3>
-        <NumberField label="Window (ns)" value={window} onChange={setWindow} slider={false}/>
-        <NumberField label="Bin (ns)" value={bin} onChange={setBin} slider={false}/>
-        <NumberField label="Offset (ns)" value={offset} onChange={setOffset} slider={false}/>
+        <NumberField label="Window (ns)" value={window} onChange={(v) => {setWindow(v); recordHist("window", window, v); }} slider={false}/>
+        <NumberField label="Bin (ns)" value={bin} onChange={(v) => {setBin(v); recordHist("bin", bin, v); }} slider={false}/>
+        <NumberField label="Offset (ns)" value={offset} onChange={(v) => {setOffset(v); recordHist("offset", offset, v); }} slider={false}/>
         <Button variant={"primary"} size={"sm"} onClick={onCorrelationClick} disabled={!dualChannel}>
           Correlate
         </Button>
@@ -119,6 +132,12 @@ export default function CorrelationTabToolbar() {
           </div>
         </span>
       )}
+      <Button variant="ghost" size="sm" 
+        title="View Parameter history"
+        onClick={onToggleHistory}
+        className={`px-2 py-0.5 min-h-0 ${historyOpen ? "bg-card" : ""}`}
+        leftIcon={<History size={14} />}
+      />
     </div>
   );
 }
