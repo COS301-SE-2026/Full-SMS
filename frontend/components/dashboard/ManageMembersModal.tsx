@@ -28,41 +28,43 @@ export function ManageMembersModal({
     ownerId,
     members,
     onMembersChanged,
-}: ManageMembersModalProps){
-    const[removingMemberId, setRemovingId] = useState<string | null>(null);
-    const[errorMessage, setErrorMessage] = useState<string | null>(null);
+}: Readonly<ManageMembersModalProps>){
+    const[removingMemberId, setRemovingMemberId] = useState<string | null>(null);
 
     const [inviteInput, setInviteInput] = useState("");
     const [addProgress, setAddProgress] = useState(false);
-    const [addError, setAddError] = useState<string | null>(null);
     const {successToast, errorToast} = useToast();
     
     const onAdd = async () => {
         if(!inviteInput.trim()) return;
         setAddProgress(true);
-        setAddError(null);
         try{
-            await workspaceService.addWorkspaceMember(workspaceId, inviteInput.trim());
-            setInviteInput("");
-            onMembersChanged();
-            successToast("Member has been added successfully")
+            const result = await workspaceService.addWorkspaceMember(workspaceId, inviteInput.trim());
+            if(result.workspace.already_member){
+                errorToast("This user is already a member");
+            } else{
+                setInviteInput("");
+                onMembersChanged();
+                successToast("Member has been added successfully")
+            }
+            
         }catch (error: any){
-           errorToast("Failed to add member")
+           errorToast(error.message || "Failed to add member")
         }finally{
             setAddProgress(false);
         }
-    }
+    };
+    
     const controlRemove = async (memberId: string) => {
-        setRemovingId(memberId);
-        setErrorMessage(null);
+        setRemovingMemberId(memberId);
         try{
             await workspaceService.removeWorkspaceMember(workspaceId, memberId);
             onMembersChanged();
             successToast("Member has been removed successfully")
         }catch(error:any){
-            errorToast("Failed to remove member")
+            errorToast(error.message || "Failed to remove member")
         }finally{
-            setRemovingId(null);
+            setRemovingMemberId(null);
         }
     };
 
