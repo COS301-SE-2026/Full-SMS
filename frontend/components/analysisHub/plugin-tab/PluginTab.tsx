@@ -15,6 +15,7 @@ import { Loader } from "@/components/ui/Loader";
 import ParameterForm from "@/components/plugins/ParameterForm";
 import ResultsRenderer from "@/components/plugins/renderers/ResultsRenderer";
 import ExportModal from "@/components/plugins/ExportModal";
+import RuntimeErrorDisplay from "@/components/plugins/RuntimeErrorDisplay";
 import { Play, History, CheckCircle, Clock, Download } from "lucide-react";
 
 interface PluginTabProps {
@@ -306,11 +307,9 @@ export default function PluginTab({ plugin }: Readonly<PluginTabProps>) {
           </Card>
         )}
 
-        {execution.status === "error" && (
+        {execution.status === "error" && execution.error && (
           <Card className="p-4">
-            <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4">
-              <p className="text-sm text-destructive">{execution.error}</p>
-            </div>
+            <RuntimeErrorDisplay error={execution.error} />
           </Card>
         )}
 
