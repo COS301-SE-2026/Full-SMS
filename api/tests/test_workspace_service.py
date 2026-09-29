@@ -231,7 +231,7 @@ class TestUnarchiveWorkspace:
             assert result["status"] == "active"
 
 class TestAddWorkspaceMember:
-    def test_add_workspace_member(self, sample_workspace_id, sample_user_id):
+    def test_self_add_workspace(self, sample_workspace_id, sample_user_id):
         new_member_id = str(uuid.uuid4())
 
         with patch("api.services.workspace_service.get_supabase_admin") as mock_admin:
@@ -256,13 +256,64 @@ class TestAddWorkspaceMember:
             assert result["already_member"] is False
             assert new_member_id in result["member_ids"]
 
-    def test_rejects_adding_member(self, sample_workspace_id, sample_user_id):
+    def test_owner_add_someone_else(self, sample_workspace_id, sample_user_id):
         new_member_id = str(uuid.uuid4())
 
-        from api.services.workspace_service import add_workspace_member
+        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin:
+            mock_client = MagicMock()
 
-        with pytest.raises(ValueError, match="Permission denied"):
-            add_workspace_member(sample_workspace_id, sample_user_id, new_member_id)
+            response = MagicMock()
+            response.data = {"user_id": sample_user_id, "member_ids": []}
+
+            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = response
+
+            writeResponse = MagicMock()
+            writeResponse.data = [
+                {"user_id": sample_user_id, "member_ids": [new_member_id]}
+            ]
+
+            mock_client.table.return_value.update.return_value.eq.return_value.execute.return_value = writeResponse
+            mock_admin.return_value = mock_client
+
+            from api.services.workspace_service import add_workspace_member
+
+            result = add_workspace_member(sample_workspace_id, sample_user_id, new_member_id)
+            assert result["already_member"] is False
+            assert new_member_id in result["member_ids"]
+
+    def test_rejects_adding_member(self, sample_workspace_id, sample_user_id):
+        new_member_id = str(uuid.uuid4())
+        owner_id = str(uuid.uuid4())
+
+        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin:
+            mock_client = MagicMock()
+
+            response = MagicMock()
+            response.data = {"user_id": owner_id, "member_ids": []}
+
+            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = response
+            mock_admin.return_value = mock_client
+
+            from api.services.workspace_service import add_workspace_member
+
+            with pytest.raises(ValueError, match="Permission denied"):
+                add_workspace_member(sample_workspace_id, sample_user_id, new_member_id)
+
+    def test_stranger_cannot_add_someone(self):
+        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin:
+            mock_client = MagicMock()
+            mock_admin.return_value = mock_client
+
+            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value.data = {
+                "id": "workspace1",
+                "user_id": "user_id",
+                "member_ids": [],
+            }
+
+            from api.services.workspace_service import add_workspace_member
+
+            with pytest.raises(ValueError):
+                add_workspace_member("workspace1","stranger_id","new_member_id")
 
 class TestRemoveWorkspaceMember:
     def test_removes_existing_member(self, sample_workspace_id, sample_user_id):
@@ -379,5 +430,4 @@ class TestUserCanAccessWorkspace:
     
             assert user_can_access_workspace(sample_workspace_id, sample_user_id) is False
 
-        
 

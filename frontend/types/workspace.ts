@@ -12,6 +12,8 @@ export interface Workspace {
   created_at: string;
   updated_at: string;
   file_count: number;
+  member_ids: string[];
+  is_owner: boolean;
 }
 
 export interface WorkspaceTableRow {
