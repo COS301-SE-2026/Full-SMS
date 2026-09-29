@@ -24,15 +24,15 @@ def validate_script(script: str) -> Dict[str, Any]:
 
     for import_statement, error_message in dangerous_imports:
         if import_statement in script:
-            return {"success": False, "error": error_message}
+            return {"valid": False, "error": error_message}
 
     try:
         compile(script, "<script>", "exec")
 
     except SyntaxError as error:
-        return {"success": False, "error": f"Syntax error in script: {error}"}
+        return {"valid": False, "error": f"Syntax error in script: {error}"}
 
-    return {"success": True, "error": None}
+    return {"valid": True, "message": "Script is valid"}
 
 
 def execute_plugin(
