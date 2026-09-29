@@ -2,29 +2,28 @@
 
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 
 interface FileUploadZoneProps {
-  onFilesSelected: (files: File[]) => void;
+  readonly onFilesSelected: (files: File[]) => void;
 }
 
-const ALLOWED_EXTENSIONS = ['.pt3', '.csv', '.h5', '.hdf5'];
+const ALLOWED_EXTENSIONS = [
+  '.h5', '.hdf5', '.ptu', '.pt3', '.pt2', '.ht3', '.t3r',
+  '.sdt', '.spc', '.csv', '.txt', '.tsv',
+];
 
 
 export default function FileUploadZone({ onFilesSelected }: FileUploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const validateAndProcessFiles = (fileList: FileList | null) => {
     if (!fileList) return;
     setError(null);
 
     const validFiles: File[] = [];
     
-    for (let i = 0; i < fileList.length; i++) {
-      const file = fileList[i];
-     
+    for (const file of fileList) {
       const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
 
       if (ALLOWED_EXTENSIONS.includes(fileExtension)) {
@@ -59,17 +58,13 @@ export default function FileUploadZone({ onFilesSelected }: FileUploadZoneProps)
     validateAndProcessFiles(e.target.files);
   };
 
-  const triggerFilePicker = () => {
-    fileInputRef.current?.click();
-  };
-
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4">
-      <div
+      <label
+        htmlFor="spectroscopy-file-input"
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        onClick={triggerFilePicker}
         className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors duration-200 flex flex-col items-center justify-center min-h-[220px] ${
           isDragging
             ? 'border-[#4fd1c5] bg-[#4fd1c5]/10 text-[#4fd1c5]'
@@ -77,8 +72,8 @@ export default function FileUploadZone({ onFilesSelected }: FileUploadZoneProps)
         }`}
       >
         <input
+          id="spectroscopy-file-input"
           type="file"
-          ref={fileInputRef}
           onChange={handleFileInputChange}
           accept={ALLOWED_EXTENSIONS.join(',')}
           multiple
@@ -101,12 +96,12 @@ export default function FileUploadZone({ onFilesSelected }: FileUploadZoneProps)
         </svg>
 
         <p className="font-medium text-zinc-200">
-          Drag and drop your spectroscopy files here, or <span className="text-[#4fd1c5] hover:underline">browse</span>
+          Drag and drop supported files here, or <span className="text-[#4fd1c5] hover:underline">browse</span>
         </p>
         <p className="text-xs text-zinc-500 mt-2">
           Accepts: {ALLOWED_EXTENSIONS.join(', ')} up to 500MB
         </p>
-      </div>
+      </label>
 
       {/* Error meaasage */}
       {error && (
