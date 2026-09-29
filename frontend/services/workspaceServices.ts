@@ -147,6 +147,33 @@ export const workspaceService = {
       );
     }
   },
+
+  getWorkspaceMembers: async (workspaceId: string) => {
+    try{
+      const response = await axiosInstance.get(
+        `/api/py/workspaces/${workspaceId}/members`
+      );
+      return response.data;
+    } catch (error: any){
+      throw new Error(
+        error.response?.data?.detail || "Failed to fetch workspace members"
+      );
+    }
+  },
+
+  addWorkspaceMember: async (workspaceId: string, email: string) => {
+    try{
+      const response = await axiosInstance.post(
+        `/api/py/workspaces/${workspaceId}/members`,
+        {email}
+      );
+      return response.data;
+    }catch(error: any){
+      throw new Error(
+        error.response?.data?.detail || "Failed to add workspace member"
+      );
+    }
+  }
 };
 
 
