@@ -414,9 +414,11 @@ export function Hdf5DataProvider({
 
   useEffect(() => {
     if (!currentWorkspaceId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMembers([]);
       return;
-      } workspaceService.getWorkspaceMembers(currentWorkspaceId).then((res) => {
+    } 
+      workspaceService.getWorkspaceMembers(currentWorkspaceId).then((res) => {
         if(res.success) {
           setMembers(res.members);
         }
