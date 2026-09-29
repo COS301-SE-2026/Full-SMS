@@ -17,6 +17,7 @@ from api.legacy.io import plot_exporters
 from api.legacy.models.group import GroupData, ClusteringResult, ClusteringStep
 from api.legacy.models.fit import FitResult
 
+
 class MissingAnalysisDataError(NotImplementedError):
     def __init__(self, category: str, measurement_name: str):
         self.category = category
@@ -224,6 +225,14 @@ def _export_bic_plot(request, analysis_getter, data, measurement_name) -> tuple[
     )
     return output_path, f"{measurement_name}_bic_plot{output_path.suffix}"
 
+
+def _export_correlation_plot(request, data, measurement_name) -> tuple[Path, str] | None:
+    if not request.plot_correlation:
+        return None
+    if not request.correlation_tau or not request.correlation_g2:
+        raise MissingAnalysisDataError("correlation plot", measurement_name)
+
+    
 
 def _process_selection(request, selection, user_id) -> list[tuple[Path, str]]:
     measurement_id = selection.measurement_id
