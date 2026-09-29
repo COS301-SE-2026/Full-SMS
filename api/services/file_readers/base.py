@@ -1,6 +1,5 @@
 """
 Base classes and interfaces for file format readers.
-
 All file readers must inherit from FileReader and return ReaderResult.
 """
 
@@ -10,6 +9,15 @@ from typing import List, Optional, Dict, Any
 from pathlib import Path
 import numpy as np
 
+@dataclass
+class NativeDataBlock:
+    id: int
+    name: str
+    kind: str
+    data: np.ndarray
+    axes: Dict[str, np.ndarray] = field(default_factory=dict)
+    axis_units: Dict[str, str] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class ChannelResult:
@@ -116,6 +124,8 @@ class ReaderResult:
     format_name: str
     success: bool = True
     error: Optional[str] = None
+    native_blocks: List[NativeDataBlock] = field(default_factory=list)
+    data_kind: str = "photon_events"
 
     @property
     def measurement_count(self) -> int:
@@ -182,7 +192,7 @@ class FileReader(ABC):
         Get list of supported file extensions.
 
         Returns:
-            List of extensions (e.g., [".ptu", ".pt3"])
+            List of extensions
         """
         pass
 

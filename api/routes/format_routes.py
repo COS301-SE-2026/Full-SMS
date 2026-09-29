@@ -1,11 +1,3 @@
-"""
-File format API routes for Universal File Format Support.
-
-Provides endpoints for:
-- Format detection
-- Supported formats listing
-- File preview/validation
-"""
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, status
 from typing import Optional, Dict, Any

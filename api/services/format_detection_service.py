@@ -15,10 +15,6 @@ class FileFormat(str, Enum):
     HDF5_CUSTOM = "hdf5_custom"          # Full SMS native format
     PHOTON_HDF5 = "photon_hdf5"          # Photon-HDF5 open standard
     PICOQUANT_PTU = "picoquant_ptu"      # PicoQuant unified format
-    PICOQUANT_PT3 = "picoquant_pt3"      # PicoQuant T3 mode
-    PICOQUANT_PT2 = "picoquant_pt2"      # PicoQuant T2 mode
-    PICOQUANT_HT3 = "picoquant_ht3"      # HydraHarp T3
-    PICOQUANT_T3R = "picoquant_t3r"      # TimeHarp T3
     BECKER_HICKL_SDT = "bh_sdt"          # Becker & Hickl SDT
     BECKER_HICKL_SPC = "bh_spc"          # Becker & Hickl SPC
     CSV = "csv"                           # CSV/text with column mapping
@@ -39,10 +35,6 @@ EXTENSION_MAP = {
     ".hdf5": "hdf5",
     ".hdf": "hdf5",
     ".ptu": FileFormat.PICOQUANT_PTU,
-    ".pt3": FileFormat.PICOQUANT_PT3,
-    ".pt2": FileFormat.PICOQUANT_PT2,
-    ".ht3": FileFormat.PICOQUANT_HT3,
-    ".t3r": FileFormat.PICOQUANT_T3R,
     ".sdt": FileFormat.BECKER_HICKL_SDT,
     ".spc": FileFormat.BECKER_HICKL_SPC,
     ".csv": FileFormat.CSV,
@@ -182,40 +174,7 @@ def get_format_info(fmt: FileFormat) -> Dict[str, Any]:
             "extensions": [".ptu"],
             "supports_dual_channel": True,
             "supports_spectra": False,
-            "supports_raster": False,
-        },
-        FileFormat.PICOQUANT_PT3: {
-            "name": "PicoQuant PT3",
-            "description": "PicoQuant PicoHarp T3 mode",
-            "extensions": [".pt3"],
-            "supports_dual_channel": True,
-            "supports_spectra": False,
-            "supports_raster": False,
-        },
-        FileFormat.PICOQUANT_PT2: {
-            "name": "PicoQuant PT2",
-            "description": "PicoQuant PicoHarp T2 mode",
-            "extensions": [".pt2"],
-            "supports_dual_channel": True,
-            "supports_spectra": False,
-            "supports_raster": False,
-        },
-        FileFormat.PICOQUANT_HT3: {
-            "name": "PicoQuant HT3",
-            "description": "PicoQuant HydraHarp T3 mode",
-            "extensions": [".ht3"],
-            "supports_dual_channel": True,
-            "supports_spectra": False,
-            "supports_raster": False,
-        },
-        FileFormat.PICOQUANT_T3R: {
-            "name": "PicoQuant T3R",
-            "description": "PicoQuant TimeHarp T3 mode",
-            "extensions": [".t3r"],
-            "supports_dual_channel": True,
-            "supports_spectra": False,
-            "supports_raster": False,
-        },
+            "supports_raster": False},
         FileFormat.BECKER_HICKL_SDT: {
             "name": "Becker & Hickl SDT",
             "description": "Becker & Hickl setup and data file",

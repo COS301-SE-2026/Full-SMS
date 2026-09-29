@@ -59,10 +59,6 @@ def _get_reader_for_format(fmt: FileFormat) -> Optional[FileReader]:
     """Get reader for a specific format."""
     format_to_reader = {
         FileFormat.PICOQUANT_PTU: PicoQuantReader,
-        FileFormat.PICOQUANT_PT3: PicoQuantReader,
-        FileFormat.PICOQUANT_PT2: PicoQuantReader,
-        FileFormat.PICOQUANT_HT3: PicoQuantReader,
-        FileFormat.PICOQUANT_T3R: PicoQuantReader,
         FileFormat.BECKER_HICKL_SDT: BeckerHicklReader,
         FileFormat.BECKER_HICKL_SPC: BeckerHicklReader,
         FileFormat.PHOTON_HDF5: PhotonHDF5Reader,
