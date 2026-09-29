@@ -9,7 +9,7 @@ interface FileUploadZoneProps {
 }
 
 const ALLOWED_EXTENSIONS = [
-  '.h5', '.hdf5', '.ptu',
+  '.h5', '.hdf5', '.ptu',".phu",
   '.sdt', '.spc', '.csv', '.txt', '.tsv',
 ];
 

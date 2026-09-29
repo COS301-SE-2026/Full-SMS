@@ -1,8 +1,12 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Plot from 'react-plotly.js';
-import { getNativeDataBlocks, getNativeDataView } from '@/services/hdf5services';
+import { useEffect, useState } from "react";
+import Plot from "react-plotly.js";
+import {
+  getNativeDataBlocks,
+  getNativeDataView,
+} from "@/services/hdf5services";
+import { Card } from "../ui/Card";
 
 interface NativeBlock {
   id: number;
@@ -16,7 +20,7 @@ interface NativeBlocksResponse {
 }
 
 interface HistogramView {
-  kind: 'histogram';
+  kind: "histogram";
   title: string;
   xlabel: string;
   ylabel: string;
@@ -25,7 +29,7 @@ interface HistogramView {
 }
 
 interface CurvesView {
-  kind: 'curves';
+  kind: "curves";
   title: string;
   xlabel: string;
   ylabel: string;
@@ -33,7 +37,7 @@ interface CurvesView {
 }
 
 interface HeatmapView {
-  kind: 'heatmap';
+  kind: "heatmap";
   title: string;
   xlabel: string;
   ylabel: string;
@@ -47,7 +51,9 @@ interface NativeDataViewerProps {
   readonly uploadId: string;
 }
 
-export default function NativeDataViewer({ uploadId }: Readonly<NativeDataViewerProps>) {
+export default function NativeDataViewer({
+  uploadId,
+}: Readonly<NativeDataViewerProps>) {
   const [blocks, setBlocks] = useState<NativeBlock[]>([]);
   const [selectedBlockId, setSelectedBlockId] = useState<number>();
   const [sliceIndex, setSliceIndex] = useState(0);
@@ -71,9 +77,9 @@ export default function NativeDataViewer({ uploadId }: Readonly<NativeDataViewer
   }, [uploadId]);
 
   const selectedBlock = blocks.find((block) => block.id === selectedBlockId);
-  let view = 'flim_slice';
-  if (selectedBlock?.kind === 'decay_histogram') view = 'histogram';
-  if (selectedBlock?.kind === 'curve_matrix') view = 'curves';
+  let view = "flim_slice";
+  if (selectedBlock?.kind === "decay_histogram") view = "histogram";
+  if (selectedBlock?.kind === "curve_matrix") view = "curves";
 
   useEffect(() => {
     if (selectedBlockId === undefined) return;
@@ -96,84 +102,92 @@ export default function NativeDataViewer({ uploadId }: Readonly<NativeDataViewer
 
   const layout = {
     autosize: true,
-    paper_bgcolor: 'transparent',
-    plot_bgcolor: 'transparent',
-    font: { color: 'var(--foreground)' },
+    paper_bgcolor: "transparent",
+    plot_bgcolor: "transparent",
+    font: { color: "var(--foreground)" },
     margin: { l: 55, r: 20, t: 40, b: 55 },
-    xaxis: { title: viewData?.xlabel || '', automargin: true },
-    yaxis: { title: viewData?.ylabel || '', automargin: true },
-    showlegend: viewData?.kind === 'curves',
+    xaxis: { title: viewData?.xlabel || "", automargin: true },
+    yaxis: { title: viewData?.ylabel || "", automargin: true },
+    showlegend: viewData?.kind === "curves",
   };
 
   return (
-    <section className="w-full max-w-4xl mx-auto border border-border bg-card p-4 space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold text-foreground">Native B&amp;H data</h2>
-        <label className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>Block</span>
-          <select
-            value={selectedBlockId ?? ''}
-            onChange={(event) => {
-              setSelectedBlockId(Number(event.target.value));
-              setSliceIndex(0);
-            }}
-            className="h-8 rounded border border-border bg-background px-2 text-foreground"
-          >
-            {blocks.map((block) => (
-              <option key={block.id} value={block.id}>
-                {block.name} ({block.shape.join(' x ')})
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+    <Card className="w-full h-[84vh] mx-auto border border-border bg-card p-4 space-y-3">
+      <div className="flex-1 min-h-0 h-full overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-foreground">
+            Native B&amp;H data
+          </h2>
+         <div className="flex items-center gap-2">
+          <label className="text-xs text-foreground/70 whitespace-nowrap">
+              <span>Block</span>
+              <select
+                value={selectedBlockId ?? ""}
+                onChange={(event) => {
+                  setSelectedBlockId(Number(event.target.value));
+                  setSliceIndex(0);
+                }}
+                className="h-8 rounded border border-border bg-background px-2 text-foreground"
+              >
+                {blocks.map((block) => (
+                  <option key={block.id} value={block.id}>
+                    {block.name} ({block.shape.join(" x ")})
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </div>
 
-      {selectedBlock?.kind === 'flim' && (
-        <label className="flex items-center gap-3 text-xs text-muted-foreground">
-          Time slice {sliceIndex + 1} / {selectedBlock.shape.at(-1)}
-          <input
-            type="range"
-            min={0}
-            max={Math.max(0, (selectedBlock.shape.at(-1) || 1) - 1)}
-            value={sliceIndex}
-            onChange={(event) => setSliceIndex(Number(event.target.value))}
-            className="w-48"
-          />
-        </label>
-      )}
+        {selectedBlock?.kind === "flim" && (
+          <label className="flex items-center gap-3 text-xs text-muted-foreground">
+            Time slice {sliceIndex + 1} / {selectedBlock.shape.at(-1)}
+            <input
+              type="range"
+              min={0}
+              max={Math.max(0, (selectedBlock.shape.at(-1) || 1) - 1)}
+              value={sliceIndex}
+              onChange={(event) => setSliceIndex(Number(event.target.value))}
+              className="w-48"
+            />
+          </label>
+        )}
 
-      <div className="h-[360px] w-full">
-        {viewData?.kind === 'histogram' && (
-          <Plot
-            data={[{ x: viewData.bins, y: viewData.counts, type: 'bar' }]}
-            layout={{ ...layout, title: { text: viewData.title } }}
-            useResizeHandler
-            style={{ width: '100%', height: '100%' }}
-          />
-        )}
-        {viewData?.kind === 'curves' && (
-          <Plot
-            data={viewData.series.map((series) => ({
-              x: series.x,
-              y: series.y,
-              name: series.label,
-              type: 'scatter' as const,
-              mode: 'lines' as const,
-            }))}
-            layout={{ ...layout, title: { text: viewData.title } }}
-            useResizeHandler
-            style={{ width: '100%', height: '100%' }}
-          />
-        )}
-        {viewData?.kind === 'heatmap' && (
-          <Plot
-            data={[{ z: viewData.values, type: 'heatmap', colorscale: 'Viridis' }]}
-            layout={{ ...layout, title: { text: viewData.title } }}
-            useResizeHandler
-            style={{ width: '100%', height: '100%' }}
-          />
-        )}
+        <div className="h-full w-full">
+          {viewData?.kind === "histogram" && (
+            <Plot
+              data={[{ x: viewData.bins, y: viewData.counts, type: "bar" }]}
+              layout={{ ...layout, title: { text: viewData.title } }}
+              useResizeHandler
+              style={{ width: "100%", height: "100%" }}
+            />
+          )}
+          {viewData?.kind === "curves" && (
+            <Plot
+              data={viewData.series.map((series) => ({
+                x: series.x,
+                y: series.y,
+                name: series.label,
+                type: "scatter" as const,
+                mode: "lines" as const,
+              }))}
+              layout={{ ...layout, title: { text: viewData.title } }}
+              useResizeHandler
+              style={{ width: "100%", height: "100%" }}
+            />
+          )}
+          {viewData?.kind === "heatmap" && (
+            <Plot
+              data={[
+                { z: viewData.values, type: "heatmap", colorscale: "Viridis" },
+              ]}
+              layout={{ ...layout, title: { text: viewData.title } }}
+              useResizeHandler
+              style={{ width: "100%", height: "100%" }}
+            />
+          )}
+        </div>
       </div>
-    </section>
+    </Card>
   );
 }

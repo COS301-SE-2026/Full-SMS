@@ -21,6 +21,7 @@ import { Plugin } from "@/types/plugin";
 import ExportPanel from "@/components/analysisHub/export-tab/export-tab-panel";
 import { Card } from "@/components/ui";
 import CorrelationTab from "@/components/analysisHub/correlation-tab/correlation-tab";
+import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 
 export default function App() {
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
@@ -32,6 +33,8 @@ export default function App() {
   const pluginId = isPluginTab ? activeTab.replace("plugin:", "") : null;
 
   const isLoadingPlugin = isPluginTab && currentPlugin?.id !== pluginId;
+
+  const {currentUploadName} = useHdf5Data()
 
   useEffect(() => {
     if (!pluginId) {
