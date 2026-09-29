@@ -2,19 +2,33 @@ import { HistoryEntry } from "@/types/parameterHistory";
 import { Button } from "@/components/ui";
 import { useEffect, useRef } from "react";
 
+interface WorkspaceMemberProfile{
+    id: string;
+    email: string;
+    username: string | null;
+    role: string;
+}
+
 interface HistoryPanelProps {
     entries: HistoryEntry[];
     loading: boolean;
     error: string | null;
     onRevert: (entry: HistoryEntry) => void;
+    members: WorkspaceMemberProfile[];
 }
 
-export function HistoryPanel({entries, loading, error, onRevert}: HistoryPanelProps) {
+export function HistoryPanel({entries, loading, error, onRevert, members}: HistoryPanelProps) {
     const panelRef=useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         panelRef.current?.scrollIntoView({behavior:"smooth", block: "nearest", inline:"end"});
     }, [loading, entries.length]);
+
+    const getAuthorLabel = (authorId: string) =>{
+        const member = members.find((m) => m.id === authorId);
+        return member?.username || member?.email || "Unknown user";
+    };
+
     if(loading) return <div ref={panelRef} className="w-80 shrink-0"><p className="text-sm">Loading history...</p></div>;
     if(error) return <p className="text-sm text-red-600">{error}</p>;
     if(entries.length === 0) return <div ref={panelRef} className="w-80 shrink-0"><p className="text-sm">No changes yet.</p></div>;
@@ -30,7 +44,7 @@ export function HistoryPanel({entries, loading, error, onRevert}: HistoryPanelPr
                     </span>
 
                     <span className="text-xs text-gray-500">
-                        {new Date(e.created_at).toLocaleString()}
+                        {getAuthorLabel(e.author_id)} - {new Date(e.created_at).toLocaleString()}
                     </span>
 
                     <Button 

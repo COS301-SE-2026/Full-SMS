@@ -20,6 +20,7 @@ export default function SpectraMap() {
     setSpectraHeatMapColor,
     currentWorkspaceId,
     hdf5Metadata,
+    members,
   } = useHdf5Data();
   const { entries, loading, error, fetchHistory}= useHistory(currentWorkspaceId, currentUpload, "spectra");
   const recordHistory = useHistoryRecorder(currentWorkspaceId, currentUpload, "spectra", fetchHistory);
@@ -177,6 +178,7 @@ export default function SpectraMap() {
       entries={entries}
       loading={loading}
       error={error}
+      members={members}
       onRevert={(entry) =>{
         setSpectraHeatMapColor(entry.old_value);
         historyService.revertEntry(currentWorkspaceId!, entry.id).then(fetchHistory);

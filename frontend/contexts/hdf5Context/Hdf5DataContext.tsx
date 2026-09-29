@@ -16,6 +16,7 @@ import {
   CorrelationRes,
   LevelData,
 } from "@/types/analysis";
+import { workspaceService } from "@/services/workspaceServices";
 
 type Hdf5Response = {
   time_bins: number[];
@@ -24,6 +25,13 @@ type Hdf5Response = {
 };
 
 type Confidence = 69 | 90 | 95 | 99;
+interface WorkspaceMemberProfile{
+    id: string;
+    email: string;
+    username: string | null;
+    role: string;
+}
+
 
 export interface CachedPluginResult {
     status: "success" | "error";
@@ -90,6 +98,7 @@ interface Hdf5DataContextType {
 
   setCurrentWorkspaceId: (id: string) => void;
   currentWorkspaceId: string | null;
+  members: WorkspaceMemberProfile[];
 
   //grouping analysis results
   groupingData: ClusteringRes | undefined;
@@ -206,6 +215,7 @@ export function Hdf5DataProvider({
       return null;
     },
   );
+  const[members, setMembers] = useState<WorkspaceMemberProfile[]>([]);
 
   const [selectedMeasurements, setSelectedMeasurements] = useState<Set<string>>(
     new Set(),
@@ -403,6 +413,17 @@ export function Hdf5DataProvider({
   }, [currentWorkspaceId]);
 
   useEffect(() => {
+    if (!currentWorkspaceId) {
+      setMembers([]);
+      return;
+      } workspaceService.getWorkspaceMembers(currentWorkspaceId).then((res) => {
+        if(res.success) {
+          setMembers(res.members);
+        }
+      });
+    }, [currentWorkspaceId]);
+
+  useEffect(() => {
     if (currentUpload) {
       localStorage.setItem("currentUpload", currentUpload);
     } else {
@@ -436,7 +457,7 @@ export function Hdf5DataProvider({
       setBin,
       confidence,
       setConfidence,
-
+      
       // CPA
       cpaData,
       setCpaData,
@@ -483,6 +504,7 @@ export function Hdf5DataProvider({
       clearPluginResults,
       correlationData,
       setCorrelationData,
+      members,
     }),
     [
       hdf5Data,
@@ -515,7 +537,8 @@ export function Hdf5DataProvider({
       selectedChannels,
       isMultiChannel,
       groupingResults,
-      currentChannel
+      currentChannel,
+      members,
     ],
   );
 
