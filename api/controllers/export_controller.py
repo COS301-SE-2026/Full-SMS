@@ -7,7 +7,7 @@ from api.services import export_service
 from api.services.export_service import MissingAnalysisDataError
 
 def handle_export(request: ExportRequest, background_tasks: BackgroundTasks, user_id: str):
-    if not any([request.export_intensity, request.export_levels, request.export_groups, request.export_fits, request.plot_intensity, request.plot_bic,]):
+    if not any([request.export_intensity, request.export_levels, request.export_groups, request.export_fits, request.plot_intensity, request.plot_bic, request.plot_correlation,]):
         raise HTTPException(status_code = 400, detail= "No export category selected.")
     
     if not request.selections:
