@@ -21,7 +21,7 @@ interface AnalysisTabContextType {
     decayTimes: number []
     setDecayTimes: (counts: number[])=>void
     fitResult: LifetimeRes | null,
-    setFitResult: (res: LifetimeRes) => void
+    setFitResult: (res: LifetimeRes | null) => void
     showIRF: boolean
     setShowIRF: (show: boolean) => void
     irfCounts: number[]
