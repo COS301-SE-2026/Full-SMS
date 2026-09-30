@@ -25,12 +25,11 @@ import { HistoryPanel } from "@/components/analysisHub/history/HistoryPanel";
 import { useHistory } from "@/hooks/useHistory";
 import { historyService } from "@/services/historyServices";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
-import { WorkspaceMemberProfile } from "@/types/workspace";
-import { workspaceService } from "@/services/workspaceServices";
 import { CommentPanel } from "@/components/analysisHub/comments/CommentPanel";
 import { useComments } from "@/hooks/useComments";
 import { commentService } from "@/services/commentServices";
 import { useToast } from "@/contexts/toastContext/ToastContext";
+import { useMemberLookup } from "@/hooks/useMemberLookup";
 
 export default function App() {
   const {successToast, errorToast} = useToast();
@@ -40,8 +39,8 @@ export default function App() {
   const [currentPlugin, setCurrentPlugin] = useState<Plugin | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
-  const [memberLookup, setMemberLookup] = useState<Record<string, WorkspaceMemberProfile>>({});
   const { currentWorkspaceId, currentUpload, setBin, setConfidence, members } = useHdf5Data();
+  const memberLookup = useMemberLookup(currentWorkspaceId);
   const {comments, loading: commentsLoading, error: commentsError, fetchComments } = useComments(currentWorkspaceId, currentUpload, "intensity");
 
   const { entries, loading, error, fetchHistory} = useHistory(currentWorkspaceId, currentUpload, "intensity",);
@@ -66,7 +65,6 @@ export default function App() {
       errorToast(error.message || "Failed to add comment");
     }
   };
-  const {currentUploadName} = useHdf5Data()
 
   useEffect(() => {
     if (!pluginId) {
@@ -90,26 +88,6 @@ export default function App() {
       cancelled = true;
     };
   }, [pluginId]);
-
-  useEffect(() => {
-    if(!currentWorkspaceId) return;
-    let cancelled = false;
-
-    workspaceService.getWorkspaceMembers(currentWorkspaceId)
-    .then((res) => {
-      if(cancelled) return;
-      const lookup: Record<string, WorkspaceMemberProfile> = {};
-      for (const user of res.members){
-        lookup[user.id] = user;
-      }
-      setMemberLookup(lookup);
-    })
-    .catch(() => {
-      if(!cancelled) setMemberLookup({});
-    });
-
-    return () => {cancelled = true};
-  }, [currentWorkspaceId])
 
   return (
     <div className="size-full flex flex-col bg-background text-foreground h-screen">

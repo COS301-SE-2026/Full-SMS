@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from 'react'
+import React, { useState} from 'react'
 import RasterToolbar from './raster-toolbar'
 import { RasterHeatmap } from './rater-heatmap'
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
@@ -7,10 +7,9 @@ import { HistoryPanel } from '../history/HistoryPanel'
 import { historyService } from '@/services/historyServices'
 import { useComments } from '@/hooks/useComments'
 import { CommentPanel } from '../comments/CommentPanel'
-import { workspaceService } from '@/services/workspaceServices'
 import { commentService } from '@/services/commentServices'
-import { WorkspaceMemberProfile } from '@/types/workspace'
 import { useToast } from '@/contexts/toastContext/ToastContext'
+import { useMemberLookup } from '@/hooks/useMemberLookup'
 
 export default function RasterTab() {
   const {currentWorkspaceId, currentUpload, setHeatMapColor, members} = useHdf5Data()
@@ -18,7 +17,7 @@ export default function RasterTab() {
   const [historyOpen, setHistoryOpen] = useState(false)
 
   const [commentsOpen, setCommentsOpen] = useState(false)
-  const [memberLookup, setMemberLookup] = useState<Record<string, WorkspaceMemberProfile>>({})
+  const memberLookup = useMemberLookup(currentWorkspaceId)
   const { comments, loading: commentsLoading, error: commentsError, fetchComments } =
     useComments(currentWorkspaceId, currentUpload, "raster")
   const { successToast, errorToast } = useToast()
@@ -39,27 +38,6 @@ export default function RasterTab() {
       errorToast(err.message || "Failed to add comment")
     }
   }
-
-  useEffect(() => {
-    if (!currentWorkspaceId) return
-    let stopped = false
-
-    workspaceService.getWorkspaceMembers(currentWorkspaceId)
-      .then((res) => {
-        if (stopped) return
-        const lookup: Record<string, WorkspaceMemberProfile> = {}
-        for (const member of res.members) {
-          lookup[member.id] = member
-        }
-        setMemberLookup(lookup)
-      })
-      .catch(() => {
-        if (!stopped) setMemberLookup({})
-      })
-
-    return () => { stopped = true }
-  }, [currentWorkspaceId])
-
 
   return (
     <div className='h-full w-full flex gap-3'>

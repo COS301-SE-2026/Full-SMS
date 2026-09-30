@@ -1,12 +1,14 @@
 import { Card } from '../../ui/Card';
 import Plot from 'react-plotly.js'
-import { useEffect, useMemo, useState} from 'react';
+import { useEffect, useMemo} from 'react';
 import { colors } from '@/lib/tokens';
 import { Intensity_Req } from '@/types/analysis';
 import { intensityAnalysis } from '@/services/analysisServices';
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext';
 import { Comment } from '@/types/comment';
 import { Button } from '@/components/ui';
+import { useCommentClick } from '@/hooks/useCommentClick';
+import { buildCommentMarkers } from '@/lib/commentMarkers';
 interface IntensityChartProps{
   comments: Comment[];
   onAddComment: (payload: {content: string; anchor_x: number; anchor_y: number}) => void;
@@ -22,34 +24,9 @@ export function IntensityChart({comments, onAddComment}: Readonly<IntensityChart
   }
 
 
-  const [progressSpot, setProgressSpot] = useState<{x: number; y: number} | null>(null);
-  const [noteText, setNoteText] = useState('');
+  const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote } = useCommentClick(onAddComment);
 
-  const controlPlotClick = (event: any) => {
-    const point = event.points?.[0];
-    if(!point) return;
-    setProgressSpot({x: point.x, y: point.y});
-  };
-
-  const controlSubmitNote = () => {
-    if(!progressSpot || !noteText.trim()) return;
-    onAddComment({content: noteText, anchor_x: progressSpot.x, anchor_y: progressSpot.y});
-    setProgressSpot(null);
-    setNoteText('');
-  };
-
-  const commentMarkers = {
-    x: comments.map((t) => t.anchor_x ?? 0),
-    y: comments.map((t) => t.anchor_y ?? 0),
-    type: 'scatter',
-    mode: 'markers',
-    name: 'Notes',
-    xaxis:'x',
-    yaxis: 'y',
-    marker: {color: colors.warning, size: 8, symbol: 'star'},
-    text: comments.map((t) => t.content),
-    hoverinfo: 'text',
-  }
+  const commentMarkers = buildCommentMarkers(comments, 'x', 'y');
 
     const fetchIntensityTrace= async ()=>{
       if(currentUpload){

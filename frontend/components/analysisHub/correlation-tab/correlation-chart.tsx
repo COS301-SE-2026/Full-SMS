@@ -1,10 +1,12 @@
 import { Card } from "@/components/ui/Card";
 import { colors } from "@/lib/tokens";
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import Plot from "react-plotly.js";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { Comment } from "@/types/comment";
 import { Button } from "@/components/ui";
+import { useCommentClick } from '@/hooks/useCommentClick';
+import { buildCommentMarkers } from '@/lib/commentMarkers';
 
 interface CorrelationChartProps{
   readonly comments: Comment[];
@@ -13,21 +15,7 @@ interface CorrelationChartProps{
 
 function CorrelationChart({comments, onAddComment}: Readonly<CorrelationChartProps>) {
   const { correlationData, currentMeasurement, hdf5Metadata } = useHdf5Data();
-  const [progressSpot, setProgressSpot] = useState<{x: number; y: number} | null>(null);
-  const [noteText, setNoteText] = useState('');
-
-  const controlPlotClick = (event: any) => {
-          const point = event.points?.[0];
-          if(!point) return;
-          setProgressSpot({x: point.x, y: point.y});
-        };
-      
-        const controlSubmitNote = () => {
-          if(!progressSpot || !noteText.trim()) return;
-          onAddComment({content: noteText, anchor_x: progressSpot.x, anchor_y: progressSpot.y});
-          setProgressSpot(null);
-          setNoteText('');
-        };
+  const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote } = useCommentClick(onAddComment);
 
   const { xAxis, yAxis } = useMemo(() => {
     if (correlationData?.measurement_id === currentMeasurement) {
@@ -51,18 +39,7 @@ function CorrelationChart({comments, onAddComment}: Readonly<CorrelationChartPro
     )
   }
 
-  const commentMarkers = {
-    x: comments.map((t) => t.anchor_x ?? 0),
-    y: comments.map((t) => t.anchor_y ?? 0),
-    type: 'scatter',
-    mode: 'markers',
-    name: 'Notes',
-    xaxis:'x',
-    yaxis: 'y',
-    marker: {color: colors.warning, size: 8, symbol: 'star'},
-    text: comments.map((t) => t.content),
-    hoverinfo: 'text',
-    }
+  const commentMarkers = buildCommentMarkers(comments, 'x', 'y');
   return (
     <div>
       <Card className="flex flex-col w-[83vw] h-[85vh] p-2 mt-1 gap-4 font-mono">

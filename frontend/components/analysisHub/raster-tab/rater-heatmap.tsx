@@ -5,6 +5,8 @@ import { getRasterData } from "@/services/analysisServices";
 import { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 import { Comment } from "@/types/comment";
+import { useCommentClick } from '@/hooks/useCommentClick';
+import { buildCommentMarkers } from '@/lib/commentMarkers';
 
 interface RasterHeatmapProps {
   comments: Comment[];
@@ -39,21 +41,7 @@ export function RasterHeatmap({comments, onAddComment}: Readonly<RasterHeatmapPr
 
   }, [currentMeasurement, currentUpload]);
 
-  const [progressSpot, setProgressSpot] = useState<{ x: number; y: number } | null>(null);
-  const [noteText, setNoteText] = useState('');
-
-  const controlPlotClick = (event: any) => {
-    const point = event.points?.[0];
-    if (!point) return;
-    setProgressSpot({ x: point.x, y: point.y });
-  };
-
-  const controlSubmitComment = () => {
-    if (!progressSpot || !noteText.trim()) return;
-    onAddComment({ content: noteText, anchorX: progressSpot.x, anchorY: progressSpot.y });
-    setProgressSpot(null);
-    setNoteText('');
-  };
+  const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote: controlSubmitComment } = useCommentClick(onAddComment);
   // if (!rasterData?.raster_scan) {
   //   return (
   //     <div className="flex h-full w-full items-center justify-center text-gray-500">
@@ -77,16 +65,7 @@ export function RasterHeatmap({comments, onAddComment}: Readonly<RasterHeatmapPr
   const dx = raster_scan.scan_range / numCols;
   const dy = raster_scan.scan_range / numRows;
 
-  const commentMarkers = {
-    x: comments.map((t) => t.anchor_x ?? 0),
-    y: comments.map((t) => t.anchor_y ?? 0),
-    type: 'scatter',
-    mode: 'markers',
-    name: 'Notes',
-    marker: { color: colors.warning, size: 10, symbol: 'star' },
-    text: comments.map((t) => t.content),
-    hoverinfo: 'text',
-  };
+  const commentMarkers = buildCommentMarkers(comments);
 
   return (
     <div>

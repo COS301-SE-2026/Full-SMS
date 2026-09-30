@@ -14,9 +14,10 @@ import { Button } from "@/components/ui";
 import { useComments } from "@/hooks/useComments";
 import { CommentPanel } from "../comments/CommentPanel";
 import { commentService } from "@/services/commentServices";
-import { workspaceService } from "@/services/workspaceServices";
-import { WorkspaceMemberProfile } from "@/types/workspace";
 import { useToast } from "@/contexts/toastContext/ToastContext";
+import { useMemberLookup } from "@/hooks/useMemberLookup";
+import { useCommentClick } from "@/hooks/useCommentClick";
+import { buildCommentMarkers } from "@/lib/commentMarkers";
 
 export default function SpectraMap() {
   const {
@@ -35,28 +36,19 @@ export default function SpectraMap() {
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const [commentsOpen, setCommentsOpen] = useState(false)
-  const [MemberLookup, setMemberLookup] = useState<Record<string, WorkspaceMemberProfile>>({})
-  const [progressSpot, setProgressSpot] = useState<{ x: number; y: number } | null>(null)
-  const [noteText, setNoteText] = useState('')
+  const memberLookup = useMemberLookup(currentWorkspaceId)
 
   const {comments, loading: commentsLoading, error: commentsError, fetchComments} =
     useComments(currentWorkspaceId, currentUpload, "spectra")
   const { successToast, errorToast} = useToast()
 
-  const controlPlotClick = (event:any) => {
-    const point = event.points?.[0]
-    if(!point) return
-    setProgressSpot({x: point.x, y: point.y})
-  }
-
-  const controlSubmitComment = async () => {
-    if(!progressSpot || !noteText.trim()) return
+  const controlAddComment = async (payload: { content: string; anchor_x: number; anchor_y: number }) => {
     if (!currentWorkspaceId || !currentUpload) return
     try{
       await commentService.addComment(currentWorkspaceId, {
-        content: noteText,
-        anchor_x: progressSpot.x,
-        anchor_y: progressSpot.y,
+        content: payload.content,
+        anchor_x: payload.anchor_x,
+        anchor_y: payload.anchor_y,
         upload_id: currentUpload,
         tab: "spectra",
       })
@@ -65,28 +57,9 @@ export default function SpectraMap() {
     } catch(error: any){
       errorToast(error.message || "Failed to add comment")
     }
-    setProgressSpot(null)
-    setNoteText('')
   }
 
-  useEffect(() => {
-    if(!currentWorkspaceId) return
-    let stopped = false
-    workspaceService.getWorkspaceMembers(currentWorkspaceId)
-      .then((res) => {
-        if(stopped) return
-        const lookup: Record<string, WorkspaceMemberProfile> = {}
-        for (const member of res.members){
-          lookup[member.id] = member
-        }
-        setMemberLookup(lookup)
-      })
-      .catch(() => {
-        if(!stopped) setMemberLookup({})
-      })
-
-      return () => {stopped = true}
-  }, [currentWorkspaceId])
+  const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote: controlSubmitComment } = useCommentClick(controlAddComment);
 
   const colourmaps = [
     "Plasma",
@@ -147,16 +120,7 @@ export default function SpectraMap() {
     )
   }
 
-  const commentMarkers = {
-    x: comments.map((t) => t.anchor_x ?? 0),
-    y: comments.map((t) => t.anchor_y ?? 0),
-    type: 'scatter',
-    mode: 'markers',
-    name: 'Comments',
-    marker: {color: colors.warning, size: 10, symbol: 'star'},
-    text: comments.map((t) => t.content),
-    hoverinfo: 'text',
-  }
+  const commentMarkers = buildCommentMarkers(comments);
 
   return (
     <div className="flex gap-3">
@@ -285,7 +249,7 @@ export default function SpectraMap() {
     comments={comments}
     loading={commentsLoading}
     error={commentsError}
-    authorFinder={MemberLookup}
+    authorFinder={memberLookup}
   />
 )}
     </div>

@@ -3,10 +3,12 @@ import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsConte
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { colors } from '@/lib/tokens'
 import { getFluorescenceDecay } from '@/services/analysisServices'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import Plot from 'react-plotly.js'
 import { Comment } from '@/types/comment'
 import NativeDataViewer from "@/components/fileFormat/NativeDataViewer";
+import { useCommentClick } from '@/hooks/useCommentClick';
+import { buildCommentMarkers } from '@/lib/commentMarkers';
 
 
 interface LifeTimeChartProps{
@@ -17,34 +19,8 @@ interface LifeTimeChartProps{
 export default function LifetimeCharts({comments, onAddComment}: Readonly<LifeTimeChartProps>) {
     const { currentMeasurement, currentUpload, bin, currentChannel, hdf5Metadata} = useHdf5Data()
     const {useLogScale, decayCounts, setDecayCounts, decayTimes, setDecayTimes, fitResult} = useAnalysisTab()
-    const [progressSpot, setProgressSpot] = useState<{x: number; y: number} | null>(null);
-    const [noteText, setNoteText] = useState('');
-
-    const controlPlotClick = (event: any) => {
-        const point = event.points?.[0];
-        if(!point) return;
-        setProgressSpot({x: point.x, y: point.y});
-      };
-    
-      const controlSubmitNote = () => {
-        if(!progressSpot || !noteText.trim()) return;
-        onAddComment({content: noteText, anchor_x: progressSpot.x, anchor_y: progressSpot.y});
-        setProgressSpot(null);
-        setNoteText('');
-      };
-    
-      const commentMarkers = {
-        x: comments.map((t) => t.anchor_x ?? 0),
-        y: comments.map((t) => t.anchor_y ?? 0),
-        type: 'scatter',
-        mode: 'markers',
-        name: 'Notes',
-        xaxis:'x',
-        yaxis: 'y',
-        marker: {color: colors.warning, size: 8, symbol: 'star'},
-        text: comments.map((t) => t.content),
-        hoverinfo: 'text',
-      }
+    const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote } = useCommentClick(onAddComment);
+    const commentMarkers = buildCommentMarkers(comments, 'x', 'y');
       const useNativeBlocksViewer = hdf5Metadata?.data_kind ==="native_data"
       console.log("NATIVE",useNativeBlocksViewer);
   
