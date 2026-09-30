@@ -2,7 +2,17 @@ from fastapi import HTTPException, status
 from api.services.notification_service import (
     list_notifications,
     read_status,
+    decline_invite,
 )
+
+def decline_invite_controller(notification_id: str, user_id: str) -> dict:
+    try:
+        notifications = decline_invite(notification_id,user_id)
+        return {"success": True, "notifications": notifications}
+    except ValueError as valerror:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(valerror))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
 def list_notifications_controller(user_id: str) -> dict:
