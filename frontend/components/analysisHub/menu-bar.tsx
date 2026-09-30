@@ -24,7 +24,7 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
   const {user} = useAuth()
   const {activeTab, fitResult} = useAnalysisTab()
   const {successToast, errorToast} = useToast()
-  const { notifications, markRead} = useNotifications();
+  const { notifications, markRead, acceptInvite, declineInvite} = useNotifications();
   const unreadCount = notifications.filter((n) => !n.read).length;
   const [notifOpen, setNotifOpen] = useState(false);
   const callSave = async (name: string) => {
@@ -109,10 +109,15 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
                 {notifications.map((n) =>(
                   <li
                     key={n.id}
-                    onClick={() => markRead(n.id)}
                     className={`px-3 py-2 text-xs cursor-pointer border-b border-border/40 ${n.read ? "text-foreground/50": "text-foreground"}`}
                     >
-                      {n.message}
+                    <p onClick={() => markRead(n.id)} className="cursor-pointer">{n.message}</p>
+                      {n.type === "invite" && !n.read && (
+                        <div className="flex gap-2 mt-1">
+                          <button onClick={() => acceptInvite(n.id)} className="text-green-600 hover:underline">Accept</button>
+                          <button onClick={() => declineInvite(n.id)} className="text-red-600 hover:underline">Decline</button>
+                        </div>
+                      )}
                     </li>
                 ))}
               </ul>

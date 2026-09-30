@@ -23,4 +23,17 @@ export const notificationService = {
             );
         }
     },
+
+    declineInvite: async(notificationId: string): Promise<NotificationResponse> => {
+        try{
+            const response = await axiosInstance.post(
+                `/api/py/notifications/${notificationId}/decline`,
+            );
+            return response.data;
+        }catch(error: any){
+            throw new Error(
+                error.response?.data?.detail || "Failed to decline invite. Try again"
+            );
+        }
+    },
 };

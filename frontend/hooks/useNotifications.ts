@@ -35,5 +35,19 @@ export function useNotifications() {
         );
     };
 
-    return {notifications, loading, error, markRead}; 
+    const declineInvite = async (notificationId: string) => {
+        await notificationService.declineInvite(notificationId);
+        setNotifications((prev) => 
+            prev.map((n) => (n.id === notificationId ? { ...n, read: true} : n))
+        );
+    };
+
+    const acceptInvite = async (notificationId: string) => {
+        await notificationService.acceptInvite(notificationId);
+        setNotifications((prev) => 
+            prev.map((n) => (n.id === notificationId ? { ...n, read: true} : n))
+        );
+    };
+
+    return {notifications, loading, error, markRead, declineInvite, acceptInvite}; 
 }
