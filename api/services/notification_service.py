@@ -69,3 +69,5 @@ def decline_invite(notification_id:str, user_id: str) -> dict:
     return read_status(notification_id, user_id)
 
 
+def accept_invite(notification_id: str, user_id: str) -> dict :
+        return read_status(notification_id, user_id)
