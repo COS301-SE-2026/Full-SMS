@@ -23,6 +23,7 @@ CHANNEL_ALIASES = [
     "channel", "ch", "detector", "det", "detector_id",
 ]
 
+CSV_IMPORT ="CSV Import"
 
 class CSVReader(FileReader):
     # abstime column is required, microtime + channel are optional
@@ -110,7 +111,7 @@ class CSVReader(FileReader):
                     name=path.stem,
                     channel1=ChannelResult(abstimes=abstimes, microtimes=microtimes),
                     channelwidth=channelwidth,
-                    tcspc_card="CSV Import",
+                    tcspc_card=CSV_IMPORT,
                     metadata={
                         "source_file": path.name,
                         "photon_count": len(abstimes),
@@ -173,7 +174,7 @@ class CSVReader(FileReader):
             name=path.stem,
             channel1=ChannelResult(abstimes=abstimes, microtimes=microtimes),
             channelwidth=channelwidth,
-            tcspc_card="CSV Import",
+            tcspc_card=CSV_IMPORT,
             metadata={
                 "source_file": path.name,
                 "photon_count": len(abstimes),
@@ -236,7 +237,7 @@ class CSVReader(FileReader):
                     microtimes=microtimes[mask1],
                 ),
                 channelwidth=channelwidth,
-                tcspc_card="CSV Import",
+                tcspc_card=CSV_IMPORT,
                 metadata={
                     "channel1_id": ch0,
                     "channel2_id": ch1,
@@ -258,7 +259,7 @@ class CSVReader(FileReader):
                         microtimes=microtimes[mask],
                     ),
                     channelwidth=channelwidth,
-                    tcspc_card="CSV Import",
+                    tcspc_card=CSV_IMPORT,
                     metadata={
                         "channel_id": ch,
                         "photon_count": int(mask.sum()),

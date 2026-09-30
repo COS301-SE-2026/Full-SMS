@@ -21,6 +21,7 @@ _READERS: List[FileReader] = [
     PicoQuantPhuReader()
 ]
 
+HDF5_CUSTOM = "HDF5 Custom"
 
 def get_reader(
     path: str | Path,
@@ -118,7 +119,7 @@ def _read_custom_hdf5(path: Path, metadata: Dict[str, Any]) -> ReaderResult:
         return ReaderResult(
             measurements=[],
             file_metadata=metadata,
-            format_name="HDF5 Custom",
+            format_name=HDF5_CUSTOM,
             success=False,
             error="Legacy HDF5 reader not available",
         )
@@ -162,14 +163,14 @@ def _read_custom_hdf5(path: Path, metadata: Dict[str, Any]) -> ReaderResult:
             return ReaderResult(
                 measurements=measurements,
                 file_metadata={**metadata, **result.get("file_metadata", {})},
-                format_name="HDF5 Custom",
+                format_name=HDF5_CUSTOM,
                 success=True,
             )
 
         return ReaderResult(
             measurements=[],
             file_metadata=metadata,
-            format_name="HDF5 Custom",
+            format_name=HDF5_CUSTOM,
             success=False,
             error="Unexpected result format from legacy reader",
         )
@@ -178,7 +179,7 @@ def _read_custom_hdf5(path: Path, metadata: Dict[str, Any]) -> ReaderResult:
         return ReaderResult(
             measurements=[],
             file_metadata=metadata,
-            format_name="HDF5 Custom",
+            format_name=HDF5_CUSTOM,
             success=False,
             error=f"Failed to read custom HDF5: {str(e)}",
         )
