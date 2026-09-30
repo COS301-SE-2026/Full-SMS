@@ -1,10 +1,10 @@
 import React from 'react'
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { useHistoryRecorder } from '@/hooks/useHistoryRecorder'
-import{History} from "lucide-react";
+import{History, MessageSquare} from "lucide-react";
 import { Button } from '@/components/ui';
 
-export default function RasterToolbar({onHistoryRecorded, historyOpen, onToggleHistory}: {onHistoryRecorded: () => void; historyOpen:boolean; onToggleHistory: () => void}) {
+export default function RasterToolbar({onHistoryRecorded, historyOpen, onToggleHistory, commentsOpen, onToggleComments}: {onHistoryRecorded: () => void; historyOpen:boolean; onToggleComments: () => void; commentsOpen: boolean; onToggleHistory: () => void }) {
     const {setHeatMapColor, heatMapColor, currentUpload, currentWorkspaceId} = useHdf5Data()
     const colourmaps = ["Plasma","Viridis", "Inferno", "Hot", "Cool", "Twilight"]
     const recordHistory = useHistoryRecorder(currentWorkspaceId, currentUpload, "raster", onHistoryRecorded);
@@ -34,6 +34,13 @@ export default function RasterToolbar({onHistoryRecorded, historyOpen, onToggleH
             onClick={onToggleHistory}
             className={`ml-auto ${historyOpen ? "bg-card" : ""}`}
             leftIcon={<History size={14} />}
+            />
+
+        <Button variant="ghost" size="sm" 
+            title="View Notes"
+            onClick={onToggleComments}
+            className={`ml-auto px-2 py-0.5 min-h-0 ${commentsOpen ? "bg-card" : ""}`}
+            leftIcon={<MessageSquare size={14} />}
             />
     </div>
     )
