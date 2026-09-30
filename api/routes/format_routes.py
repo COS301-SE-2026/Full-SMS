@@ -27,6 +27,19 @@ router = APIRouter(prefix="/formats", tags=["File Formats"])
 FILE_NAME_ERROR = "File must have a filename"
 
 
+def get_safe_extension(filename: str) -> str:
+    """
+    read and validate file extension against the list of trusted extensions
+    to prevent path traversal attacks
+    """
+    clean_name = os.path.basename(filename)
+    raw_ext = os.path.splitext(clean_name)[1].lower()
+    for allowed in get_all_supported_extensions():
+        if raw_ext == allowed:
+            return allowed
+    return ".tmp"
+
+
 #sonarcloud suggestion for maintainability
 @asynccontextmanager
 async def async_named_temporary_file(suffix: str = ".tmp"):
@@ -59,12 +72,6 @@ def list_supported_formats():
 
 @router.get("/info/{format_id}")
 def get_format_details(format_id: str):
-    """
-    Get detailed information about a specific format.
-
-    Args:
-        format_id: Format identifier (e.g., "picoquant_ptu", "hdf5_custom")
-    """
     try:
         fmt = FileFormat(format_id)
         info = get_format_info(fmt)
@@ -81,9 +88,7 @@ def get_format_details(format_id: str):
 
 
 @router.post("/detect")
-async def detect_file_format(
-    file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user),
+async def detect_file_format(file: UploadFile = File(...), current_user: dict = Depends(get_current_user),
 ):
     """
     Detect the format of an uploaded file.
@@ -96,21 +101,21 @@ async def detect_file_format(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=FILE_NAME_ERROR,
         )
-
+    file_name = os.path.basename(file.filename)
     extension = os.path.splitext(file.filename)[1].lower()
 
     supported_extensions = get_all_supported_extensions()
     if extension not in supported_extensions:
         return {
             "success": False,
-            "filename": file.filename,
+            "filename": file_name,
             "format": FileFormat.UNKNOWN.value,
             "can_process": False,
             "error": f"Unsupported file extension: {extension}. "
                      f"Supported: {', '.join(supported_extensions)}",
         }
 
-    suffix = extension or ".tmp"
+    suffix = get_safe_extension(file_name)
     async with async_named_temporary_file(suffix=suffix) as tmp_file:
         content = await file.read(4096)
         await tmp_file.write_bytes(content)
@@ -144,10 +149,7 @@ async def detect_file_format(
 
 
 @router.post("/preview")
-async def preview_file(
-    file: UploadFile = File(...),
-    column_mapping: Optional[str] = Form(None),
-    current_user: dict = Depends(get_current_user),
+async def preview_file(file: UploadFile = File(...), column_mapping: Optional[str] = Form(None), current_user: dict = Depends(get_current_user),
 ):
     """
     Preview file contents without full processing.
@@ -166,6 +168,7 @@ async def preview_file(
             detail=FILE_NAME_ERROR,
         )
 
+    filename = os.path.basename(file.filename)
     # Parse column mapping if provided
     options: Dict[str, Any] = {}
     if column_mapping:
@@ -177,7 +180,7 @@ async def preview_file(
                 detail="Invalid column_mapping JSON",
             )
 
-    extension = os.path.splitext(file.filename)[1].lower() or ".tmp"
+    extension = get_safe_extension(clean_filename)
     async with async_named_temporary_file(suffix=extension) as tmp_file:
         content = await file.read()
         await tmp_file.write_bytes(content)
@@ -227,9 +230,7 @@ async def preview_file(
 
 
 @router.post("/validate")
-async def validate_file(
-    file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user),
+async def validate_file(file: UploadFile = File(...), current_user: dict = Depends(get_current_user),
 ):
     """
     Validate that a file can be processed.
@@ -301,9 +302,7 @@ async def validate_file(
 
 
 @router.post("/convert")
-async def convert_file_to_cache_format(
-    file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user),
+async def convert_file_to_cache_format(file: UploadFile = File(...),current_user: dict = Depends(get_current_user),
 ):
     """
     Read file and return measurements in cache-ready format.
@@ -316,8 +315,8 @@ async def convert_file_to_cache_format(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=FILE_NAME_ERROR,
         )
-
-    extension = os.path.splitext(file.filename)[1].lower() or ".tmp"
+    filename = os.path.basename(file.filename)
+    extension = get_safe_extension(filename=filename)
     async with async_named_temporary_file(suffix=extension) as tmp_file:
         content = await file.read()
         await tmp_file.write_bytes(content)
@@ -355,7 +354,7 @@ def _get_native_blocks(upload_id: str, current_user: dict):
     upload = hdf5_upload_service.get_upload(upload_id, user_id)
 
     if not upload:
-        raise HTTPException(status_code=404, detail="Upload not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Upload not found")
 
     suffix = Path(upload["filename"]).suffix.lower() or ".tmp"
     temp_path = download_to_temp(upload["storage_key"], suffix)
@@ -364,12 +363,12 @@ def _get_native_blocks(upload_id: str, current_user: dict):
         result = read_file(temp_path)
         if not result.success:
             raise HTTPException(
-                status_code=400,
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail=result.error or "Could not read uploaded file",
             )
         if not result.native_blocks:
             raise HTTPException(
-                status_code=400,
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Upload does not contain native data blocks",
             )
         return result.native_blocks
@@ -411,7 +410,7 @@ def get_native_block_view(
     block = next((item for item in blocks if item.id == block_id), None)
 
     if block is None:
-        raise HTTPException(status_code=404, detail="Data block not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Data block not found")
 
     if block.kind == "decay_histogram" and view == "histogram":
         step = max(1, math.ceil(block.data.size / 2000))
@@ -444,7 +443,7 @@ def get_native_block_view(
 
     if block.kind == "flim" and view == "flim_slice":
         if index < 0 or index >= block.data.shape[-1]:
-            raise HTTPException(status_code=400, detail="Slice index is out of range")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST0, detail="Slice index is out of range")
 
         image = block.data[:, :, index]
         row_step = max(1, math.ceil(image.shape[0] / 256))
@@ -460,6 +459,6 @@ def get_native_block_view(
         }
 
     raise HTTPException(
-        status_code=400,
+        status_code=status.HTTP_400_BAD_REQUEST,
         detail="View is not supported for this data block",
     )
