@@ -1,5 +1,4 @@
 from typing import List
-from api.services.workspace_service import get_supabase_admin
 from api.services.workspace_service import get_supabase_admin, remove_workspace_member
 
 
@@ -57,7 +56,7 @@ def decline_invite(notification_id:str, user_id: str) -> dict:
         supabase.table("notifications")
         .select("*")
         .eq("id", notification_id)
-        .eq("recipient_id", user_id)\
+        .eq("recipient_id", user_id)
         .single()
         .execute()
     )
@@ -69,5 +68,4 @@ def decline_invite(notification_id:str, user_id: str) -> dict:
 
     return read_status(notification_id, user_id)
 
-    return response.data[0]
 
