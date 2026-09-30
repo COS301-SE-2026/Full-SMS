@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { FolderOpen, User, Code, LogOut, Store } from "lucide-react";
+import { FolderOpen, User, Code, LogOut, Store, CircleQuestionMark } from "lucide-react";
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import { cn } from "@/lib/utils";
 import { NavItem, DashboardSidebarProps } from "@/types/dashboard";
@@ -70,6 +70,12 @@ export default function Sidebar({
           : undefined,
     },
     {
+      label: "Help & Support",
+      icon: CircleQuestionMark,
+      key: "help",
+      onClick: () => router.push("/help"),
+    },
+    {
       label: "Profile",
       icon: User,
       key: "profile",
@@ -82,7 +88,7 @@ export default function Sidebar({
   };
 
   return (
-    <aside className="flex flex-col w-[195px] shrink-0 border-r border-border bg-background">
+    <aside className="flex flex-col w-[195px] shrink-0 border-r border-border bg-background h-screen sticky top-0">
       <div className="flex flex-row justify-between items-center h-[49px] px-3.5 border-b border-border">
         <h3 className="text-foreground font-semibold">FullSMS</h3>
         <ThemeToggle toggleType="icon"/>

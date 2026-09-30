@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import HTTPException, BackgroundTasks 
 from api.controllers.export_controller import handle_export
 from api.models.export_request import ExportRequest
+from api.services.export_service import MissingAnalysisDataError
 import api.controllers.export_controller as export_controller
 
 def make_request(
@@ -138,3 +139,22 @@ def test_plot_only_selectionIsValid(tmp_path):
         export_controller.export_service.export_data = originalFunc
 
     assert response is not None
+
+
+def test_missingAnalysisData_returns422():
+    def fakeExport(request, user_id):
+        raise MissingAnalysisDataError("groups", "measurement 1")
+
+    originalF = export_controller.export_service.export_data
+    export_controller.export_service.export_data = fakeExport
+
+    try:
+        request = make_request(export_groups=True)
+
+        with pytest.raises(HTTPException) as exception:
+            handle_export(request, None, "user1")
+
+    finally:
+        export_controller.export_service.export_data = originalF
+
+    assert exception.value.status_code == 422

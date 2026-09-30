@@ -502,6 +502,9 @@ def extract_file_metadata_only(path: Path | str) -> Tuple[FileMetadata, List[dic
                 if len(sample) > 0:
                     default_channelwidth = _determine_channelwidth(sample)
 
+            channels = ["Channel 1"]
+            if "Absolute Times 2 (ns)" in meas_grp or "Micro Times 2 (ns)" in meas_grp or "Micro Times 2 (s)" in meas_grp:
+                channels.append("Channel 2")
             summaries.append({
                 "id": idx + 1,
                 "name": meas_name.replace("Particle", "Measurement"),
@@ -510,6 +513,7 @@ def extract_file_metadata_only(path: Path | str) -> Tuple[FileMetadata, List[dic
                 "channelWidth": default_channelwidth,
                 "has_spectra": _has_spectra(meas_grp),
                 "has_raster": _has_raster_scan(meas_grp),
+                "channels": channels,
             })
 
     metadata = FileMetadata(

@@ -23,7 +23,10 @@ import { OneDrivePicker } from "@/components/cloud-integration/OneDrivePicker";
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import axiosInstance from "@/lib/api/axiosInstance";
 import { getHdf5UploadStatus } from "@/services/hdf5services";
-import { DeleteIcon, TrashIcon } from "lucide-react";
+import { DeleteIcon, TrashIcon, UserPlus } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
+import FormatBadge from "@/components/fileFormat/FormatBadge";
+import { ManageMembersModal } from "@/components/dashboard/ManageMembersModal";
 
 interface ProgressTrackerProps {
   activeUpload: {
@@ -33,6 +36,69 @@ interface ProgressTrackerProps {
     progress: number;
   };
 }
+
+interface WorkspaceMemberProfile{
+  id: string;
+  email: string;
+  username: string | null;
+  role: string;
+}
+
+interface MemberProps{
+  member_ids: WorkspaceMemberProfile[];
+  owner_id: string;
+  is_owner: boolean;
+  onManageMembersClick: () => void;
+}
+
+const MAX_MEMBERS_VISIBLE = 4;
+
+const AVATAR_COLORS = [
+  {text: "text-cyan-300", ring: "ring-[#2a3040]", bg: "bg-[#1e2330]"},
+  {text: "text-purple-300", ring: "ring-[#3a2f45]", bg: "bg-[#2a2233]"},
+  {text: "text-emerald-300", ring:"ring-[#26443c]", bg: "bg-[#1b2b28]"}
+];
+
+function WorkspaceMemberBar({member_ids, owner_id, is_owner, onManageMembersClick}: MemberProps){
+  const visible_members = member_ids.slice(0, MAX_MEMBERS_VISIBLE);
+  const overflow_count = member_ids.length - visible_members.length;
+
+  const getMembersInitials = (member: WorkspaceMemberProfile) => {
+    const label = member.username || member.email || "?";
+    return label.slice(0, 2).toUpperCase();
+  };
+
+  return(
+    <div className="flex items-center gap-4 pt-3 mb-8">
+      <div className="flex -space-x-2 items-center">
+        {visible_members.map((member, index) => {
+          const setOfColors = AVATAR_COLORS[index % AVATAR_COLORS.length];
+          return(
+          <div
+            key={member.id}
+            className={`w-8 h-8 rounded-full ${setOfColors.bg} border-2 border-[#0e1015] flex items-center justify-center text-xs ring-1 ${setOfColors.ring} font-semibold ${setOfColors.text}`}
+            title={member.username || member.email}>
+              {getMembersInitials(member)}
+            </div>
+            );
+          })}
+        {overflow_count > 0 && (
+          <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-xs border-2 border-cardBg text-white">
+            +{overflow_count}
+          </div>
+        )}
+      </div>
+
+      {is_owner && (
+        <button
+          onClick={onManageMembersClick}
+          className="hover:text-cyan-300 text-cyan-400 text-sm flex items-center gap-1">
+            <UserPlus className="h-3.5 w-3.5" />
+            <span>Manage Members</span>
+          </button>
+      )}
+    </div>
+  )}
 
 function ProgressTracker({ activeUpload }: ProgressTrackerProps) {
   return (
@@ -57,9 +123,11 @@ export default function WorkspacePage() {
   const router = useRouter();
   const { currentWorkspaceId, setCurrentUpload } = useHdf5Data();
 
+  const [displayManageModal, setDisplayManageModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   console.log(currentWorkspaceId);
   const [data, setData] = useState<Workspace>();
+  const [membersList, setMembersList] = useState<WorkspaceMemberProfile[]>([]);
   const [uploads, setUploads] = useState<UploadRecord[]>();
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
   const { showPicker, setShowPicker } = useAuth();
@@ -75,29 +143,43 @@ export default function WorkspacePage() {
     router.push("/analysisHub");
   };
 
-  useEffect(() => {
-    if (currentWorkspaceId) {
-      const fetchWorkspace = async () => {
-        const workspaceData =
-          await workspaceService.getWorkspace(currentWorkspaceId);
-        if (workspaceData.success) {
-          setData(workspaceData.workspace);
-          setIsLoading(false);
-        }
-        console.log(workspaceData);
-      };
-
-      const fetchWorspaceUploads = async () => {
-        const uploads =
-          await workspaceService.getWorkspaceUploads(currentWorkspaceId);
-        if (uploads.success) {
-          console.log(uploads);
-          setUploads(uploads.uploads);
-        }
-      };
-      fetchWorkspace();
-      fetchWorspaceUploads();
+  const fetchWorkspaceUploads = async () => {
+    if (!currentWorkspaceId) return;
+    const uploads =
+      await workspaceService.getWorkspaceUploads(currentWorkspaceId);
+    if (uploads.success) {
+      setUploads(uploads.uploads);
     }
+  };
+
+  const fetchWorkspaceMembers = async () =>{
+    if(!currentWorkspaceId) return;
+    const membersList = await workspaceService.getWorkspaceMembers(currentWorkspaceId);
+    if(membersList.success){
+      setMembersList(membersList.members);
+    }
+  }
+  useEffect(() => {
+    if (!currentWorkspaceId) return;
+
+    const loadData = async () => {
+      const workspaceData =
+        await workspaceService.getWorkspace(currentWorkspaceId);
+      if (workspaceData.success) {
+        setData(workspaceData.workspace);
+        setIsLoading(false);
+      }
+
+      const uploadsData =
+        await workspaceService.getWorkspaceUploads(currentWorkspaceId);
+      if (uploadsData.success) {
+        setUploads(uploadsData.uploads);
+      }
+
+      await fetchWorkspaceMembers();
+    };
+
+    loadData();
   }, [currentWorkspaceId]);
 
   const handleOneDriveFileSelection = async (
@@ -238,9 +320,17 @@ export default function WorkspacePage() {
       <Sidebar />
       <Modal
         open={fileUploadModalOpen}
-        onClose={() => setFileUploadModalOpen(false)}
+        onClose={() => {
+          setFileUploadModalOpen(false);
+          fetchWorkspaceUploads();
+        }}
       >
-        <UploadPage />
+        <UploadPage
+          onComplete={() => {
+            setFileUploadModalOpen(false);
+            fetchWorkspaceUploads();
+          }}
+        />
       </Modal>
       <Modal open={showPicker} onClose={() => setShowPicker(false)}>
         <OneDrivePicker
@@ -248,73 +338,116 @@ export default function WorkspacePage() {
           onCancel={() => setShowPicker(false)}
         />
       </Modal>
-      <div className="flex justify-center">
-        {isLoading && data ? (
-          <Loader centered={true} />
-        ) : (
+      <div className="flex justify-center w-full h-full">
+        {isLoading ? (
           <div className="p-16 h-[vh] overflow-y-auto">
-            <h1 className="font-bold">{data?.name?.toUpperCase()}</h1>
-            <p>{data?.description}</p>
-            <Badge variant="success" className="mt-2">
-              {data?.status}
-            </Badge>
-
-            <div className="mt-4 flex justify-between h-min">
-              <h2>Workspace Uploads</h2>
-              <div className="flex gap-2">
-                <Button
-                  leftIcon={<GrOnedrive size={24} />}
-                  onClick={OneDriveLogin}
-                >
-                  OneDrive
-                </Button>
-                <Button
-                  variant="outline"
-                  className=""
-                  size="sm"
-                  onClick={() => {
-                    setFileUploadModalOpen(true);
-                  }}
-                >
-                  Upload File
-                </Button>
+            <div className="h-8 w-36 mb-4 rounded bg-foreground/10 animate-pulse" />
+            <div className="animate-pulse">
+              <div className="h-6 w-56 rounded bg-foreground/10" />
+              <div className="mt-2 h-4 w-80 max-w-full rounded bg-foreground/10" />
+              <div className="mt-2 h-5 w-16 rounded bg-foreground/10" />
+              <div className="mt-4 flex justify-between items-center h-min">
+                <div className="h-5 w-44 rounded bg-foreground/10" />
+                <div className="flex gap-2 items-center">
+                  <div className="h-11 w-32 rounded bg-foreground/10" />
+                  <div className="h-7 w-24 rounded bg-foreground/10" />
+                </div>
               </div>
             </div>
-            <div>
-              {activeUpload && <ProgressTracker activeUpload={activeUpload} />}
+            <div className="mt-6 space-y-4 animate-pulse">
+              <div className="h-20 w-[70vw] rounded-lg border border-border/40 bg-card/60" />
+              <div className="h-20 w-[70vw] rounded-lg border border-border/40 bg-card/60" />
             </div>
-            {!uploads || uploads.length === 0 ? (
-              <div>
-                <p>No Uploads yet. Load your first h5/hdf5 file.</p>
-              </div>
-            ) : (
-              uploads.map((upload, index) => (
-                <Card
-                  key={upload.id || index}
-                  className="upload-item w-[70vw] mt-4 flex flex-row justify-between items-center"
-                  onClick={() => {
-                    handleUploadOpen(upload.id);
-                  }}
-                >
-                  <div>
-                    <CardHeader className="font-bold">
-                      {upload.filename}
-                    </CardHeader>
-                    <CardContent>
-                      {(upload.size_bytes / (1024 * 1024)).toPrecision(2)} MB
-                    </CardContent>
-                  </div>
-                  <Button
-                    variant={"ghost"}
-                    className="mr-10 hover:bg-destructive/10"
-                    onClick={(e) => handleDeleteUpload(e, upload.id)}
-                  >
-                    <TrashIcon className="text-destructive" />
-                  </Button>
-                </Card>
-              ))
-            )}
           </div>
+        ) : (
+            <div className="p-16 h-[vh] overflow-y-auto w-full">
+              <BackButton
+                href="/dashboard"
+                label="Back to Workspaces"
+                className="mb-4"
+              />
+              <div>
+                <h1 className="font-bold">{data?.name?.toUpperCase()}</h1>
+                <p>{data?.description}</p>
+                <Badge variant="success" className="mt-2">
+                  {data?.status}
+                </Badge>
+
+                <WorkspaceMemberBar 
+                  member_ids={membersList}
+                  owner_id = {data?.user_id ?? ""}
+                  is_owner = {data?.is_owner ?? false}
+                  onManageMembersClick={() => setDisplayManageModal(true)}/>
+
+                <ManageMembersModal 
+                  open={displayManageModal}
+                  onClose={() => setDisplayManageModal(false)}
+                  workspaceId={currentWorkspaceId ?? ""}
+                  ownerId={data?.user_id ?? ""}
+                  members={membersList}
+                  onMembersChanged={fetchWorkspaceMembers}/>
+
+                <div className="mt-4 flex justify-between h-min">
+                  <h2>Workspace Uploads</h2>
+                  <div className="flex gap-2">
+                    <Button
+                      leftIcon={<GrOnedrive size={24} />}
+                      onClick={OneDriveLogin}
+                    >
+                      OneDrive
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className=""
+                      size="sm"
+                      onClick={() => {
+                        setFileUploadModalOpen(true);
+                      }}
+                    >
+                      Upload File
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                {activeUpload && (
+                  <ProgressTracker activeUpload={activeUpload} />
+                )}
+              </div>
+              {!uploads || uploads.length === 0 ? (
+                <div>
+                  <p>No Uploads yet. Load your first h5/hdf5 file.</p>
+                </div>
+              ) : (
+                uploads.map((upload, index) => (
+                  <Card
+                    key={upload.id || index}
+                    className="upload-item w-full mt-4 flex flex-row justify-between items-center cursor-pointer hover:border-primary hover:scale-[1.02]"
+                    onClick={() => {
+                      handleUploadOpen(upload.id);
+                    }}
+                  >
+                    <div className=" p-4">
+                      <FormatBadge name={upload.filename}/>
+                      <CardHeader className="font-bold">
+                        {upload.filename}
+                      </CardHeader>
+                      <CardContent>
+                        {(upload.size_bytes / (1024 * 1024)).toPrecision(2)} MB
+                      </CardContent>
+                    </div>
+                    <Button
+                      variant={"ghost"}
+                      className="mr-10 hover:bg-destructive/10"
+                      onClick={(e) => handleDeleteUpload(e, upload.id)}
+                    >
+                      <TrashIcon className="text-destructive" />
+                    </Button>
+                  </Card>
+                ))
+              )}
+            </div>
         )}
       </div>
     </div>

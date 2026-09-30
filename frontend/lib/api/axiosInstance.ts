@@ -2,7 +2,7 @@ import axios from 'axios'
 import { supabase } from '@/lib/supabase/supabaseConfig'
 
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
   timeout: 120000,
   headers: {
     'Content-Type': 'application/json',

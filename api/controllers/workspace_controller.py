@@ -8,10 +8,15 @@ from api.services.workspace_service import (
     delete_workspace,
     archive_workspace,
     unarchive_workspace,
-    delete_workspace_upload
+    delete_workspace_upload,
+    remove_workspace_member,
+    get_workspace_members,
+    add_workspace_member
 )
 from api.models.workspace import WorkspaceCreate, WorkspaceUpdate
-
+from api.services.profile_service import get_user_by_email
+from api.services.notification_service import add_notification
+from api.services.profile_service import get_user_by_email, get_user_profile
 
 def get_workspaces_controller(user_id: str):
     try:
@@ -103,7 +108,7 @@ def unarchive_workspace_controller(workspace_id: str, user_id: str) -> dict:
 def get_workspace_uploads_controller(workspace_id: str, user_id: str) -> dict:
     try:
         response = get_workspace_uploads(workspace_id=workspace_id, user_id=user_id)
-        return {"success": True, "message": "Worspace uploads found successfullt", "uploads": response}
+        return {"success": True, "message": "Workspace uploads found successfully", "uploads": response}
     except ValueError as valerror:
         raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND, detail=str(valerror))
@@ -119,3 +124,51 @@ def delete_workspace_upload_controller(workspace_id: str, upload_id: str, user_i
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(valerror))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+def remove_workspace_member_controller(workspace_id: str, user_id: str, member_id: str) -> dict:
+    try:
+        response = remove_workspace_member(workspace_id, user_id, member_id)
+        return {"success": True, "message": "Workspace member has been removed successfully", "workspace": response}
+    except ValueError as valerror:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(valerror)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
+
+def get_workspace_members_controller(workspace_id: str, user_id: str) -> dict:
+    try:
+        members_list = get_workspace_members(workspace_id, user_id)
+        return {"success": True, "message": "Workspace members retrieved successfully", "members": members_list}
+    except ValueError as valerror:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(valerror)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
+
+def add_workspace_member_controller(workspace_id: str, user_id: str, email:str) -> dict:
+    try:
+        member_profile = get_user_by_email(email)
+        response = add_workspace_member(workspace_id, user_id, member_profile["id"])
+
+        if not response.get("already_member"):
+            inviter = get_user_profile(user_id)
+            inviter_name = inviter.get("username") or inviter.get("email")
+            add_notification(
+                workspace_id,
+                member_profile["id"],
+                "invite",
+                f"{inviter_name} added you to {response.get('name', 'a workspace')}",
+            )
+
+        return {"success": True, "message": "Member added successfully", "workspace": response}
+    except ValueError as valerror:
+        raise HTTPException( status_code=status.HTTP_404_NOT_FOUND, detail=str(valerror))
+    except Exception as e:
+        raise HTTPException( status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    

@@ -1,0 +1,2078 @@
+
+openapi: 3.1.0
+info:
+  title: Full-SMS API
+  description: Backend API for Single-Molecule Spectroscopy Analysis Web Platform
+  version: 1.0.0
+paths:
+  /api/py/auth/verify-token:
+    post:
+      tags:
+        - Authentication
+      summary: Verify Supabase JWT Token
+      description: Verify token sent from frontend (Supabase)
+      operationId: verify_token_endpoint_api_py_auth_verify_token_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+        - HTTPBearer: []
+  /api/py/hdf5/uploads/init:
+    post:
+      tags:
+        - hdf5
+      summary: Init Upload
+      operationId: init_upload_api_py_hdf5_uploads_init_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: true
+              type: object
+              title: Payload
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/py/hdf5/uploads/{upload_id}/complete:
+    post:
+      tags:
+        - hdf5
+      summary: Complete Upload
+      operationId: complete_upload_api_py_hdf5_uploads__upload_id__complete_post
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: upload_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Upload Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/hdf5/uploads/{upload_id}:
+    get:
+      tags:
+        - hdf5
+      summary: Upload Status
+      operationId: upload_status_api_py_hdf5_uploads__upload_id__get
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: upload_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Upload Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/hdf5/uploads/{upload_id}/result:
+    get:
+      tags:
+        - hdf5
+      summary: Upload Result
+      operationId: upload_result_api_py_hdf5_uploads__upload_id__result_get
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: upload_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Upload Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/hdf5/user-uploads:
+    get:
+      tags:
+        - hdf5
+      summary: Get User Uploads
+      operationId: get_user_uploads_api_py_hdf5_user_uploads_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+        - HTTPBearer: []
+  /api/py/hdf5/read:
+    post:
+      tags:
+        - hdf5
+      summary: Read
+      operationId: read_api_py_hdf5_read_post
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_read_api_py_hdf5_read_post'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/profile/me:
+    get:
+      tags:
+        - Profile
+      summary: Get current user profile
+      operationId: get_my_profile_api_py_profile_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+        - HTTPBearer: []
+    put:
+      tags:
+        - Profile
+      summary: Update current user profile
+      operationId: update_my_profile_api_py_profile_me_put
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/py/upload/:
+    post:
+      tags:
+        - upload
+      summary: Upload File
+      operationId: upload_file_api_py_upload__post
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_upload_file_api_py_upload__post'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/sessions/:
+    post:
+      tags:
+        - sessions
+      summary: Save Session
+      operationId: save_session_api_py_sessions__post
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+            title: User Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+        - sessions
+      summary: Get Sessions
+      operationId: get_sessions_api_py_sessions__get
+      parameters:
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+            title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/sessions/{session_id}:
+    get:
+      tags:
+        - sessions
+      summary: Get Session By Id
+      operationId: get_session_by_id_api_py_sessions__session_id__get
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Session Id
+        - name: user_id
+          in: query
+          required: true
+          schema:
+            type: string
+            title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/workspaces:
+    get:
+      tags:
+        - Workspaces
+      summary: Get all workspaces for the current user
+      operationId: get_workspaces_api_py_workspaces_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - Workspaces
+      summary: Create a new workspace
+      operationId: create_workspace_api_py_workspaces_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/py/workspaces/{workspace_id}:
+    get:
+      tags:
+        - Workspaces
+      summary: Get a specific workspace by ID
+      operationId: get_workspace_api_py_workspaces__workspace_id__get
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Workspace Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+        - Workspaces
+      summary: Delete a workspace
+      operationId: delete_workspace_api_py_workspaces__workspace_id__delete
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Workspace Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      tags:
+        - Workspaces
+      summary: Update a workspace
+      operationId: update_workspace_api_py_workspaces__workspace_id__put
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Workspace Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/workspaces/{workspace_id}/archive:
+    patch:
+      tags:
+        - Workspaces
+      summary: Archive a workspace
+      operationId: archive_workspace_api_py_workspaces__workspace_id__archive_patch
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Workspace Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/workspaces/{workspace_id}/unarchive:
+    patch:
+      tags:
+        - Workspaces
+      summary: Unarchive a workspace
+      operationId: unarchive_workspace_api_py_workspaces__workspace_id__unarchive_patch
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Workspace Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/workspaces/{workspace_id}/uploads:
+    patch:
+      tags:
+        - Workspaces
+      summary: Get workspace uploads
+      operationId: get_worspace_uploads_api_py_workspaces__workspace_id__uploads_patch
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: workspace_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Workspace Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/analysis/intensity:
+    post:
+      tags:
+        - Analysis
+      summary: Get Intensity Trace
+      description: Generate an intensity trace.
+      operationId: get_intensity_trace_api_py_analysis_intensity_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntensityReq'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntensityRes'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/analysis/change-point-analysis:
+    post:
+      tags:
+        - Analysis
+      summary: Get Change Points
+      operationId: get_change_points_api_py_analysis_change_point_analysis_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CpaReq'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/analysis/grouping/{task_id}:
+    get:
+      tags:
+        - Analysis
+      summary: Get Clustering Status
+      operationId: get_clustering_status_api_py_analysis_grouping__task_id__get
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Task Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/analysis/grouping:
+    post:
+      tags:
+        - Analysis
+      summary: Init Clustering
+      operationId: init_clustering_api_py_analysis_grouping_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClusteringReq'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/analysis/raster-scan:
+    post:
+      tags:
+        - Analysis
+      summary: Get Raster Scan
+      operationId: get_raster_scan_api_py_analysis_raster_scan_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RasterScanReq'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/analysis/spectra:
+    post:
+      tags:
+        - Analysis
+      summary: Get Spectra Data
+      operationId: get_spectra_data_api_py_analysis_spectra_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RasterScanReq'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/analysis/lifetime/fit:
+    post:
+      tags:
+        - Analysis
+      summary: Get Lifetime
+      operationId: get_lifetime_api_py_analysis_lifetime_fit_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LifetimeReq'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/analysis/lifetime:
+    post:
+      tags:
+        - Analysis
+      summary: Get Lifetime
+      operationId: get_lifetime_api_py_analysis_lifetime_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LifetimePayload'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/plugins/marketplace/{plugin_id}/submit:
+    post:
+      tags:
+        - Plugin Marketplace
+      summary: Submit a plugin for marketplace review
+      operationId: >-
+        submit_marketplace_plugin_api_py_plugins_marketplace__plugin_id__submit_post
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: plugin_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Plugin Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/plugins/marketplace/{plugin_id}/cancel-submission:
+    post:
+      tags:
+        - Plugin Marketplace
+      summary: Cancel a plugin submission for marketplace review
+      operationId: >-
+        cancel_plugin_submission_api_py_plugins_marketplace__plugin_id__cancel_submission_post
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: plugin_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Plugin Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/plugins/marketplace:
+    get:
+      tags:
+        - Plugin Marketplace
+      summary: Get all plugins that were approved for the marketplace
+      operationId: get_marketplace_plugins_api_py_plugins_marketplace_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/py/plugins/marketplace/pending:
+    get:
+      tags:
+        - Plugin Marketplace
+      summary: get plugins that the admin has to review
+      operationId: get_plugins_in_review_api_py_plugins_marketplace_pending_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+        - HTTPBearer: []
+  /api/py/plugins/marketplace/{plugin_id}:
+    get:
+      tags:
+        - Plugin Marketplace
+      summary: Get a specific plugin from the marketplace
+      operationId: get_marketplace_plugin_by_id_api_py_plugins_marketplace__plugin_id__get
+      parameters:
+        - name: plugin_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Plugin Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/plugins/marketplace/{plugin_id}/install:
+    post:
+      tags:
+        - Plugin Marketplace
+      summary: install a plugin from the marketplace
+      operationId: >-
+        install_marketplace_plugin_api_py_plugins_marketplace__plugin_id__install_post
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: plugin_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Plugin Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/plugins/marketplace/{plugin_id}/approve:
+    post:
+      tags:
+        - Plugin Marketplace
+      summary: approve a plugin for the marketplace
+      operationId: approve_plugin_api_py_plugins_marketplace__plugin_id__approve_post
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: plugin_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Plugin Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovePluginRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/plugins/marketplace/{plugin_id}/reject:
+    post:
+      tags:
+        - Plugin Marketplace
+      summary: reject a plugin for the marketplace
+      operationId: reject_plugin_api_py_plugins_marketplace__plugin_id__reject_post
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: plugin_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Plugin Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectPluginRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/plugins/marketplace/{plugin_id}/submission-details:
+    get:
+      tags:
+        - Plugin Marketplace
+      summary: Get the submission details of a plugin
+      operationId: >-
+        get_plugin_submission_details_api_py_plugins_marketplace__plugin_id__submission_details_get
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: plugin_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Plugin Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/plugins:
+    get:
+      tags:
+        - Plugins
+      summary: Get all plugins for the current user
+      operationId: get_plugins_api_py_plugins_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+        - HTTPBearer: []
+    post:
+      tags:
+        - Plugins
+      summary: Create a new plugin
+      operationId: create_plugin_api_py_plugins_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PluginCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/py/plugins/{plugin_id}:
+    get:
+      tags:
+        - Plugins
+      summary: Get a specific plugin by id
+      operationId: get_plugin_api_py_plugins__plugin_id__get
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: plugin_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Plugin Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      tags:
+        - Plugins
+      summary: Update a plugin
+      operationId: update_plugin_api_py_plugins__plugin_id__put
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: plugin_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Plugin Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PluginUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+        - Plugins
+      summary: Delete a plugin
+      operationId: delete_plugin_api_py_plugins__plugin_id__delete
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: plugin_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Plugin Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/plugins/{plugin_id}/toggle:
+    patch:
+      tags:
+        - Plugins
+      summary: Toggle a plugin's active status
+      operationId: toggle_plugin_api_py_plugins__plugin_id__toggle_patch
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: plugin_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Plugin Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PluginToggle'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/plugins/{plugin_id}/execute:
+    post:
+      tags:
+        - Plugins
+      summary: Execute a plugin
+      operationId: execute_plugin_api_py_plugins__plugin_id__execute_post
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: plugin_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Plugin Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PluginExecute'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/plugins/{plugin_id}/update-from-marketplace:
+    patch:
+      tags:
+        - Plugins
+      summary: Update installed plugin from marketplace
+      operationId: >-
+        update_installed_plugin_api_py_plugins__plugin_id__update_from_marketplace_patch
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: plugin_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Plugin Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/support/:
+    post:
+      tags:
+        - support
+      summary: Support
+      operationId: support_api_py_support__post
+      parameters:
+        - name: user_email
+          in: query
+          required: true
+          schema:
+            type: string
+            title: User Email
+        - name: message
+          in: query
+          required: true
+          schema:
+            type: string
+            title: Message
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/py/export/:
+    post:
+      tags:
+        - export
+      summary: Export Data
+      operationId: export_data_api_py_export__post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+        - HTTPBearer: []
+  /api/py/health:
+    get:
+      tags:
+        - Health Check
+      summary: Health Check
+      description: Health check endpoint to verify that the API is running.
+      operationId: health_check_api_py_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /:
+    get:
+      tags:
+        - Root
+      summary: Root
+      description: Root endpoint - redirects to documentation
+      operationId: root__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /read:
+    get:
+      tags:
+        - HDF5 Reading
+      summary: Read Hdf5
+      description: Endpoint for reading HDF5 files
+      operationId: read_hdf5_read_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+components:
+  schemas:
+    ApprovePluginRequest:
+      properties:
+        feedback:
+          anyOf:
+            - type: string
+              minLength: 10
+            - type: 'null'
+          title: Feedback
+      type: object
+      title: ApprovePluginRequest
+    Body_read_api_py_hdf5_read_post:
+      properties:
+        file:
+          type: string
+          format: binary
+          title: File
+      type: object
+      required:
+        - file
+      title: Body_read_api_py_hdf5_read_post
+    Body_upload_file_api_py_upload__post:
+      properties:
+        file:
+          type: string
+          format: binary
+          title: File
+      type: object
+      required:
+        - file
+      title: Body_upload_file_api_py_upload__post
+    ClusteringReq:
+      properties:
+        levels:
+          items:
+            $ref: '#/components/schemas/LevelData'
+          type: array
+          title: Levels
+      type: object
+      required:
+        - levels
+      title: ClusteringReq
+    CpaReq:
+      properties:
+        upload_id:
+          type: string
+          title: Upload Id
+        measurement_id:
+          type: string
+          title: Measurement Id
+        confidence:
+          type: integer
+          title: Confidence
+      type: object
+      required:
+        - upload_id
+        - measurement_id
+        - confidence
+      title: CpaReq
+    ExportFormat:
+      type: string
+      enum:
+        - csv
+        - parquet
+        - xlsx
+        - json
+      title: ExportFormat
+      description: Supported export formats.
+    ExportRequest:
+      properties:
+        upload_id:
+          type: string
+          title: Upload Id
+        selections:
+          items:
+            $ref: '#/components/schemas/Selection'
+          type: array
+          title: Selections
+        export_levels:
+          type: boolean
+          title: Export Levels
+          default: false
+        export_groups:
+          type: boolean
+          title: Export Groups
+          default: false
+        export_intensity:
+          type: boolean
+          title: Export Intensity
+          default: false
+        format:
+          $ref: '#/components/schemas/ExportFormat'
+          default: csv
+        bin_size_ms:
+          type: number
+          title: Bin Size Ms
+          default: 10
+        plot_format:
+          $ref: '#/components/schemas/PlotFormat'
+          default: pdf
+        plot_dpi:
+          type: integer
+          title: Plot Dpi
+          default: 150
+        plot_intensity:
+          type: boolean
+          title: Plot Intensity
+          default: false
+        plotIntensity_levels:
+          type: boolean
+          title: Plotintensity Levels
+          default: false
+        plotIntensity_groups:
+          type: boolean
+          title: Plotintensity Groups
+          default: false
+        plot_bic:
+          type: boolean
+          title: Plot Bic
+          default: false
+        use_roi:
+          type: boolean
+          title: Use Roi
+          default: false
+      type: object
+      required:
+        - upload_id
+        - selections
+      title: ExportRequest
+    FitSettings:
+      properties:
+        use_moving_avg:
+          type: boolean
+          title: Use Moving Avg
+          default: true
+        moving_avg_window:
+          type: integer
+          title: Moving Avg Window
+          default: 10
+        start_percent:
+          type: number
+          title: Start Percent
+          default: 80
+        end_multiple:
+          type: number
+          title: End Multiple
+          default: 20
+        end_percent:
+          type: number
+          title: End Percent
+          default: 1
+        minimum_decay_window_ns:
+          type: number
+          title: Minimum Decay Window Ns
+          default: 2
+        bg_percent:
+          type: number
+          title: Bg Percent
+          default: 5
+      type: object
+      title: FitSettings
+      description: |-
+        Configuration settings for lifetime fitting.
+
+        Attributes:
+            use_moving_avg: Whether to use moving average smoothing for boundary detection.
+            moving_avg_window: Window size for moving average in channels.
+            start_percent: Percentage of max for automatic start detection.
+            end_multiple: Multiple of background for automatic end detection.
+            end_percent: Percentage of max for automatic end detection.
+            minimum_decay_window_ns: Minimum decay window in nanoseconds.
+            bg_percent: Maximum background as percentage of max.
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    IntensityReq:
+      properties:
+        upload_id:
+          type: string
+          title: Upload Id
+        measurement_id:
+          type: string
+          title: Measurement Id
+        bin_size_ms:
+          type: number
+          title: Bin Size Ms
+      type: object
+      required:
+        - upload_id
+        - measurement_id
+        - bin_size_ms
+      title: IntensityReq
+    IntensityRes:
+      properties:
+        time_bins:
+          items:
+            type: number
+          type: array
+          title: Time Bins
+        counts:
+          items:
+            type: integer
+          type: array
+          title: Counts
+        intensity_cps:
+          items:
+            type: number
+          type: array
+          title: Intensity Cps
+      type: object
+      required:
+        - time_bins
+        - counts
+        - intensity_cps
+      title: IntensityRes
+    LevelData:
+      properties:
+        start_index:
+          type: integer
+          title: Start Index
+        end_index:
+          type: integer
+          title: End Index
+        start_time_ns:
+          type: integer
+          title: Start Time Ns
+        end_time_ns:
+          type: integer
+          title: End Time Ns
+        num_photons:
+          type: integer
+          title: Num Photons
+        intensity_cps:
+          type: number
+          title: Intensity Cps
+        group_id:
+          anyOf:
+            - type: integer
+            - type: 'null'
+          title: Group Id
+      type: object
+      required:
+        - start_index
+        - end_index
+        - start_time_ns
+        - end_time_ns
+        - num_photons
+        - intensity_cps
+      title: LevelData
+      description: |-
+        A single intensity level detected by change point analysis.
+
+        A level represents a period of constant intensity within a measurement's
+        photon trace. Levels are the output of change point analysis (CPA).
+
+        Attributes:
+            start_index: First photon index (inclusive) in this level.
+            end_index: Last photon index (inclusive) in this level.
+            start_time_ns: Absolute time of the first photon in nanoseconds.
+            end_time_ns: Absolute time of the last photon in nanoseconds.
+            num_photons: Number of photons in this level.
+            intensity_cps: Intensity in counts per second.
+            group_id: Optional group assignment from clustering.
+    LifetimePayload:
+      properties:
+        upload_id:
+          type: string
+          title: Upload Id
+        measurement_id:
+          type: string
+          title: Measurement Id
+        bin_size_ms:
+          type: number
+          title: Bin Size Ms
+      type: object
+      required:
+        - upload_id
+        - measurement_id
+        - bin_size_ms
+      title: LifetimePayload
+    LifetimeReq:
+      properties:
+        upload_id:
+          type: string
+          title: Upload Id
+        measurement_id:
+          type: string
+          title: Measurement Id
+        times:
+          items:
+            type: number
+          type: array
+          title: Times
+        counts:
+          items:
+            type: integer
+          type: array
+          title: Counts
+        channelwidth:
+          anyOf:
+            - type: number
+            - type: 'null'
+          title: Channelwidth
+        irf:
+          anyOf:
+            - items:
+                type: number
+              type: array
+            - type: 'null'
+          title: Irf
+        num_exponentials:
+          type: integer
+          title: Num Exponentials
+          default: 1
+        tau_init:
+          anyOf:
+            - type: number
+            - items:
+                type: number
+              type: array
+            - type: 'null'
+          title: Tau Init
+        tau_bounds:
+          anyOf:
+            - prefixItems:
+                - type: number
+                - type: number
+              type: array
+              maxItems: 2
+              minItems: 2
+            - type: 'null'
+          title: Tau Bounds
+        amp_init:
+          anyOf:
+            - items:
+                type: number
+              type: array
+            - type: 'null'
+          title: Amp Init
+        amp_bounds:
+          anyOf:
+            - prefixItems:
+                - type: number
+                - type: number
+              type: array
+              maxItems: 2
+              minItems: 2
+            - type: 'null'
+          title: Amp Bounds
+        shift_init:
+          type: number
+          title: Shift Init
+          default: 0
+        shift_bounds:
+          anyOf:
+            - prefixItems:
+                - type: number
+                - type: number
+              type: array
+              maxItems: 2
+              minItems: 2
+            - type: 'null'
+          title: Shift Bounds
+        start:
+          anyOf:
+            - type: integer
+            - type: 'null'
+          title: Start
+        end:
+          anyOf:
+            - type: integer
+            - type: 'null'
+          title: End
+        autostart:
+          $ref: '#/components/schemas/StartpointMode'
+          default: Manual
+        autoend:
+          type: boolean
+          title: Autoend
+          default: false
+        background:
+          anyOf:
+            - type: number
+            - type: 'null'
+          title: Background
+        irf_background:
+          anyOf:
+            - type: number
+            - type: 'null'
+          title: Irf Background
+        settings:
+          anyOf:
+            - $ref: '#/components/schemas/FitSettings'
+            - type: 'null'
+        fit_irf_fwhm:
+          type: boolean
+          title: Fit Irf Fwhm
+          default: false
+        irf_fwhm_init:
+          anyOf:
+            - type: number
+            - type: 'null'
+          title: Irf Fwhm Init
+        irf_fwhm_bounds:
+          anyOf:
+            - prefixItems:
+                - type: number
+                - type: number
+              type: array
+              maxItems: 2
+              minItems: 2
+            - type: 'null'
+          title: Irf Fwhm Bounds
+      type: object
+      required:
+        - upload_id
+        - measurement_id
+        - times
+        - counts
+      title: LifetimeReq
+    MeasurementData:
+      properties:
+        microtimes:
+          items:
+            type: number
+          type: array
+          title: Microtimes
+        abstimes:
+          items:
+            type: number
+          type: array
+          title: Abstimes
+        channel:
+          anyOf:
+            - type: integer
+            - type: 'null'
+          title: Channel
+        metadata:
+          anyOf:
+            - additionalProperties: true
+              type: object
+            - type: 'null'
+          title: Metadata
+      type: object
+      required:
+        - microtimes
+        - abstimes
+      title: MeasurementData
+    PlotFormat:
+      type: string
+      enum:
+        - png
+        - pdf
+        - svg
+      title: PlotFormat
+      description: Supported plot export formats.
+    PluginConfig:
+      properties:
+        parameters:
+          items:
+            $ref: '#/components/schemas/PluginParameter'
+          type: array
+          title: Parameters
+        outputs:
+          items:
+            $ref: '#/components/schemas/PluginOutput'
+          type: array
+          minItems: 1
+          title: Outputs
+        requiredPackages:
+          items:
+            type: string
+          type: array
+          title: Requiredpackages
+      type: object
+      required:
+        - outputs
+      title: PluginConfig
+    PluginCreate:
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Name
+        description:
+          anyOf:
+            - type: string
+              maxLength: 1000
+            - type: 'null'
+          title: Description
+        version:
+          type: string
+          maxLength: 50
+          title: Version
+          default: 1.0.0
+        config:
+          $ref: '#/components/schemas/PluginConfig'
+        script:
+          type: string
+          minLength: 1
+          title: Script
+      type: object
+      required:
+        - name
+        - config
+        - script
+      title: PluginCreate
+    PluginExecute:
+      properties:
+        workspace_id:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Workspace Id
+        measurement_id:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Measurement Id
+        parameters:
+          additionalProperties: true
+          type: object
+          title: Parameters
+        measurement_data:
+          anyOf:
+            - $ref: '#/components/schemas/MeasurementData'
+            - type: 'null'
+        upload_id:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Upload Id
+      type: object
+      title: PluginExecute
+    PluginOutput:
+      properties:
+        id:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Id
+        label:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Label
+        type:
+          type: string
+          pattern: ^(plot|histogram|table|value|heatmap)$
+          title: Type
+      type: object
+      required:
+        - id
+        - label
+        - type
+      title: PluginOutput
+    PluginParameter:
+      properties:
+        id:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Id
+        label:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Label
+        type:
+          type: string
+          pattern: ^(number|text|select|checkbox|range)$
+          title: Type
+        default:
+          anyOf:
+            - {}
+            - type: 'null'
+          title: Default
+        min:
+          anyOf:
+            - type: number
+            - type: 'null'
+          title: Min
+        max:
+          anyOf:
+            - type: number
+            - type: 'null'
+          title: Max
+        step:
+          anyOf:
+            - type: number
+            - type: 'null'
+          title: Step
+        options:
+          anyOf:
+            - items:
+                type: string
+              type: array
+            - type: 'null'
+          title: Options
+      type: object
+      required:
+        - id
+        - label
+        - type
+      title: PluginParameter
+    PluginToggle:
+      properties:
+        enabled:
+          type: boolean
+          title: Enabled
+      type: object
+      required:
+        - enabled
+      title: PluginToggle
+    PluginUpdate:
+      properties:
+        name:
+          anyOf:
+            - type: string
+              maxLength: 100
+              minLength: 1
+            - type: 'null'
+          title: Name
+        description:
+          anyOf:
+            - type: string
+              maxLength: 1000
+              minLength: 1
+            - type: 'null'
+          title: Description
+        version:
+          anyOf:
+            - type: string
+              maxLength: 50
+            - type: 'null'
+          title: Version
+        config:
+          anyOf:
+            - $ref: '#/components/schemas/PluginConfig'
+            - type: 'null'
+        script:
+          anyOf:
+            - type: string
+              minLength: 1
+            - type: 'null'
+          title: Script
+      type: object
+      title: PluginUpdate
+    RasterScanReq:
+      properties:
+        upload_id:
+          type: string
+          title: Upload Id
+        measurement_id:
+          type: string
+          title: Measurement Id
+      type: object
+      required:
+        - upload_id
+        - measurement_id
+      title: RasterScanReq
+    RejectPluginRequest:
+      properties:
+        feedback:
+          type: string
+          minLength: 10
+          title: Feedback
+      type: object
+      required:
+        - feedback
+      title: RejectPluginRequest
+    Selection:
+      properties:
+        measurement_id:
+          type: string
+          title: Measurement Id
+        channel:
+          type: integer
+          title: Channel
+          default: 1
+      type: object
+      required:
+        - measurement_id
+      title: Selection
+    SessionCreate:
+      properties:
+        name:
+          type: string
+          title: Name
+        dataset_ref:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Dataset Ref
+        parameters:
+          anyOf:
+            - additionalProperties: true
+              type: object
+            - type: 'null'
+          title: Parameters
+        results:
+          anyOf:
+            - additionalProperties: true
+              type: object
+            - type: 'null'
+          title: Results
+        dataset_name:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Dataset Name
+      type: object
+      required:
+        - name
+      title: SessionCreate
+    StartpointMode:
+      type: string
+      enum:
+        - Manual
+        - (Close to) max
+        - Rise middle
+        - Rise start
+        - Safe rise start
+      title: StartpointMode
+      description: Mode for automatic startpoint determination.
+    UpdateProfileRequest:
+      properties:
+        username:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Username
+        new_password:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: New Password
+      type: object
+      title: UpdateProfileRequest
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      title: ValidationError
+    WorkspaceCreate:
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          minLength: 3
+          title: Name
+        description:
+          anyOf:
+            - type: string
+              maxLength: 1000
+            - type: 'null'
+          title: Description
+      type: object
+      required:
+        - name
+      title: WorkspaceCreate
+    WorkspaceUpdate:
+      properties:
+        name:
+          anyOf:
+            - type: string
+              maxLength: 255
+              minLength: 3
+            - type: 'null'
+          title: Name
+        description:
+          anyOf:
+            - type: string
+              maxLength: 1000
+            - type: 'null'
+          title: Description
+        status:
+          anyOf:
+            - type: string
+              pattern: ^(active|archived)$
+            - type: 'null'
+          title: Status
+      type: object
+      title: WorkspaceUpdate
+  securitySchemes:
+    HTTPBearer:
+      type: http
+      scheme: bearer

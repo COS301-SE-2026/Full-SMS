@@ -257,7 +257,7 @@ export default function MarketplacePage() {
   return (
     <div className="flex h-screen bg-background text-foreground">
       <Sidebar activeItem="plugins-marketplace" />
-      <main className="flex-1 flex flex-col min-w-0">{renderContent()}</main>
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">{renderContent()}</main>
     </div>
   );
 }

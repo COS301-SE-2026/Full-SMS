@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any, Tuple
 import numpy as np
+from api.legacy.analysis.correlation import CorrelationResult
 from api.legacy.analysis.lifetime import FitSettings, StartpointMode
 from api.legacy.models.level import LevelData
 from api.legacy.models import ClusteringResult
@@ -60,6 +61,7 @@ class IntensityReq(BaseModel):
     upload_id: str
     measurement_id: str
     bin_size_ms: float
+    channel: Optional[int]=1
 
 class IntensityRes(BaseModel):
     time_bins: List[float]       # X-axis ( time in milliseconds)
@@ -71,12 +73,33 @@ class CpaReq(BaseModel):
     upload_id: str
     measurement_id: str
     confidence: int
+    channel: Optional[int] = 1
+    
+class SelectedMeasurements(BaseModel):
+    measurements: List[CpaReq]
 
 
 ## Clustering / Grouping
 
 class ClusteringReq(BaseModel):
     levels: List[LevelData]
+    channel: Optional[int] =1
 class RasterScanReq(BaseModel):
     upload_id: str
     measurement_id:str
+    
+# class CorrelationRes(BaseModel):
+#     correlation_result: CorrelationResult
+#     events: np.ndarray
+
+class CorrelationReq(BaseModel):
+    upload_id: str
+    measurement_id: str
+    window_ns: float = 500.0
+    binsize_ns: float = 0.5
+    difftime_ns: float = 0.0
+    
+class RebinCorrelationReq(BaseModel):
+    result: dict[str,Any]
+    new_binsize_ns: float
+    new_window_ns: float | None 

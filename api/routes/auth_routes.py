@@ -23,5 +23,4 @@ def verify_token_endpoint(
 
 @router.post('/onedrive', summary="OneDrive Authorization")
 def one_drive_auth(req: OneDriveCode, current_user: Annotated[dict, Depends(get_current_user)]):
-    print(current_user)
     return link_onedrive_controller(req, current_user["user"]["id"])

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Public_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "@/components/auth/ClientLayout";
@@ -22,17 +23,30 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+export const metadata: Metadata = {
+  title: "Full SMS",
+  description: "Single Molecule Spectroscopy Analysis Platform",
+};
+
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html
       lang="en"
       className={`${publicSans.variable} ${jetbrainsMono.variable}`}
     >
-      <body >
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+      </head>
+      <body>
         <ToastProvider>
           <BrandStyleProvider>
             <AuthProvider>

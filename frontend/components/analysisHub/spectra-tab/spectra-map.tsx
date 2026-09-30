@@ -1,10 +1,16 @@
 import { Card } from "@/components/ui";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
+import { useHistory } from "@/hooks/useHistory";
+import { useHistoryRecorder } from "@/hooks/useHistoryRecorder";
 import { colors } from "@/lib/tokens";
 import { getSpectraData } from "@/services/analysisServices";
 import { SpectraData } from "@/types/analysis";
 import React, { useEffect, useMemo, useState } from "react";
 import Plot from "react-plotly.js";
+import { HistoryPanel } from "../history/HistoryPanel";
+import { historyService } from "@/services/historyServices";
+import { History } from "lucide-react";
+import { Button } from "@/components/ui";
 
 export default function SpectraMap() {
   const {
@@ -12,8 +18,15 @@ export default function SpectraMap() {
     currentMeasurement,
     spectraHeatMapColor,
     setSpectraHeatMapColor,
+    currentWorkspaceId,
+    hdf5Metadata,
+    members,
   } = useHdf5Data();
+  const { entries, loading, error, fetchHistory}= useHistory(currentWorkspaceId, currentUpload, "spectra");
+  const recordHistory = useHistoryRecorder(currentWorkspaceId, currentUpload, "spectra", fetchHistory);
+
   const [spectraData, setSpectraData] = useState<SpectraData>();
+  const [historyOpen, setHistoryOpen] = useState(false);
   const colourmaps = [
     "Plasma",
     "Viridis",
@@ -36,7 +49,10 @@ export default function SpectraMap() {
         console.error("Unable to fetch spectra data: ", error);
       }
     };
-    fetchSpectraData();
+    if(hdf5Metadata?.has_spectra){
+      fetchSpectraData();
+    }
+
   }, [currentMeasurement, currentUpload]);
 
   const plotData = useMemo(() => {
@@ -62,29 +78,50 @@ export default function SpectraMap() {
     return { z, t_min, wl_min, dt, dwl, scale_min, scale_max, exposure_time };
   }, [spectraData]);
 
+  if(!hdf5Metadata?.has_spectra){
+    return(
+      <Card className="w-[83vw] h-[85vh] mt-1 text-warning p-4 flex flex-col text-center justify-center">
+        <p>This Measurement does not have spectra scan data.</p>
+      </Card>
+    )
+  }
+
   return (
-    <div>
+    <div className="flex gap-3">
+      <div className="flex flex-col flex-1">
       <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
-      <h3 className="text-foreground">Spectra</h3>
-      <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
-        <div className="flex items-center gap-2">
-          <label className="text-xs text-foreground/70 whitespace-nowrap" htmlFor="heat-map">
-            Colormap
-          </label>
-          <select
-            name="heat-map"
-            value={spectraHeatMapColor}
-            onChange={(e) => setSpectraHeatMapColor(e.target.value)}
-            className="w-20 h-7 px-2 rounded bg-card border border-border text-xs text-foreground text-right font-mono focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary appearance-none cursor-pointer"
-          >
-            {colourmaps.map((map) => (
-              <option key={map} value={map}>
-                {map}
-              </option>
-            ))}
-          </select>
+        <h3 className="text-foreground">Spectra</h3>
+        <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10 flex-1">
+          <div className="flex items-center gap-2">
+            <label
+              className="text-xs text-foreground/70 whitespace-nowrap"
+              htmlFor="heat-map"
+            >
+              Colormap
+            </label>
+            <select
+              name="heat-map"
+              value={spectraHeatMapColor}
+              onChange={(e) => {
+                setSpectraHeatMapColor(e.target.value);
+                recordHistory("colormap", spectraHeatMapColor, e.target.value);
+              }}
+              className="w-20 h-7 px-2 rounded bg-card border border-border text-xs text-foreground text-right font-mono focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary appearance-none cursor-pointer"
+            >
+              {colourmaps.map((map) => (
+                <option key={map} value={map}>
+                  {map}
+                </option>
+              ))}
+            </select>
+          </div>
+          <Button variant="ghost" size="sm" 
+            title="View Parameter history"
+            onClick={() => setHistoryOpen((v) => !v)}
+            className={`ml-auto ${historyOpen ? "bg-card" : ""}`}
+            leftIcon={<History size={14} />}
+          />
         </div>
-      </div>
       </div>
 
       <Card className="flex flex-col w-[83vw] h-[85vh] p-2 mt-1 gap-4">
@@ -101,7 +138,7 @@ export default function SpectraMap() {
               zmax: plotData?.scale_max,
               colorscale: spectraHeatMapColor,
               colorbar: {
-                title: "Intensity",
+                title: { text: "Intensity" },
                 tickfont: { color: colors.foreground },
                 titlefont: { color: colors.foreground },
               },
@@ -113,17 +150,22 @@ export default function SpectraMap() {
               font: { color: colors.foreground },
             },
             xaxis: {
-              title: "Time (s)",
+              title: { text: "Time (s)" },
               color: colors.foreground,
               gridcolor: colors.border,
             },
             yaxis: {
-              title: "Wavelength (nm)",
+              title: { text: "Wavelength (nm)" },
               color: colors.foreground,
               gridcolor: colors.border,
             },
             paper_bgcolor: colors.card,
             plot_bgcolor: colors.background,
+            font: {
+              family: "JetBrains Mono, monospace",
+              size: 14,
+              color: colors.foreground,
+            },
             autosize: true,
             margin: { l: 60, r: 20, t: 40, b: 50 },
           }}
@@ -131,6 +173,18 @@ export default function SpectraMap() {
           style={{ width: "100%", height: "100%", minHeight: "400px" }}
         />
       </Card>
+    </div>
+    {historyOpen && (<HistoryPanel
+      entries={entries}
+      loading={loading}
+      error={error}
+      members={members}
+      onRevert={(entry) =>{
+        setSpectraHeatMapColor(entry.old_value);
+        historyService.revertEntry(currentWorkspaceId!, entry.id).then(fetchHistory);
+      }}
+    />
+    )}
     </div>
   );
 }

@@ -6,6 +6,8 @@ import api.services.hdf5_services as read_hdf5_service
 import api.services.hdf5_upload_service as hdf5_upload_service
 import api.services.storage_service as storage_service
 import api.services.hdf5_job_service as hdf5_job_service
+import api.services.workspace_service as workspace_service
+from api.utils.supabase_client import supabaseClient
 
 def init_hdf5_upload(payload: dict, current_user: dict) -> dict:
     """
@@ -16,6 +18,14 @@ def init_hdf5_upload(payload: dict, current_user: dict) -> dict:
         current_user (dict)
     """
 
+    try:
+        workspace = workspace_service.get_workspace_by_id(payload["workspace_id"], current_user["user"]["id"])
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+
+    if workspace["user_id"] != current_user["user"]["id"]:
+        raise HTTPException(status_code=404, detail="Only the owner can upload files")
+    
     hdf5_upload_service.validate_upload_request(payload["filename"], payload["size_bytes"])
     hdf5_upload_record = hdf5_upload_service.create_upload_record(user_id=current_user["user"]["id"], filename=payload["filename"],workspace_id=payload["workspace_id"] ,size_bytes=payload["size_bytes"], sha256=payload["sha256"])
     print(f"Created upload record: {hdf5_upload_record}")
@@ -28,8 +38,6 @@ def init_hdf5_upload(payload: dict, current_user: dict) -> dict:
         "file_size_bytes": hdf5_upload_record["size_bytes"],
         "filename": hdf5_upload_record["filename"],
     }
-
-
 
 def complete_hdf5_upload(upload_id: str, current_user: dict) -> dict:
     """
@@ -47,8 +55,6 @@ def complete_hdf5_upload(upload_id: str, current_user: dict) -> dict:
 
     return {"status": "uploaded", "message": "Upload completed and parsing job queued."}
 
-
-
 def get_hdf5_upload_status(upload_id: str, current_user: dict) -> dict:
     """
     Get the status of an HDF5 file upload.
@@ -58,7 +64,8 @@ def get_hdf5_upload_status(upload_id: str, current_user: dict) -> dict:
         raise HTTPException(status_code=404, detail="Upload not found.")
     return {
         "status": hdf5_upload["status"], 
-        "progress": hdf5_upload.get("progress", 0)
+        "progress": hdf5_upload.get("progress", 0),
+        "error": "File processing failed" if hdf5_upload["status"] == "failed" else None,
     }
 
 def get_hdf5_upload_result(upload_id: str, current_user: dict) -> dict:
@@ -68,7 +75,7 @@ def get_hdf5_upload_result(upload_id: str, current_user: dict) -> dict:
     hdf5_upload_result = hdf5_upload_service.get_upload_result(upload_id, current_user['user']['id'])
     if hdf5_upload_result is None:
         raise HTTPException(status_code=404, detail="Upload result not found.")
-    print(f"Retrieved upload result: {hdf5_upload_result}")
+    # print(f"Retrieved upload result: {hdf5_upload_result}")
     return hdf5_upload_result
 
 async def read_hdf5_file(file: UploadFile):
@@ -92,3 +99,23 @@ def get_user_uploads_by_id(user_id: str) -> list:
     if not user_uploads:
         raise HTTPException(status_code=404, detail="User uploads not found")
     return user_uploads
+
+def get_upload_by_id(user_id: str, upload_id: str):
+
+    response = (supabaseClient.table("hdf5_uploads").select("*")
+                .eq("user_id", user_id)
+                .eq("id", upload_id)
+                .execute())
+    
+    print(response)
+    
+    upload = response.data[0]
+
+    if not upload:
+        raise HTTPException(status_code=404, detail="Upload not found")
+    
+ 
+    return upload
+
+
+

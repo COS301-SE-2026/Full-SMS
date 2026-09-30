@@ -4,9 +4,10 @@ from fastapi import HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
 from api.models.export_request import ExportRequest
 from api.services import export_service
+from api.services.export_service import MissingAnalysisDataError, InvalidExportDataErr
 
 def handle_export(request: ExportRequest, background_tasks: BackgroundTasks, user_id: str):
-    if not any([request.export_intensity, request.export_levels, request.export_groups, request.export_fits, request.plot_intensity, request.plot_bic,]):
+    if not any([request.export_intensity, request.export_levels, request.export_groups, request.export_fits, request.plot_intensity, request.plot_bic, request.plot_correlation,]):
         raise HTTPException(status_code = 400, detail= "No export category selected.")
     
     if not request.selections:
@@ -14,8 +15,12 @@ def handle_export(request: ExportRequest, background_tasks: BackgroundTasks, use
     
     try:
         output_path, normal_name = export_service.export_data(request, user_id)
+    except MissingAnalysisDataError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except InvalidExportDataErr as e:
+        raise HTTPException(status_code=422, detail=str(e))
     except NotImplementedError as e:
-        raise HTTPException(status_code=501, detail=str(e))
+            raise HTTPException(status_code=501, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Export failed: {e}")
     

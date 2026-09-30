@@ -1,9 +1,9 @@
 import axiosInstance from "@/lib/api/axiosInstance"
 
 export const sessionsService = {
-    saveSession: async(userId: string, sessionData: object) =>{
+    saveSession: async(sessionData: object) =>{
         try{
-            const response = await axiosInstance.post(`/api/py/sessions/`,sessionData, {params: {user_id: userId}})
+            const response = await axiosInstance.post(`/api/py/sessions/`,sessionData)
             return response.data
         }catch(error: any){
             throw new Error(
@@ -12,9 +12,9 @@ export const sessionsService = {
         } 
     },
 
-    getSessions: async(userId: string) =>{
+    getSessions: async() =>{
         try{
-            const response = await axiosInstance.get(`/api/py/sessions`, {params: {user_id: userId}})
+            const response = await axiosInstance.get(`/api/py/sessions/`)
             return response.data
         }catch(error: any){
             throw new Error(
@@ -23,9 +23,9 @@ export const sessionsService = {
         }
     },
 
-    getSessionsById: async(userId: string, sessionId: string) =>{
+    getSessionsById: async(sessionId: string) =>{
         try{
-            const response = await axiosInstance.get(`/api/py/sessions/${sessionId}`, {params: {user_id: userId}})
+            const response = await axiosInstance.get(`/api/py/sessions/${sessionId}`)
             return response.data
         }catch(error: any){
             throw new Error(

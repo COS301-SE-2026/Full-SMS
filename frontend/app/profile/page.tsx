@@ -98,7 +98,7 @@ export default function ProfilePage(){
         if(!user?.id) return
         async function fetchSessionCount (){
             try{
-                const sessions = await sessionsService.getSessions(user!.id)
+                const sessions = await sessionsService.getSessions()
                 setSessionCount(Array.isArray(sessions) ? sessions.length :0)
             }catch(error){
                 console.error("Failed to fetch session count:", error)

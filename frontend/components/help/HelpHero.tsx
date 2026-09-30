@@ -5,7 +5,7 @@ import { MenuBar } from "@/components/analysisHub/menu-bar"
 export default function HelpHero(){
     return(
         <>
-            <MenuBar  onOpenFileUpload={()=>{}}/> 
+            {/* <MenuBar  onOpenFileUpload={()=>{}}/>  */}
             <div className="flex flex-col items-center justify-center text-center py-24">
                 <span className="text-sm uppercase tracking-wide block text-primary/70">
                     FULL SMS Guide

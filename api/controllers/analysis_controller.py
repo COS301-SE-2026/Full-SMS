@@ -1,8 +1,10 @@
 from dataclasses import asdict
 from celery.result import AsyncResult
 from fastapi import HTTPException
-from api.models.analysis_models import ClusteringReq, CpaReq, IntensityReq, IntensityRes, RasterScanReq, LifetimeReq
+from kombu.common import logger
+from api.models.analysis_models import ClusteringReq, CpaReq, IntensityReq, IntensityRes, RasterScanReq, LifetimeReq, RebinCorrelationReq, CorrelationReq
 from api.services.analysis_services.clustering_job_service import clustering_job
+from api.services.analysis_services.correlation import get_correlation_result, get_rebin
 from api.services.analysis_services.intensity import intensity_analysis
 from api.services.analysis_services.change_point_analysis import resolve_current_measurement
 from api.services.analysis_services.lifetime import fluorescence_decay, lifetime_fitting
@@ -29,8 +31,8 @@ def change_point_analysis_controller(req: CpaReq):
     try:
         response = resolve_current_measurement(req)
         return response
-    except Exception:
-        raise HTTPException(status_code=500, detail=str("Could not complete Change Point Analysis:"))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(f"Could not complete Change Point Analysis:{e}"))
 
 def get_raster_scan_controller(req: RasterScanReq):
     try:
@@ -46,6 +48,7 @@ def init_clustering_analysis_controller(req: ClusteringReq):
     """
     try:
         json_serializable_levels = [asdict(levels) for levels in req.levels]
+        logger.info("GROUPING payload received: %s", req)
         job = clustering_job.delay(json_serializable_levels)
         return {"task_id": job.id, "status": "executing"}
     
@@ -100,3 +103,22 @@ def get_decay_controller(req):
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+def get_correlation_controller(req: CorrelationReq):
+    try:
+        response = get_correlation_result(req)
+        return response
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+def get_rebin_correlation_controller(req: RebinCorrelationReq):
+    try:
+        response = get_rebin(req)
+        return response
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    

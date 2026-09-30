@@ -9,7 +9,8 @@ import {
   Download,
   ChevronLeft,
   Clock,
-  Code
+  Code,
+  Grip
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MeasurementsBar } from './measurementsBar';
@@ -18,6 +19,7 @@ import { Panel, Group } from "react-resizable-panels";
 import { pluginService } from "@/services/pluginServices";
 import { Plugin } from "@/types/plugin";
 import { useToast } from "@/contexts/toastContext/ToastContext";
+import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext';
 
 const navItems = [
   { icon: Activity, label: 'Intensity', key: 'intensity' },
@@ -25,13 +27,26 @@ const navItems = [
   { icon: Layers, label: 'Grouping', key: 'grouping' },
   { icon: Grid3x3, label: 'Raster', key: 'raster' },
   { icon: Waves, label: 'Spectra', key: 'spectra' },
+  { icon: Grip, label: 'Correlation', key: 'correlation' },
   { icon: Download, label: 'Export', key: 'export' },
 ];
+
+const nativeNavItems = [
+  { icon: Clock, label: 'Lifetime', key: 'lifetime' },
+  { icon: Download, label: 'Export', key: 'export' },
+]
 
 export function Sidebar() {
   const { activeTab, setActiveTab } = useAnalysisTab();
   const [plugins, setPlugins] = React.useState<Plugin[]>([]);
   const { errorToast } = useToast();
+  const {hdf5Metadata} = useHdf5Data()
+
+  useEffect(()=>{
+    if(hdf5Metadata?.data_kind === "native_data"){
+      setActiveTab("lifetime")
+    }
+  },[])
 
   useEffect(() => {
     const fetchPlugins = async () => {
@@ -67,7 +82,7 @@ export function Sidebar() {
       <Group orientation="vertical">
         <Panel>
           <nav className="flex flex-col py-1 overflow-y-auto h-full">
-            {navItems.map(({ icon: Icon, label, key }) => {
+            {(hdf5Metadata?.data_kind==="native_data" ? nativeNavItems: navItems).map(({ icon: Icon, label, key }) => {
               const isActive = key === activeTab;
               return (
                 <button
@@ -121,7 +136,7 @@ export function Sidebar() {
         </Panel>
         
         <Panel>
-          <MeasurementsBar showSelectionCheckboxes={activeTab === "export"} />
+          <MeasurementsBar />
         </Panel>
       </Group>
     </aside>

@@ -5,7 +5,6 @@ import { MarketplaceStatus } from "@/types/marketplace";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import {
-  MoreHorizontal,
   Pencil,
   Trash2,
   CircleX,
@@ -18,9 +17,11 @@ import {
   Download,
 } from "lucide-react";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { formatDate } from "@/utils/dateTime";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import ActionMenu, { ActionMenuItem } from "@/components/ui/ActionMenu";
 
 interface PluginTableProps {
   plugins: Plugin[];
@@ -87,17 +88,13 @@ export default function PluginTable({
     );
   };
 
-  const handleMenuToggle = (pluginId: string) => {
-    setOpenMenuId(openMenuId === pluginId ? null : pluginId);
-  };
-
   const handleAction = (action: () => void) => {
     action();
     setOpenMenuId(null);
   };
 
   return (
-    <Card className="overflow-hidden">
+    <Card>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
@@ -172,126 +169,73 @@ export default function PluginTable({
                   {formatDate(plugin.updated_at)}
                 </td>
                 <td className="px-4 py-4">
-                  <div className="relative inline-block">
-                    <button
-                      onClick={() => handleMenuToggle(plugin.id)}
-                      className="p-2 rounded-lg hover:bg-border/50 transition-colors"
-                    >
-                      <MoreHorizontal className="h-4 w-4 text-foreground/60" />
-                    </button>
-
-                    {openMenuId === plugin.id && (
-                      <div
-                        role="menu"
-                        className="absolute right-0 top-full mt-1 w-56 bg-card border border-border rounded-lg shadow-lg z-10"
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => {
-                          if (e.key === "Escape") {
-                            setOpenMenuId(null);
-                          }
-                        }}
-                      >
-                        <button
-                          role="menuitem"
-                          onClick={() => handleAction(() => onEdit(plugin))}
-                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors"
-                        >
-                          <Pencil className="h-4 w-4" />
-                          Edit
-                        </button>
-
-                        <button
-                          role="menuitem"
-                          onClick={() => handleAction(() => onToggle(plugin))}
-                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors"
-                        >
-                          {plugin.enabled ? (
-                            <>
-                              <CircleX className="h-4 w-4" />
-                              Disable
-                            </>
-                          ) : (
-                            <>
-                              <CircleCheck className="h-4 w-4" />
-                              Enable
-                            </>
-                          )}
-                        </button>
-
-                        {canSubmitToMarketplace(plugin) && (
-                          <button
-                            onClick={() =>
-                              handleAction(() => onSubmitToMarketplace(plugin))
-                            }
-                            disabled={submittingId === plugin.id}
-                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-border/30 transition-colors disabled:opacity-50"
-                          >
-                            <CloudUpload className="h-4 w-4" />
-                            {submittingId === plugin.id
-                              ? "Submitting..."
-                              : "Submit to Marketplace"}
-                          </button>
-                        )}
-
-                        {canCancelSubmission(plugin) && (
-                          <button
-                            onClick={() =>
-                              handleAction(() => onCancelSubmission(plugin))
-                            }
-                            disabled={cancellingId === plugin.id}
-                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-warning hover:bg-warning/10 transition-colors disabled:opacity-50"
-                          >
-                            <XCircle className="h-4 w-4" />
-                            {cancellingId === plugin.id
-                              ? "Cancelling..."
-                              : "Cancel Submission"}
-                          </button>
-                        )}
-
-                        {plugin.available_version &&
-                          onUpdateFromMarketplace && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleAction(() =>
-                                  onUpdateFromMarketplace(plugin),
-                                )
-                              }
-                              disabled={updatingId === plugin.id}
-                              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
-                            >
-                              <Download className="h-4 w-4" />
-                              {updatingId === plugin.id
-                                ? "Updating..."
-                                : "Update Available"}
-                            </button>
-                          )}
-
-                        {plugin.marketplace_status === "rejected" &&
-                          plugin.review_feedback && (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleAction(() => setFeedbackPlugin(plugin))
-                              }
-                              className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-destructive/10 transition-colors"
-                            >
-                              <MessageSquare className="h-4 w-4" />
-                              Rejection Feedback
-                            </button>
-                          )}
-
-                        <button
-                          role="menuitem"
-                          onClick={() => handleAction(() => onDelete(plugin))}
-                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  <ActionMenu
+                    id={plugin.id}
+                    items={[
+                      {
+                        label: "Edit",
+                        icon: <Pencil className="h-4 w-4" />,
+                        onClick: () => onEdit(plugin),
+                      },
+                      {
+                        label: plugin.enabled ? "Disable" : "Enable",
+                        icon: plugin.enabled ? (
+                          <CircleX className="h-4 w-4" />
+                        ) : (
+                          <CircleCheck className="h-4 w-4" />
+                        ),
+                        onClick: () => onToggle(plugin),
+                      },
+                      {
+                        label:
+                          submittingId === plugin.id
+                            ? "Submitting..."
+                            : "Submit to Marketplace",
+                        icon: <CloudUpload className="h-4 w-4" />,
+                        onClick: () => onSubmitToMarketplace(plugin),
+                        disabled: submittingId === plugin.id,
+                        hidden: !canSubmitToMarketplace(plugin),
+                      },
+                      {
+                        label:
+                          cancellingId === plugin.id
+                            ? "Cancelling..."
+                            : "Cancel Submission",
+                        icon: <XCircle className="h-4 w-4" />,
+                        onClick: () => onCancelSubmission(plugin),
+                        variant: "warning",
+                        disabled: cancellingId === plugin.id,
+                        hidden: !canCancelSubmission(plugin),
+                      },
+                      {
+                        label:
+                          updatingId === plugin.id
+                            ? "Updating..."
+                            : "Update Available",
+                        icon: <Download className="h-4 w-4" />,
+                        onClick: () => onUpdateFromMarketplace?.(plugin),
+                        variant: "primary",
+                        disabled: updatingId === plugin.id,
+                        hidden:
+                          !plugin.available_version || !onUpdateFromMarketplace,
+                      },
+                      {
+                        label: "Rejection Feedback",
+                        icon: <MessageSquare className="h-4 w-4" />,
+                        onClick: () => setFeedbackPlugin(plugin),
+                        hidden: !(
+                          plugin.marketplace_status === "rejected" &&
+                          plugin.review_feedback
+                        ),
+                      },
+                      {
+                        label: "Delete",
+                        icon: <Trash2 className="h-4 w-4" />,
+                        onClick: () => onDelete(plugin),
+                        variant: "destructive",
+                      },
+                    ]}
+                  />
                 </td>
               </tr>
             ))}

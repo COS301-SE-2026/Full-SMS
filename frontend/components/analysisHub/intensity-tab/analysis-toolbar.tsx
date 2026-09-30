@@ -1,33 +1,47 @@
-import { useState } from 'react';
-import { Play, Maximize2 } from 'lucide-react';
-import { Button } from '../../ui/Button';
-import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext';
-import {changePoint_Req } from '@/types/analysis';
-import { changePointAnalysis } from '@/services/analysisServices';
-import { Loader } from '../../ui';
+import { useEffect, useState } from "react";
+import { Maximize2 } from "lucide-react";
+import { Button } from "../../ui/Button";
+import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
+import { changePoint_Req } from "@/types/analysis";
+import { changePointAnalysis } from "@/services/analysisServices";
+import { useToast } from "@/contexts/toastContext/ToastContext";
+import { useHistoryRecorder } from "@/hooks/useHistoryRecorder";
+import { History } from "lucide-react";
 
-function NumberField({
+interface NumberFieldProps {
+  readonly label: string;
+  readonly value: number;
+  readonly slider?: boolean;
+  readonly min?: number;
+  readonly max?: number;
+  readonly onChange: (v: number) => void;
+  readonly onMouseUp?: (v: number) => void;
+}
+
+export function NumberField({
   label,
   value,
   onChange,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-}) {
+  onMouseUp = () =>{},
+  slider = true,
+}: NumberFieldProps) {
   return (
+
     <div className="flex items-center gap-2">
       <label className="text-xs text-foreground/70 whitespace-nowrap">
         {label}
       </label>
-            <input
+
+      {slider && (<input
         type="range"
         min={0.1}
         max={1000}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-24 h-1.5 rounded-lg appearance-none bg-border cursor-pointer accent-primary "
-      />
+        onPointerUp={(e) => onMouseUp(Number(e.currentTarget.value))}
+        onKeyUp={(e)=> onMouseUp(Number(e.currentTarget.value))}
+        className={`w-24 h-1.5 rounded-lg appearance-none bg-border cursor-pointer accent-primary`}
+      />)}
 
       <input
         type="number"
@@ -35,6 +49,12 @@ function NumberField({
         max={1000}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        onBlur={(e) => onMouseUp(Number(e.target.value))}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            onMouseUp(Number(e.currentTarget.value))
+            }
+          }}
         className="w-16 h-7 px-2 rounded bg-card border border-border 
         text-xs text-foreground text-right font-mono focus-visible:outline-none 
         focus-visible:ring-1 focus-visible:ring-primary 
@@ -47,7 +67,7 @@ function NumberField({
   );
 }
 
-type Confidence = 69 | 90 | 95 | 99
+type Confidence = 69 | 90 | 95 | 99;
 function ConfidenceField({
   label,
   value,
@@ -57,11 +77,13 @@ function ConfidenceField({
   readonly value: Confidence;
   readonly onChange: (v: Confidence) => void;
 }) {
-  const choices: Confidence[] =[69, 90, 95, 99];
+  const choices: Confidence[] = [69, 90, 95, 99];
 
   return (
     <div className="flex items-center gap-2">
-      <label className="text-xs text-foreground/70 whitespace-nowrap">{label}</label>
+      <label className="text-xs text-foreground/70 whitespace-nowrap">
+        {label}
+      </label>
       <select
         value={value}
         onChange={(e) => onChange(Number(e.target.value) as Confidence)}
@@ -77,88 +99,217 @@ function ConfidenceField({
   );
 }
 
+export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory }: { onHistoryChange?:() => void; historyOpen: boolean; onToggleHistory: () => void }) {
+  const {
+    bin,
+    setBin,
+    confidence,
+    setConfidence,
+    currentUpload,
+    currentMeasurement,
+    currentWorkspaceId,
+    setCpaData,
+    selectedMeasurements,
+    setCpaResultForMeasurement,
+    cpaResults,
+    setCpaProcessingIds,
+    cpaProcessingIds,
+    hdf5Metadata,
+    currentChannel,
+    isMultiChannel,
+    selectedChannels,
+  } = useHdf5Data();
 
-export function AnalysisToolbar() {
-  const {bin, setBin, confidence, setConfidence, currentUpload, currentMeasurement, setCpaData} = useHdf5Data()
-  const [isLoading, setIsLoading] = useState(false)
+  const recordHist=useHistoryRecorder(currentWorkspaceId, currentUpload, "intensity", onHistoryChange);
 
-  const resolveCurrent= async ()=>{
-    const request: changePoint_Req ={
+  const { errorToast } = useToast();
+  const activeKey = `${currentMeasurement}:${currentChannel}`;
+  const [isLoading, setIsLoading] = useState(false);
+  const [localBinValue, setLocalBinValue] = useState<number>(bin)
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLocalBinValue(bin);
+  }, [bin]);
+
+
+
+
+  const handleSliderRelease = (finalBinValue: number) =>{
+    setBin(finalBinValue)
+    recordHist("bin", bin, finalBinValue)
+  }
+
+  const resolveCurrent = async () => {
+    const request: changePoint_Req = {
       upload_id: currentUpload,
-      measurement_id:currentMeasurement,
-      confidence: confidence
-    }
+      measurement_id: currentMeasurement,
+      confidence: confidence,
+      channel: currentChannel
+    };
 
-    const response =  await changePointAnalysis(request);
+    const response = await changePointAnalysis(request);
     console.log(response);
-    setCpaData(response)
-    // setLevels(response.levels)
+    setCpaData(response);
     setIsLoading(false);
-  }
+  };
 
-  const OnResolveClick = () =>{
-    if((currentMeasurement !== "0")){
-      resolveCurrent()
-      setIsLoading(true)      
+  const OnResolveCurrentClick = () => {
+    if (currentMeasurement !== "0") {
+      resolveCurrent();
+      setIsLoading(true);
+    } else {
+      console.log("No measurement selected");
     }
-    else{
-      console.log("No measurement selected")
+  };
+
+  const resolve = async (mode: string) => {
+    let ids: string[] = []
+    if (mode === "selected") {
+      ids = isMultiChannel
+        ? Array.from(selectedChannels)
+        : Array.from(selectedMeasurements);
+      if (ids.length === 0) {
+        errorToast(isMultiChannel ? "No channels selected" : "No measurements selected");
+        return;
+      }
     }
-  }
+    else if (mode === "all") {
+      const summaries = hdf5Metadata?.measurements_summary;
+      if (!summaries || summaries.length === 0) return;
+      if (isMultiChannel) {
+        ids = summaries.flatMap((m) =>
+          (m.channels ?? [1]).map((_, idx) => `${m.id}:${idx + 1}`)
+        );
+        console.log("MULTI CHANNEL IDS", ids);
+        
+      } else {
+        ids = summaries.map((m) => m.id.toString());
+      }
+    }
+
+    setCpaProcessingIds(new Set(ids));
+    setIsLoading(true);
+    for (const mId of ids) {
+      let targetChannel = currentChannel
+      let targetMeasuement = mId
+      if (isMultiChannel && mId.includes(":")){
+        const [meas, chnl] = mId.split(":")
+        targetChannel=Number(chnl)
+        targetMeasuement = meas
+      }
+
+      const request: changePoint_Req = {
+        upload_id: currentUpload,
+        measurement_id: targetMeasuement!,
+        confidence: confidence,
+        channel: targetChannel!
+      };
+
+      try {
+        const response = await changePointAnalysis(request);
+        setCpaResultForMeasurement(mId, response);
+        
+      } catch (e) {
+        console.error(`CPA failed for measurement ${mId}`, e);
+      }
+      setCpaProcessingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(mId);
+        return next;
+      });
+    }
+    setIsLoading(false);
+  };
+
+
+  const onResolveAllClick = () => {
+    // selectAllChannels()
+    // console.log(selectedChannels);
+    
+    resolve("all");
+  };
+
+  const onResolveSelectedClick = () => {
+    if (selectedMeasurements.size === 0) {
+      errorToast("No measurements selected");
+      return;
+    }
+    resolve("selected");
+  };
 
   return (
-    <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap">
-      <h3 className="text-foreground">Intensity Analysis</h3>
+    <div className="flex flex-col border-b border-border bg-background flex-wrap  px-4 ">
+      <div className="flex items-center gap-4 h-12">
+        <h3 className="text-foreground">Intensity Analysis</h3>
 
-      <NumberField label="Bin (ms)" value={bin} onChange={setBin} />
-      <ConfidenceField label="Confidence %" value={confidence} onChange={setConfidence} />
 
-      <Button
-        size="sm"
-        variant="primary"
-        leftIcon={(isLoading ? (<Loader size="sm" variant='dark'/>):(<Play size={14} fill="currentColor" />))}
-        className="min-h-[28px] px-3"
-        onClick={()=>OnResolveClick()}
-      >
-        Resolve Current
-      </Button>
+        <NumberField label="Bin (ms)" value={localBinValue!} onChange={setLocalBinValue} onMouseUp={handleSliderRelease} />
+        <ConfidenceField
+          label="Confidence %"
+          value={confidence}
+          onChange={(v) => {
+            setConfidence(v);
+          recordHist("confidence",confidence, v);
+          }}
+        />
 
-      {/* <div className="flex rounded overflow-hidden border border-border">
-        <button
-          onClick={() => setScope('selected')}
-          className={cn(
-            'px-3 h-7 text-xs transition-colors',
-            scope === 'selected'
-              ? 'bg-primary text-background'
-              : 'bg-card text-foreground hover:bg-border'
-          )}
-        >
-          Selected (1)
-        </button>
-        <button
-          onClick={() => setScope('all')}
-          className={cn(
-            'px-3 h-7 text-xs transition-colors border-l border-border',
-            scope === 'all'
-              ? 'bg-primary text-background'
-              : 'bg-card text-foreground hover:bg-border'
-          )}
-        >
-          All
-        </button>
-      </div>
-
-      <span className="text-xs text-foreground/70">Show levels</span> */}
-
-      <div className="ml-auto">
         <Button
           size="sm"
-          variant="secondary"
-          leftIcon={<Maximize2 size={14} />}
+          variant="primary"
+          disabled={isLoading}
           className="min-h-[28px] px-3"
+          onClick={() => OnResolveCurrentClick()}
         >
-          Fit View
+          Resolve Current
         </Button>
+        <Button
+          size="sm"
+          variant="primary"
+          disabled={isLoading}
+          className="min-h-[28px] px-3"
+          onClick={() => onResolveAllClick()}
+        >
+          Resolve All
+        </Button>
+
+        <Button
+          size="sm"
+          variant="primary"
+          disabled={isLoading}
+          className="min-h-[28px] px-3"
+          onClick={() => onResolveSelectedClick()}
+        >
+          Resolve Selected
+        </Button>
+        <div className="ml-auto flex gap-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            leftIcon={<Maximize2 size={14} />}
+            className="min-h-[28px] px-3"
+          >
+            Fit View
+          </Button>
+          <Button variant="ghost" size="sm" 
+            title="View Parameter history"
+            onClick={onToggleHistory}
+            className={`px-2 py-0.5 min-h-0 ${historyOpen ? "bg-card" : ""}`}
+            leftIcon={<History size={14} />}
+          />
+        </div>
+      </div>
+      <div>
+        {isLoading && (
+          <span className="font-mono text-sm text-primary animate-pulse">
+            Resolving {cpaProcessingIds.size} Measurements ...
+          </span>
+        )}
+        {activeKey in cpaResults && (
+          <p className="text-success text-xs font-mono">
+            {cpaResults[activeKey].levels?.length} levels
+          </p>
+        )}
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ export default function ExportPanel() {
                     <div className = "flex items-center gap-2 text-sm text-foreground/60">
                         <span>{form.selectedMeasurements.size} of {form.totalMeasurements} Measurements selected</span>
                         
-                        <Button variant="secondary" size="sm" onClick={() => form.selectAllmeasurements(form.totalMeasurements)}>
+                        <Button variant="secondary" size="sm" onClick={() => form.selectAllMeasurements(form.totalMeasurements)}>
                             Select all
                         </Button>
                         <Button variant="secondary" size="sm" onClick={form.clearSelectedMeasurements}>
@@ -51,7 +51,7 @@ export default function ExportPanel() {
                             </div>
 
                             <Checkbox label= "BIC Plot" checked={form.BICPlot} onCheckedChange={form.setBICPlot} />
-
+                            <Checkbox label="Correlation Plot" checked={form.plotCorrelation} onCheckedChange={form.setPlotCorrelation} />
                         </CardContent>
                     </Card>  
 

@@ -6,15 +6,22 @@ import json
 import numpy as np
 from numpy.typing import NDArray
 
+
 def get_spectra_data(payload: RasterScanReq):
     upload_id = payload.upload_id
     measurement_id = payload.measurement_id
 
     cached_measurement = get_cached_measurement(upload_id, measurement_id)
     if not cached_measurement:
-       cached_measurement = cache_fallback_service(upload_id=upload_id, measurement_id=measurement_id)
+        cached_measurement = cache_fallback_service(
+            upload_id=upload_id, measurement_id=measurement_id
+        )
 
-    spectra = cached_measurement.spectra
+    if isinstance(cached_measurement, dict):
+        spectra = cached_measurement["spectra"]
+    else:
+        spectra = cached_measurement.spectra
+
     if hasattr(spectra, "data"):
         data = np.array(spectra.data)
         series_times = np.array(spectra.series_times)
@@ -39,21 +46,18 @@ def get_spectra_data(payload: RasterScanReq):
     scale_min = float(np.min(data))
     scale_max = float(np.max(data))
 
-    # Handle case where all values are the same
     if scale_max <= scale_min:
         scale_max = scale_min + 1.0
 
-    # Flatten the data in row-major order for heat_series
     z_matrix = data_transposed.tolist()
 
     return {
         "z": z_matrix,
-        "rows": rows ,
+        "rows": rows,
         "cols": cols,
-        "bounds_min" :(t_min, wl_min),
-        "bounds_max" :(t_max, wl_max),
-        "scale_min" :scale_min,
-        "scale_max" :scale_max,
-        "exposure_time" : exposure_time
-
+        "bounds_min": (t_min, wl_min),
+        "bounds_max": (t_max, wl_max),
+        "scale_min": scale_min,
+        "scale_max": scale_max,
+        "exposure_time": exposure_time,
     }

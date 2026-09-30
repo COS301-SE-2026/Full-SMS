@@ -349,7 +349,7 @@ export default function PluginsPage() {
   return (
     <div className="flex h-screen bg-background text-foreground">
       <Sidebar activeItem="plugins" />
-      <main className="flex-1 flex flex-col min-w-0">{renderContent()}</main>
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">{renderContent()}</main>
 
       <PluginEditorModal
         isOpen={isEditorOpen}

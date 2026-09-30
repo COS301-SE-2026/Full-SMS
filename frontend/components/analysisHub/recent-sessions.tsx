@@ -49,7 +49,7 @@ export function RecentSessionsModal({open, onClose}:RecentSessionsProps){
         try{
             const userId = user?.id
             if (!userId) return
-            const data = await sessionsService.getSessions(userId)
+            const data = await sessionsService.getSessions()
             setSessions(data)
         }catch(error){
             errorToast("Failed to fetch sessions")

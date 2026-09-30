@@ -1,9 +1,17 @@
+import {getCurrentUpload} from "@/services/hdf5services"
+import { useEffect, useState } from "react";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 
-
 export function StatusBar() {
-  const {currentUploadName} = useHdf5Data()
-  const fileName = currentUploadName
+  const [fileName, setFileName] = useState<string>("")
+  const {currentUpload} = useHdf5Data()
+  useEffect(()=>{
+    const getFile = async ()=>{
+      const response = await getCurrentUpload(currentUpload)      
+      setFileName(response?.filename)
+    }
+    getFile()
+  }, [currentUpload])
   return (
     <div className="flex items-center h-4 px-3 border-t border-border bg-background text-xs text-foreground/70 gap-4 max-h-6">
       <div className="flex items-center gap-1.5">

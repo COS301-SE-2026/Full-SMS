@@ -45,6 +45,6 @@ backend-test: setup-backend
 	python -m pip install pytest
 	cd api && python -m pytest -q
 
-# the solo tag is for windows devices
+# Use the project environment
 run-celery:
-	celery -A api.workers.celery_app.celery_app worker --loglevel=info -P solo
+	.venv/bin/python -m celery -A api.workers.celery_app.celery_app worker --loglevel=info
