@@ -93,48 +93,69 @@ class PhotonHDF5Reader(FileReader):
         except Exception as e:
             return self._create_error_result(f"Failed to read Photon-HDF5 file: {str(e)}")
 
-    def _extract_metadata(self, f) -> Dict[str, Any]:
-        metadata = {
-            "format": "Photon-HDF5",
+    @staticmethod
+    def _decode_bytes(val: Any) -> Any:
+        """Decode byte strings to utf-8 if needed."""
+        if isinstance(val, bytes):
+            return val.decode("utf-8")
+        return val
+
+    def _extract_root_attrs(self, f) -> Dict[str, Any]:
+        """Extract file attributes."""
+        root_keys = ["acquisition_duration", "description", "author", "sample_name"]
+        return {
+            attr: self._decode_bytes(f.attrs[attr])
+            for attr in root_keys
+            if attr in f.attrs
         }
 
-        for attr in ["acquisition_duration", "description", "author", "sample_name"]:
-            if attr in f.attrs:
-                val = f.attrs[attr]
-                if isinstance(val, bytes):
-                    val = val.decode("utf-8")
-                metadata[attr] = val
+    def _extract_identity_metadata(self, f) -> Dict[str, Any]:
+        """Extract /identity group attributes."""
+        if "identity" not in f:
+            return {}
 
-        if "identity" in f:
-            identity = f["identity"]
-            for key in ["author", "author_affiliation", "creation_time", "format_name"]:
-                if key in identity:
-                    val = identity[key][()]
-                    if isinstance(val, bytes):
-                        val = val.decode("utf-8")
-                    metadata[f"identity_{key}"] = val
+        identity = f["identity"]
+        keys = ["author", "author_affiliation", "creation_time", "format_name"]
+        return {
+            f"identity_{key}": self._decode_bytes(identity[key][()])
+            for key in keys
+            if key in identity
+        }
 
-        if "setup" in f:
-            setup = f["setup"]
-            if "num_pixels" in setup:
-                metadata["num_pixels"] = int(setup["num_pixels"][()])
-            if "num_spectral_ch" in setup:
-                metadata["num_spectral_ch"] = int(setup["num_spectral_ch"][()])
-            if "num_polarization_ch" in setup:
-                metadata["num_polarization_ch"] = int(setup["num_polarization_ch"][()])
-            if "num_split_ch" in setup:
-                metadata["num_split_ch"] = int(setup["num_split_ch"][()])
+    def _extract_setup_metadata(self, f) -> Dict[str, Any]:
+        """Extract /setup group channels and detector info."""
+        if "setup" not in f:
+            return {}
 
-            if "detectors" in setup:
-                det_group = setup["detectors"]
-                detector_info = {}
-                for key in det_group.keys():
-                    val = det_group[key][()]
-                    if isinstance(val, bytes):
-                        val = val.decode("utf-8")
-                    detector_info[key] = val
-                metadata["detectors"] = detector_info
+        setup = f["setup"]
+        setup_metadata: Dict[str, Any] = {}
 
+        channel_keys = [
+            "num_pixels",
+            "num_spectral_ch",
+            "num_polarization_ch",
+            "num_split_ch",
+        ]
+        for key in channel_keys:
+            if key in setup:
+                setup_metadata[key] = int(setup[key][()])
+
+        if "detectors" in setup:
+            det_group = setup["detectors"]
+            setup_metadata["detectors"] = {
+                key: self._decode_bytes(det_group[key][()])
+                for key in det_group.keys()
+            }
+
+        return setup_metadata
+
+    def _extract_metadata(self, f) -> Dict[str, Any]:
+        metadata: Dict[str, Any] = {
+            "format": "Photon-HDF5",
+        }
+        metadata.update(self._extract_root_attrs(f))
+        metadata.update(self._extract_identity_metadata(f))
+        metadata.update(self._extract_setup_metadata(f))
         return metadata
 
     def _read_timestamps(self, photon_data) -> tuple:

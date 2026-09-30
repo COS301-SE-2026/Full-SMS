@@ -71,24 +71,40 @@ class BeckerHicklReader(FileReader):
             "num_blocks": len(sdt.data) if hasattr(sdt, "data") else 0,
         }
 
-        if hasattr(sdt, "info") and sdt.info:
+        if getattr(sdt, "info", None):
             metadata["info"] = sdt.info
 
-        if hasattr(sdt, "measure_info"):
-            for i, info in enumerate(sdt.measure_info):
-                if info:
-                    metadata[f"block_{i}_info"] = str(info)
-
-        if hasattr(sdt, "setup"):
-            setup = sdt.setup
-            if hasattr(setup, "tac_range"):
-                metadata["tac_range_ns"] = setup.tac_range * 1e9
-            if hasattr(setup, "tac_gain"):
-                metadata["tac_gain"] = setup.tac_gain
-            if hasattr(setup, "adc_resolution"):
-                metadata["adc_resolution"] = setup.adc_resolution
+        metadata.update(self._extract_measure_info(sdt))
+        metadata.update(self._extract_setup_info(sdt))
 
         return metadata
+
+    def _extract_measure_info(self, sdt) -> dict:
+        """Extract measurement info for each block."""
+        measure_info = getattr(sdt, "measure_info", None)
+        if not measure_info:
+            return {}
+
+        return {
+            f"block_{i}_info": str(info)
+            for i, info in enumerate(measure_info)
+            if info
+        }
+
+    def _extract_setup_info(self, sdt) -> dict:
+        """Extract setup hardware parameters if present."""
+        setup = getattr(sdt, "setup", None)
+        if not setup:
+            return {}
+
+        setup_metadata = {}
+        if hasattr(setup, "tac_range"):
+            setup_metadata["tac_range_ns"] = setup.tac_range * 1e9
+        if hasattr(setup, "tac_gain"):
+            setup_metadata["tac_gain"] = setup.tac_gain
+        if hasattr(setup, "adc_resolution"):
+            setup_metadata["adc_resolution"] = setup.adc_resolution
+        return setup_metadata
 
     def _get_time_axis(self, sdt, block_idx: int) -> Optional[np.ndarray]:
         if not hasattr(sdt, "times") or not sdt.times:
