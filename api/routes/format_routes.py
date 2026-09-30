@@ -25,32 +25,35 @@ from anyio import Path as AsyncPath
 
 router = APIRouter(prefix="/formats", tags=["File Formats"])
 FILE_NAME_ERROR = "File must have a filename"
-
+ALLOWED_EXTENSIONS: Dict[str, str] = {
+    ".csv": ".csv",
+    ".h5": ".h5",
+    ".hdf5": ".hdf5",
+    ".phu": ".phu",
+    ".ptu": ".ptu",
+    ".sdt": ".sdt",
+    ".spc": ".spc",
+    ".tsv": ".tsv",
+    ".txt": ".txt",
+}
 
 def get_safe_extension(filename: str) -> str:
-    """
-    read and validate file extension against the list of trusted extensions
-    to prevent path traversal attacks
-    """
+    """read and validate file extension against ALLOWED_EXTENSIONS."""
     clean_name = os.path.basename(filename)
     raw_ext = os.path.splitext(clean_name)[1].lower()
-    for allowed in get_all_supported_extensions():
-        if raw_ext == allowed:
-            return allowed
-    return ".tmp"
+    return ALLOWED_EXTENSIONS.get(raw_ext, ".tmp")
 
 
-#sonarcloud suggestion for maintainability
+#sonarcloud recommendation for maintainability
 @asynccontextmanager
 async def async_named_temporary_file(suffix: str = ".tmp"):
     """
     Asynchronous temporary file context manager.
-    Yields an AsyncPath and automatically unlinks the file on exit.
-    Protects against path traversal by ensuring the target stays within tempdir.
+    Guarantees the file stays within the system temporary directory.
     """
-    clean_suffix = suffix if (suffix.startswith(".") and suffix[1:].isalnum()) else ".tmp"
+    safe_suffix = ALLOWED_EXTENSIONS.get(suffix, ".tmp")
     temp_dir = Path(tempfile.gettempdir()).resolve()
-    resolved_path = (temp_dir / f"sms_{uuid.uuid4().hex}{clean_suffix}").resolve()
+    resolved_path = (temp_dir / f"sms_{uuid.uuid4().hex}{safe_suffix}").resolve()
     if not resolved_path.is_relative_to(temp_dir):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -97,34 +100,33 @@ def get_format_details(format_id: str):
 
 
 @router.post("/detect")
-async def detect_file_format(file: UploadFile = File(...), current_user: dict = Depends(get_current_user),
+async def detect_file_format(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user),
 ):
     """
     Detect the format of an uploaded file.
-
-    Reads file header to determine format without full processing.
-    Returns format type and basic metadata.
     """
     if not file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=FILE_NAME_ERROR,
         )
-    file_name = os.path.basename(file.filename)
-    extension = os.path.splitext(file.filename)[1].lower()
 
-    supported_extensions = get_all_supported_extensions()
-    if extension not in supported_extensions:
+    clean_filename = os.path.basename(file.filename)
+    extension = os.path.splitext(clean_filename)[1].lower()
+
+    if extension not in ALLOWED_EXTENSIONS:
         return {
             "success": False,
-            "filename": file_name,
+            "filename": clean_filename,
             "format": FileFormat.UNKNOWN.value,
             "can_process": False,
             "error": f"Unsupported file extension: {extension}. "
-                     f"Supported: {', '.join(supported_extensions)}",
+                     f"Supported: {', '.join(sorted(ALLOWED_EXTENSIONS.keys()))}",
         }
 
-    suffix = get_safe_extension(file_name)
+    suffix = ALLOWED_EXTENSIONS[extension]
     async with async_named_temporary_file(suffix=suffix) as tmp_file:
         content = await file.read(4096)
         await tmp_file.write_bytes(content)
@@ -132,12 +134,11 @@ async def detect_file_format(file: UploadFile = File(...), current_user: dict = 
 
     try:
         detected_format, metadata = detect_format(tmp_path)
-
         format_info = get_format_info(detected_format)
 
         return {
             "success": True,
-            "filename": file.filename,
+            "filename": clean_filename,
             "format": detected_format.value,
             "format_name": format_info.get("name", detected_format.value),
             "format_description": format_info.get("description", ""),
@@ -150,7 +151,7 @@ async def detect_file_format(file: UploadFile = File(...), current_user: dict = 
     except Exception as e:
         return {
             "success": False,
-            "filename": file.filename,
+            "filename": clean_filename,
             "format": FileFormat.UNKNOWN.value,
             "can_process": False,
             "error": f"Error detecting format: {str(e)}",
@@ -158,18 +159,13 @@ async def detect_file_format(file: UploadFile = File(...), current_user: dict = 
 
 
 @router.post("/preview")
-async def preview_file(file: UploadFile = File(...), column_mapping: Optional[str] = Form(None), current_user: dict = Depends(get_current_user),
+async def preview_file(
+    file: UploadFile = File(...),
+    column_mapping: Optional[str] = Form(None),
+    current_user: dict = Depends(get_current_user),
 ):
     """
     Preview file contents without full processing.
-
-    Reads file and returns summary of measurements found.
-    For CSV files, optional column_mapping can specify column names.
-
-    Args:
-        file: File to preview
-        column_mapping: JSON string with column mapping for CSV files
-                       e.g., '{"abstimes": "time_ns", "microtimes": "tcspc"}'
     """
     if not file.filename:
         raise HTTPException(
@@ -177,8 +173,17 @@ async def preview_file(file: UploadFile = File(...), column_mapping: Optional[st
             detail=FILE_NAME_ERROR,
         )
 
-    filename = os.path.basename(file.filename)
-    # Parse column mapping if provided
+    clean_filename = os.path.basename(file.filename)
+    extension = os.path.splitext(clean_filename)[1].lower()
+
+    if extension not in ALLOWED_EXTENSIONS:
+        return {
+            "success": False,
+            "filename": clean_filename,
+            "format": FileFormat.UNKNOWN.value,
+            "error": f"Unsupported file extension: {extension}",
+        }
+
     options: Dict[str, Any] = {}
     if column_mapping:
         try:
@@ -189,8 +194,8 @@ async def preview_file(file: UploadFile = File(...), column_mapping: Optional[st
                 detail="Invalid column_mapping JSON",
             )
 
-    extension = get_safe_extension(clean_filename)
-    async with async_named_temporary_file(suffix=extension) as tmp_file:
+    suffix = ALLOWED_EXTENSIONS[extension]
+    async with async_named_temporary_file(suffix=suffix) as tmp_file:
         content = await file.read()
         await tmp_file.write_bytes(content)
         tmp_path = str(tmp_file)
@@ -201,12 +206,12 @@ async def preview_file(file: UploadFile = File(...), column_mapping: Optional[st
         if not result.success:
             return {
                 "success": False,
-                "filename": file.filename,
+                "filename": clean_filename,
                 "format": result.format_name,
                 "error": result.error,
             }
-
-        # preview (first 5 measurements with limited info)
+            
+         # preview (first 5 measurements with limited info)
         preview_measurements = []
         for m in result.measurements[:5]:
             preview_measurements.append({
@@ -221,7 +226,7 @@ async def preview_file(file: UploadFile = File(...), column_mapping: Optional[st
 
         return {
             "success": True,
-            "filename": file.filename,
+            "filename": clean_filename,
             "format": result.format_name,
             "total_measurements": result.measurement_count,
             "total_photons": result.total_photons,
@@ -233,7 +238,7 @@ async def preview_file(file: UploadFile = File(...), column_mapping: Optional[st
     except Exception as e:
         return {
             "success": False,
-            "filename": file.filename,
+            "filename": clean_filename,
             "error": f"Error reading file: {str(e)}",
         }
 
