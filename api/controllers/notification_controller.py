@@ -8,7 +8,7 @@ from api.services.notification_service import (
 def decline_invite_controller(notification_id: str, user_id: str) -> dict:
     try:
         notification = decline_invite(notification_id,user_id)
-        return {"success": True, "notifications": notifications}
+        return {"success": True, "notifications": notification}
     except ValueError as valerror:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(valerror))
     except Exception as e:
