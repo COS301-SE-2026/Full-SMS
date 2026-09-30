@@ -46,8 +46,17 @@ async def async_named_temporary_file(suffix: str = ".tmp"):
     """
     Asynchronous temporary file context manager.
     Yields an AsyncPath and automatically unlinks the file on exit.
+    Protects against path traversal by ensuring the target stays within tempdir.
     """
-    temp_file = AsyncPath(tempfile.gettempdir()) / f"sms_{uuid.uuid4().hex}{suffix}"
+    clean_suffix = suffix if (suffix.startswith(".") and suffix[1:].isalnum()) else ".tmp"
+    temp_dir = Path(tempfile.gettempdir()).resolve()
+    resolved_path = (temp_dir / f"sms_{uuid.uuid4().hex}{clean_suffix}").resolve()
+    if not resolved_path.is_relative_to(temp_dir):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid file path detected.",
+        )
+    temp_file = AsyncPath(resolved_path)
     try:
         yield temp_file
     finally:
