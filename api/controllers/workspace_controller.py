@@ -15,7 +15,7 @@ from api.services.workspace_service import (
 )
 from api.models.workspace import WorkspaceCreate, WorkspaceUpdate
 from api.services.profile_service import get_user_by_email
-
+from api.services.notification_service import add_notification
 
 def get_workspaces_controller(user_id: str):
     try:
@@ -154,6 +154,14 @@ def add_workspace_member_controller(workspace_id: str, user_id: str, email: str)
     try:
         member_profile = get_user_by_email(email)
         response = add_workspace_member(workspace_id, user_id, member_profile["id"])
+
+        if not response.get("already_member"):
+            add_notification(
+                workspace_id,
+                member_profile["id"],
+                "invite",
+                "You were added to a workspace",
+            )
 
         return {"success": True, "message": "Member added successfully", "workspace": response}
     except ValueError as valerror:
