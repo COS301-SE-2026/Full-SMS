@@ -1,6 +1,6 @@
 from typing import List
 from api.services.workspace_service import get_supabase_admin
-
+from api.services.workspace_service import get_supabase_admin, remove_workspace_member
 
 def list_notifications(user_id: str) -> List[dict]:
     supabase = get_supabase_admin()
@@ -47,3 +47,18 @@ def read_status(notification_id:str, user_id: str) -> dict:
         raise ValueError("Notification not found.")
     
     return response.data[0]
+
+
+def decline_invite(notification_id:str, user_id: str) -> dict:
+    supabase = get_supabase_admin()
+
+    response = (
+        supabase.table("notifications")
+        .select("*")
+        .eq("id", notification_id)
+        .eq("recipient_id", user_id)\
+        .single()
+        .execute()
+    )
+    if not response.data:
+        raise ValueError("Notification not found.")
