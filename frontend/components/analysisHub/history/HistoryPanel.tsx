@@ -17,7 +17,7 @@ interface HistoryPanelProps {
     members: WorkspaceMemberProfile[];
 }
 
-export function HistoryPanel({entries, loading, error, onRevert, members}: HistoryPanelProps) {
+export function HistoryPanel({entries, loading, error, onRevert, members}: Readonly<HistoryPanelProps>) {
     const panelRef=useRef<HTMLDivElement>(null);
 
     useEffect(() => {

@@ -422,7 +422,9 @@ export function Hdf5DataProvider({
         if(res.success) {
           setMembers(res.members);
         }
-      });
+      }).catch(() => {
+        setMembers([]);
+      })
     }, [currentWorkspaceId]);
 
   useEffect(() => {
