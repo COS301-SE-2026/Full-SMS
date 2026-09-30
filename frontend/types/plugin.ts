@@ -492,3 +492,19 @@ export function getAvailableExportFormats(type: OutputType): ExportFormat[] {
       return ["json"];
   }
 }
+
+export interface ValidatePluginRequest {
+    script: string;
+  }
+
+  export interface ValidatePluginResponse {
+    valid: boolean;
+    message?: string;
+    error?: string;
+  }
+
+  export interface ValidationError {
+    line: number;
+    message: string;
+    severity: "error" | "warning";
+  }

@@ -14,7 +14,7 @@ def cache_measurement(upload_id: str, measurement_id: str | int, measurement: Me
     cache_key = build_cache_key(upload_id=upload_id, measurement_id=measurement_id)
     try: 
         byte_data = pickle.dumps(measurement, protocol=5)
-        redisClient.set(cache_key, byte_data)
+        redisClient.set(cache_key, byte_data, ex=86400)
     except Exception as e:
         print(f"There was an error saving measurement to cache: {e}")
         

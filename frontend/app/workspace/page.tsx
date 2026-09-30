@@ -25,6 +25,7 @@ import axiosInstance from "@/lib/api/axiosInstance";
 import { getHdf5UploadStatus } from "@/services/hdf5services";
 import { DeleteIcon, TrashIcon, UserPlus } from "lucide-react";
 import BackButton from "@/components/ui/BackButton";
+import FormatBadge from "@/components/fileFormat/FormatBadge";
 import { ManageMembersModal } from "@/components/dashboard/ManageMembersModal";
 
 interface ProgressTrackerProps {
@@ -422,12 +423,13 @@ export default function WorkspacePage() {
                 uploads.map((upload, index) => (
                   <Card
                     key={upload.id || index}
-                    className="upload-item w-full mt-4 flex flex-row justify-between items-center"
+                    className="upload-item w-full mt-4 flex flex-row justify-between items-center cursor-pointer hover:border-primary hover:scale-[1.02]"
                     onClick={() => {
                       handleUploadOpen(upload.id);
                     }}
                   >
-                    <div>
+                    <div className=" p-4">
+                      <FormatBadge name={upload.filename}/>
                       <CardHeader className="font-bold">
                         {upload.filename}
                       </CardHeader>

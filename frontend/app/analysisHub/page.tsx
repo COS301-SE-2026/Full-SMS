@@ -32,12 +32,14 @@ export default function App() {
     useAnalysisTab();
   const [currentPlugin, setCurrentPlugin] = useState<Plugin | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const { currentWorkspaceId, currentUpload, setBin, setConfidence } = useHdf5Data();
+  const { currentWorkspaceId, currentUpload, setBin, setConfidence, members } = useHdf5Data();
   const { entries, loading, error, fetchHistory} = useHistory(currentWorkspaceId, currentUpload, "intensity",);
   const isPluginTab = activeTab.startsWith("plugin:");
   const pluginId = isPluginTab ? activeTab.replace("plugin:", "") : null;
 
   const isLoadingPlugin = isPluginTab && currentPlugin?.id !== pluginId;
+
+  const {currentUploadName} = useHdf5Data()
 
   useEffect(() => {
     if (!pluginId) {
@@ -96,6 +98,7 @@ export default function App() {
                 entries={entries}
                 loading={loading}
                 error={error}
+                members={members}
                 onRevert={async (entry) => {
                   const { entry: reverted}=await historyService.revertEntry(currentWorkspaceId!, entry.id);
                   if(reverted.parameter === "bin") setBin(reverted.new_value);

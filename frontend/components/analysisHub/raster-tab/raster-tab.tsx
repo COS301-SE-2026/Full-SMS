@@ -7,7 +7,7 @@ import { HistoryPanel } from '../history/HistoryPanel'
 import { historyService } from '@/services/historyServices'
 
 export default function RasterTab() {
-  const {currentWorkspaceId, currentUpload, setHeatMapColor} = useHdf5Data()
+  const {currentWorkspaceId, currentUpload, setHeatMapColor, members} = useHdf5Data()
   const {entries, loading, error, fetchHistory} = useHistory(currentWorkspaceId, currentUpload, "raster")
   const [historyOpen, setHistoryOpen] = useState(false)
   return (
@@ -21,6 +21,7 @@ export default function RasterTab() {
         entries={entries}
         loading={loading}
         error={error}
+        members={members}
         onRevert={(entry) => {
           setHeatMapColor(entry.old_value)
           historyService.revertEntry(currentWorkspaceId!, entry.id).then(fetchHistory);

@@ -21,8 +21,9 @@ from api.models.plugin import (
     PluginExecute,
     PluginExportRequest,
     PluginExportAllRequest,
+    PluginValidate,
 )
-from api.services.plugin_execution_service import execute_plugin
+from api.services.plugin_execution_service import execute_plugin, validate_script
 from api.services.measurement_service import get_measurement_data
 from api.services.plugin_export_service import (
     export_plugin_output,
@@ -347,3 +348,23 @@ def get_available_outputs_controller(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
+
+
+def validate_plugin_controller(request: PluginValidate) -> dict:
+    try:
+        result = validate_script(request.script)
+        return {
+            "success": True,
+            "valid": result.get("valid", False),
+            "message": result.get("message"),
+            "error": result.get("error"),
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e),
+        )
+
+
+get_plugins_controller = get_user_plugins_controller
+get_plugin_controller = get_plugin_by_id_controller
