@@ -1,34 +1,28 @@
+import { Card, Button } from '@/components/ui'
+import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsContext'
+import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
+import { colors } from '@/lib/tokens'
+import { getFluorescenceDecay } from '@/services/analysisServices'
+import React, { useEffect } from 'react'
+import Plot from 'react-plotly.js'
+import { Comment } from '@/types/comment'
 import NativeDataViewer from "@/components/fileFormat/NativeDataViewer";
-import { Card } from "@/components/ui";
-import { useAnalysisTab } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
-import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
-import { colors } from "@/lib/tokens";
-import { getFluorescenceDecay } from "@/services/analysisServices";
-import React, { useEffect } from "react";
-import Plot from "react-plotly.js";
+import { useCommentClick } from '@/hooks/useCommentClick';
+import { buildCommentMarkers } from '@/lib/commentMarkers';
 
-export default function LifetimeCharts() {
-  const {
-    currentMeasurement,
-    currentUpload,
-    bin,
-    currentChannel,
-    currentUploadName,
-    hdf5Metadata
-  } = useHdf5Data();
-  const {
-    useLogScale,
-    decayCounts,
-    setDecayCounts,
-    decayTimes,
-    setDecayTimes,
-    fitResult,
-  } = useAnalysisTab();
 
-  const useNativeBlocksViewer = hdf5Metadata?.data_kind ==="native_data"
-    
+interface LifeTimeChartProps{
+  comments: Comment[];
+  onAddComment: (payload: {content: string; anchor_x: number; anchor_y: number}) => void;
+}
 
-  console.log("NATIVE",useNativeBlocksViewer);
+export default function LifetimeCharts({comments, onAddComment}: Readonly<LifeTimeChartProps>) {
+    const { currentMeasurement, currentUpload, bin, currentChannel, hdf5Metadata} = useHdf5Data()
+    const {useLogScale, decayCounts, setDecayCounts, decayTimes, setDecayTimes, fitResult} = useAnalysisTab()
+    const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote } = useCommentClick(onAddComment);
+    const commentMarkers = buildCommentMarkers(comments, 'x', 'y');
+      const useNativeBlocksViewer = hdf5Metadata?.data_kind ==="native_data"
+      console.log("NATIVE",useNativeBlocksViewer);
   
 
   useEffect(() => {
@@ -107,7 +101,7 @@ export default function LifetimeCharts() {
                     color: colors.foreground,
                     size: 4,
                   },
-                },
+                }, commentMarkers
               ]}
               layout={{
                 autosize: true,
@@ -154,7 +148,7 @@ export default function LifetimeCharts() {
                   },
                 },
 
-                // seconf Yaxis
+                // second Yaxis
                 yaxis2: {
                   showgrid: true,
                   gridcolor: colors.border,
@@ -180,12 +174,32 @@ export default function LifetimeCharts() {
                 },
                 margin: { l: 80, r: 20, t: 50, b: 80 },
               }}
-              style={{ width: "100%", height: "100%" }}
-              useResizeHandler
-            />
-          </div>
-        </Card>
-      </div>
-    );
+            style={{ width: '100%', height: '100%' }}
+            useResizeHandler
+            onClick={controlPlotClick}
+          />
+        </div>
+      </Card>
+
+      {progressSpot && (
+        <div className="flex gap-2 items-center p-2 border-t border-border">
+          <input
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            placeholder="Add a comment.."
+            className="border border-border bg-card rounded flex-1 text-xs px-2 py-1" />
+
+            <Button onClick={controlSubmitNote} variant="primary">
+              Add
+            </Button>
+
+            <Button onClick={() => setProgressSpot(null)} variant="secondary">
+              Cancel
+            </Button>
+
+        </div>
+      )}
+    </div>
+  )
   }
 }

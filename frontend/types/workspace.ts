@@ -72,3 +72,10 @@ export interface WorkspaceUploadsResponse {
   uploads?: UploadRecord[];
   message?: string;
 }
+
+export interface WorkspaceMemberProfile{
+  id: string;
+  email: string;
+  username: string | null;
+  role: string;
+}

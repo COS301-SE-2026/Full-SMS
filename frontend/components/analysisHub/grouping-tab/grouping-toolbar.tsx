@@ -5,6 +5,7 @@ import { ClusteringReq, ClusteringRes, LevelData } from "@/types/analysis";
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import axiosInstance from "@/lib/api/axiosInstance";
 import { useState } from "react";
+import { MessageSquare } from "lucide-react";
 
 const GROUPING_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/py/analysis/grouping`;
 
@@ -33,7 +34,11 @@ async function runGroupingJob(levels: LevelData[]): Promise<ClusteringRes> {
   }
 }
 
-export default function GroupingToolbar() {
+export default function GroupingToolbar({commentsOpen, onToggleComments, onAddComment}: Readonly<{
+  commentsOpen: boolean;
+  onToggleComments: () => void;
+  onAddComment: (payload: {content: string}) => void;
+}>) {
   const {
     setGroupingData,
     cpaData,
@@ -44,8 +49,13 @@ export default function GroupingToolbar() {
     selectedChannels
   } = useHdf5Data();
   const { errorToast } = useToast()
+
   const [isBatchProcessing, setIsBatchProcessing] = useState(false)
+  const [progressSpot, setProgressSpot] = useState(false);
+  const [noteText, setNoteText] = useState('')
   const [batchRemaining, setBatchRemaining] = useState(0)
+
+
   const { execute, isProcessing } = UseCeleryPolling<
     ClusteringReq,
     ClusteringRes
@@ -171,6 +181,19 @@ export default function GroupingToolbar() {
         >
           Group All
         </Button>
+
+        <Button variant="ghost" size="sm"
+          title="View Comments"
+          onClick={onToggleComments}
+          className={`px-2 py-0.5 min-h-0 ${commentsOpen ? "bg-card" : ""}`}
+          leftIcon={<MessageSquare size={14} />}
+        />
+
+        <Button variant="secondary" size="sm"
+          onClick={() => setProgressSpot((v) => !v)}
+          >
+          New Comment
+        </Button>
         {/* <div className="ml-auto">
           <Button size="sm" variant="secondary" className="min-h-[28px] px-3">
             Reset to optimal
@@ -182,8 +205,28 @@ export default function GroupingToolbar() {
           Grouping {batchRemaining} measurement{batchRemaining !== 1 ? "s" : ""} …
         </span>
       )}
-    </div>
-    
-    
+
+{progressSpot && (
+  <div className="flex gap-2 items-center p-2">
+    <input
+      value={noteText}
+      onChange={(e) => setNoteText(e.target.value)}
+      placeholder="Add a comment..."
+      className="border border-border bg-card rounded flex-1 text-xs px-2 py-1"
+    />
+    <Button onClick={() => {
+      if (!noteText.trim()) return;
+      onAddComment({ content: noteText });
+      setNoteText('');
+      setProgressSpot(false);
+    }} variant="primary">
+      Add
+    </Button>
+    <Button onClick={() => setProgressSpot(false)} variant="secondary">
+      Cancel
+    </Button>
+  </div>
+)}
+</div>
   );
 }

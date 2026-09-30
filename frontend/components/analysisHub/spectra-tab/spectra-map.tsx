@@ -9,8 +9,14 @@ import React, { useEffect, useMemo, useState } from "react";
 import Plot from "react-plotly.js";
 import { HistoryPanel } from "../history/HistoryPanel";
 import { historyService } from "@/services/historyServices";
-import { History } from "lucide-react";
+import { History, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui";
+import { useComments } from "@/hooks/useComments";
+import { CommentPanel } from "../comments/CommentPanel";
+import { useMemberLookup } from "@/hooks/useMemberLookup";
+import { useCommentClick } from "@/hooks/useCommentClick";
+import { buildCommentMarkers } from "@/lib/commentMarkers";
+import { useCommentSubmit } from "@/hooks/useCommentSubmit";
 
 export default function SpectraMap() {
   const {
@@ -27,6 +33,16 @@ export default function SpectraMap() {
 
   const [spectraData, setSpectraData] = useState<SpectraData>();
   const [historyOpen, setHistoryOpen] = useState(false);
+
+  const [commentsOpen, setCommentsOpen] = useState(false)
+  const memberLookup = useMemberLookup(currentWorkspaceId)
+
+  const {comments, loading: commentsLoading, error: commentsError, fetchComments} =
+    useComments(currentWorkspaceId, currentUpload, "spectra")
+  const controlAddComment = useCommentSubmit(currentWorkspaceId, currentUpload, "spectra", fetchComments)
+
+  const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote: controlSubmitComment } = useCommentClick(controlAddComment);
+
   const colourmaps = [
     "Plasma",
     "Viridis",
@@ -86,6 +102,8 @@ export default function SpectraMap() {
     )
   }
 
+  const commentMarkers = buildCommentMarkers(comments);
+
   return (
     <div className="flex gap-3">
       <div className="flex flex-col flex-1">
@@ -121,6 +139,14 @@ export default function SpectraMap() {
             className={`ml-auto ${historyOpen ? "bg-card" : ""}`}
             leftIcon={<History size={14} />}
           />
+
+          <Button 
+          variant="ghost" size="sm"
+          title="View Comments"
+          onClick={() => setCommentsOpen((v) => !v)}
+          className={`py-0.5 px-2 min-h-0 ${commentsOpen ? "bg-card":""}`}
+          leftIcon={<MessageSquare size={14}/>}
+          />
         </div>
       </div>
 
@@ -142,7 +168,7 @@ export default function SpectraMap() {
                 tickfont: { color: colors.foreground },
                 titlefont: { color: colors.foreground },
               },
-            },
+            }, commentMarkers
           ]}
           layout={{
             title: {
@@ -170,9 +196,23 @@ export default function SpectraMap() {
             margin: { l: 60, r: 20, t: 40, b: 50 },
           }}
           useResizeHandler={true}
+          onClick={controlPlotClick}
           style={{ width: "100%", height: "100%", minHeight: "400px" }}
         />
       </Card>
+
+      {progressSpot && (
+  <div className="flex gap-2 items-center p-2 border-t border-border">
+    <input
+      value={noteText}
+      onChange={(e) => setNoteText(e.target.value)}
+      placeholder="Add a vomment.."
+      className="border border-border bg-card rounded flex-1 text-xs px-2 py-1"
+    />
+    <Button onClick={controlSubmitComment} variant="primary">Add</Button>
+    <Button onClick={() => setProgressSpot(null)} variant="secondary">Cancel</Button>
+  </div>
+)}
     </div>
     {historyOpen && (<HistoryPanel
       entries={entries}
@@ -185,6 +225,15 @@ export default function SpectraMap() {
       }}
     />
     )}
+
+    {commentsOpen && (
+  <CommentPanel
+    comments={comments}
+    loading={commentsLoading}
+    error={commentsError}
+    authorFinder={memberLookup}
+  />
+)}
     </div>
   );
 }

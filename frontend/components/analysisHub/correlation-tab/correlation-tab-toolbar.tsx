@@ -9,7 +9,7 @@ import { CorrelationReq, RebinCorrelationReq } from "@/types/analysis";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import { useHistoryRecorder } from "@/hooks/useHistoryRecorder";
-import { History } from "lucide-react";
+import { History, MessageSquare } from "lucide-react";
 
 function getG2AtZero(tau?: number[], g2?: number[]): number {
     if (!tau?.length || !g2?.length) {
@@ -30,15 +30,17 @@ function getG2AtZero(tau?: number[], g2?: number[]): number {
   }
 
 export default function CorrelationTabToolbar({
-  window, setWindow, bin, setBin, offset, setOffset,onHistoryRecorded, historyOpen, onToggleHistory
-}: {
+  window, setWindow, bin, setBin, offset, setOffset,onHistoryRecorded, historyOpen, onToggleHistory, commentsOpen, onToggleComments
+}: Readonly<{
   window: number; setWindow: (v:number) => void;
   bin: number; setBin: (v:number) => void;
   offset: number; setOffset: (v:number) => void;
   onHistoryRecorded: () =>void;
   historyOpen: boolean;
   onToggleHistory: () => void;
-}) {
+  commentsOpen: boolean;
+  onToggleComments: () => void;
+}>) {
   
   const [g2AtZero, setG2AtZero] = useState<number>(0);
   const { successToast, errorToast } = useToast();
@@ -137,6 +139,13 @@ export default function CorrelationTabToolbar({
         onClick={onToggleHistory}
         className={`px-2 py-0.5 min-h-0 ${historyOpen ? "bg-card" : ""}`}
         leftIcon={<History size={14} />}
+      />
+
+      <Button title="View Notes"
+      className={`px-2 py-0.5 min-h-0 ${commentsOpen ? "bg-card":""}`}
+      onClick={onToggleComments}
+      variant="ghost" size="sm"
+      leftIcon={<MessageSquare size={14}/>}
       />
     </div>
   );
