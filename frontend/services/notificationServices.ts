@@ -36,4 +36,17 @@ export const notificationService = {
             );
         }
     },
+
+    acceptInvite: async(notificationId: string): Promise<NotificationResponse> => {
+        try{
+            const response = await axiosInstance.post(
+                `/api/py/notifications/${notificationId}/accept`,
+            );
+            return response.data;
+        }catch(error: any){
+            throw new Error(
+                error.response?.data?.detail || "Failed to accept invite. Try again"
+            );
+        }
+    },
 };
