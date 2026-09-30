@@ -51,7 +51,7 @@ export default function ExportPanel() {
                             </div>
 
                             <Checkbox label= "BIC Plot" checked={form.BICPlot} onCheckedChange={form.setBICPlot} />
-
+                            <Checkbox label="Correlation Plot" checked={form.plotCorrelation} onCheckedChange={form.setPlotCorrelation} />
                         </CardContent>
                     </Card>  
 

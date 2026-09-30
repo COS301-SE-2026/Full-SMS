@@ -13,7 +13,8 @@ export function useExportform() {
         selectedMeasurements,
         clearSelectedMeasurements,
         hdf5Metadata,
-        selectAllMeasurements
+        selectAllMeasurements,
+        correlationData
     } = useHdf5Data();
 
     const [exportIntensity, setExportIntensity] = useState(true);
@@ -25,6 +26,7 @@ export function useExportform() {
     const [plotIncludeLevels, setPlotIncludeLevels] = useState(true);
     const [plotIncludeGroups, setPlotIncludeGroups] = useState(false);
     const [BICPlot, setBICPlot] = useState(false);
+    const[plotCorrelation, setPlotCorrelation] = useState(false);
 
     const [dataFormat, setFormat] = useState<ExportFormat>("csv");
     const[PlotfileFormat, setPlotFormat] = useState<PLotFormat>("png");
@@ -94,6 +96,9 @@ export function useExportform() {
             plotIntensity_levels: plotIncludeLevels,
             plotIntensity_groups: plotIncludeGroups,
             plot_bic: BICPlot,
+            plot_correlation: plotCorrelation,
+            correlation_tau: correlationData?.tau ?? null,
+            correlation_g2: correlationData?.g2 ?? null,
         };
 
         try {
@@ -174,6 +179,8 @@ export function useExportform() {
         setPlotIncludeGroups,
         BICPlot,
         setBICPlot,
+        plotCorrelation,
+        setPlotCorrelation,
         plotDPI,
         setPlotDPI,
         dataFormat,

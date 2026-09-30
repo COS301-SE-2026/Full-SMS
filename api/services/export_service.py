@@ -17,6 +17,7 @@ from api.legacy.io import plot_exporters
 from api.legacy.models.group import GroupData, ClusteringResult, ClusteringStep
 from api.legacy.models.fit import FitResult
 
+
 class MissingAnalysisDataError(NotImplementedError):
     def __init__(self, category: str, measurement_name: str):
         self.category = category
@@ -25,6 +26,10 @@ class MissingAnalysisDataError(NotImplementedError):
             f"No saved analysis data found for {measurement_name}. "
             f"Run and save analysis before exporting."
         )
+
+class InvalidExportDataErr(ValueError):
+    def __init__(self, message: str):
+        super().__init__(message)
 
 def _get_measurement_data(upload_id:str, measurement_id: str, user_id: str) -> dict :
     cached_measurement = get_cached_measurement(upload_id, measurement_id)
@@ -225,6 +230,24 @@ def _export_bic_plot(request, analysis_getter, data, measurement_name) -> tuple[
     return output_path, f"{measurement_name}_bic_plot{output_path.suffix}"
 
 
+def _export_correlation_plot(request, data, measurement_name) -> tuple[Path, str] | None:
+    if not request.plot_correlation:
+        return None
+    if not request.correlation_tau or not request.correlation_g2:
+        raise InvalidExportDataErr("This measurement has only one TCSPC channel. Correlation analysis requires dual-channel data.")
+
+    fd, temp_path=tempfile.mkstemp()
+    os.close(fd)
+    output_path = plot_exporters.export_correlation_plot(
+        tau=request.correlation_tau,
+        g2=request.correlation_g2,
+        output_path=Path(temp_path),
+        fmt=request.plot_format,
+        dpi=request.plot_dpi,
+        title=data.get("name", ""),
+    )
+    return output_path, f"{measurement_name}_correlation_plot{output_path.suffix}"
+
 def _process_selection(request, selection, user_id) -> list[tuple[Path, str]]:
     measurement_id = selection.measurement_id
     channel = selection.channel
@@ -261,6 +284,11 @@ def _process_selection(request, selection, user_id) -> list[tuple[Path, str]]:
     bic_result =_export_bic_plot(request, get_analysis, data, measurement_name)
     if bic_result:
             results.append(bic_result)
+
+    correlation_result = _export_correlation_plot(request, data, measurement_name)
+    if correlation_result:
+        results.append(correlation_result)
+    
     return results
     
 
