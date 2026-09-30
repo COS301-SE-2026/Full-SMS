@@ -62,3 +62,8 @@ def decline_invite(notification_id:str, user_id: str) -> dict:
     )
     if not response.data:
         raise ValueError("Notification not found.")
+
+    notification = response.data
+    remove_workspace_member(notification["workspace_id"], user_id, user_id)
+
+    return read_status(notification_id, user_id)
