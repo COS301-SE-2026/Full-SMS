@@ -7,6 +7,8 @@ import React, { useEffect, useState } from 'react'
 import Plot from 'react-plotly.js'
 import { Comment } from '@/types/comment'
 import { Button } from '@/components/ui'
+import NativeDataViewer from "@/components/fileFormat/NativeDataViewer";
+
 
 interface LifeTimeChartProps{
   comments: Comment[];
@@ -14,7 +16,7 @@ interface LifeTimeChartProps{
 }
 
 export default function LifetimeCharts({comments, onAddComment}: LifeTimeChartProps) {
-    const { currentMeasurement, currentUpload, bin, currentChannel} = useHdf5Data()
+    const { currentMeasurement, currentUpload, bin, currentChannel, currentUploadName, hdf5Metadata} = useHdf5Data()
     const {useLogScale, decayCounts, setDecayCounts, decayTimes, setDecayTimes, fitResult} = useAnalysisTab()
     const [progressSpot, setProgressSpot] = useState<{x: number; y: number} | null>(null);
     const [noteText, setNoteText] = useState('');
@@ -44,37 +46,8 @@ export default function LifetimeCharts({comments, onAddComment}: LifeTimeChartPr
         text: comments.map((t) => t.content),
         hoverinfo: 'text',
       }
-import NativeDataViewer from "@/components/fileFormat/NativeDataViewer";
-import { Card } from "@/components/ui";
-import { useAnalysisTab } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
-import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
-import { colors } from "@/lib/tokens";
-import { getFluorescenceDecay } from "@/services/analysisServices";
-import React, { useEffect } from "react";
-import Plot from "react-plotly.js";
-
-export default function LifetimeCharts() {
-  const {
-    currentMeasurement,
-    currentUpload,
-    bin,
-    currentChannel,
-    currentUploadName,
-    hdf5Metadata
-  } = useHdf5Data();
-  const {
-    useLogScale,
-    decayCounts,
-    setDecayCounts,
-    decayTimes,
-    setDecayTimes,
-    fitResult,
-  } = useAnalysisTab();
-
-  const useNativeBlocksViewer = hdf5Metadata?.data_kind ==="native_data"
-    
-
-  console.log("NATIVE",useNativeBlocksViewer);
+      const useNativeBlocksViewer = hdf5Metadata?.data_kind ==="native_data"
+      console.log("NATIVE",useNativeBlocksViewer);
   
 
   useEffect(() => {
@@ -153,7 +126,7 @@ export default function LifetimeCharts() {
                     color: colors.foreground,
                     size: 4,
                   },
-                },
+                }, commentMarkers
               ]}
               layout={{
                 autosize: true,
@@ -200,7 +173,7 @@ export default function LifetimeCharts() {
                   },
                 },
 
-                // seconf Yaxis
+                // second Yaxis
                 yaxis2: {
                   showgrid: true,
                   gridcolor: colors.border,
@@ -223,81 +196,9 @@ export default function LifetimeCharts() {
                   family: "JetBrains Mono, monospace",
                   size: 14,
                   color: colors.foreground,
-                  size: 4
-                }
-              }, commentMarkers
-            ]}
-            layout={{
-              autosize: true, 
-              uirevision: 'true',
-              title: { 
-                text: 'Fluorescence Decay', 
-                font:{
-                  size: 16
-                } },
-              plot_bgcolor: colors.card, 
-              paper_bgcolor: colors.card,  
-              showlegend: true,
-              
-              // shared Xaxis 
-              xaxis: {
-                showgrid: true,
-                gridcolor: colors.border,   
-                gridwidth: 1,     
-                automargin: true,
-                title:{
-                  text: 'Time (ns)',
-                  standoff: 15,
-                  font:{
-                  size: 12
-                }
-                }
-                 
-              },
-              
-              // Main Yaxis
-              yaxis: {
-                showgrid: true,
-                gridcolor: colors.border,   
-                gridwidth: 1,
-                domain: [0.3, 1.0],
-                type: useLogScale ? 'log' : 'linear',
-                automargin: true,
-                title:{
-                  text: 'Counts',
-                  standoff: 15,
-                  font:{
-                  size: 12
-                }
-                }
-              },
-              
-              // seconf Yaxis 
-              yaxis2: {
-                showgrid: true,
-                gridcolor: colors.border,
-                gridwidth: 1,
-                domain: [0.0, 0.2], 
-                automargin: true,
-                title:{
-                  text: 'Residuals',
-                  standoff: 15,
-                  font:{
-                  size: 12
-                }
                 },
-                zeroline: true,
-                zerolinecolor: colors.foreground,
-                zerolinewidth: 1
-              },
-              
-              font: {
-                family: 'JetBrains Mono, monospace',
-                size: 14,
-                color: colors.foreground 
-              },
-              margin: { l: 80, r: 20, t: 50, b: 80 } 
-            }}
+                margin: { l: 80, r: 20, t: 50, b: 80 },
+              }}
             style={{ width: '100%', height: '100%' }}
             useResizeHandler
             onClick={controlPlotClick}
@@ -325,15 +226,5 @@ export default function LifetimeCharts() {
       )}
     </div>
   )
-                },
-                margin: { l: 80, r: 20, t: 50, b: 80 },
-              }}
-              style={{ width: "100%", height: "100%" }}
-              useResizeHandler
-            />
-          </div>
-        </Card>
-      </div>
-    );
   }
 }
