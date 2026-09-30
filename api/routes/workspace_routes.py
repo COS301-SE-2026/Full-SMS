@@ -10,9 +10,12 @@ from api.controllers.workspace_controller import (
     delete_workspace_controller,
     archive_workspace_controller,
     unarchive_workspace_controller,
-    delete_workspace_upload_controller)
+    delete_workspace_upload_controller,
+    remove_workspace_member_controller,
+    get_workspace_members_controller,
+    add_workspace_member_controller)
 
-from api.models.workspace import WorkspaceCreate, WorkspaceUpdate
+from api.models.workspace import WorkspaceCreate, WorkspaceUpdate, WorkspaceAddMember
 from typing import Annotated
 
 router = APIRouter(prefix="/workspaces", tags=["Workspaces"])
@@ -67,3 +70,15 @@ def get_worspace_uploads(workspace_id: str, current_user: CurrentUser):
 @router.delete("/{workspace_id}/uploads/{upload_id}", summary="Delete a workspace upload")
 def delete_workspace_upload_route(workspace_id: str, upload_id: str, current_user: CurrentUser):
     return delete_workspace_upload_controller(workspace_id, upload_id, current_user["id"])
+
+@router.delete("/{workspace_id}/members/{member_id}", summary="Remove a workspace member")
+def remove_workspace_member_route(workspace_id: str, current_user: CurrentUser, member_id: str):
+    return remove_workspace_member_controller(workspace_id, current_user["id"], member_id)
+
+@router.get("/{workspace_id}/members", summary="Gets list of members of a workspace")
+def get_workspace_members_route(workspace_id: str, current_user: CurrentUser):
+    return get_workspace_members_controller(workspace_id, current_user["id"])
+
+@router.post("/{workspace_id}/members", summary="Adds a new member to the workspace")
+def add_workspace_member_route(workspace_id: str, member: WorkspaceAddMember, owner: CurrentUser):
+    return add_workspace_member_controller(workspace_id, owner["id"], member.email)

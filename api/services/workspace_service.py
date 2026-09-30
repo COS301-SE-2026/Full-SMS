@@ -4,6 +4,7 @@ from typing import List, Optional
 from supabase import Client, create_client
 from api.services.storage_service import BUCKET
 from api.utils.redis_Client import redisClient
+from api.services.profile_service import get_user_profile
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 WORKSPACE_NOT_FOUND = "Workspace not found"
@@ -55,6 +56,7 @@ def get_workspace_by_id(workspace_id: str, user_id: str) -> Optional[dict]:
         "user_id": data["user_id"],
         "is_owner": data["user_id"] == user_id,
         "name": data["name"],
+        "member_ids": data["member_ids"],
         "description": data["description"],
         "storage_bucket_path": data["storage_bucket_path"],
         "status": data["status"],
@@ -229,10 +231,6 @@ def delete_workspace_upload(workspace_id: str, upload_id: str, user_id: str) -> 
 def add_workspace_member (workspace_id: str, user_id: str, member_id: str) -> dict:
     supabase = get_supabase_admin()
 
-    # deny permission if the caller is not the same person being added
-    if user_id != member_id:
-        raise ValueError("Permission denied")
-    
     response = (
         supabase.table("workspaces")
         .select("*")
@@ -240,13 +238,18 @@ def add_workspace_member (workspace_id: str, user_id: str, member_id: str) -> di
         .single()
         .execute()
     )
-
    
     if not response.data:
         raise ValueError(WORKSPACE_NOT_FOUND)
 
-
     data = response.data
+
+    caller_owner = user_id == data["user_id"]
+    self_add = user_id == member_id
+
+    if not (caller_owner or self_add):
+        raise ValueError("Permission denied")
+    
     members = data["member_ids"]
     is_owner = member_id == data["user_id"] 
     is_member = member_id in members
@@ -287,7 +290,10 @@ def remove_workspace_member(workspace_id: str, user_id: str, member_id: str) -> 
     data = response.data
     members = data["member_ids"]
 
-    if user_id != data["user_id"]:
+    is_owner = user_id == data["user_id"]
+    is_self_remove = user_id == member_id
+
+    if not (is_owner or is_self_remove):
         raise ValueError(WORKSPACE_NOT_FOUND)
 
     if member_id not in members:
@@ -328,4 +334,37 @@ def user_can_access_workspace(workspace_id: str, user_id: str) -> bool:
     is_member = user_id in data["member_ids"]
 
     return is_owner or is_member
+
+def get_workspace_members(workspace_id: str, user_id: str) -> list[dict]:
+    supabase = get_supabase_admin()
+
+    if not user_can_access_workspace(workspace_id, user_id):
+        raise ValueError(WORKSPACE_NOT_FOUND)
+
+    response = (
+        supabase.table("workspaces")
+        .select("*, workspace_files(count)")
+        .eq("id", workspace_id)
+        .single()
+        .execute()
+    )
+
+    if not response.data:
+        raise ValueError(WORKSPACE_NOT_FOUND)
+
+    data = response.data
+
+    members_owners_list = list(set([data["user_id"]] + data["member_ids"]))
+
+    results = []
+    
+    for member_id in members_owners_list:
+        try:
+            user_profile = get_user_profile(member_id)
+        except ValueError:
+            continue
+        results.append(user_profile)
+    return results
+
+
 
