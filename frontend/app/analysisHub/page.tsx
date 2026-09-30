@@ -27,12 +27,10 @@ import { historyService } from "@/services/historyServices";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { CommentPanel } from "@/components/analysisHub/comments/CommentPanel";
 import { useComments } from "@/hooks/useComments";
-import { commentService } from "@/services/commentServices";
-import { useToast } from "@/contexts/toastContext/ToastContext";
 import { useMemberLookup } from "@/hooks/useMemberLookup";
+import { useCommentSubmit } from "@/hooks/useCommentSubmit";
 
 export default function App() {
-  const {successToast, errorToast} = useToast();
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
   const { activeTab, fittingDialogOpen, setFittingDialogOpen } =
     useAnalysisTab();
@@ -49,22 +47,7 @@ export default function App() {
 
   const isLoadingPlugin = isPluginTab && currentPlugin?.id !== pluginId;
 
-  const controlAddComment = async (payload: { content: string; anchor_x: number; anchor_y: number}) => {
-    if (!currentWorkspaceId || !currentUpload) return;
-    try{
-      await commentService.addComment(currentWorkspaceId, {
-        content: payload.content,
-        anchor_x: payload.anchor_x,
-        anchor_y: payload.anchor_y,
-        upload_id: currentUpload,
-        tab: "intensity",
-      });
-      fetchComments();
-      successToast("Comment has been added successfully");
-    }catch(error: any){
-      errorToast(error.message || "Failed to add comment");
-    }
-  };
+  const controlAddComment = useCommentSubmit(currentWorkspaceId, currentUpload, "intensity", fetchComments);
 
   useEffect(() => {
     if (!pluginId) {

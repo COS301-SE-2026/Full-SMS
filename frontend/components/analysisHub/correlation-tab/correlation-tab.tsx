@@ -7,9 +7,8 @@ import { HistoryPanel } from "../history/HistoryPanel";
 import { historyService } from "@/services/historyServices";
 import { useComments } from "@/hooks/useComments";
 import { CommentPanel } from "../comments/CommentPanel";
-import { commentService } from "@/services/commentServices";
-import { useToast } from "@/contexts/toastContext/ToastContext";
 import { useMemberLookup } from "@/hooks/useMemberLookup";
+import { useCommentSubmit } from "@/hooks/useCommentSubmit";
 
 function CorrelationTab() {
   const [window, setWindow] = useState<number>(450);
@@ -21,24 +20,7 @@ function CorrelationTab() {
   const [commentsOpen, setCommentsOpen] = useState(false)
   const memberLookup = useMemberLookup(currentWorkspaceId)
   const { comments, loading: commentsLoading, error: commentsError, fetchComments} = useComments(currentWorkspaceId, currentUpload, "correlation")
-  const { successToast, errorToast} = useToast();
-  
-  const addComment = async (payload: {content: string; anchor_x: number; anchor_y: number})=> {
-      if(!currentWorkspaceId || !currentUpload) return
-      try{
-        await commentService.addComment(currentWorkspaceId, {
-          content: payload.content,
-          anchor_x: payload.anchor_x,
-          anchor_y: payload.anchor_y,
-          upload_id: currentUpload,
-          tab: "correlation",
-        })
-        fetchComments()
-        successToast("Comment has been added successfully")
-      } catch(error: any){
-        console.error("Failed to add comment", error)
-        errorToast("Failed to add comment")
-    }}
+  const addComment = useCommentSubmit(currentWorkspaceId, currentUpload, "correlation", fetchComments)
 
   return (
     <div className="w-full h-full flex gap-3">

@@ -10,7 +10,7 @@ import { buildCommentMarkers } from '@/lib/commentMarkers';
 
 interface RasterHeatmapProps {
   comments: Comment[];
-  onAddComment: (payload: { content: string; anchorX: number; anchorY: number }) => void;
+  onAddComment: (payload: { content: string; anchor_x: number; anchor_y: number }) => void;
 }
 export function RasterHeatmap({comments, onAddComment}: Readonly<RasterHeatmapProps>) {
   const [rasterData, setRasterData] = useState<any>(null);

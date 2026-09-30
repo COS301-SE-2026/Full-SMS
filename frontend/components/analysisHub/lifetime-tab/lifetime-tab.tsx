@@ -9,9 +9,8 @@ import { getLifetimeData } from '@/services/analysisServices'
 import { historyService } from '@/services/historyServices'
 import { useComments } from '@/hooks/useComments'
 import { CommentPanel } from '../comments/CommentPanel'
-import { commentService } from '@/services/commentServices'
-import { useToast } from '@/contexts/toastContext/ToastContext'
 import { useMemberLookup } from '@/hooks/useMemberLookup'
+import { useCommentSubmit } from '@/hooks/useCommentSubmit'
 
 export default function LifetimeTab() {
   const{ currentWorkspaceId, currentUpload, currentMeasurement, members} = useHdf5Data()
@@ -21,25 +20,7 @@ export default function LifetimeTab() {
   const [commentsOpen, setCommentsOpen] = useState(false)
   const memberLookup = useMemberLookup(currentWorkspaceId)
   const { comments, loading: commentsLoading, error: commentsError, fetchComments} = useComments(currentWorkspaceId, currentUpload, "lifetime")
-  const { successToast, errorToast} = useToast();
-
-  const addComment = async (payload: {content: string; anchor_x: number; anchor_y: number})=> {
-    if(!currentWorkspaceId || !currentUpload) return
-    try{
-      await commentService.addComment(currentWorkspaceId, {
-        content: payload.content,
-        anchor_x: payload.anchor_x,
-        anchor_y: payload.anchor_y,
-        upload_id: currentUpload,
-        tab: "lifetime",
-      })
-      fetchComments()
-      successToast("Comment has been added successfully")
-    } catch(error: any){
-      console.error("Failed to add comment", error)
-      errorToast("Failed to add comment")
-  }
-}
+  const addComment = useCommentSubmit(currentWorkspaceId, currentUpload, "lifetime", fetchComments)
 
   return (
     <div className='w-full h-full flex gap-3'>

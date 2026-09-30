@@ -13,11 +13,10 @@ import { History, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui";
 import { useComments } from "@/hooks/useComments";
 import { CommentPanel } from "../comments/CommentPanel";
-import { commentService } from "@/services/commentServices";
-import { useToast } from "@/contexts/toastContext/ToastContext";
 import { useMemberLookup } from "@/hooks/useMemberLookup";
 import { useCommentClick } from "@/hooks/useCommentClick";
 import { buildCommentMarkers } from "@/lib/commentMarkers";
+import { useCommentSubmit } from "@/hooks/useCommentSubmit";
 
 export default function SpectraMap() {
   const {
@@ -40,24 +39,7 @@ export default function SpectraMap() {
 
   const {comments, loading: commentsLoading, error: commentsError, fetchComments} =
     useComments(currentWorkspaceId, currentUpload, "spectra")
-  const { successToast, errorToast} = useToast()
-
-  const controlAddComment = async (payload: { content: string; anchor_x: number; anchor_y: number }) => {
-    if (!currentWorkspaceId || !currentUpload) return
-    try{
-      await commentService.addComment(currentWorkspaceId, {
-        content: payload.content,
-        anchor_x: payload.anchor_x,
-        anchor_y: payload.anchor_y,
-        upload_id: currentUpload,
-        tab: "spectra",
-      })
-      fetchComments()
-      successToast("Comment has been added successfully")
-    } catch(error: any){
-      errorToast(error.message || "Failed to add comment")
-    }
-  }
+  const controlAddComment = useCommentSubmit(currentWorkspaceId, currentUpload, "spectra", fetchComments)
 
   const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote: controlSubmitComment } = useCommentClick(controlAddComment);
 
