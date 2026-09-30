@@ -25,20 +25,47 @@ import { HistoryPanel } from "@/components/analysisHub/history/HistoryPanel";
 import { useHistory } from "@/hooks/useHistory";
 import { historyService } from "@/services/historyServices";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
+import { WorkspaceMemberProfile } from "@/types/workspace";
+import { workspaceService } from "@/services/workspaceServices";
+import { CommentPanel } from "@/components/analysisHub/comments/CommentPanel";
+import { useComments } from "@/hooks/useComments";
+import { commentService } from "@/services/commentServices";
+import { useToast } from "@/contexts/toastContext/ToastContext";
 
 export default function App() {
+  const {successToast, errorToast} = useToast();
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
   const { activeTab, fittingDialogOpen, setFittingDialogOpen } =
     useAnalysisTab();
   const [currentPlugin, setCurrentPlugin] = useState<Plugin | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [memberLookup, setMemberLookup] = useState<Record<string, WorkspaceMemberProfile>>({});
   const { currentWorkspaceId, currentUpload, setBin, setConfidence } = useHdf5Data();
+  const {comments, loading: commentsLoading, error: commentsError, fetchComments } = useComments(currentWorkspaceId, currentUpload, "intensity");
+
   const { entries, loading, error, fetchHistory} = useHistory(currentWorkspaceId, currentUpload, "intensity",);
   const isPluginTab = activeTab.startsWith("plugin:");
   const pluginId = isPluginTab ? activeTab.replace("plugin:", "") : null;
 
   const isLoadingPlugin = isPluginTab && currentPlugin?.id !== pluginId;
 
+  const controlAddComment = async (payload: { content: string; anchor_x: number; anchor_y: number}) => {
+    if (!currentWorkspaceId || !currentUpload) return;
+    try{
+      await commentService.addComment(currentWorkspaceId, {
+        content: payload.content,
+        anchor_x: payload.anchor_x,
+        anchor_y: payload.anchor_y,
+        upload_id: currentUpload,
+        tab: "intensity",
+      });
+      fetchComments();
+      successToast("Comment has been added successfully");
+    }catch(error: any){
+      errorToast(error.message || "Failed to add comment");
+    }
+  };
   useEffect(() => {
     if (!pluginId) {
       return;
@@ -61,6 +88,26 @@ export default function App() {
       cancelled = true;
     };
   }, [pluginId]);
+
+  useEffect(() => {
+    if(!currentWorkspaceId) return;
+    let cancelled = false;
+
+    workspaceService.getWorkspaceMembers(currentWorkspaceId)
+    .then((res) => {
+      if(cancelled) return;
+      const lookup: Record<string, WorkspaceMemberProfile> = {};
+      for (const user of res.members){
+        lookup[user.id] = user;
+      }
+      setMemberLookup(lookup);
+    })
+    .catch(() => {
+      if(!cancelled) setMemberLookup({});
+    });
+
+    return () => {cancelled = true};
+  }, [currentWorkspaceId])
 
   return (
     <div className="size-full flex flex-col bg-background text-foreground h-screen">
@@ -89,9 +136,10 @@ export default function App() {
 
         {activeTab === "intensity" && (
           <div className="flex flex-col flex-1 min-w-0">
-            <AnalysisToolbar onHistoryChange={fetchHistory} historyOpen={historyOpen} onToggleHistory={() => setHistoryOpen((v) => !v)}/>
+            <AnalysisToolbar onHistoryChange={fetchHistory} historyOpen={historyOpen} onToggleHistory={() => setHistoryOpen((v) => !v)}
+              commentsOpen={commentsOpen} onToggleComments={() => setCommentsOpen((v) => !v)}/>
             <div className="flex flex-1 gap-3 p-3 min-h-0">
-              <IntensityChart />
+              <IntensityChart comments={comments} onAddComment={controlAddComment}/>
               {historyOpen && (<HistoryPanel
                 entries={entries}
                 loading={loading}
@@ -104,7 +152,14 @@ export default function App() {
                 }}
                />
               )}
-            </div>
+              {commentsOpen && (
+                <CommentPanel
+                  comments={comments}
+                  loading={commentsLoading}
+                  error={commentsError}
+                  authorFinder={memberLookup} />
+              )}
+            </div>  
           </div>
         )}
 

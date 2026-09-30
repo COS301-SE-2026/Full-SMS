@@ -6,7 +6,7 @@ import { changePoint_Req } from "@/types/analysis";
 import { changePointAnalysis } from "@/services/analysisServices";
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import { useHistoryRecorder } from "@/hooks/useHistoryRecorder";
-import { History } from "lucide-react";
+import { History, MessageSquare } from "lucide-react";
 
 interface NumberFieldProps {
   readonly label: string;
@@ -15,7 +15,7 @@ interface NumberFieldProps {
   readonly min?: number;
   readonly max?: number;
   readonly onChange: (v: number) => void;
-  readonly onMouseUp?: (v: number) => void;
+  readonly onMouseUp?: (v: number) => void
 }
 
 export function NumberField({
@@ -99,7 +99,7 @@ function ConfidenceField({
   );
 }
 
-export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory }: { onHistoryChange?:() => void; historyOpen: boolean; onToggleHistory: () => void }) {
+export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory, commentsOpen, onToggleComments}: { onHistoryChange?:() => void; historyOpen: boolean; commentsOpen: boolean, onToggleComments: () => void; onToggleHistory: () => void }) {
   const {
     bin,
     setBin,
@@ -297,6 +297,12 @@ export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory 
             className={`px-2 py-0.5 min-h-0 ${historyOpen ? "bg-card" : ""}`}
             leftIcon={<History size={14} />}
           />
+          <Button variant="ghost" size="sm"
+           title="View Comments"
+           onClick={onToggleComments}
+           className={`px-2 py-0.5 min-h-0 ${commentsOpen ? "bg-card" : ""}`}
+           leftIcon={<MessageSquare size={14}/>}
+           />
         </div>
       </div>
       <div>
