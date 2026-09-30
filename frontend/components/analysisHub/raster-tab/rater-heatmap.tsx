@@ -34,13 +34,13 @@ export function RasterHeatmap() {
 
   }, [currentMeasurement, currentUpload]);
 
-  // if (!rasterData?.raster_scan) {
-  //   return (
-  //     <div className="flex h-full w-full items-center justify-center text-gray-500">
-  //       Loading Raster Scan...
-  //     </div>
-  //   );
-  // }
+  if (!rasterData?.raster_scan) {
+    return (
+      <div className="flex h-full w-full items-center justify-center text-gray-500">
+        Loading Raster Scan...
+      </div>
+    );
+  }
 
   if(!hdf5Metadata?.has_rasters){
     return(
