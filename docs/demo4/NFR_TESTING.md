@@ -212,8 +212,8 @@ Screenshots of test execution:
 ## Detailed Reports
 
 - [NFR Test Summary Report](nfr_results/nfr_report_20260930_042155.md)
-- [Lighthouse Performance Report (HTML)](nfr_results/performance/lighthouse_20260930_042155.report.html)
-- [Code Coverage Report (HTML)](nfr_results/maintainability/htmlcov_20260930_042643/index.html)
+- [Lighthouse Performance Report (HTML)](https://htmlpreview.github.io/?https://github.com/COS301-SE-2026/Full-SMS/blob/main/docs/demo4/nfr_results/performance/lighthouse_20260930_042155.report.html)
+- [Code Coverage Report (HTML)](https://htmlpreview.github.io/?https://github.com/COS301-SE-2026/Full-SMS/blob/main/docs/demo4/nfr_results/maintainability/htmlcov_20260930_042643/index.html)
 - [Code Coverage Data (JSON)](nfr_results/maintainability/coverage_20260930_042643.json)
 
 ## Running All Tests
