@@ -158,7 +158,7 @@ bash tests/nfr/test_cors.sh http://13.134.247.238:8000 https://fullsms.duckdns.o
 
 **Test Command:**
 ```bash
-bash tests/nfr/test_code_coverage.sh /path/to/project
+bash tests/nfr/test_code_coverage.sh .
 ```
 
 **Test Script:** `tests/nfr/test_code_coverage.sh`
