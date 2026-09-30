@@ -13,7 +13,7 @@ import { WorkspaceMemberProfile } from '@/types/workspace'
 import { useToast } from '@/contexts/toastContext/ToastContext'
 
 export default function RasterTab() {
-  const {currentWorkspaceId, currentUpload, setHeatMapColor} = useHdf5Data()
+  const {currentWorkspaceId, currentUpload, setHeatMapColor, members} = useHdf5Data()
   const {entries, loading, error, fetchHistory} = useHistory(currentWorkspaceId, currentUpload, "raster")
   const [historyOpen, setHistoryOpen] = useState(false)
 
@@ -77,6 +77,7 @@ export default function RasterTab() {
         entries={entries}
         loading={loading}
         error={error}
+        members={members}
         onRevert={(entry) => {
           setHeatMapColor(entry.old_value)
           historyService.revertEntry(currentWorkspaceId!, entry.id).then(fetchHistory);

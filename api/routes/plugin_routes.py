@@ -14,6 +14,7 @@ from api.controllers.plugin_controller import (
     execute_plugin_controller,
     update_installed_plugin_controller,
     get_latest_execution_controller,
+    validate_plugin_controller,
 )
 from api.models.plugin import (
     PluginCreate,
@@ -22,6 +23,7 @@ from api.models.plugin import (
     PluginUpdate,
     PluginToggle,
     PluginExecute,
+    PluginValidate,
 )
 from typing import Annotated
 
@@ -68,6 +70,9 @@ def get_available_outputs(
 def get_plugins(current_user: CurrentUser):
     return get_user_plugins_controller(current_user["id"])
 
+@router.post("/validate", summary="Validate a plugin script without executing")
+def validate_plugin(request: PluginValidate, _current_user: CurrentUser):
+    return validate_plugin_controller(request)
 
 @router.get("/{plugin_id}", summary="Get a specific plugin by id")
 def get_plugin(plugin_id: str, current_user: CurrentUser):

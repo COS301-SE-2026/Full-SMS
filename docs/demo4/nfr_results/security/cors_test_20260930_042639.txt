@@ -1,0 +1,9 @@
+
+Allowed Origin Test: PASS
+Malicious Origin 'https://evil-site.com': PASS
+Malicious Origin 'https://attacker.example.com': PASS
+Malicious Origin 'http://localhost:9999': PASS
+Malicious Origin 'null': PASS
+Wildcard CORS: PASS
+Credentials Check: PASS
+HTTP Methods: PASS
