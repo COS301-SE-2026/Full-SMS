@@ -6,9 +6,12 @@ from controllers.workspace_controller import (get_workspace_members_controller, 
 class TestAddWorkspaceMemberController:
     def test_add_member_success(self):
         with patch("controllers.workspace_controller.get_user_by_email") as mock_get_user, \
-            patch("controllers.workspace_controller.add_workspace_member") as mock_add_member:
+            patch("controllers.workspace_controller.add_workspace_member") as mock_add_member,\
+            patch("controllers.workspace_controller.get_user_profile") as mock_get_profile, \
+            patch("controllers.workspace_controller.add_notification") as mock_add_notification:
             mock_get_user.return_value = {"id": "user-uuid-1"}
-            mock_add_member.return_value = {"id":"workspace1", "member_ids": ["user-uuid-1"]}
+            mock_add_member.return_value = {"id":"workspace1", "member_ids": ["user-uuid-1"], "already_member": False, "name": "Test Workspace"}
+            mock_get_profile.return_value = {"username": "Owner", "email": "owner@example.com"}
 
             from controllers.workspace_controller import add_workspace_member_controller
 
@@ -16,6 +19,7 @@ class TestAddWorkspaceMemberController:
 
             assert result["success"] is True
             assert result["workspace"]["member_ids"] == ["user-uuid-1"]
+            mock_add_notification.assert_called_once()
 
     def test_add_member_not_found(self):
         with patch("controllers.workspace_controller.get_user_by_email") as mock_get_user:
