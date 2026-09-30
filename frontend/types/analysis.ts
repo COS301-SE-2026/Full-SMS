@@ -214,3 +214,25 @@ export type MapIRFReq = {
     irf_id: string
     createdAt?: string  
 }
+
+export type GetMappedIRFReq={
+    workspace_id: string,
+    dataset_ref: string,
+    measurement_id?: number,
+    channel: number  
+}
+
+// return {
+//         "status": "ok",
+//         "irf_id": irf_id,
+//         "name": irf_record.data.get("name"),
+//         "storage_key": storage_key,
+//         "data": parsed_irf  # { "t": [...], "counts": [...] }
+//     }
+
+export type GetMappedIRFRes = {
+    status: string,
+    irf_id: string,
+    name: string
+    storage_key: string
+}

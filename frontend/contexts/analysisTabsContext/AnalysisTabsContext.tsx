@@ -28,6 +28,8 @@ interface AnalysisTabContextType {
     setIrfCounts: (counts: number[]) => void
     irfTimes: number[]
     setIrfTimes: (times: number[]) => void
+    mappingDialog: boolean,
+    setMappingDialog: (b: boolean) =>void
 }
 
 const AnalysisTabContext = createContext<AnalysisTabContextType | undefined> (undefined)
@@ -43,6 +45,8 @@ export function AnalysisTabProvider({children}: {readonly children: ReactNode}){
     const [decayCounts, setDecayCounts] = useState<number[]>([])
     const [decayTimes, setDecayTimes] = useState<number[]>([])
     const [fitResult, setFitResult] = useState<LifetimeRes | null>(null)
+    const [mappingDialog, setMappingDialog] =useState<boolean>(false)
+    
 
     const contextValue = useMemo(()=>({
         activeTab,
@@ -62,8 +66,10 @@ export function AnalysisTabProvider({children}: {readonly children: ReactNode}){
         setDecayTimes,
         decayTimes,
         fitResult,
-        setFitResult
-    }),[activeTab, fittingDialogOpen, showIRF, irfCounts, irfTimes, useLogScale, decayCounts, decayTimes, fitResult])
+        setFitResult,
+        mappingDialog, 
+        setMappingDialog
+    }),[activeTab, fittingDialogOpen, showIRF, irfCounts, irfTimes, useLogScale, decayCounts, decayTimes, fitResult, mappingDialog])
 
     return (
         <AnalysisTabContext.Provider value={contextValue}>

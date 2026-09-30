@@ -1,6 +1,10 @@
+from pathlib import Path
+
 from fastapi import HTTPException
 
-from api.models.analysis_models import MapIRFReq
+from api.models.analysis_models import GetMappedIRFReq, MapIRFReq
+from api.services.hdf5_services import read_irf
+from api.services.storage_service import download_to_temp
 from api.utils.supabase_client import supabaseClient
 
 def get_workspace_irfs(workspace_id: str, user_id: str):
@@ -94,3 +98,55 @@ def delete_irf_mapping(payload: MapIRFReq):
         "status": "ok",
         "data": response
     } 
+    
+def get_mapped_irf_controller(payload: GetMappedIRFReq):
+    measurement_id = payload.measurement_id if payload.measurement_id is not None else -1
+
+    mapping = (supabaseClient.table("irf_mappings")
+                .select("irf_id")
+                .eq("workspace_id", payload.workspace_id)
+                .eq("dataset_ref", payload.dataset_ref)
+                .eq("measurement_id", measurement_id)
+                .eq("channel", payload.channel)
+                .maybe_single()
+                .execute())
+
+    # If not found and this was a specific measurement, fall back to wildcard (-1)
+    if not mapping.data and measurement_id != -1:
+        mapping = (supabaseClient.table("irf_mappings")
+                    .select("irf_id")
+                    .eq("workspace_id", payload.workspace_id)
+                    .eq("dataset_ref", payload.dataset_ref)
+                    .eq("measurement_id", -1)
+                    .eq("channel", payload.channel)
+                    .maybe_single()
+                    .execute())
+
+    if not mapping.data:
+        raise HTTPException(status_code=404, detail="No IRF mapping found for this measurement/channel")
+
+    irf_id = mapping.data["irf_id"]
+
+    irf_record = (supabaseClient.table("workspace_irfs")
+                  .select("*")
+                  .eq("id", irf_id)
+                  .single()
+                  .execute())
+
+    if not irf_record.data:
+        raise HTTPException(status_code=404, detail="IRF record not found")
+
+    storage_key = irf_record.data["storage_key"]
+    # suffix = Path(storage_key).suffix
+    # temp_path = download_to_temp(storage_key, file_extension=suffix)
+
+    # parsed_irf = read_irf(temp_path)
+    # if not parsed_irf:
+    #     raise HTTPException(status_code=500, detail="Failed to parse IRF file")
+
+    return {
+        "status": "ok",
+        "irf_id": irf_id,
+        "name": irf_record.data.get("name"),
+        "storage_key": storage_key,
+    }

@@ -33,7 +33,7 @@ export default function FittingDialog() {
     const [backgroundValue, setBackgroundValue] = useState<number>(0)
     
     const {setFittingDialogOpen, decayCounts, decayTimes, setFitResult} = useAnalysisTab()
-    const {currentMeasurement, currentUpload, currentChannel} = useHdf5Data()
+    const {currentMeasurement, currentUpload, currentChannel, currentMappedIrf} = useHdf5Data()
 
     const { currentWorkspaceId} = useHdf5Data();
     const recordHist = useHistoryRecorder(currentWorkspaceId, currentUpload, "lifetime");
@@ -183,6 +183,7 @@ export default function FittingDialog() {
         </div>
         <CardContent>IRF Settings</CardContent>
         <div className='p-4 border-b'>
+            {(currentMappedIrf && <p className='font-bold mb-2 text-primary'>{currentMappedIrf.name}</p>)}
             <Toggle
             label="Use IRF"
             checked={useIRF}

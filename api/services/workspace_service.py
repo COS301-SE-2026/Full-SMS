@@ -35,17 +35,23 @@ def get_workspace_by_id(workspace_id: str, user_id: str) -> Optional[dict]:
         raise ValueError(WORKSPACE_NOT_FOUND)
 
     response = (
-            supabase.table("workspaces")
-            .select("*, workspace_files(count)")
-            .eq("id", workspace_id)
-            .single()
-            .execute()
-        )
+        supabase.table("workspaces")
+        .select("*, workspace_files(count)")
+        .eq("id", workspace_id)
+        .single()
+        .execute()
+    )
 
     if not response.data:
         raise ValueError(WORKSPACE_NOT_FOUND)
 
     data = response.data
+    members = data["member_ids"]
+    is_owner = user_id == data["user_id"] 
+    is_member = user_id in members
+
+    if not is_owner and not is_member:
+        raise ValueError("Workspace not found")
     
     file_count = 0
     if "workspace_files" in data and len(data["workspace_files"]) > 0:
@@ -117,7 +123,7 @@ def update_workspace(workspace_id: str, user_id: str, name: Optional[str] = None
     if not update_data:
         workspace = get_workspace_by_id(workspace_id, user_id)
         if workspace["user_id"] != user_id:
-            raise ValueError(WORKSPACE_NOT_FOUND)
+            raise ValueError("Workspace not found")
         return workspace
 
     response = (
@@ -140,7 +146,7 @@ def delete_workspace(workspace_id: str, user_id: str) -> bool:
     workspace = get_workspace_by_id(workspace_id, user_id)
 
     if workspace["user_id"] != user_id:
-        raise ValueError(WORKSPACE_NOT_FOUND)
+        raise ValueError("Workspace not found")
     
     if workspace.get("storage_bucket_path"):
         try:
@@ -186,7 +192,6 @@ def get_workspace_uploads(workspace_id: str, user_id: str) -> dict:
     response = (supabase.table("hdf5_uploads")
                 .select("*")
                 .eq("workspace_id", workspace_id)
-                .eq("user_id", user_id)
                 .eq("status", "parsed")
                 .execute()
                     )

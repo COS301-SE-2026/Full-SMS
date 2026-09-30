@@ -348,7 +348,7 @@ export default function WorkspacePage() {
           onCancel={() => setShowPicker(false)}
         />
       </Modal>
-      <div className="flex ustify-center w-full h-full">
+      <div className="flex justify-center w-full h-full">
         {isLoading ? (
           <div className="p-16 h-[vh] overflow-y-auto">
             <div className="h-8 w-36 mb-4 rounded bg-foreground/10 animate-pulse" />
@@ -400,12 +400,6 @@ export default function WorkspacePage() {
                 <div className="mt-4 flex justify-between h-min">
                   <h2>Workspace Uploads</h2>
                   <div className="flex gap-2">
-                    <Button className="font-black border-0 text-primary bg-primary/10" 
-                      variant={"secondary"}
-                      onClick={() => router.push("/irfManagement")}
-                      >
-                      IRF Mapping
-                    </Button>
                     <Button
                       leftIcon={<GrOnedrive size={24} />}
                       onClick={OneDriveLogin}

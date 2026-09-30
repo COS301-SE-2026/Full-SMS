@@ -117,3 +117,9 @@ class UploadIRFReq(BaseModel):
     workspace_id: str
     user_id: str
     name: str
+    
+class GetMappedIRFReq(BaseModel):
+    workspace_id: str
+    dataset_ref: str
+    measurement_id: Optional[int] = -1  
+    channel: int = 1                    # 1 or 2

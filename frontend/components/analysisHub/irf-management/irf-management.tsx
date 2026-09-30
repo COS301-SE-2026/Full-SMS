@@ -52,7 +52,11 @@ function IRFField({
   );
 }
 
-export default function IrfManagement() {
+interface IrfManagementProps {
+   readonly isDialog?: boolean
+}
+
+export default function IrfManagement({isDialog=false}:IrfManagementProps) {
   const IRF_EXTENSIONS = [".h5", ".hdf5", ".txt", ".dat"];
   const { currentWorkspaceId, currentUpload, setHdf5Metadata, hdf5Metadata } =
     useHdf5Data();
@@ -241,7 +245,7 @@ export default function IrfManagement() {
 
   return (
     <div className="p-16 h-[vh] overflow-y-auto w-full z-11">
-      <BackButton className="mb-4" />
+      {!isDialog && (<BackButton className="mb-4" />)}
       <h1>IRF Management</h1>
       <p className="text-lg">{hdf5Metadata?.filename}</p>
       <Modal

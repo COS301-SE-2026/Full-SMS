@@ -2,7 +2,7 @@
 
 import axiosInstance from "@/lib/api/axiosInstance";
 import { uploadToSignedUrl } from "@/services/hdf5services";
-import { MapIRFReq } from "@/types/analysis";
+import { GetMappedIRFReq, GetMappedIRFRes, MapIRFReq } from "@/types/analysis";
 
 export const uploadIrfFile = async (
 	file: File,
@@ -48,3 +48,7 @@ export const deleteMapping = async (payload: MapIRFReq) => {
 	return data
 }
 
+export const getMappedIRF = async (payload: GetMappedIRFReq) =>{
+	const {data} = await axiosInstance.post<GetMappedIRFRes>(`/api/py/hdf5/irf/${payload.workspace_id}/mapping`, payload)
+	return data
+}
