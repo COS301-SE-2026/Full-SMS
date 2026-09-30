@@ -111,11 +111,11 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
                     key={n.id}
                     className={`px-3 py-2 text-xs cursor-pointer border-b border-border/40 ${n.read ? "text-foreground/50": "text-foreground"}`}
                     >
-                    <p onClick={() => markRead(n.id)} className="cursor-pointer">{n.message}</p>
+                    <button onClick={() => markRead(n.id)} className="text-left w-full cursor-pointer">{n.message}</button>
                       {n.type === "invite" && !n.read && (
                         <div className="flex gap-2 mt-1">
-                          <button onClick={() => acceptInvite(n.id)} className="text-green-600 hover:underline">Accept</button>
-                          <button onClick={() => declineInvite(n.id)} className="text-red-600 hover:underline">Decline</button>
+                          <button onClick={async() => {try{await acceptInvite(n.id); successToast("Invite accepted");} catch { errorToast("Failed to accept invite");} }} className="text-green-600 hover:underline">Accept</button>
+                          <button onClick={async() => {try{await declineInvite(n.id); successToast("Invite declined");} catch { errorToast("Failed to decline invite");} }} className="text-red-600 hover:underline">Decline</button>
                         </div>
                       )}
                     </li>
