@@ -48,18 +48,14 @@ def get_safe_extension(filename: str) -> str:
 @asynccontextmanager
 async def async_named_temporary_file(suffix: str = ".tmp"):
     """
-    Asynchronous temporary file context manager.
-    Guarantees the file stays within the system temporary directory.
+    Asynchronous temporary file context manager using tempfile.mkstemp.
+    Avoids path traversal by delegating file creation to the OS temp subsystem,
+    then provides an AsyncPath for non-blocking asynchronous I/O and cleanup.
     """
     safe_suffix = ALLOWED_EXTENSIONS.get(suffix, ".tmp")
-    temp_dir = Path(tempfile.gettempdir()).resolve()
-    resolved_path = (temp_dir / f"sms_{uuid.uuid4().hex}{safe_suffix}").resolve()
-    if not resolved_path.is_relative_to(temp_dir):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid file path detected.",
-        )
-    temp_file = AsyncPath(resolved_path)
+    fd, raw_path = tempfile.mkstemp(suffix=safe_suffix)
+    os.close(fd)
+    temp_file = AsyncPath(raw_path)
     try:
         yield temp_file
     finally:
