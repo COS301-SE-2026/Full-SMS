@@ -19,29 +19,36 @@ from api.services import hdf5_upload_service
 from api.services.storage_service import download_to_temp
 from contextlib import asynccontextmanager
 import uuid
-from anyio import Path as AsyncPath
-
+from anyio import Path as AsyncPath, open_file
 
 
 router = APIRouter(prefix="/formats", tags=["File Formats"])
 FILE_NAME_ERROR = "File must have a filename"
-ALLOWED_EXTENSIONS: Dict[str, str] = {
-    ".csv": ".csv",
-    ".h5": ".h5",
-    ".hdf5": ".hdf5",
-    ".phu": ".phu",
-    ".ptu": ".ptu",
-    ".sdt": ".sdt",
-    ".spc": ".spc",
-    ".tsv": ".tsv",
-    ".txt": ".txt",
-}
+ALLOWED_EXTENSIONS={
+    ".csv", ".h5", ".hdf5", ".phu", ".ptu", ".sdt", ".spc", ".tsv", ".txt"}
 
 def get_safe_extension(filename: str) -> str:
     """read and validate file extension against ALLOWED_EXTENSIONS."""
-    clean_name = os.path.basename(filename)
-    raw_ext = os.path.splitext(clean_name)[1].lower()
-    return ALLOWED_EXTENSIONS.get(raw_ext, ".tmp")
+    clean = Path(filename).name.lower()
+    if clean.endswith(".ptu"):
+        return ".ptu"
+    if clean.endswith(".phu"):
+        return ".phu"
+    if clean.endswith(".sdt"):
+        return ".sdt"
+    if clean.endswith(".spc"):
+        return ".spc"
+    if clean.endswith(".h5"):
+        return ".h5"
+    if clean.endswith(".hdf5"):
+        return ".hdf5"
+    if clean.endswith(".csv"):
+        return ".csv"
+    if clean.endswith(".tsv"):
+        return ".tsv"
+    if clean.endswith(".txt"):
+        return ".txt"
+    return ".tmp"
 
 
 #sonarcloud recommendation for maintainability
@@ -52,14 +59,13 @@ async def async_named_temporary_file(suffix: str = ".tmp"):
     Avoids path traversal by delegating file creation to the OS temp subsystem,
     then provides an AsyncPath for non-blocking asynchronous I/O and cleanup.
     """
-    safe_suffix = ALLOWED_EXTENSIONS.get(suffix, ".tmp")
+    safe_suffix = suffix if suffix in ALLOWED_EXTENSIONS else ".tmp"
     fd, raw_path = tempfile.mkstemp(suffix=safe_suffix)
     os.close(fd)
-    temp_file = AsyncPath(raw_path)
     try:
-        yield temp_file
+        yield raw_path
     finally:
-        await temp_file.unlink(missing_ok=True)
+        await AsyncPath(raw_path).unlink(missing_ok=True)
 
 @router.get("/supported")
 def list_supported_formats():
@@ -100,58 +106,53 @@ async def detect_file_format(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user),
 ):
-    """
-    Detect the format of an uploaded file.
-    """
     if not file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=FILE_NAME_ERROR,
         )
 
-    clean_filename = os.path.basename(file.filename)
-    extension = os.path.splitext(clean_filename)[1].lower()
+    clean_filename = Path(file.filename).name
+    suffix = get_safe_extension(clean_filename)
 
-    if extension not in ALLOWED_EXTENSIONS:
+    if suffix == ".tmp":
         return {
             "success": False,
             "filename": clean_filename,
             "format": FileFormat.UNKNOWN.value,
             "can_process": False,
-            "error": f"Unsupported file extension: {extension}. "
-                     f"Supported: {', '.join(sorted(ALLOWED_EXTENSIONS.keys()))}",
+            "error": f"Unsupported file extension. Supported: {', '.join(sorted(ALLOWED_EXTENSIONS))}",
         }
 
-    suffix = ALLOWED_EXTENSIONS[extension]
-    async with async_named_temporary_file(suffix=suffix) as tmp_file:
+    async with async_named_temporary_file(suffix=suffix) as tmp_path:
         content = await file.read(4096)
-        await tmp_file.write_bytes(content)
-        tmp_path = str(tmp_file)
+        async with await open_file(tmp_path, "wb") as f:
+            await f.write(content)
 
-    try:
-        detected_format, metadata = detect_format(tmp_path)
-        format_info = get_format_info(detected_format)
+        try:
+            detected_format, metadata = detect_format(tmp_path)
+            format_info = get_format_info(detected_format)
 
-        return {
-            "success": True,
-            "filename": clean_filename,
-            "format": detected_format.value,
-            "format_name": format_info.get("name", detected_format.value),
-            "format_description": format_info.get("description", ""),
-            "can_process": detected_format != FileFormat.UNKNOWN,
-            "detection_metadata": metadata,
-            "supports_dual_channel": format_info.get("supports_dual_channel", False),
-            "supports_spectra": format_info.get("supports_spectra", False),
-            "supports_raster": format_info.get("supports_raster", False),
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "filename": clean_filename,
-            "format": FileFormat.UNKNOWN.value,
-            "can_process": False,
-            "error": f"Error detecting format: {str(e)}",
-        }
+            return {
+                "success": True,
+                "filename": clean_filename,
+                "format": detected_format.value,
+                "format_name": format_info.get("name", detected_format.value),
+                "format_description": format_info.get("description", ""),
+                "can_process": detected_format != FileFormat.UNKNOWN,
+                "detection_metadata": metadata,
+                "supports_dual_channel": format_info.get("supports_dual_channel", False),
+                "supports_spectra": format_info.get("supports_spectra", False),
+                "supports_raster": format_info.get("supports_raster", False),
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "filename": clean_filename,
+                "format": FileFormat.UNKNOWN.value,
+                "can_process": False,
+                "error": f"Error detecting format: {str(e)}",
+            }
 
 
 @router.post("/preview")
@@ -160,24 +161,21 @@ async def preview_file(
     column_mapping: Optional[str] = Form(None),
     current_user: dict = Depends(get_current_user),
 ):
-    """
-    Preview file contents without full processing.
-    """
     if not file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=FILE_NAME_ERROR,
         )
 
-    clean_filename = os.path.basename(file.filename)
-    extension = os.path.splitext(clean_filename)[1].lower()
+    clean_filename = Path(file.filename).name
+    suffix = get_safe_suffix(clean_filename)
 
-    if extension not in ALLOWED_EXTENSIONS:
+    if suffix == ".tmp":
         return {
             "success": False,
             "filename": clean_filename,
             "format": FileFormat.UNKNOWN.value,
-            "error": f"Unsupported file extension: {extension}",
+            "error": "Unsupported file extension",
         }
 
     options: Dict[str, Any] = {}
@@ -190,173 +188,170 @@ async def preview_file(
                 detail="Invalid column_mapping JSON",
             )
 
-    suffix = ALLOWED_EXTENSIONS[extension]
-    async with async_named_temporary_file(suffix=suffix) as tmp_file:
+    async with async_named_temporary_file(suffix=suffix) as tmp_path:
         content = await file.read()
-        await tmp_file.write_bytes(content)
-        tmp_path = str(tmp_file)
+        async with await open_file(tmp_path, "wb") as f:
+            await f.write(content)
 
-    try:
-        result = read_file(tmp_path, options=options if options else None)
+        try:
+            result = read_file(tmp_path, options=options if options else None)
 
-        if not result.success:
+            if not result.success:
+                return {
+                    "success": False,
+                    "filename": clean_filename,
+                    "format": result.format_name,
+                    "error": result.error,
+                }
+            # preview (first 5 measurements with limited info)
+            preview_measurements = []
+            for m in result.measurements[:5]:
+                preview_measurements.append({
+                    "id": m.id,
+                    "name": m.name,
+                    "photon_count_ch1": m.channel1.photon_count,
+                    "photon_count_ch2": m.channel2.photon_count if m.channel2 else 0,
+                    "has_dual_channel": m.has_dual_channel,
+                    "channelwidth_ns": m.channelwidth,
+                    "tcspc_card": m.tcspc_card,
+                })
+
+            return {
+                "success": True,
+                "filename": clean_filename,
+                "format": result.format_name,
+                "total_measurements": result.measurement_count,
+                "total_photons": result.total_photons,
+                "file_metadata": result.file_metadata,
+                "preview_measurements": preview_measurements,
+                "truncated": result.measurement_count > 5,
+            }
+        except Exception as e:
             return {
                 "success": False,
                 "filename": clean_filename,
-                "format": result.format_name,
-                "error": result.error,
+                "error": f"Error reading file: {str(e)}",
             }
-            
-         # preview (first 5 measurements with limited info)
-        preview_measurements = []
-        for m in result.measurements[:5]:
-            preview_measurements.append({
-                "id": m.id,
-                "name": m.name,
-                "photon_count_ch1": m.channel1.photon_count,
-                "photon_count_ch2": m.channel2.photon_count if m.channel2 else 0,
-                "has_dual_channel": m.has_dual_channel,
-                "channelwidth_ns": m.channelwidth,
-                "tcspc_card": m.tcspc_card,
-            })
-
-        return {
-            "success": True,
-            "filename": clean_filename,
-            "format": result.format_name,
-            "total_measurements": result.measurement_count,
-            "total_photons": result.total_photons,
-            "file_metadata": result.file_metadata,
-            "preview_measurements": preview_measurements,
-            "truncated": result.measurement_count > 5,
-        }
-
-    except Exception as e:
-        return {
-            "success": False,
-            "filename": clean_filename,
-            "error": f"Error reading file: {str(e)}",
-        }
 
 
 @router.post("/validate")
-async def validate_file(file: UploadFile = File(...), current_user: dict = Depends(get_current_user),
+async def validate_file(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user),
 ):
-    """
-    Validate that a file can be processed.
-
-    Performs full read and returns validation result with any errors or warnings.
-    """
     if not file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=FILE_NAME_ERROR,
         )
 
-    extension = os.path.splitext(file.filename)[1].lower() or ".tmp"
-    async with async_named_temporary_file(suffix=extension) as tmp_file:
-        content = await file.read()
-        await tmp_file.write_bytes(content)
-        tmp_path = str(tmp_file)
+    clean_filename = Path(file.filename).name
+    suffix = get_safe_suffix(clean_filename)
 
-    try:
-        result = read_file(tmp_path)
-
-        if not result.success:
-            return {
-                "valid": False,
-                "filename": file.filename,
-                "format": result.format_name,
-                "error": result.error,
-                "warnings": [],
-            }
-
-        warnings = []
-
-        empty_measurements = [m for m in result.measurements if m.total_photons == 0]
-        if empty_measurements:
-            warnings.append(
-                f"{len(empty_measurements)} measurement(s) have no photons"
-            )
-
-        # Check for very low photon counts
-        low_count = [m for m in result.measurements if 0 < m.total_photons < 100]
-        if low_count:
-            warnings.append(
-                f"{len(low_count)} measurement(s) have very low photon counts (<100)"
-            )
-
-        no_channelwidth = [m for m in result.measurements if m.channelwidth <= 0]
-        if no_channelwidth:
-            warnings.append(
-                f"{len(no_channelwidth)} measurement(s) have invalid channel width"
-            )
-
-        return {
-            "valid": True,
-            "filename": file.filename,
-            "format": result.format_name,
-            "measurement_count": result.measurement_count,
-            "total_photons": result.total_photons,
-            "warnings": warnings,
-        }
-
-    except Exception as e:
+    if suffix == ".tmp":
         return {
             "valid": False,
-            "filename": file.filename,
-            "error": f"Validation failed: {str(e)}",
+            "filename": clean_filename,
+            "format": FileFormat.UNKNOWN.value,
+            "error": "Unsupported file extension",
             "warnings": [],
         }
 
+    async with async_named_temporary_file(suffix=suffix) as tmp_path:
+        content = await file.read()
+        async with await open_file(tmp_path, "wb") as f:
+            await f.write(content)
+
+        try:
+            result = read_file(tmp_path)
+
+            if not result.success:
+                return {
+                    "valid": False,
+                    "filename": clean_filename,
+                    "format": result.format_name,
+                    "error": result.error,
+                    "warnings": [],
+                }
+
+            warnings = []
+            empty_measurements = [m for m in result.measurements if m.total_photons == 0]
+            if empty_measurements:
+                warnings.append(f"{len(empty_measurements)} measurement(s) have no photons")
+
+            low_count = [m for m in result.measurements if 0 < m.total_photons < 100]
+            if low_count:
+                warnings.append(f"{len(low_count)} measurement(s) have very low photon counts (<100)")
+
+            no_channelwidth = [m for m in result.measurements if m.channelwidth <= 0]
+            if no_channelwidth:
+                warnings.append(f"{len(no_channelwidth)} measurement(s) have invalid channel width")
+
+            return {
+                "valid": True,
+                "filename": clean_filename,
+                "format": result.format_name,
+                "measurement_count": result.measurement_count,
+                "total_photons": result.total_photons,
+                "warnings": warnings,
+            }
+        except Exception as e:
+            return {
+                "valid": False,
+                "filename": clean_filename,
+                "error": f"Validation failed: {str(e)}",
+                "warnings": [],
+            }
 
 
 @router.post("/convert")
-async def convert_file_to_cache_format(file: UploadFile = File(...),current_user: dict = Depends(get_current_user),
+async def convert_file_to_cache_format(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user),
 ):
-    """
-    Read file and return measurements in cache-ready format.
-
-    This endpoint is used during file upload to convert any format
-    to the internal measurement format for caching.
-    """
     if not file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=FILE_NAME_ERROR,
         )
-    filename = os.path.basename(file.filename)
-    extension = get_safe_extension(filename=filename)
-    async with async_named_temporary_file(suffix=extension) as tmp_file:
-        content = await file.read()
-        await tmp_file.write_bytes(content)
-        tmp_path = str(tmp_file)
 
-    try:
-        result = read_file(tmp_path)
+    clean_filename = Path(file.filename).name
+    suffix = get_safe_suffix(clean_filename)
 
-        if not result.success:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Failed to read file: {result.error}",
-            )
-
-        # Convert to cache format (JSON-serializable)
-        return {
-            "success": True,
-            "filename": file.filename,
-            "format": result.format_name,
-            "file_metadata": result.file_metadata,
-            "measurements": [m.to_dict() for m in result.measurements],
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
+    if suffix == ".tmp":
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error converting file: {str(e)}",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unsupported file extension",
         )
+
+    async with async_named_temporary_file(suffix=suffix) as tmp_path:
+        content = await file.read()
+        async with await open_file(tmp_path, "wb") as f:
+            await f.write(content)
+
+        try:
+            result = read_file(tmp_path)
+
+            if not result.success:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Failed to read file: {result.error}",
+                )
+
+            return {
+                "success": True,
+                "filename": clean_filename,
+                "format": result.format_name,
+                "file_metadata": result.file_metadata,
+                "measurements": [m.to_dict() for m in result.measurements],
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error converting file: {str(e)}",
+            )
 
 
 def _get_native_blocks(upload_id: str, current_user: dict):
