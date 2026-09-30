@@ -41,14 +41,16 @@ export function RasterHeatmap({comments, onAddComment}: Readonly<RasterHeatmapPr
 
   }, [currentMeasurement, currentUpload]);
 
-  const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote: controlSubmitComment } = useCommentClick(onAddComment);
-  // if (!rasterData?.raster_scan) {
-  //   return (
-  //     <div className="flex h-full w-full items-center justify-center text-gray-500">
-  //       Loading Raster Scan...
-  //     </div>
-  //   );
-  // }
+   const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote: controlSubmitComment } = useCommentClick(onAddComment);
+
+  if (!rasterData?.raster_scan) {
+    return (
+      <div className="flex h-full w-full items-center justify-center text-gray-500">
+        Loading Raster Scan...
+      </div>
+    );
+  }
+
 
   if(!hdf5Metadata?.has_rasters){
     return(
