@@ -168,7 +168,7 @@ async def preview_file(
         )
 
     clean_filename = Path(file.filename).name
-    suffix = get_safe_suffix(clean_filename)
+    suffix = get_safe_extension(clean_filename)
 
     if suffix == ".tmp":
         return {
@@ -246,7 +246,7 @@ async def validate_file(
         )
 
     clean_filename = Path(file.filename).name
-    suffix = get_safe_suffix(clean_filename)
+    suffix = get_safe_extension(clean_filename)
 
     if suffix == ".tmp":
         return {
@@ -316,7 +316,7 @@ async def convert_file_to_cache_format(
         )
 
     clean_filename = Path(file.filename).name
-    suffix = get_safe_suffix(clean_filename)
+    suffix = get_safe_extension(clean_filename)
 
     if suffix == ".tmp":
         raise HTTPException(
