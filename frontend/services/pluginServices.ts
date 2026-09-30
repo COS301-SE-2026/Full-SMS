@@ -9,6 +9,8 @@ import {
   LatestExecutionResponse,
   AvailableOutputsResponse,
   ExportFormat,
+  ValidatePluginRequest,
+  ValidatePluginResponse,
 } from "@/types/plugin";
 
 export const pluginService = {
@@ -223,15 +225,51 @@ export const pluginService = {
       throw new Error(message);
     }
   },
+
+  validatePlugin: async (
+    data: ValidatePluginRequest,
+  ): Promise<ValidatePluginResponse> => {
+    try {
+      const response = await axiosInstance.post(
+        `/api/py/plugins/validate`,
+        data,
+      );
+      const result = response.data;
+      return {
+        valid: result.valid ?? false,
+        message: result.message,
+        error: result.error,
+      };
+    } catch (error: unknown) {
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as {
+          response?: { data?: { error?: string; message?: string } };
+        };
+        const errorMsg =
+          axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
+          "Validation request failed";
+        return {
+          valid: false,
+          error: errorMsg,
+        };
+      }
+      return {
+        valid: false,
+        error:
+          error instanceof Error ? error.message : "Failed to validate plugin",
+      };
+    }
+  },
 };
 
 export function downloadBlob(blob: Blob, filename: string): void {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();  // Changed from: document.body.removeChild(link)
-    URL.revokeObjectURL(url);
-  }
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
