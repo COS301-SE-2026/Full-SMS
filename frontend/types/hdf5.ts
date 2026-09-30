@@ -34,6 +34,8 @@ export interface MeasurementSummary {
 }
 export interface UploadMetadata {
   filename: string;
+  source_format?: string;
+  data_kind?: string;
   has_rasters: boolean;
   has_spectra: boolean;
   num_measurements: number;

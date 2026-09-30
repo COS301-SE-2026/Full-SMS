@@ -7,8 +7,8 @@ import {
   initHdf5Upload,
   uploadToSignedUrl,
   completeHdf5Upload,
-  computeSHA256,
   getHdf5UploadStatus,
+  getHdf5UploadResult,
 } from "@/services/hdf5services";
 import { Button } from "@/components/ui";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
@@ -18,9 +18,10 @@ import RecentUploads from "@/components/upload/recentUploads";
 import { GrOnedrive } from "react-icons/gr";
 import { OneDriveLogin } from "@/lib/microsoftAuth";
 import { useToast } from "@/contexts/toastContext/ToastContext";
+import NativeDataViewer from "@/components/fileFormat/NativeDataViewer";
 
 type UploadPageProps = {
-  onComplete?: () => void;
+  readonly onComplete?: () => void;
 };
 
 export default function UploadPage({ onComplete }: UploadPageProps) {
@@ -32,10 +33,14 @@ export default function UploadPage({ onComplete }: UploadPageProps) {
     setCurrentUploadName,
   } = useHdf5Data();
   const [uploadId, setUploadId] = useState<string>("");
+  const [nativeUploadId, setNativeUploadId] = useState<string>("");
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [refreshUploads, setRefreshUploads] = useState<number>(0);
   const { successToast, errorToast } = useToast();
+  let uploadButtonLabel = "Upload";
+  if (isProcessing) uploadButtonLabel = "Processing...";
+  if (isUploading) uploadButtonLabel = "Uploading...";
 
   const updateItem = (id: string, patch: Partial<SelectedFile>) => {
     setQueue((prev) =>
@@ -58,14 +63,12 @@ export default function UploadPage({ onComplete }: UploadPageProps) {
         errorMessage: undefined,
       });
       try {
-        const sha256_hash = await computeSHA256(item.file);
-
         const initialize: InitUploadResponse = await initHdf5Upload({
           filename: item.name,
           workspace_id: currentWorkspaceId,
           size_bytes: item.sizeBytes,
           content_type: item.file.type,
-          sha256: sha256_hash,
+          sha256: "",
         });
 
         setUploadId(initialize.upload_id);
@@ -92,8 +95,17 @@ export default function UploadPage({ onComplete }: UploadPageProps) {
           for (let i = 0; i < maxAttempts; i++) {
             try {
               const statusResponse = await getHdf5UploadStatus(uploadId);
-              if (statusResponse?.status?.toLowerCase() === "parsed") {
+              const status = statusResponse?.status?.toLowerCase();
+              if (status === "parsed") {
+                const result = await getHdf5UploadResult(uploadId);
+                if (result?.metadata_json?.data_kind === "native_data") {
+                  setNativeUploadId(uploadId);
+                }
                 return true;
+              }
+              if (status === "failed") {
+                setIsParsing(false);
+                return false;
               }
             } catch (e) {
               console.log("Status check failed:", e);
@@ -107,12 +119,14 @@ export default function UploadPage({ onComplete }: UploadPageProps) {
 
         if (isParsed) {
           setIsParsing(false);
+        } else {
+          throw new Error("File processing failed or timed out");
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         hadError = true;
         updateItem(item.id, {
           status: "error",
-          errorMessage: err?.message ?? "Upload or parse failed",
+          errorMessage: err instanceof Error ? err.message : "Upload or parse failed",
         });
       }
     }
@@ -162,13 +176,11 @@ export default function UploadPage({ onComplete }: UploadPageProps) {
     return () => {
       supabase.removeChannel(sub);
     };
-  }, [uploadId]);
+  }, [setIsParsing, uploadId]);
 
   const handleFilesSelected = (newFiles: File[]) => {
     const freshQueueEntries: SelectedFile[] = newFiles.map((file) => ({
-      id: crypto.randomUUID
-        ? crypto.randomUUID()
-        : Math.random().toString(36).substring(2),
+      id: crypto.randomUUID(),
       file,
       name: file.name,
       sizeBytes: file.size,
@@ -213,16 +225,13 @@ export default function UploadPage({ onComplete }: UploadPageProps) {
                 disabled={isUploading || isProcessing}
                 className="px-5 py-2 text-[13px] font-medium"
               >
-                {isUploading
-                  ? "Uploading..."
-                  : isProcessing
-                    ? "Processing..."
-                    : "Upload"}
+                {uploadButtonLabel}
               </Button>
             </div>
           </>
         )}
         <RecentUploads key={refreshUploads} />
+        {nativeUploadId && <NativeDataViewer uploadId={nativeUploadId} />}
         <div className="flex items-center justify-end gap-3 pt-6 mt-6 border-t border-border max-w-4xl mx-auto">
           <Button
             variant="outline"

@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 # Load environment variables from api/.env
 env_path = Path(__file__).parent / '.env'
 load_dotenv(dotenv_path=env_path)
+from api.routes import format_routes
 from api.routes.auth_routes import router as auth_router
 from api.routes.profile_routes import router as profile_router
 from api.routes.upload_routes import router as upload_router
@@ -21,6 +22,7 @@ from api.routes.cloud_routes import router as cloud_router
 from api.routes.support_routes import support_router
 from api.routes.plugin_marketplace_routes import router as plugin_marketplace_router
 from api.routes.parameter_history_routes import router as parameter_history_router
+from api.routes.format_routes import router as format_router
 from api.routes.comment_routes import router as comment_router
 
 app = FastAPI(
@@ -60,6 +62,7 @@ app.include_router(support_router, prefix=prefix)
 app.include_router(export_router, prefix=prefix)
 app.include_router(cloud_router, prefix=prefix)
 app.include_router(parameter_history_router, prefix=prefix)
+app.include_router(format_router, prefix=prefix)
 app.include_router(comment_router, prefix=prefix)
 
 @app.on_event("startup")

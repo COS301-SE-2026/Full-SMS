@@ -39,6 +39,8 @@ export default function App() {
 
   const isLoadingPlugin = isPluginTab && currentPlugin?.id !== pluginId;
 
+  const {currentUploadName} = useHdf5Data()
+
   useEffect(() => {
     if (!pluginId) {
       return;

@@ -1,9 +1,16 @@
 import uuid
+from pathlib import Path
 
 from fastapi import HTTPException
 from api.utils.supabase_client import supabaseClient
 
 from api.services import storage_service
+
+SUPPORTED_EXTENSIONS = {
+    ".h5", ".hdf5", ".ptu",".phu",
+    ".sdt", ".spc", ".csv", ".txt", ".tsv",
+}
+MAX_UPLOAD_SIZE_BYTES = 500 * 1024 * 1024
 
 
 def validate_upload_request(filename: str, size_bytes: int) -> None:
@@ -14,11 +21,16 @@ def validate_upload_request(filename: str, size_bytes: int) -> None:
         filename (str): The name of the uploaded file.
         size_bytes (int): The size of the uploaded file in bytes.
     """
-    if not filename.endswith((".hdf5", ".h5")):
-        raise HTTPException(status_code=400, detail="Invalid file type. Please upload an HDF5 or H5 file.")
+    extension = Path(filename).suffix.lower()
+    print(extension)
+    if extension not in SUPPORTED_EXTENSIONS:
+        allowed = ", ".join(sorted(SUPPORTED_EXTENSIONS))
+        raise HTTPException(status_code=400, detail=f"Unsupported file type: {extension}. Allowed: {allowed}")
     
     if size_bytes <= 0:
         raise HTTPException(status_code=400, detail="Invalid file size. The file size must be greater than 0 bytes.")
+    if size_bytes > MAX_UPLOAD_SIZE_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds the 500 MB upload limit.")
 
 
 
@@ -71,7 +83,7 @@ def mark_uploaded(upload_id: str, user_id: str) -> None:
     )
 
 
-def set_status(upload_id: str, user_id: str, status: str, *, progress: int | None = None, err_code: str | None = None, err_msg: str | None = None) -> None:
+def set_status(upload_id: str, user_id: str, status: str, *, progress: int | None = None) -> None:
     """
     Set the status of an upload.
 
@@ -80,23 +92,13 @@ def set_status(upload_id: str, user_id: str, status: str, *, progress: int | Non
         user_id (str): The ID of the user.
         status (str): The new status for the upload.
         progress (int | None): The progress of the upload.
-        err_code (str | None): The error code for the upload.
-        err_msg (str | None): The error message for the upload.
     """
-    if status == "failed":
-        (supabaseClient.table("hdf5_uploads")
-         .update({"status": status, "err_code": err_code, "err_msg": err_msg})
-         .eq("id", upload_id)
-         .eq("user_id", user_id)
-         .execute()
-        )
-    else:
-        (supabaseClient.table("hdf5_uploads")
-         .update({"status": status, "progress": progress})
-         .eq("id", upload_id)
-         .eq("user_id", user_id)
-         .execute()
-        )
+    (supabaseClient.table("hdf5_uploads")
+     .update({"status": status, "progress": progress})
+     .eq("id", upload_id)
+     .eq("user_id", user_id)
+     .execute()
+    )
 
 
 def get_upload(upload_id: str, user_id: str) -> dict | None:
