@@ -168,12 +168,20 @@ def lifetime_fitting(payload: LifetimeReq):
                 extrap = (y_end - bg) * np.exp(-dt / tau_avg) + bg
                 fitted_curve_list[k] = float(max(extrap, bg))
 
+    fit_curve_arr = np.array(fit_result.fitted_curve, dtype=np.float64)
+    data_arr = np.array(payload.counts, dtype=np.float64)
+    
     # Build padded residuals array (matching fit window)
-    residuals_slice = fit_result.residuals.tolist()
     padded_residuals = [None] * n_points
-    for i, val in enumerate(residuals_slice):
-        if si + i < n_points:
-            padded_residuals[si + i] = float(val)
+    if len(fit_curve_arr) > 0 and ei > si:
+        fit_data = data_arr[si:ei]
+        sigma = np.sqrt(np.maximum(fit_data, 1.0))
+        # Note the order: data - fit (Legacy UI display formula)
+        ui_residuals = (fit_data - fit_curve_arr) / sigma
+        for i, val in enumerate(ui_residuals.tolist()):
+            if si + i < n_points:
+                padded_residuals[si + i] = float(val)
+    
 
     res_data = {
         "times": payload.times,

@@ -99,9 +99,8 @@ export default function FittingDialog() {
     })
 
   return (
-    <Card className='flex flex-col content-center w-[40vw] text-sm border border-0'>
-        <CardHeader className=' bg-primary text-black text-lg'>Lifetime fitting</CardHeader>
-        <CardContent>Fit Target</CardContent>
+    <Card className='flex flex-col h-[80vh] content-center w-[40vw] text-xs border border-0 overflow-y-auto'>
+        <CardContent className='border-t'>Fit Target</CardContent>
         <div className='p-4 border-b'>
 
             <select name='fit-target' className='border p-2 rounded-sm font-mono'>
@@ -109,7 +108,7 @@ export default function FittingDialog() {
                 <option value="All levels">All levels</option>
             </select>
 
-            <div className='flex felx-row mt-2'>
+            <div className='flex flex-row mt-2'>
 
                 <label htmlFor="Scope" className='mr-2 content-center'>Scope: </label>
                 <select name='Scope' 

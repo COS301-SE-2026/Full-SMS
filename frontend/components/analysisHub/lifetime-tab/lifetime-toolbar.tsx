@@ -37,11 +37,15 @@ export default function LifetimeToolbar({historyOpen, onToggleHistory}: {history
       </div>
         {
           fitResult && (
-            <div className='items-center flex flex-row gap-16'>
-              <p>Fit Result:</p>
-              <p className='text-primary text-sm'>tau = {fitResult?.tau}</p>
-              <p className='text-warning text-sm'> chi<sup>2</sup>: {fitResult?.chi_squared}</p>
-              <p className='text-warning text-sm'> DW = {fitResult?.durbin_watson}</p>
+            <div className='items-center flex flex-row gap-8'>
+              <p className='text-muted text-sm'>Fit Result:</p>
+              <p className='text-primary text-sm'>
+                tau = {Array.isArray(fitResult.tau) 
+                  ? fitResult.tau.map(t => t.toFixed(2)).join(', ') + ' ns'
+                  : Number(fitResult.tau).toFixed(2) + ' ns'}
+              </p>
+              <p className='text-warning text-sm'>chi<sup>2</sup>: {fitResult.chi_squared.toFixed(3)}</p>
+              <p className='text-warning text-sm'>DW = {fitResult.durbin_watson.toFixed(2)}</p>
             </div>
           )
         }

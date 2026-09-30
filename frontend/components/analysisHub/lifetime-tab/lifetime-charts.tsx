@@ -72,7 +72,7 @@ export default function LifetimeCharts() {
               //Histogram Data
               {
                 x: decayTimes, 
-                y: decayCounts, 
+                y: useLogScale ? decayCounts.map(c => Math.max(c, 0.5)) : decayCounts, 
                 type: 'scatter', 
                 mode: 'line', 
                 name: 'Data',
@@ -85,14 +85,14 @@ export default function LifetimeCharts() {
               },
               ...(showIRF && scaledIrfCounts.length > 0 ? [{
                 x: irfTimes.length === scaledIrfCounts.length ? irfTimes : decayTimes,
-                y: scaledIrfCounts,
+                y: useLogScale ? scaledIrfCounts.map(c => Math.max(c, 0.5)) : scaledIrfCounts,
                 type: 'scatter' as const,
                 mode: 'lines' as const,
                 name: 'IRF',
                 xaxis: 'x', 
                 yaxis: 'y', 
                 line: {
-                  color: colors.success, // '#00e676' green
+                  color: colors.success,
                   width: 1.5,
                   dash: 'dash' as const,
                 }
@@ -102,7 +102,9 @@ export default function LifetimeCharts() {
                 //  If the backend only returns the fitted curve for the sliced index range, 
                 //slice xAxis here to match fitCurve.length
                 x: decayTimes,
-                y: fitResult?.fitted_curve,// fit curve
+                y:useLogScale && fitResult?.fitted_curve
+                  ? fitResult.fitted_curve.map(v => (v !== null ? Math.max(v, 0.5) : null))
+                  : fitResult?.fitted_curve,// fit curve
                 type: 'scatter',
                 mode: 'lines',
                 name: 'Fit',
@@ -118,7 +120,7 @@ export default function LifetimeCharts() {
                 x: decayTimes,
                 y: fitResult?.residuals,//residuals 
                 type: 'scatter',
-                mode: 'lines',
+                mode: 'markers',
                 name: 'Residuals',
                 xaxis: 'x',
                 yaxis: 'y2',
@@ -130,7 +132,7 @@ export default function LifetimeCharts() {
             ]}
             layout={{
               autosize: true, 
-              uirevision: 'true',
+              uirevision: String(useLogScale),
               title: { 
                 text: 'Fluorescence Decay', 
                 font:{
@@ -140,56 +142,48 @@ export default function LifetimeCharts() {
               paper_bgcolor: colors.card,  
               showlegend: true,
               
-              // shared Xaxis 
+              // Shared X-axis (anchored to the bottom residuals subplot)
               xaxis: {
+                anchor: 'y2', // <-- Anchors the X axis & title to the bottom of the card
                 showgrid: true,
                 gridcolor: colors.border,   
                 gridwidth: 1,     
                 automargin: true,
-                title:{
+                title: {
                   text: 'Time (ns)',
                   standoff: 15,
-                  font:{
-                  size: 12
+                  font: { size: 12 }
                 }
-                }
-                 
               },
               
-              // Main Yaxis
+              
+              // Main Y-axis (Decay & Fit)
               yaxis: {
                 showgrid: true,
                 gridcolor: colors.border,   
                 gridwidth: 1,
                 domain: [0.3, 1.0],
                 type: useLogScale ? 'log' : 'linear',
+                autorange: true,
                 automargin: true,
-                title:{
+                title: {
                   text: 'Counts',
                   standoff: 15,
-                  font:{
-                  size: 12
-                }
+                  font: { size: 12 }
                 }
               },
-              
-              // seconf Yaxis 
+
+              // Second Yaxis (Residuals)
               yaxis2: {
                 showgrid: true,
                 gridcolor: colors.border,
                 gridwidth: 1,
-                domain: [0.0, 0.2], 
+                domain: [0.0, 0.22],
                 automargin: true,
-                title:{
-                  text: 'Residuals',
-                  standoff: 15,
-                  font:{
-                  size: 12
-                }
-                },
+                title: { text: 'Residuals', font: { size: 12 } },
                 zeroline: true,
-                zerolinecolor: colors.foreground,
-                zerolinewidth: 1
+                zerolinecolor: '#666666',
+                zerolinewidth: 1,
               },
               
               font: {

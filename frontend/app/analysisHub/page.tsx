@@ -76,6 +76,8 @@ export default function App() {
       <Modal
         open={fittingDialogOpen}
         onClose={() => setFittingDialogOpen(false)}
+        className="w-[43vw]"
+        title="Lifetime fitting"
       >
         <FittingDialog />
       </Modal>
