@@ -3,13 +3,47 @@ import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsConte
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { colors } from '@/lib/tokens'
 import { getFluorescenceDecay } from '@/services/analysisServices'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import Plot from 'react-plotly.js'
+import { Comment } from '@/types/comment'
+import { Button } from '@/components/ui'
 
-export default function LifetimeCharts() {
+interface LifeTimeChartProps{
+  comments: Comment[];
+  onAddComment: (payload: {content: string; anchor_x: number; anchor_y: number}) => void;
+}
+
+export default function LifetimeCharts({comments, onAddComment}: LifeTimeChartProps) {
     const { currentMeasurement, currentUpload, bin, currentChannel} = useHdf5Data()
     const {useLogScale, decayCounts, setDecayCounts, decayTimes, setDecayTimes, fitResult} = useAnalysisTab()
+    const [progressSpot, setProgressSpot] = useState<{x: number; y: number} | null>(null);
+    const [noteText, setNoteText] = useState('');
+
+    const controlPlotClick = (event: any) => {
+        const point = event.points?.[0];
+        if(!point) return;
+        setProgressSpot({x: point.x, y: point.y});
+      };
     
+      const controlSubmitNote = () => {
+        if(!progressSpot || !noteText.trim()) return;
+        onAddComment({content: noteText, anchor_x: progressSpot.x, anchor_y: progressSpot.y});
+        setProgressSpot(null);
+        setNoteText('');
+      };
+    
+      const commentMarkers = {
+        x: comments.map((t) => t.anchor_x ?? 0),
+        y: comments.map((t) => t.anchor_y ?? 0),
+        type: 'scatter',
+        mode: 'markers',
+        name: 'Notes',
+        xaxis:'x',
+        yaxis: 'y',
+        marker: {color: colors.secondary, size: 8, symbol: 'star'},
+        text: comments.map((t) => t.content),
+        hoverinfo: 'text',
+      }
 
     useEffect(() => {
       const fetchLifetimeData = async () => {
@@ -81,7 +115,7 @@ export default function LifetimeCharts() {
                   color: colors.foreground,
                   size: 4
                 }
-              }
+              }, commentMarkers
             ]}
             layout={{
               autosize: true, 
@@ -156,9 +190,29 @@ export default function LifetimeCharts() {
             }}
             style={{ width: '100%', height: '100%' }}
             useResizeHandler
+            onClick={controlPlotClick}
           />
         </div>
       </Card>
+
+      {progressSpot && (
+        <div className="flex gap-2 items-center p-2 border-t border-border">
+          <input
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            placeholder="Add a comment.."
+            className="border border-border bg-card rounded flex-1 text-xs px-2 py-1" />
+
+            <Button onClick={controlSubmitNote} variant="primary">
+              Add
+            </Button>
+
+            <Button onClick={() => setProgressSpot(null)} variant="secondary">
+              Cancel
+            </Button>
+
+        </div>
+      )}
     </div>
   )
 }
