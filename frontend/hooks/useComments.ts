@@ -27,6 +27,7 @@ export function useComments(
     }, [workspaceId, uploadId, tab]);
 
     useEffect(() => {
+        //eslint-disable-next-line react-hooks/set-state-in-effect
         fetchComments();
     }, [fetchComments]);
 

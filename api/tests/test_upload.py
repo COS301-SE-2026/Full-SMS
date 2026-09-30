@@ -7,48 +7,48 @@ app = FastAPI()
 app.include_router(router)
 client = TestClient(app)
 
-def test_upload_valid_pt3():
-    fake_file = io.BytesIO(b"fake pt3 binary content")
+def test_upload_valid_ptu():
+    test = io.BytesIO(b"bytes vytes bytes bytes")
     response = client.post(
         "/upload/",
-        files={"file": ("experiment.pt3", fake_file, "application/octet-stream")}
+        files={"file": ("experiment.ptu", test, "application/octet-stream")}
     )
     assert response.status_code == 200
-    assert response.json()["filename"] == "experiment.pt3"
+    assert response.json()["filename"] == "experiment.ptu"
     assert response.json()["status"] == "pending"
 
 def test_upload_valid_csv():
-    fake_file = io.BytesIO(b"time,intensity\n0.1,500\n0.2,480")
+    test = io.BytesIO(b"time,intensity\n0.1,500\n0.2,480")
     response = client.post(
         "/upload/",
-        files={"file": ("data.csv", fake_file, "text/csv")}
+        files={"file": ("data.csv", test, "text/csv")}
     )
     assert response.status_code == 200
     assert response.json()["filename"] == "data.csv"
 
 def test_upload_valid_h5():
-    fake_file = io.BytesIO(b"fake h5 content")
+    test = io.BytesIO(b"fake h5 bytes")
     response = client.post(
         "/upload/",
-        files={"file": ("data.h5", fake_file, "application/octet-stream")}
+        files={"file": ("data.h5", test, "application/octet-stream")}
     )
     assert response.status_code == 200
     assert response.json()["filename"] == "data.h5"
 
 def test_upload_valid_hdf5():
-    fake_file = io.BytesIO(b"fake hdf5 content")
+    test = io.BytesIO(b"fake hdf5 bytes")
     response = client.post(
         "/upload/",
-        files={"file": ("data.hdf5", fake_file, "application/octet-stream")}
+        files={"file": ("data.hdf5", test, "application/octet-stream")}
     )
     assert response.status_code == 200
     assert response.json()["filename"] == "data.hdf5"
 
 def test_upload_invalid_extension():
-    fake_file = io.BytesIO(b"some content")
+    test = io.BytesIO(b"some bytes")
     response = client.post(
         "/upload/",
-        files={"file": ("report.pdf", fake_file, "application/pdf")}
+        files={"file": ("report.pdf", test, "application/pdf")}
     )
     assert response.status_code == 400
     assert "Unsupported file type" in response.json()["detail"]
@@ -58,10 +58,10 @@ def test_upload_no_file_sent():
     assert response.status_code == 422
 
 def test_response_contains_all_keys():
-    fake_file = io.BytesIO(b"fake pt3 binary content")
+    test = io.BytesIO(b"fake ptu binary bytes")
     response = client.post(
         "/upload/",
-        files={"file": ("experiment.pt3", fake_file, "application/octet-stream")}
+        files={"file": ("experiment.ptu", test, "application/octet-stream")}
     )
     body = response.json()
     assert "message" in body

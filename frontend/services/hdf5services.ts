@@ -60,3 +60,21 @@ export const getCurrentUpload = async (upload_id: string) =>{
   const {data} = await axiosInstance.get(`api/py/hdf5/upload/${upload_id}`)
   return data
 }
+
+export const getNativeDataBlocks = async (uploadId: string) => {
+  const { data } = await axiosInstance.get(`/api/py/formats/uploads/${uploadId}/blocks`);
+  return data;
+}
+
+export const getNativeDataView = async (
+  uploadId: string,
+  blockId: number,
+  view: string,
+  index = 0,
+) => {
+  const { data } = await axiosInstance.get(
+    `/api/py/formats/uploads/${uploadId}/blocks/${blockId}`,
+    { params: { view, index } },
+  );
+  return data;
+}

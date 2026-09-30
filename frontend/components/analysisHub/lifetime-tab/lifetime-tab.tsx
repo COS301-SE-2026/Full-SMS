@@ -16,7 +16,7 @@ import { commentService } from '@/services/commentServices'
 import { useToast } from '@/contexts/toastContext/ToastContext'
 
 export default function LifetimeTab() {
-  const{ currentWorkspaceId, currentUpload, currentMeasurement} = useHdf5Data()
+  const{ currentWorkspaceId, currentUpload, currentMeasurement, members} = useHdf5Data()
   const {entries, loading, error, fetchHistory}= useHistory(currentWorkspaceId, currentUpload, "lifetime")
   const { decayCounts, decayTimes, setFitResult} = useAnalysisTab()
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -81,6 +81,7 @@ useEffect (() => {
         entries={entries}
         loading={loading}
         error={error}
+        members={members}
         onRevert={async (entry) => {
           const response = await getLifetimeData({
             ...entry.old_value,

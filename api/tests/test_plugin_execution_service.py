@@ -9,38 +9,38 @@ class TestValidateScript:
         script = "import numpy as np\nresult = np.mean([1, 2, 3])"
         result = validate_script(script)
 
-        assert result["success"] is True
+        assert result["valid"] is True
 
     def test_validate_script_blocks_os(self):
         from api.services.plugin_execution_service import validate_script
 
         result = validate_script("import os")
-        assert result["success"] is False
+        assert result["valid"] is False
         assert "OS module" in result["error"]
 
     def test_validate_script_blocks_subprocess(self):
         from api.services.plugin_execution_service import validate_script
 
         result = validate_script("import subprocess")
-        assert result["success"] is False
+        assert result["valid"] is False
 
     def test_validate_script_blocks_eval(self):
         from api.services.plugin_execution_service import validate_script
 
         result = validate_script("eval('1+1')")
-        assert result["success"] is False
+        assert result["valid"] is False
 
     def test_validate_script_blocks_open(self):
         from api.services.plugin_execution_service import validate_script
 
         result = validate_script("open('/etc/passwd')")
-        assert result["success"] is False
+        assert result["valid"] is False
 
     def test_validate_script_syntax_error(self):
         from api.services.plugin_execution_service import validate_script
 
-        result = validate_script("def foo(\n    print('incomplete'")
-        assert result["success"] is False
+        result = validate_script("def foo(\n    print('incomplete')")
+        assert result["valid"] is False
         assert "Syntax error" in result["error"]
 
 

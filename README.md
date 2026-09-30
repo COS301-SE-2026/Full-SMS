@@ -41,6 +41,7 @@ Full SMS is a professional single-molecule spectroscopy (SMS) data analysis appl
 - [Brand Style Guide](./docs/demo2/d2-BrandStyleGuide.pdf)
 - [User Manual](./docs/demo3/User%20Manual-2.pdf)
 - [Testing Policy](docs/testing-policy.md)
+- [NFR Testing](docs/demo4/NFR_TESTING.md)
 - [API Contacts](docs/demo3/openapi.yaml)
 
 ## Team Members

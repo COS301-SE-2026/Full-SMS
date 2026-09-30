@@ -44,6 +44,7 @@ export default function App() {
   const { currentWorkspaceId, currentUpload, setBin, setConfidence } = useHdf5Data();
   const {comments, loading: commentsLoading, error: commentsError, fetchComments } = useComments(currentWorkspaceId, currentUpload, "intensity");
 
+  const { currentWorkspaceId, currentUpload, setBin, setConfidence, members } = useHdf5Data();
   const { entries, loading, error, fetchHistory} = useHistory(currentWorkspaceId, currentUpload, "intensity",);
   const isPluginTab = activeTab.startsWith("plugin:");
   const pluginId = isPluginTab ? activeTab.replace("plugin:", "") : null;
@@ -66,6 +67,8 @@ export default function App() {
       errorToast(error.message || "Failed to add comment");
     }
   };
+  const {currentUploadName} = useHdf5Data()
+
   useEffect(() => {
     if (!pluginId) {
       return;
@@ -144,6 +147,7 @@ export default function App() {
                 entries={entries}
                 loading={loading}
                 error={error}
+                members={members}
                 onRevert={async (entry) => {
                   const { entry: reverted}=await historyService.revertEntry(currentWorkspaceId!, entry.id);
                   if(reverted.parameter === "bin") setBin(reverted.new_value);

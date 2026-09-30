@@ -17,7 +17,7 @@ function CorrelationTab() {
   const [bin, setBin] = useState<number>(0.5);
   const [offset, setOffset] = useState<number>(0);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const { currentWorkspaceId, currentUpload, currentMeasurement, setCorrelationData} = useHdf5Data();
+  const { currentWorkspaceId, currentUpload, members } = useHdf5Data();
   const {entries, loading, error, fetchHistory} = useHistory(currentWorkspaceId, currentUpload, "correlation");
   const [commentsOpen, setCommentsOpen] = useState(false)
   const [memberLookup, setMemberLookup] = useState<Record<string, WorkspaceMemberProfile>>({})
@@ -88,6 +88,7 @@ function CorrelationTab() {
         entries={entries}
         loading={loading}
         error={error}
+        members={members}
          onRevert={(entry) => {
           if(entry.parameter === "window") setWindow(entry.old_value);
           if(entry.parameter === "bin") setBin(entry.old_value);
