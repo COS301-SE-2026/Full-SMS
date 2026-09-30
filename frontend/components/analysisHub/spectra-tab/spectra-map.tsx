@@ -153,7 +153,7 @@ export default function SpectraMap() {
     type: 'scatter',
     mode: 'markers',
     name: 'Comments',
-    marker: {color: colors.secondary, size: 10, symbol: 'star'},
+    marker: {color: colors.warning, size: 10, symbol: 'star'},
     text: comments.map((t) => t.content),
     hoverinfo: 'text',
   }

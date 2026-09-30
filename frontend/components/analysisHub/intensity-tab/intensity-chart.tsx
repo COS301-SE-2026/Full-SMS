@@ -46,7 +46,7 @@ export function IntensityChart({comments, onAddComment}: Readonly<IntensityChart
     name: 'Notes',
     xaxis:'x',
     yaxis: 'y',
-    marker: {color: colors.secondary, size: 8, symbol: 'star'},
+    marker: {color: colors.warning, size: 8, symbol: 'star'},
     text: comments.map((t) => t.content),
     hoverinfo: 'text',
   }

@@ -83,7 +83,7 @@ export function RasterHeatmap({comments, onAddComment}: Readonly<RasterHeatmapPr
     type: 'scatter',
     mode: 'markers',
     name: 'Notes',
-    marker: { color: colors.secondary, size: 10, symbol: 'star' },
+    marker: { color: colors.warning, size: 10, symbol: 'star' },
     text: comments.map((t) => t.content),
     hoverinfo: 'text',
   };

@@ -1,7 +1,6 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import GroupingToolbar from './grouping-toolbar'
 import GroupingCharts from './grouping-charts'
-import { useState, useEffect } from 'react'
 import { WorkspaceMemberProfile } from '@/types/workspace'
 import { useComments } from '@/hooks/useComments'
 import { CommentPanel } from '../comments/CommentPanel'

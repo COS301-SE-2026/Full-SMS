@@ -31,7 +31,7 @@ function getG2AtZero(tau?: number[], g2?: number[]): number {
 
 export default function CorrelationTabToolbar({
   window, setWindow, bin, setBin, offset, setOffset,onHistoryRecorded, historyOpen, onToggleHistory, commentsOpen, onToggleComments
-}: {
+}: Readonly<{
   window: number; setWindow: (v:number) => void;
   bin: number; setBin: (v:number) => void;
   offset: number; setOffset: (v:number) => void;
@@ -40,7 +40,7 @@ export default function CorrelationTabToolbar({
   onToggleHistory: () => void;
   commentsOpen: boolean;
   onToggleComments: () => void;
-}) {
+}>) {
   
   const [g2AtZero, setG2AtZero] = useState<number>(0);
   const { successToast, errorToast } = useToast();
