@@ -60,7 +60,7 @@ app.include_router(support_router, prefix=prefix)
 app.include_router(export_router, prefix=prefix)
 app.include_router(cloud_router, prefix=prefix)
 app.include_router(parameter_history_router, prefix=prefix)
-app.include_router(format_router, prefix="/api/py")
+app.include_router(format_router, prefix=prefix)
 
 @app.on_event("startup")
 async def startup_event():
