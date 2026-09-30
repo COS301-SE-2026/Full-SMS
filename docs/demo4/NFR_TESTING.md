@@ -232,7 +232,7 @@ Screenshots of test execution:
 
 - [NFR Test Summary Report](nfr_results/nfr_report_20260930_042155.md)
 - [Lighthouse Performance Report (HTML)](nfr_results/performance/lighthouse_20260930_042155.report.html)
-- [Code Coverage Report (HTML)](nfr_results/maintainability/htmlcov_20260930_042643/index.html)
+- [Code Coverage Report (HTML)](nfr_results/maintainability/coverage_report.html)
 - [Code Coverage Data (JSON)](nfr_results/maintainability/coverage_20260930_042643.json)
 
 ## Running All Tests
