@@ -4,7 +4,7 @@ import { useHistoryRecorder } from '@/hooks/useHistoryRecorder'
 import{History, MessageSquare} from "lucide-react";
 import { Button } from '@/components/ui';
 
-export default function RasterToolbar({onHistoryRecorded, historyOpen, onToggleHistory, commentsOpen, onToggleComments}: {onHistoryRecorded: () => void; historyOpen:boolean; onToggleComments: () => void; commentsOpen: boolean; onToggleHistory: () => void }) {
+export default function RasterToolbar({onHistoryRecorded, historyOpen, onToggleHistory, commentsOpen, onToggleComments}: Readonly<{onHistoryRecorded: () => void; historyOpen:boolean; onToggleComments: () => void; commentsOpen: boolean; onToggleHistory: () => void }>) {
     const {setHeatMapColor, heatMapColor, currentUpload, currentWorkspaceId} = useHdf5Data()
     const colourmaps = ["Plasma","Viridis", "Inferno", "Hot", "Cool", "Twilight"]
     const recordHistory = useHistoryRecorder(currentWorkspaceId, currentUpload, "raster", onHistoryRecorded);

@@ -6,7 +6,7 @@ import React, { useState } from 'react'
 import { History, MessageSquare } from 'lucide-react'
 
 
-export default function LifetimeToolbar({historyOpen, onToggleHistory, commentsOpen, onToggleComments}: {historyOpen:boolean; onToggleHistory: () => void; commentsOpen: boolean; onToggleComments: () => void;}) {
+export default function LifetimeToolbar({historyOpen, onToggleHistory, commentsOpen, onToggleComments}: Readonly<{historyOpen:boolean; onToggleHistory: () => void; commentsOpen: boolean; onToggleComments: () => void;}>) {
     const [showIRF, setShowIRF] = useState<boolean>(true)
     const {setFittingDialogOpen, useLogScale, setUseLogScale, fitResult} = useAnalysisTab()
 

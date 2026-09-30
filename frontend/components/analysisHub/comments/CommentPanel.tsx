@@ -4,10 +4,10 @@ import { WorkspaceMemberProfile } from "@/types/workspace";
 
 
 interface CommentProps{
-    comments: Comment[];
-    loading: boolean;
-    error: string | null;
-    authorFinder: Record<string,WorkspaceMemberProfile>;
+    readonly comments: Comment[];
+    readonly loading: boolean;
+    readonly error: string | null;
+    readonly authorFinder: Record<string,WorkspaceMemberProfile>;
 }
 
 export function CommentPanel({comments, loading, error, authorFinder}: CommentProps){

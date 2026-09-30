@@ -12,7 +12,7 @@ interface IntensityChartProps{
   onAddComment: (payload: {content: string; anchor_x: number; anchor_y: number}) => void;
 }
 
-export function IntensityChart({comments, onAddComment}: IntensityChartProps) {
+export function IntensityChart({comments, onAddComment}: Readonly<IntensityChartProps>) {
   let x_coords: number[] = []
   let y_coords: number[] = []
   const {setHdf5Data,hdf5Data, currentMeasurement, bin, cpaData, currentUpload, currentChannel} = useHdf5Data();

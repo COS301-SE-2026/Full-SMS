@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { Maximize2 } from "lucide-react";
+import { Maximize2, History, MessageSquare } from "lucide-react";
 import { Button } from "../../ui/Button";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { changePoint_Req } from "@/types/analysis";
 import { changePointAnalysis } from "@/services/analysisServices";
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import { useHistoryRecorder } from "@/hooks/useHistoryRecorder";
-import { History, MessageSquare } from "lucide-react";
+
 
 interface NumberFieldProps {
   readonly label: string;
@@ -99,7 +99,7 @@ function ConfidenceField({
   );
 }
 
-export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory, commentsOpen, onToggleComments}: { onHistoryChange?:() => void; historyOpen: boolean; commentsOpen: boolean, onToggleComments: () => void; onToggleHistory: () => void }) {
+export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory, commentsOpen, onToggleComments}: Readonly<{ onHistoryChange?:() => void; historyOpen: boolean; commentsOpen: boolean, onToggleComments: () => void; onToggleHistory: () => void }>) {
   const {
     bin,
     setBin,

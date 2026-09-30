@@ -34,11 +34,11 @@ async function runGroupingJob(levels: LevelData[]): Promise<ClusteringRes> {
   }
 }
 
-export default function GroupingToolbar({commentsOpen, onToggleComments, onAddComment}: {
+export default function GroupingToolbar({commentsOpen, onToggleComments, onAddComment}: Readonly<{
   commentsOpen: boolean;
   onToggleComments: () => void;
   onAddComment: (payload: {content: string}) => void;
-}) {
+}>) {
   const {
     setGroupingData,
     cpaData,

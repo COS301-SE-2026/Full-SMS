@@ -1,4 +1,4 @@
-import { Card } from '@/components/ui'
+import { Card, Button } from '@/components/ui'
 import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsContext'
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { colors } from '@/lib/tokens'
@@ -6,7 +6,6 @@ import { getFluorescenceDecay } from '@/services/analysisServices'
 import React, { useEffect, useState } from 'react'
 import Plot from 'react-plotly.js'
 import { Comment } from '@/types/comment'
-import { Button } from '@/components/ui'
 import NativeDataViewer from "@/components/fileFormat/NativeDataViewer";
 
 
@@ -15,8 +14,8 @@ interface LifeTimeChartProps{
   onAddComment: (payload: {content: string; anchor_x: number; anchor_y: number}) => void;
 }
 
-export default function LifetimeCharts({comments, onAddComment}: LifeTimeChartProps) {
-    const { currentMeasurement, currentUpload, bin, currentChannel, currentUploadName, hdf5Metadata} = useHdf5Data()
+export default function LifetimeCharts({comments, onAddComment}: Readonly<LifeTimeChartProps>) {
+    const { currentMeasurement, currentUpload, bin, currentChannel, hdf5Metadata} = useHdf5Data()
     const {useLogScale, decayCounts, setDecayCounts, decayTimes, setDecayTimes, fitResult} = useAnalysisTab()
     const [progressSpot, setProgressSpot] = useState<{x: number; y: number} | null>(null);
     const [noteText, setNoteText] = useState('');

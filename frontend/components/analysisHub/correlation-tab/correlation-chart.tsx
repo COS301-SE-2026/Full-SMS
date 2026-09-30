@@ -7,11 +7,11 @@ import { Comment } from "@/types/comment";
 import { Button } from "@/components/ui";
 
 interface CorrelationChartProps{
-  comments: Comment[];
-  onAddComment: (payload: {content: string; anchor_x: number; anchor_y: number}) => void;
+  readonly comments: Comment[];
+  readonly onAddComment: (payload: {content: string; anchor_x: number; anchor_y: number}) => void;
 }
 
-function CorrelationChart({comments, onAddComment}: CorrelationChartProps) {
+function CorrelationChart({comments, onAddComment}: Readonly<CorrelationChartProps>) {
   const { correlationData, currentMeasurement, hdf5Metadata } = useHdf5Data();
   const [progressSpot, setProgressSpot] = useState<{x: number; y: number} | null>(null);
   const [noteText, setNoteText] = useState('');

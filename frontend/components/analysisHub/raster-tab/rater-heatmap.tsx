@@ -10,7 +10,7 @@ interface RasterHeatmapProps {
   comments: Comment[];
   onAddComment: (payload: { content: string; anchorX: number; anchorY: number }) => void;
 }
-export function RasterHeatmap({comments, onAddComment}: RasterHeatmapProps) {
+export function RasterHeatmap({comments, onAddComment}: Readonly<RasterHeatmapProps>) {
   const [rasterData, setRasterData] = useState<any>(null);
   const { currentMeasurement, currentUpload, heatMapColor, hdf5Metadata } = useHdf5Data();
 

@@ -41,10 +41,9 @@ export default function App() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [memberLookup, setMemberLookup] = useState<Record<string, WorkspaceMemberProfile>>({});
-  const { currentWorkspaceId, currentUpload, setBin, setConfidence } = useHdf5Data();
+  const { currentWorkspaceId, currentUpload, setBin, setConfidence, members } = useHdf5Data();
   const {comments, loading: commentsLoading, error: commentsError, fetchComments } = useComments(currentWorkspaceId, currentUpload, "intensity");
 
-  const { currentWorkspaceId, currentUpload, setBin, setConfidence, members } = useHdf5Data();
   const { entries, loading, error, fetchHistory} = useHistory(currentWorkspaceId, currentUpload, "intensity",);
   const isPluginTab = activeTab.startsWith("plugin:");
   const pluginId = isPluginTab ? activeTab.replace("plugin:", "") : null;
