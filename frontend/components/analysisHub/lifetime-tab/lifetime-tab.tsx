@@ -10,7 +10,7 @@ import { upload } from '@testing-library/user-event/dist/cjs/utility/upload.js'
 import { historyService } from '@/services/historyServices'
 
 export default function LifetimeTab() {
-  const{ currentWorkspaceId, currentUpload, currentMeasurement} = useHdf5Data()
+  const{ currentWorkspaceId, currentUpload, currentMeasurement, members} = useHdf5Data()
   const {entries, loading, error, fetchHistory}= useHistory(currentWorkspaceId, currentUpload, "lifetime")
   const { decayCounts, decayTimes, setFitResult} = useAnalysisTab()
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -26,6 +26,7 @@ export default function LifetimeTab() {
         entries={entries}
         loading={loading}
         error={error}
+        members={members}
         onRevert={async (entry) => {
           const response = await getLifetimeData({
             ...entry.old_value,
