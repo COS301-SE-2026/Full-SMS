@@ -2,6 +2,7 @@ from typing import List
 from api.services.workspace_service import get_supabase_admin
 from api.services.workspace_service import get_supabase_admin, remove_workspace_member
 
+
 def list_notifications(user_id: str) -> List[dict]:
     supabase = get_supabase_admin()
 
@@ -67,3 +68,6 @@ def decline_invite(notification_id:str, user_id: str) -> dict:
     remove_workspace_member(notification["workspace_id"], user_id, user_id)
 
     return read_status(notification_id, user_id)
+
+    return response.data[0]
+

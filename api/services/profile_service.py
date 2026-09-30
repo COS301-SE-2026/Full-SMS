@@ -43,4 +43,25 @@ def update_user_profile(user_id: str, username: str = None, new_password: str = 
         "role": user.user_metadata.get("role", "researcher"),
     }
 
+
+def get_user_by_email(email: str) -> dict:
+    supabase = get_supabase_admin()
+    users = supabase.auth.admin.list_users()
+
+    candidate_user = None
+    for user in users:
+        if user.email == email:
+            candidate_user = user
+            break
+
+    if not candidate_user:
+        raise ValueError("User not found")
+    
+    return {
+        "id": candidate_user.id,
+        "email": candidate_user.email,
+        "username": candidate_user.user_metadata.get("username"),
+        "role": candidate_user.user_metadata.get("role", "researcher"),
+    }
+    
     

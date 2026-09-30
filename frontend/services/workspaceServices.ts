@@ -134,6 +134,46 @@ export const workspaceService = {
       );
     }
   },
+
+  removeWorkspaceMember: async (workspaceId: string, memberId: string) => {
+    try{
+      const response = await axiosInstance.delete(
+        `/api/py/workspaces/${workspaceId}/members/${memberId}`
+      );
+      return response.data;
+    } catch(error: any){
+      throw new Error(
+        error.response?.data?.detail || "Failed to remove workspace member"
+      );
+    }
+  },
+
+  getWorkspaceMembers: async (workspaceId: string) => {
+    try{
+      const response = await axiosInstance.get(
+        `/api/py/workspaces/${workspaceId}/members`
+      );
+      return response.data;
+    } catch (error: any){
+      throw new Error(
+        error.response?.data?.detail || "Failed to fetch workspace members"
+      );
+    }
+  },
+
+  addWorkspaceMember: async (workspaceId: string, email: string) => {
+    try{
+      const response = await axiosInstance.post(
+        `/api/py/workspaces/${workspaceId}/members`,
+        {email}
+      );
+      return response.data;
+    }catch(error: any){
+      throw new Error(
+        error.response?.data?.detail || "Failed to add workspace member"
+      );
+    }
+  }
 };
 
 

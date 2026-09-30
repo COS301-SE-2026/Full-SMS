@@ -5,6 +5,8 @@ import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { changePoint_Req } from "@/types/analysis";
 import { changePointAnalysis } from "@/services/analysisServices";
 import { useToast } from "@/contexts/toastContext/ToastContext";
+import { useHistoryRecorder } from "@/hooks/useHistoryRecorder";
+import { History } from "lucide-react";
 
 interface NumberFieldProps {
   readonly label: string;
@@ -97,7 +99,7 @@ function ConfidenceField({
   );
 }
 
-export function AnalysisToolbar() {
+export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory }: { onHistoryChange?:() => void; historyOpen: boolean; onToggleHistory: () => void }) {
   const {
     bin,
     setBin,
@@ -105,6 +107,7 @@ export function AnalysisToolbar() {
     setConfidence,
     currentUpload,
     currentMeasurement,
+    currentWorkspaceId,
     setCpaData,
     selectedMeasurements,
     setCpaResultForMeasurement,
@@ -116,10 +119,13 @@ export function AnalysisToolbar() {
     isMultiChannel,
     selectedChannels,
   } = useHdf5Data();
+
+  const recordHist=useHistoryRecorder(currentWorkspaceId, currentUpload, "intensity", onHistoryChange);
+
   const { errorToast } = useToast();
   const activeKey = `${currentMeasurement}:${currentChannel}`;
   const [isLoading, setIsLoading] = useState(false);
-  const [localBinValue, setLocalBinValue] = useState<number>()
+  const [localBinValue, setLocalBinValue] = useState<number>(bin)
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -131,6 +137,7 @@ export function AnalysisToolbar() {
 
   const handleSliderRelease = (finalBinValue: number) =>{
     setBin(finalBinValue)
+    recordHist("bin", bin, finalBinValue)
   }
 
   const resolveCurrent = async () => {
@@ -236,11 +243,15 @@ export function AnalysisToolbar() {
       <div className="flex items-center gap-4 h-12">
         <h3 className="text-foreground">Intensity Analysis</h3>
 
+
         <NumberField label="Bin (ms)" value={localBinValue!} onChange={setLocalBinValue} onMouseUp={handleSliderRelease} />
         <ConfidenceField
           label="Confidence %"
           value={confidence}
-          onChange={setConfidence}
+          onChange={(v) => {
+            setConfidence(v);
+          recordHist("confidence",confidence, v);
+          }}
         />
 
         <Button
@@ -271,7 +282,7 @@ export function AnalysisToolbar() {
         >
           Resolve Selected
         </Button>
-        <div className="ml-auto">
+        <div className="ml-auto flex gap-2">
           <Button
             size="sm"
             variant="secondary"
@@ -280,6 +291,12 @@ export function AnalysisToolbar() {
           >
             Fit View
           </Button>
+          <Button variant="ghost" size="sm" 
+            title="View Parameter history"
+            onClick={onToggleHistory}
+            className={`px-2 py-0.5 min-h-0 ${historyOpen ? "bg-card" : ""}`}
+            leftIcon={<History size={14} />}
+          />
         </div>
       </div>
       <div>
