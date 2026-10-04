@@ -14,6 +14,7 @@ export function useCommentSubmit(
     uploadId: string,
     tab: CommentTab,
     fetchComments: () => void,
+    measurementId?: string,
 ) {
     const { successToast, errorToast } = useToast();
 
@@ -26,6 +27,7 @@ export function useCommentSubmit(
                     anchor_x: payload.anchor_x,
                     anchor_y: payload.anchor_y,
                     upload_id: uploadId,
+                    measurement_id: measurementId,
                     tab,
                 });
                 fetchComments();
@@ -34,7 +36,7 @@ export function useCommentSubmit(
                 errorToast(error.message || "Failed to add comment");
             }
         },
-        [workspaceId, uploadId, tab, fetchComments, successToast, errorToast],
+        [workspaceId, uploadId, tab, fetchComments, measurementId, successToast, errorToast],
     );
 
     return addComment;

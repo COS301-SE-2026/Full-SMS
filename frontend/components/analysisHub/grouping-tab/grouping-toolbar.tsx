@@ -5,7 +5,7 @@ import { ClusteringReq, ClusteringRes, LevelData } from "@/types/analysis";
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import axiosInstance from "@/lib/api/axiosInstance";
 import { useState } from "react";
-import { MessageSquare } from "lucide-react";
+import { CommentToolbarButtons } from "../comments/CommentToolbar";
 
 const GROUPING_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/py/analysis/grouping`;
 
@@ -34,10 +34,11 @@ async function runGroupingJob(levels: LevelData[]): Promise<ClusteringRes> {
   }
 }
 
-export default function GroupingToolbar({commentsOpen, onToggleComments, onAddComment}: Readonly<{
+export default function GroupingToolbar({commentsOpen, onToggleComments, onNewComment, commentCount}: Readonly<{
   commentsOpen: boolean;
   onToggleComments: () => void;
-  onAddComment: (payload: {content: string}) => void;
+  onNewComment: () => void;
+  commentCount: number;
 }>) {
   const {
     setGroupingData,
@@ -51,8 +52,6 @@ export default function GroupingToolbar({commentsOpen, onToggleComments, onAddCo
   const { errorToast } = useToast()
 
   const [isBatchProcessing, setIsBatchProcessing] = useState(false)
-  const [progressSpot, setProgressSpot] = useState(false);
-  const [noteText, setNoteText] = useState('')
   const [batchRemaining, setBatchRemaining] = useState(0)
 
 
@@ -182,18 +181,13 @@ export default function GroupingToolbar({commentsOpen, onToggleComments, onAddCo
           Group All
         </Button>
 
-        <Button variant="ghost" size="sm"
-          title="View Comments"
-          onClick={onToggleComments}
-          className={`px-2 py-0.5 min-h-0 ${commentsOpen ? "bg-card" : ""}`}
-          leftIcon={<MessageSquare size={14} />}
+        <CommentToolbarButtons
+          className="ml-auto"
+          commentsOpen={commentsOpen}
+          onToggleComments={onToggleComments}
+          onNewComment={onNewComment}
+          commentCount={commentCount}
         />
-
-        <Button variant="secondary" size="sm"
-          onClick={() => setProgressSpot((v) => !v)}
-          >
-          New Comment
-        </Button>
         {/* <div className="ml-auto">
           <Button size="sm" variant="secondary" className="min-h-[28px] px-3">
             Reset to optimal
@@ -205,28 +199,6 @@ export default function GroupingToolbar({commentsOpen, onToggleComments, onAddCo
           Grouping {batchRemaining} measurement{batchRemaining !== 1 ? "s" : ""} …
         </span>
       )}
-
-{progressSpot && (
-  <div className="flex gap-2 items-center p-2">
-    <input
-      value={noteText}
-      onChange={(e) => setNoteText(e.target.value)}
-      placeholder="Add a comment..."
-      className="border border-border bg-card rounded flex-1 text-xs px-2 py-1"
-    />
-    <Button onClick={() => {
-      if (!noteText.trim()) return;
-      onAddComment({ content: noteText });
-      setNoteText('');
-      setProgressSpot(false);
-    }} variant="primary">
-      Add
-    </Button>
-    <Button onClick={() => setProgressSpot(false)} variant="secondary">
-      Cancel
-    </Button>
-  </div>
-)}
 </div>
   );
 }

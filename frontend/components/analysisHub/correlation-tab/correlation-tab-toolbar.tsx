@@ -9,7 +9,7 @@ import { CorrelationReq, RebinCorrelationReq } from "@/types/analysis";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import { useHistoryRecorder } from "@/hooks/useHistoryRecorder";
-import { History, MessageSquare } from "lucide-react";
+import { CommentToolbarButtons } from "../comments/CommentToolbar";
 
 function getG2AtZero(tau?: number[], g2?: number[]): number {
     if (!tau?.length || !g2?.length) {
@@ -30,8 +30,10 @@ function getG2AtZero(tau?: number[], g2?: number[]): number {
   }
 
 export default function CorrelationTabToolbar({
-  window, setWindow, bin, setBin, offset, setOffset,onHistoryRecorded, historyOpen, onToggleHistory, commentsOpen, onToggleComments
+  window, setWindow, bin, setBin, offset, setOffset,onHistoryRecorded, historyOpen, onToggleHistory, commentsOpen, onToggleComments, onNewComment, commentCount
 }: Readonly<{
+  onNewComment: () => void;
+  commentCount: number;
   window: number; setWindow: (v:number) => void;
   bin: number; setBin: (v:number) => void;
   offset: number; setOffset: (v:number) => void;
@@ -134,18 +136,14 @@ export default function CorrelationTabToolbar({
           </div>
         </span>
       )}
-      <Button variant="ghost" size="sm" 
-        title="View Parameter history"
-        onClick={onToggleHistory}
-        className={`px-2 py-0.5 min-h-0 ${historyOpen ? "bg-card" : ""}`}
-        leftIcon={<History size={14} />}
-      />
-
-      <Button title="View Notes"
-      className={`px-2 py-0.5 min-h-0 ${commentsOpen ? "bg-card":""}`}
-      onClick={onToggleComments}
-      variant="ghost" size="sm"
-      leftIcon={<MessageSquare size={14}/>}
+      <CommentToolbarButtons
+        className="ml-auto"
+        historyOpen={historyOpen}
+        onToggleHistory={onToggleHistory}
+        commentsOpen={commentsOpen}
+        onToggleComments={onToggleComments}
+        onNewComment={onNewComment}
+        commentCount={commentCount}
       />
     </div>
   );

@@ -9,8 +9,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import Plot from "react-plotly.js";
 import { HistoryPanel } from "../history/HistoryPanel";
 import { historyService } from "@/services/historyServices";
-import { History, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui";
+import { CommentToolbarButtons, NewCommentInput } from "../comments/CommentToolbar";
 import { useComments } from "@/hooks/useComments";
 import { CommentPanel } from "../comments/CommentPanel";
 import { useMemberLookup } from "@/hooks/useMemberLookup";
@@ -35,11 +35,12 @@ export default function SpectraMap() {
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const [commentsOpen, setCommentsOpen] = useState(false)
+  const [newCommentOpen, setNewCommentOpen] = useState(false)
   const memberLookup = useMemberLookup(currentWorkspaceId)
 
   const {comments, loading: commentsLoading, error: commentsError, fetchComments} =
-    useComments(currentWorkspaceId, currentUpload, "spectra")
-  const controlAddComment = useCommentSubmit(currentWorkspaceId, currentUpload, "spectra", fetchComments)
+    useComments(currentWorkspaceId, currentUpload, "spectra", currentMeasurement)
+  const controlAddComment = useCommentSubmit(currentWorkspaceId, currentUpload, "spectra", fetchComments, currentMeasurement)
 
   const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote: controlSubmitComment } = useCommentClick(controlAddComment);
 
@@ -133,22 +134,23 @@ export default function SpectraMap() {
               ))}
             </select>
           </div>
-          <Button variant="ghost" size="sm" 
-            title="View Parameter history"
-            onClick={() => setHistoryOpen((v) => !v)}
-            className={`ml-auto ${historyOpen ? "bg-card" : ""}`}
-            leftIcon={<History size={14} />}
-          />
-
-          <Button 
-          variant="ghost" size="sm"
-          title="View Comments"
-          onClick={() => setCommentsOpen((v) => !v)}
-          className={`py-0.5 px-2 min-h-0 ${commentsOpen ? "bg-card":""}`}
-          leftIcon={<MessageSquare size={14}/>}
+          <CommentToolbarButtons
+            className="ml-auto"
+            historyOpen={historyOpen}
+            onToggleHistory={() => setHistoryOpen((v) => !v)}
+            commentsOpen={commentsOpen}
+            onToggleComments={() => setCommentsOpen((v) => !v)}
+            onNewComment={() => setNewCommentOpen((v) => !v)}
+            commentCount={comments.length}
           />
         </div>
       </div>
+
+      <NewCommentInput
+        open={newCommentOpen}
+        onSubmit={controlAddComment}
+        onClose={() => setNewCommentOpen(false)}
+      />
 
       <Card className="flex flex-col w-[83vw] h-[85vh] p-2 mt-1 gap-4">
         <Plot

@@ -1,17 +1,20 @@
 import { Comment } from "@/types/comment";
 import { colors } from "@/lib/tokens";
 
-export function buildCommentMarkers(comments: Comment[], xaxis?: string, yaxis?: string) {
+export function buildCommentMarkers(allComments: Comment[], xaxis?: string, yaxis?: string) {
+    const comments = allComments.filter((c) => c.anchor_x !== null && c.anchor_y !== null);
     return {
-        x: comments.map((c) => c.anchor_x ?? 0),
-        y: comments.map((c) => c.anchor_y ?? 0),
+        x: comments.map((c) => c.anchor_x as number),
+        y: comments.map((c) => c.anchor_y as number),
         type: 'scatter' as const,
-        mode: 'markers' as const,
+        mode: 'text' as const,
         name: 'Notes',
         ...(xaxis ? { xaxis } : {}),
         ...(yaxis ? { yaxis } : {}),
-        marker: { color: colors.warning, size: 8, symbol: 'star' },
-        text: comments.map((c) => c.content),
+        text: comments.map(() => '💬'),
+        textposition: 'middle center' as const,
+        textfont: { color: colors.warning, size: 16 },
+        hovertext: comments.map((c) => c.content),
         hoverinfo: 'text' as const,
     };
 }

@@ -7,6 +7,7 @@ import { HistoryPanel } from "../history/HistoryPanel";
 import { historyService } from "@/services/historyServices";
 import { useComments } from "@/hooks/useComments";
 import { CommentPanel } from "../comments/CommentPanel";
+import { NewCommentInput } from "../comments/CommentToolbar";
 import { useMemberLookup } from "@/hooks/useMemberLookup";
 import { useCommentSubmit } from "@/hooks/useCommentSubmit";
 
@@ -15,12 +16,13 @@ function CorrelationTab() {
   const [bin, setBin] = useState<number>(0.5);
   const [offset, setOffset] = useState<number>(0);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const { currentWorkspaceId, currentUpload, members } = useHdf5Data();
+  const { currentWorkspaceId, currentUpload, currentMeasurement, members } = useHdf5Data();
   const {entries, loading, error, fetchHistory} = useHistory(currentWorkspaceId, currentUpload, "correlation");
   const [commentsOpen, setCommentsOpen] = useState(false)
+  const [newCommentOpen, setNewCommentOpen] = useState(false)
   const memberLookup = useMemberLookup(currentWorkspaceId)
-  const { comments, loading: commentsLoading, error: commentsError, fetchComments} = useComments(currentWorkspaceId, currentUpload, "correlation")
-  const addComment = useCommentSubmit(currentWorkspaceId, currentUpload, "correlation", fetchComments)
+  const { comments, loading: commentsLoading, error: commentsError, fetchComments} = useComments(currentWorkspaceId, currentUpload, "correlation", currentMeasurement)
+  const addComment = useCommentSubmit(currentWorkspaceId, currentUpload, "correlation", fetchComments, currentMeasurement)
 
   return (
     <div className="w-full h-full flex gap-3">
@@ -36,9 +38,16 @@ function CorrelationTab() {
           historyOpen={historyOpen}
           onToggleHistory={() => setHistoryOpen((v) => !v)}
           commentsOpen={commentsOpen}
-          onToggleComments={() => setCommentsOpen((v) => !v)}/>
+          onToggleComments={() => setCommentsOpen((v) => !v)}
+          onNewComment={() => setNewCommentOpen((v) => !v)}
+          commentCount={comments.length}/>
 
-        <CorrelationChart 
+        <NewCommentInput
+          open={newCommentOpen}
+          onSubmit={addComment}
+          onClose={() => setNewCommentOpen(false)}/>
+
+        <CorrelationChart
           comments={comments}
           onAddComment={addComment}
           />

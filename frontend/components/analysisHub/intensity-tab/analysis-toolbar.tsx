@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Maximize2, History, MessageSquare } from "lucide-react";
+import { Maximize2 } from "lucide-react";
+import { CommentToolbarButtons } from "../comments/CommentToolbar";
 import { Button } from "../../ui/Button";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { changePoint_Req } from "@/types/analysis";
@@ -99,7 +100,7 @@ function ConfidenceField({
   );
 }
 
-export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory, commentsOpen, onToggleComments}: Readonly<{ onHistoryChange?:() => void; historyOpen: boolean; commentsOpen: boolean, onToggleComments: () => void; onToggleHistory: () => void }>) {
+export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory, commentsOpen, onToggleComments, onNewComment, commentCount}: Readonly<{ onHistoryChange?:() => void; historyOpen: boolean; commentsOpen: boolean, onToggleComments: () => void; onToggleHistory: () => void; onNewComment: () => void; commentCount: number }>) {
   const {
     bin,
     setBin,
@@ -291,18 +292,14 @@ export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory,
           >
             Fit View
           </Button>
-          <Button variant="ghost" size="sm" 
-            title="View Parameter history"
-            onClick={onToggleHistory}
-            className={`px-2 py-0.5 min-h-0 ${historyOpen ? "bg-card" : ""}`}
-            leftIcon={<History size={14} />}
+          <CommentToolbarButtons
+            historyOpen={historyOpen}
+            onToggleHistory={onToggleHistory}
+            commentsOpen={commentsOpen}
+            onToggleComments={onToggleComments}
+            onNewComment={onNewComment}
+            commentCount={commentCount}
           />
-          <Button variant="ghost" size="sm"
-           title="View Comments"
-           onClick={onToggleComments}
-           className={`px-2 py-0.5 min-h-0 ${commentsOpen ? "bg-card" : ""}`}
-           leftIcon={<MessageSquare size={14}/>}
-           />
         </div>
       </div>
       <div>
