@@ -20,7 +20,8 @@ class CommentHub:
 
     async def broadcast(self, workspace_id: str, message: dict) -> None:
         dead: list[WebSocket] = []
-        for websocket in list(self._rooms.get(workspace_id, ())):
+        sockets = self._rooms.get(workspace_id, set()).copy()
+        for websocket in sockets:
             try:
                 await websocket.send_json(message)
             except Exception:
