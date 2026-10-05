@@ -39,3 +39,10 @@ class TestListCommentsController:
             list_comments_controller("workspace1", "user1", "upload1", "intensity")
         service.assert_called_once_with("workspace1", "user1", "upload1", "intensity", None)
 
+    def test_workspace_not_found(self):
+        with patch(LIST_PATH, side_effect=ValueError("Workspace not found")):
+            from api.controllers.comment_controller import list_comments_controller
+            with pytest.raises(HTTPException) as exc:
+                list_comments_controller("workspace1", "user1", "upload1", "intensity", "m1")
+        assert exc.value.status_code == 404
+
