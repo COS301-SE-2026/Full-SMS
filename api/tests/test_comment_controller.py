@@ -102,3 +102,23 @@ class TestAddCommentController:
         assert exc.value.status_code == 500
 
 
+class TestCommentCreateModel:
+    def test_rejects_empty_content(self):
+        with pytest.raises(ValueError):
+            _request(content="")
+
+    def test_rejects_content_over_limit(self):
+        with pytest.raises(ValueError):
+            _request(content="x" * 1001)
+
+    def test_rejects_unknown_tab(self):
+        with pytest.raises(ValueError):
+            _request(tab="invalid_tab")
+
+    def test_rejects_empty_upload_id(self):
+        with pytest.raises(ValueError):
+            _request(upload_id="")
+
+    @pytest.mark.parametrize("tab", ["intensity", "lifetime", "correlation", "grouping", "raster", "spectra"])
+    def test_accepts_every_tab(self, tab):
+        assert _request(tab=tab).tab == tab
