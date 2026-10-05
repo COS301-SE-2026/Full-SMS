@@ -124,3 +124,18 @@ class TestAddComment:
         assert row["anchor_x"] is None
         assert row["anchor_y"] is None
 
+    def test_notifies_owner_and_members_but_not_author(self, mocks, sample_workspace_id, sample_user_id):
+        workspace, client, notification = mocks
+        workspace.return_value = {"user_id": "owner1", "member_ids": ["member1", sample_user_id]}
+        response = MagicMock()
+        response.data = [{"id": "comment1"}]
+        client.table.return_value.insert.return_value.execute.return_value = response
+
+        from api.services.comment_service import add_comment
+        add_comment(sample_workspace_id, sample_user_id, "upload1", "intensity", "This is a comment")
+
+        notified = [call.args[1] for call in notification.call_args_list]
+        assert sorted(notified) == ["member1", "owner1"]
+        assert sample_user_id not in notified
+        notification.assert_any_call(sample_workspace_id, "owner1", "comment", "New comment on intensity")
+
