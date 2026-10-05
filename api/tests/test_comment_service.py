@@ -139,3 +139,16 @@ class TestAddComment:
         assert sample_user_id not in notified
         notification.assert_any_call(sample_workspace_id, "owner1", "comment", "New comment on intensity")
 
+    def test_owner_as_author_does_not_notify_self(self, mocks, sample_workspace_id):
+        workspace, client, notification = mocks
+        workspace.return_value = {"user_id": "owner1", "member_ids": ["member1"]}
+        response = MagicMock()
+        response.data = [{"id": "comment1"}]
+        client.table.return_value.insert.return_value.execute.return_value = response
+
+        from api.services.comment_service import add_comment
+        add_comment(sample_workspace_id, "owner1", "upload1", "intensity", "This is a comment")
+
+        notified = [call.args[1] for call in notification.call_args_list]
+        assert notified == ["member1"]
+
