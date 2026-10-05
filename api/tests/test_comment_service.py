@@ -165,3 +165,14 @@ class TestAddComment:
 
         notification.assert_not_called()
 
+    def test_raises_and_skips_insert_when_no_access(self, mocks, sample_workspace_id, sample_user_id):
+        workspace, client, notification = mocks
+        workspace.side_effect = ValueError("Workspace not found")
+
+        from api.services.comment_service import add_comment
+        with pytest.raises(ValueError):
+            add_comment(sample_workspace_id, sample_user_id, "upload1", "intensity", "This is a comment")
+
+        client.table.assert_not_called()
+        notification.assert_not_called()
+
