@@ -94,3 +94,11 @@ class TestAddCommentController:
                 add_comment_controller("workspace1", _request(), "user1")
         assert exc.value.status_code == 404
 
+    def test_service_failure(self):
+        with patch(ADD_PATH, side_effect=RuntimeError("Failed to add comment")):
+            from api.controllers.comment_controller import add_comment_controller
+            with pytest.raises(HTTPException) as exc:
+                add_comment_controller("workspace1", _request(), "user1")
+        assert exc.value.status_code == 500
+
+
