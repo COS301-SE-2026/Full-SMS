@@ -20,3 +20,10 @@ def _request(**overrides):
     data.update(overrides)
     return CommentCreate(**data)
 
+class TestListCommentsController:
+    def test_returns_success(self):
+        with patch(LIST_PATH, return_value=[{"id": "comment1"}]):
+            from api.controllers.comment_controller import list_comments_controller
+            result = list_comments_controller("workspace1", "user1", "upload1", "intensity", "m1")
+        assert result == {"success": True, "comments": [{"id": "comment1"}]}
+
