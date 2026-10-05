@@ -10,3 +10,19 @@ def mocks():
         admin.return_value = mock_client
         yield workspace, mock_client, notification
 
+class TestListComments:
+    def test_returns_comments_without_measurement_filter(self, mocks, sample_workspace_id, sample_user_id):
+        workspace, client, notification = mocks
+        response = MagicMock()
+        response.data = [{"id": "comment1", "content": "This is a comment"}]
+
+        (client.table.return_value.select.return_value
+         .eq.return_value.eq.return_value.eq.return_value
+         .order.return_value.execute.return_value) = response
+
+        from api.services.comment_service import list_comments
+        result =list_comments(sample_workspace_id, sample_user_id, "upload1", "intensity")
+
+        assert result == [{"id": "comment1", "content": "This is a comment"}]
+        workspace.assert_called_once_with(sample_workspace_id, sample_user_id
+        )
