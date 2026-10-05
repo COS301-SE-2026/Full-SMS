@@ -109,3 +109,18 @@ class TestAddComment:
         assert row["author_id"] == sample_user_id
         assert result == {"id": "comment1"}
 
+    def test_stores_none_for_measurement_and_positions_on_page_level_comment(self, mocks, sample_workspace_id, sample_user_id):
+        workspace, client, notification = mocks
+        workspace.return_value = {"user_id": "Owner1", "member_ids": []}
+        response = MagicMock()
+        response.data = [{"id": "comment1"}]
+        client.table.return_value.insert.return_value.execute.return_value = response
+
+        from api.services.comment_service import add_comment
+        add_comment(sample_workspace_id, sample_user_id, "upload1", "grouping", "This is a comment")
+
+        row = client.table.return_value.insert.call_args[0][0]
+        assert row["measurement_id"] is None
+        assert row["anchor_x"] is None
+        assert row["anchor_y"] is None
+
