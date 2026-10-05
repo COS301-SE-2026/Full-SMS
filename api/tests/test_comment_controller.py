@@ -53,3 +53,26 @@ class TestListCommentsController:
                 list_comments_controller("workspace1", "user1", "upload1", "intensity", "m1")
         assert exc.value.status_code == 500
 
+class TestAddCommentController:
+    def test_returns_success(self):
+        with patch(ADD_PATH, return_value={"id": "comment1"}):
+            from api.controllers.comment_controller import add_comment_controller
+            result = add_comment_controller("workspace1", _request(), "user1")
+        assert result == {"success": True, "comment": {"id": "comment1"}}
+
+    def test_passes_request_fields_to_services(self):
+        with patch(ADD_PATH, return_value={"id": "comment1"}) as service:
+            from api.controllers.comment_controller import add_comment_controller
+            add_comment_controller("workspace1", _request(), "user1")
+
+        service.assert_called_once_with(
+            workspace_id="workspace1",
+            user_id="user1",
+            upload_id="upload1",
+            tab="intensity",
+            content="This is a comment",
+            measurement_id="m1",
+            anchor_x=1.5,
+            anchor_y=2.5
+        )
+
