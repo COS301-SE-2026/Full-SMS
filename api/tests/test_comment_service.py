@@ -76,3 +76,13 @@ class TestListComments:
 
         assert result == []
 
+    def test_raises_and_skips_query_when_no_access(self, mocks, sample_workspace_id, sample_user_id):
+        workspace, client, notification = mocks
+        workspace.side_effect = ValueError("Workspace not found")
+
+        from api.services.comment_service import list_comments
+        with pytest.raises(ValueError):
+            list_comments(sample_workspace_id, sample_user_id, "upload1", "intensity")
+
+        client.table.assert_not_called()
+
