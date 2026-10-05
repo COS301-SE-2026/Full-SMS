@@ -42,3 +42,23 @@ class TestListComments:
         assert result == [{"id": "n2", "content": "This is a second comment", "measurement_id":"m1"}]
         applied_filters.eq.assert_called_once_with("measurement_id", "m1")
 
+    def test_scopes_query_to_workspace_upload_and_tab(self, mocks, sample_workspace_id, sample_user_id):
+        workspace, client, notification = mocks
+        response = MagicMock()
+        response.data = []
+
+        (client.table.return_value.select.return_value
+         .eq.return_value.eq.return_value.eq.return_value
+         .order.return_value.execute.return_value) = response
+
+        from api.services.comment_service import list_comments
+        list_comments(sample_workspace_id, sample_user_id, "upload1", "lifetime")
+
+        client.table.assert_called_once_with("comments")
+        first= client.table.return_value.select.return_value
+        first.eq.assert_called_once_with("workspace_id", sample_workspace_id)
+        second = first.eq.return_value
+        second.eq.assert_called_once_with("upload_id", "upload1")
+        third = second.eq.return_value
+        third.eq.assert_called_once_with("tab", "lifetime")
+
