@@ -152,3 +152,16 @@ class TestAddComment:
         notified = [call.args[1] for call in notification.call_args_list]
         assert notified == ["member1"]
 
+    def test_raises_when_insert_returns_nothing(self, mocks, sample_workspace_id, sample_user_id):
+        workspace, client, notification = mocks
+        workspace.return_value = {"user_id": "owner1", "member_ids": ["member1"]}
+        response = MagicMock()
+        response.data = []
+        client.table.return_value.insert.return_value.execute.return_value = response
+        
+        from api.services.comment_service import add_comment
+        with pytest.raises(RuntimeError):
+            add_comment(sample_workspace_id, sample_user_id, "upload1", "intensity", "This is a comment")
+
+        notification.assert_not_called()
+
