@@ -76,3 +76,21 @@ class TestAddCommentController:
             anchor_y=2.5
         )
 
+    def test_page_level_comment_passes_none_for_measurement_and_positions(self):
+        with patch(ADD_PATH, return_value={"id": "comment1"}) as service:
+            from api.controllers.comment_controller import add_comment_controller
+            request = _request(tab="correlation",measurement_id=None, anchor_x=None, anchor_y=None)
+            add_comment_controller("workspace1", request, "user1")
+
+        keyword_arguments = service.call_args.kwargs
+        assert keyword_arguments["measurement_id"] is None
+        assert keyword_arguments["anchor_x"] is None
+        assert keyword_arguments["anchor_y"] is None
+
+    def test_workspace_not_found(self):
+        with patch(ADD_PATH, side_effect=ValueError("Workspace not found")):
+            from api.controllers.comment_controller import add_comment_controller
+            with pytest.raises(HTTPException) as exc:
+                add_comment_controller("workspace1", _request(), "user1")
+        assert exc.value.status_code == 404
+
