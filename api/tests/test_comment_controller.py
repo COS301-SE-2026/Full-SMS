@@ -27,3 +27,9 @@ class TestListCommentsController:
             result = list_comments_controller("workspace1", "user1", "upload1", "intensity", "m1")
         assert result == {"success": True, "comments": [{"id": "comment1"}]}
 
+    def test_passes_measurement_id_to_service(self):
+        with patch(LIST_PATH, return_value=[]) as service:
+            from api.controllers.comment_controller import list_comments_controller
+            list_comments_controller("workspace1", "user1", "upload1", "intensity", "m1")
+        service.assert_called_once_with("workspace1", "user1", "upload1", "intensity", "m1")
+
