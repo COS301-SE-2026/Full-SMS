@@ -86,3 +86,26 @@ class TestListComments:
 
         client.table.assert_not_called()
 
+class TestAddComment:
+    def test_inserts_row_with_writer_measurement_and_positions(self, mocks, sample_workspace_id, sample_user_id):
+        workspace, client, notification = mocks
+        workspace.return_value = {"user_id": "Owner1", "member_ids": ["Member1", sample_user_id]}
+        response = MagicMock()
+        response.data = [{"id": "comment1"}]
+        client.table.return_value.insert.return_value.execute.return_value = response
+
+        from api.services.comment_service import add_comment
+        result = add_comment(sample_workspace_id, sample_user_id, "upload1", "intensity", "This is a comment",
+                             measurement_id="m1", anchor_x=1.5, anchor_y=2.5)
+
+        row = client.table.return_value.insert.call_args[0][0]
+
+        assert row["workspace_id"] == sample_workspace_id
+        assert row["upload_id"] == "upload1"
+        assert row["measurement_id"] == "m1"
+        assert row["tab"] == "intensity"
+        assert row["anchor_x"] == 1.5
+        assert row["anchor_y"] == 2.5
+        assert row["author_id"] == sample_user_id
+        assert result == {"id": "comment1"}
+
