@@ -62,3 +62,17 @@ class TestListComments:
         third = second.eq.return_value
         third.eq.assert_called_once_with("tab", "lifetime")
 
+    def test_returns_empty_list_when_no_data(self, mocks, sample_workspace_id, sample_user_id):
+        workspace, client, notification = mocks
+        response = MagicMock()
+        response.data = None
+
+        (client.table.return_value.select.return_value
+         .eq.return_value.eq.return_value.eq.return_value
+         .order.return_value.execute.return_value) = response
+
+        from api.services.comment_service import list_comments
+        result = list_comments(sample_workspace_id, sample_user_id, "upload1", "intensity")
+
+        assert result == []
+
