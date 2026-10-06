@@ -15,7 +15,8 @@ from api.services.workspace_service import (
 )
 from api.models.workspace import WorkspaceCreate, WorkspaceUpdate
 from api.services.profile_service import get_user_by_email
-
+from api.services.notification_service import add_notification
+from api.services.profile_service import get_user_by_email, get_user_profile
 
 def get_workspaces_controller(user_id: str):
     try:
@@ -150,17 +151,24 @@ def get_workspace_members_controller(workspace_id: str, user_id: str) -> dict:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
 
-def add_workspace_member_controller(workspace_id: str, user_id: str, email: str) -> dict:
+def add_workspace_member_controller(workspace_id: str, user_id: str, email:str) -> dict:
     try:
         member_profile = get_user_by_email(email)
         response = add_workspace_member(workspace_id, user_id, member_profile["id"])
 
+        if not response.get("already_member"):
+            inviter = get_user_profile(user_id)
+            inviter_name = inviter.get("username") or inviter.get("email")
+            add_notification(
+                workspace_id,
+                member_profile["id"],
+                "invite",
+                f"{inviter_name} added you to {response.get('name', 'a workspace')}",
+            )
+
         return {"success": True, "message": "Member added successfully", "workspace": response}
     except ValueError as valerror:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(valerror)
-        )
+        raise HTTPException( status_code=status.HTTP_404_NOT_FOUND, detail=str(valerror))
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        raise HTTPException( status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    

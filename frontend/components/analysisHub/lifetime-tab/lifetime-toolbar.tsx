@@ -3,17 +3,16 @@
 import { Button, Toggle } from '@/components/ui'
 import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsContext'
 import React, { useState } from 'react'
-import { History } from 'lucide-react'
+import { CommentToolbarButtons } from '../comments/CommentToolbar'
 
 
-
-export default function LifetimeToolbar({historyOpen, onToggleHistory}: {historyOpen:boolean; onToggleHistory: () => void}) {
+export default function LifetimeToolbar({historyOpen, onToggleHistory, commentsOpen, onToggleComments, onNewComment, commentCount}: Readonly<{historyOpen:boolean; onToggleHistory: () => void; commentsOpen: boolean; onToggleComments: () => void; onNewComment: () => void; commentCount: number;}>) {
     const [showIRF, setShowIRF] = useState<boolean>(true)
     const {setFittingDialogOpen, useLogScale, setUseLogScale, fitResult} = useAnalysisTab()
 
   return (
-    <div className="flex flex-col gap-4 h-12 px-4 border-b border-border bg-background mb-4 h-fit pb-2">
-      <div className='flex flex-row gap-4 items-center'>
+    <div className="flex flex-col px-4 -mx-3 -mt-3 border-b border-border bg-background mb-4">
+      <div className='flex flex-row gap-4 items-center h-12'>
         <h3 className="text-foreground">Lifetime Analysis</h3>
           <Toggle
           label="Use log scale"
@@ -29,16 +28,20 @@ export default function LifetimeToolbar({historyOpen, onToggleHistory}: {history
               Fit... 
           </Button>
 
-          <Button variant="ghost" size="sm" 
-            title="View Parameter history"
-            onClick={onToggleHistory}
-            className={`ml-auto px-2 py-0.5 min-h-0 ${historyOpen ? "bg-card" : ""}`}
-            leftIcon={<History size={14} />}
+
+          <CommentToolbarButtons
+            className="ml-auto"
+            historyOpen={historyOpen}
+            onToggleHistory={onToggleHistory}
+            commentsOpen={commentsOpen}
+            onToggleComments={onToggleComments}
+            onNewComment={onNewComment}
+            commentCount={commentCount}
           />
       </div>
         {
           useLogScale && (
-            <div className='items-center flex flex-row gap-16'>
+            <div className='items-center flex flex-row gap-16 pb-2'>
               <p>Fit Result:</p>
               <p className='text-primary text-sm'>tau = {fitResult?.tau}</p>
               <p className='text-warning text-sm'> chi<sup>2</sup>: {fitResult?.chi_squared}</p>

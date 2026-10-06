@@ -22,6 +22,7 @@ from api.routes.cloud_routes import router as cloud_router
 from api.routes.support_routes import support_router
 from api.routes.plugin_marketplace_routes import router as plugin_marketplace_router
 from api.routes.parameter_history_routes import router as parameter_history_router
+from api.routes.notification_routes import router as notification_router
 from api.routes.format_routes import router as format_router
 from api.routes.comment_routes import router as comment_router
 
@@ -62,6 +63,7 @@ app.include_router(support_router, prefix=prefix)
 app.include_router(export_router, prefix=prefix)
 app.include_router(cloud_router, prefix=prefix)
 app.include_router(parameter_history_router, prefix=prefix)
+app.include_router(notification_router, prefix=prefix)
 app.include_router(format_router, prefix=prefix)
 app.include_router(comment_router, prefix=prefix)
 
