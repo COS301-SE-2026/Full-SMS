@@ -5,6 +5,7 @@ import { ClusteringReq, ClusteringRes, LevelData } from "@/types/analysis";
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import axiosInstance from "@/lib/api/axiosInstance";
 import { useState } from "react";
+import { CommentToolbarButtons } from "../comments/CommentToolbar";
 
 const GROUPING_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/py/analysis/grouping`;
 
@@ -33,7 +34,12 @@ async function runGroupingJob(levels: LevelData[]): Promise<ClusteringRes> {
   }
 }
 
-export default function GroupingToolbar() {
+export default function GroupingToolbar({commentsOpen, onToggleComments, onNewComment, commentCount}: Readonly<{
+  commentsOpen: boolean;
+  onToggleComments: () => void;
+  onNewComment: () => void;
+  commentCount: number;
+}>) {
   const {
     setGroupingData,
     cpaData,
@@ -44,8 +50,11 @@ export default function GroupingToolbar() {
     selectedChannels
   } = useHdf5Data();
   const { errorToast } = useToast()
+
   const [isBatchProcessing, setIsBatchProcessing] = useState(false)
   const [batchRemaining, setBatchRemaining] = useState(0)
+
+
   const { execute, isProcessing } = UseCeleryPolling<
     ClusteringReq,
     ClusteringRes
@@ -135,8 +144,8 @@ export default function GroupingToolbar() {
   const busy = isProcessing || isBatchProcessing
 
   return (
-    <div className="pb-2 px-4 border-b border-border bg-background flex-wrap">
-      <div className="flex items-center gap-4 ">
+    <div className="px-4 -mx-3 -mt-3 border-b border-border bg-background">
+      <div className="flex items-center gap-4 h-12 flex-wrap">
         <h3 className="text-foreground">Grouping</h3>
         <Button
           size="sm"
@@ -171,6 +180,14 @@ export default function GroupingToolbar() {
         >
           Group All
         </Button>
+
+        <CommentToolbarButtons
+          className="ml-auto"
+          commentsOpen={commentsOpen}
+          onToggleComments={onToggleComments}
+          onNewComment={onNewComment}
+          commentCount={commentCount}
+        />
         {/* <div className="ml-auto">
           <Button size="sm" variant="secondary" className="min-h-[28px] px-3">
             Reset to optimal
@@ -178,12 +195,10 @@ export default function GroupingToolbar() {
         </div> */}
       </div>
       {isBatchProcessing && (
-        <span className="font-mono text-sm text-primary animate-pulse">
+        <span className="block pb-2 font-mono text-sm text-primary animate-pulse">
           Grouping {batchRemaining} measurement{batchRemaining !== 1 ? "s" : ""} …
         </span>
       )}
-    </div>
-    
-    
+</div>
   );
 }

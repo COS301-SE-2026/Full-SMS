@@ -1,16 +1,15 @@
 import React from 'react'
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { useHistoryRecorder } from '@/hooks/useHistoryRecorder'
-import{History} from "lucide-react";
-import { Button } from '@/components/ui';
+import { CommentToolbarButtons } from '../comments/CommentToolbar';
 
-export default function RasterToolbar({onHistoryRecorded, historyOpen, onToggleHistory}: {onHistoryRecorded: () => void; historyOpen:boolean; onToggleHistory: () => void}) {
+export default function RasterToolbar({onHistoryRecorded, historyOpen, onToggleHistory, commentsOpen, onToggleComments, onNewComment, commentCount}: Readonly<{onHistoryRecorded: () => void; historyOpen:boolean; onToggleComments: () => void; commentsOpen: boolean; onToggleHistory: () => void; onNewComment: () => void; commentCount: number }>) {
     const {setHeatMapColor, heatMapColor, currentUpload, currentWorkspaceId} = useHdf5Data()
     const colourmaps = ["Plasma","Viridis", "Inferno", "Hot", "Cool", "Twilight"]
     const recordHistory = useHistoryRecorder(currentWorkspaceId, currentUpload, "raster", onHistoryRecorded);
 
     return (
-    <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
+    <div className="flex items-center gap-4 h-12 px-4 -mx-3 -mt-3 border-b border-border bg-background flex-wrap z-10">
     <h3 className="text-foreground">Raster</h3>
     <div className="flex items-center gap-2">
         <label className="text-xs text-foreground/70 whitespace-nowrap">Colormap</label>
@@ -29,12 +28,15 @@ export default function RasterToolbar({onHistoryRecorded, historyOpen, onToggleH
             ))}
         </select>
         </div>
-        <Button variant="ghost" size="sm" 
-            title="View Parameter history"
-            onClick={onToggleHistory}
-            className={`ml-auto ${historyOpen ? "bg-card" : ""}`}
-            leftIcon={<History size={14} />}
-            />
+        <CommentToolbarButtons
+            className="ml-auto"
+            historyOpen={historyOpen}
+            onToggleHistory={onToggleHistory}
+            commentsOpen={commentsOpen}
+            onToggleComments={onToggleComments}
+            onNewComment={onNewComment}
+            commentCount={commentCount}
+        />
     </div>
     )
 }

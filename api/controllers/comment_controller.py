@@ -3,9 +3,9 @@ from api.services.comment_service import list_comments
 from api.models.comment import CommentCreate
 from api.services.comment_service import add_comment
 
-def list_comments_controller(workspace_id: str, user_id: str, upload_id: str, tab: str) -> dict:
+def list_comments_controller(workspace_id: str, user_id: str, upload_id: str, tab: str, measurement_id: str | None = None) -> dict:
     try:
-        comments = list_comments(workspace_id, user_id, upload_id, tab)
+        comments = list_comments(workspace_id, user_id, upload_id, tab, measurement_id)
         return {"success": True, "comments": comments}
     except ValueError as valerror:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(valerror))

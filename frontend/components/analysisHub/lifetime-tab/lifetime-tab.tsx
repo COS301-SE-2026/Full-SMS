@@ -6,20 +6,43 @@ import { HistoryPanel } from '../history/HistoryPanel'
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsContext'
 import { getLifetimeData } from '@/services/analysisServices'
-import { upload } from '@testing-library/user-event/dist/cjs/utility/upload.js'
 import { historyService } from '@/services/historyServices'
+import { useComments } from '@/hooks/useComments'
+import { CommentPanel } from '../comments/CommentPanel'
+import { NewCommentInput } from '../comments/CommentToolbar'
+import { useMemberLookup } from '@/hooks/useMemberLookup'
+import { useCommentSubmit } from '@/hooks/useCommentSubmit'
 
 export default function LifetimeTab() {
   const{ currentWorkspaceId, currentUpload, currentMeasurement, members} = useHdf5Data()
   const {entries, loading, error, fetchHistory}= useHistory(currentWorkspaceId, currentUpload, "lifetime")
   const { decayCounts, decayTimes, setFitResult} = useAnalysisTab()
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [commentsOpen, setCommentsOpen] = useState(false)
+  const [newCommentOpen, setNewCommentOpen] = useState(false)
+  const memberLookup = useMemberLookup(currentWorkspaceId)
+  const { comments, loading: commentsLoading, error: commentsError, fetchComments} = useComments(currentWorkspaceId, currentUpload, "lifetime", currentMeasurement)
+  const addComment = useCommentSubmit(currentWorkspaceId, currentUpload, "lifetime", fetchComments, currentMeasurement)
 
   return (
     <div className='w-full h-full flex gap-3'>
       <div className='flex flex-col flex-1'>
-        <LifetimeToolbar historyOpen={historyOpen} onToggleHistory={() => setHistoryOpen((v) => !v)}/>
-        <LifetimeCharts/>
+        <LifetimeToolbar 
+        historyOpen={historyOpen}
+        onToggleHistory={() => setHistoryOpen((v) => !v)}
+        commentsOpen={commentsOpen}
+        onToggleComments={() => setCommentsOpen((v) => !v)}
+        onNewComment={() => setNewCommentOpen((v) => !v)}
+        commentCount={comments.length}/>
+
+        <NewCommentInput
+          open={newCommentOpen}
+          onSubmit={addComment}
+          onClose={() => setNewCommentOpen(false)}/>
+
+        <LifetimeCharts
+          comments={comments}
+          onAddComment={addComment}/>
       </div>
 
       {historyOpen && (<HistoryPanel
@@ -46,6 +69,16 @@ export default function LifetimeTab() {
         }}
       />
       )}
+
+       {commentsOpen && (
+      <CommentPanel
+      comments={comments}
+      loading={commentsLoading}
+      error={commentsError}
+      authorFinder={memberLookup} />
+    )}
     </div>
+
+   
   )
 }

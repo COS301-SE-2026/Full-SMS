@@ -25,6 +25,11 @@ import { HistoryPanel } from "@/components/analysisHub/history/HistoryPanel";
 import { useHistory } from "@/hooks/useHistory";
 import { historyService } from "@/services/historyServices";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
+import { CommentPanel } from "@/components/analysisHub/comments/CommentPanel";
+import { NewCommentInput } from "@/components/analysisHub/comments/CommentToolbar";
+import { useComments } from "@/hooks/useComments";
+import { useMemberLookup } from "@/hooks/useMemberLookup";
+import { useCommentSubmit } from "@/hooks/useCommentSubmit";
 
 export default function App() {
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
@@ -32,14 +37,19 @@ export default function App() {
     useAnalysisTab();
   const [currentPlugin, setCurrentPlugin] = useState<Plugin | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const { currentWorkspaceId, currentUpload, setBin, setConfidence, members } = useHdf5Data();
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [newCommentOpen, setNewCommentOpen] = useState(false);
+  const { currentWorkspaceId, currentUpload, currentMeasurement, setBin, setConfidence, members } = useHdf5Data();
+  const memberLookup = useMemberLookup(currentWorkspaceId);
+  const {comments, loading: commentsLoading, error: commentsError, fetchComments } = useComments(currentWorkspaceId, currentUpload, "intensity", currentMeasurement);
+
   const { entries, loading, error, fetchHistory} = useHistory(currentWorkspaceId, currentUpload, "intensity",);
   const isPluginTab = activeTab.startsWith("plugin:");
   const pluginId = isPluginTab ? activeTab.replace("plugin:", "") : null;
 
   const isLoadingPlugin = isPluginTab && currentPlugin?.id !== pluginId;
 
-  const {currentUploadName} = useHdf5Data()
+  const controlAddComment = useCommentSubmit(currentWorkspaceId, currentUpload, "intensity", fetchComments, currentMeasurement);
 
   useEffect(() => {
     if (!pluginId) {
@@ -91,9 +101,16 @@ export default function App() {
 
         {activeTab === "intensity" && (
           <div className="flex flex-col flex-1 min-w-0">
-            <AnalysisToolbar onHistoryChange={fetchHistory} historyOpen={historyOpen} onToggleHistory={() => setHistoryOpen((v) => !v)}/>
+            <AnalysisToolbar onHistoryChange={fetchHistory} historyOpen={historyOpen} onToggleHistory={() => setHistoryOpen((v) => !v)}
+              commentsOpen={commentsOpen} onToggleComments={() => setCommentsOpen((v) => !v)}
+              onNewComment={() => setNewCommentOpen((v) => !v)}
+              commentCount={comments.length}/>
+            <NewCommentInput
+              open={newCommentOpen}
+              onSubmit={controlAddComment}
+              onClose={() => setNewCommentOpen(false)}/>
             <div className="flex flex-1 gap-3 p-3 min-h-0">
-              <IntensityChart />
+              <IntensityChart comments={comments} onAddComment={controlAddComment}/>
               {historyOpen && (<HistoryPanel
                 entries={entries}
                 loading={loading}
@@ -107,7 +124,14 @@ export default function App() {
                 }}
                />
               )}
-            </div>
+              {commentsOpen && (
+                <CommentPanel
+                  comments={comments}
+                  loading={commentsLoading}
+                  error={commentsError}
+                  authorFinder={memberLookup} />
+              )}
+            </div>  
           </div>
         )}
 
