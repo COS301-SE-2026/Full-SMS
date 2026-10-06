@@ -31,6 +31,7 @@ class BeckerHicklReader(FileReader):
             return self._create_error_result(f"File not found: {path}")
 
         try:
+            
             sdt = sdtfile.SdtFile(path)
             file_metadata = self._extract_metadata(sdt)
             native_blocks = []
@@ -64,6 +65,8 @@ class BeckerHicklReader(FileReader):
 
         except Exception as e:
             return self._create_error_result(f"Failed to read B&H file: {str(e)}")
+        
+        
 
     def _extract_metadata(self, sdt) -> dict:
         metadata = {
