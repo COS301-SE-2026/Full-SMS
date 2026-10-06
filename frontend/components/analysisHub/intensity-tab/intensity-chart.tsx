@@ -53,7 +53,7 @@ export function IntensityChart() {
 
         }}
         return {x: x_axis, y:y_axis}
-    }, [cpaData])
+    }, [cpaData, bin])
 
   
 
@@ -102,7 +102,7 @@ export function IntensityChart() {
           ]}
           layout={{
             autosize: true, 
-            uirevision: 'true',
+            uirevision: String(bin),
             title: { text: 'Intensity Trace' },
             plot_bgcolor: colors.card, 
             paper_bgcolor: colors.card,  
@@ -127,7 +127,7 @@ export function IntensityChart() {
               showgrid: true,
               gridcolor: colors.border,   
               gridwidth: 1,
-              range:[0,70],
+              autorange:true,
               anchor: 'x',
               title: {text:'Counts/bin'}
             },

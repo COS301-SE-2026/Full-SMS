@@ -72,3 +72,6 @@ export interface WorkspaceUploadsResponse {
   uploads?: UploadRecord[];
   message?: string;
 }
+
+export type WorkspaceFormats =   'all'|'.h5'| '.hdf5'| '.ptu'|".phu"|
+  '.sdt'| '.spc'| '.csv'| '.txt'| '.tsv'

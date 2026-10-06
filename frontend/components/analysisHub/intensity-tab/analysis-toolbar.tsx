@@ -283,14 +283,6 @@ export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory 
           Resolve Selected
         </Button>
         <div className="ml-auto flex gap-2">
-          <Button
-            size="sm"
-            variant="secondary"
-            leftIcon={<Maximize2 size={14} />}
-            className="min-h-[28px] px-3"
-          >
-            Fit View
-          </Button>
           <Button variant="ghost" size="sm" 
             title="View Parameter history"
             onClick={onToggleHistory}
