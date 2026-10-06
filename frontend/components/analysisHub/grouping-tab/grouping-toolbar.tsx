@@ -144,8 +144,8 @@ export default function GroupingToolbar({commentsOpen, onToggleComments, onNewCo
   const busy = isProcessing || isBatchProcessing
 
   return (
-    <div className="pb-2 px-4 border-b border-border bg-background flex-wrap">
-      <div className="flex items-center gap-4 ">
+    <div className="px-4 -mx-3 -mt-3 border-b border-border bg-background">
+      <div className="flex items-center gap-4 h-12 flex-wrap">
         <h3 className="text-foreground">Grouping</h3>
         <Button
           size="sm"
@@ -195,7 +195,7 @@ export default function GroupingToolbar({commentsOpen, onToggleComments, onNewCo
         </div> */}
       </div>
       {isBatchProcessing && (
-        <span className="font-mono text-sm text-primary animate-pulse">
+        <span className="block pb-2 font-mono text-sm text-primary animate-pulse">
           Grouping {batchRemaining} measurement{batchRemaining !== 1 ? "s" : ""} …
         </span>
       )}

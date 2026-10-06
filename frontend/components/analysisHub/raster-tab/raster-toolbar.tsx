@@ -9,7 +9,7 @@ export default function RasterToolbar({onHistoryRecorded, historyOpen, onToggleH
     const recordHistory = useHistoryRecorder(currentWorkspaceId, currentUpload, "raster", onHistoryRecorded);
 
     return (
-    <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
+    <div className="flex items-center gap-4 h-12 px-4 -mx-3 -mt-3 border-b border-border bg-background flex-wrap z-10">
     <h3 className="text-foreground">Raster</h3>
     <div className="flex items-center gap-2">
         <label className="text-xs text-foreground/70 whitespace-nowrap">Colormap</label>

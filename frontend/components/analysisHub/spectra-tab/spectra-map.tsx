@@ -108,9 +108,9 @@ export default function SpectraMap() {
   return (
     <div className="flex gap-3">
       <div className="flex flex-col flex-1">
-      <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10">
+      <div className="flex items-center gap-4 h-12 px-4 -mx-3 -mt-3 border-b border-border bg-background flex-wrap z-10">
         <h3 className="text-foreground">Spectra</h3>
-        <div className="flex items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap z-10 flex-1">
+        <div className="flex items-center gap-4 flex-wrap flex-1">
           <div className="flex items-center gap-2">
             <label
               className="text-xs text-foreground/70 whitespace-nowrap"

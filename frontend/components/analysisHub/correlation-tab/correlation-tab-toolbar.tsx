@@ -107,7 +107,7 @@ export default function CorrelationTabToolbar({
 
 
   return (
-    <div className="flex flex-row justify-between items-center gap-4 h-12 px-4 border-b border-border bg-background flex-wrap">
+    <div className="flex flex-row justify-between items-center gap-4 h-12 px-4 -mx-3 -mt-3 border-b border-border bg-background flex-wrap">
       <div className="flex flex-row items-center gap-4">
         <h3 className="text-foreground">Correlation</h3>
         <NumberField label="Window (ns)" value={window} onChange={(v) => {setWindow(v); recordHist("window", window, v); }} slider={false}/>

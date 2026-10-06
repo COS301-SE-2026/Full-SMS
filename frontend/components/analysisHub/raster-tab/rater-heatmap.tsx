@@ -42,13 +42,6 @@ export function RasterHeatmap({comments, onAddComment}: Readonly<RasterHeatmapPr
   }, [currentMeasurement, currentUpload]);
 
   const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote: controlSubmitComment } = useCommentClick(onAddComment);
-  // if (!rasterData?.raster_scan) {
-  //   return (
-  //     <div className="flex h-full w-full items-center justify-center text-gray-500">
-  //       Loading Raster Scan...
-  //     </div>
-  //   );
-  // }
 
   if(!hdf5Metadata?.has_rasters){
     return(
@@ -57,6 +50,15 @@ export function RasterHeatmap({comments, onAddComment}: Readonly<RasterHeatmapPr
       </Card>
     )
   }
+
+  if (!rasterData?.raster_scan) {
+    return (
+      <Card className="w-[83vw] h-[85vh] mt-1 p-4 flex flex-col items-center justify-center text-foreground/60">
+        <p>Loading Raster Scan...</p>
+      </Card>
+    );
+  }
+
   const { raster_scan, raster_scan_coord } = rasterData;
 
   // Calculate physical step sizes (um per pixel)
