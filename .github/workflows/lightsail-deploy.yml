@@ -6,6 +6,7 @@ on:
       - main
       - chore/aws-cd
       - develop
+      - bugfix/aws-workflow
   workflow_dispatch:
     inputs:
       branch:
