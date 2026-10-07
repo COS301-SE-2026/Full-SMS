@@ -114,7 +114,7 @@ export default function MarketplacePage() {
         successToast("Plugin installed successfully");
         setInstalledPluginIds((prev) => [...prev, pluginId]);
       } else {
-        console.log("failed to installplugin:", response.message);
+        console.error("failed to installplugin:", response.message);
         errorToast(response.message || "Failed to install plugin");
       }
     } catch (error: unknown) {

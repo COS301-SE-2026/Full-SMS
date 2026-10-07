@@ -108,7 +108,7 @@ export default function UploadPage({ onComplete }: UploadPageProps) {
                 return false;
               }
             } catch (e) {
-              console.log("Status check failed:", e);
+              console.error("Status check failed:", e);
             }
             await new Promise((resolve) => setTimeout(resolve, 2000));
           }

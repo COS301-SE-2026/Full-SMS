@@ -150,7 +150,6 @@ export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory,
     };
 
     const response = await changePointAnalysis(request);
-    console.log(response);
     setCpaData(response);
     setIsLoading(false);
   };
@@ -182,7 +181,6 @@ export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory,
         ids = summaries.flatMap((m) =>
           (m.channels ?? [1]).map((_, idx) => `${m.id}:${idx + 1}`)
         );
-        console.log("MULTI CHANNEL IDS", ids);
         
       } else {
         ids = summaries.map((m) => m.id.toString());

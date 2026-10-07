@@ -8,10 +8,8 @@ export const intensityAnalysis = async (payload: Intensity_Req)=>{
 }
 
 export const changePointAnalysis = async (payload: changePoint_Req) =>{
-    console.log("cpa payload", payload);
     
     const {data} = await axiosInstance.post('api/py/analysis/change-point-analysis', payload)
-    console.log("change_point_data: " ,data)
     return data
 }
 

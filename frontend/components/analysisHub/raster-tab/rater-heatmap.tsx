@@ -25,11 +25,9 @@ export function RasterHeatmap({comments, onAddComment}: Readonly<RasterHeatmapPr
         upload_id: currentUpload,
         measurement_id: currentMeasurement,
       };
-      console.log("Payload: ", payload);
 
       try {
         const data = await getRasterData(payload);
-        console.log("Fetched Raster Data:", data);
         setRasterData(data);
       } catch (error) {
         console.error("Failed to fetch raster data:", error);

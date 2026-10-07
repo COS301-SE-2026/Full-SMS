@@ -21,8 +21,6 @@ export default function LifetimeCharts({comments, onAddComment}: Readonly<LifeTi
     const {useLogScale, decayCounts, setDecayCounts, decayTimes, setDecayTimes, fitResult} = useAnalysisTab()
     const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote } = useCommentClick(onAddComment);
     const commentMarkers = buildCommentMarkers(comments, 'x', 'y');
-      const useNativeBlocksViewer = hdf5Metadata?.data_kind ==="native_data"
-      console.log("NATIVE",useNativeBlocksViewer);
   
 
   useEffect(() => {

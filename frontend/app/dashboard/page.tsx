@@ -86,7 +86,6 @@ export default function DashboardPage() {
       return true;
     });
   }, [workspaces, statusFilter, searchQuery]);
-  console.log("Rendering WorkspaceTable with workspaces:", filteredWorkspaces);
 
 
   useEffect(() => {
@@ -130,7 +129,6 @@ export default function DashboardPage() {
   }, [fetchWorkspaces]);
 
   const handleOpenWorkspace = (workspaceId: string) => {
-    console.log(workspaceId);
     setCurrentWorkspaceId(workspaceId)
     router.push("/workspace");
   };

@@ -64,7 +64,6 @@ export default function GroupingToolbar({commentsOpen, onToggleComments, onNewCo
       `${process.env.NEXT_PUBLIC_API_URL}/api/py/analysis/grouping/${job_id}`,
     {
       onSuccess: (data: ClusteringRes) => {
-        console.log("Grouping complete:", data);
         setGroupingData(data);
       },
       onError: (error) => {
@@ -74,7 +73,6 @@ export default function GroupingToolbar({commentsOpen, onToggleComments, onNewCo
   );
 
   const handleGroupCurrent = () => {
-    console.log("Group current clicked");
 
     if (!cpaData) {
       errorToast("Resolve Measurement before attempting to group");

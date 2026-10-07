@@ -65,7 +65,7 @@
             return true;
           }
         } catch (e) {
-          console.log('Status check failed:', e);
+          console.error('Status check failed:', e);
         }
         return false;
       };

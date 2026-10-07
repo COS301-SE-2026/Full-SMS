@@ -52,7 +52,6 @@ export default function PluginTable({
   const [feedbackPlugin, setFeedbackPlugin] = useState<Plugin | null>(null);
 
   const getMarketplaceStatusBadge = (plugin: Plugin) => {
-    console.log("plugin..", plugin);
     if (plugin?.source_plugin_id) {
       if (plugin.available_version) {
         return (
