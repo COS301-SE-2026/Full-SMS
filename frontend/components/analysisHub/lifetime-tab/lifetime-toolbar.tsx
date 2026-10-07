@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { Button, Toggle } from "@/components/ui";
@@ -7,6 +8,7 @@ import { History, X } from "lucide-react";
 import { getMappedIRF } from "@/services/irfServices";
 import { GetMappedIRFReq, GetMappedIRFRes } from "@/types/analysis";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
+import { getFluorescenceDecay } from "@/services/analysisServices";
 
 export default function LifetimeToolbar({
   historyOpen,
@@ -24,6 +26,8 @@ export default function LifetimeToolbar({
     setShowIRF,
     setMappingDialog,
     setFitResult,
+    setDecayTimes,
+    setDecayCounts,
   } = useAnalysisTab();
   const {
     currentWorkspaceId,
@@ -32,7 +36,10 @@ export default function LifetimeToolbar({
     currentChannel,
     currentMappedIrf,
     setCurrentMappedIrf,
+    cpaData,
+    bin
   } = useHdf5Data();
+  const [selectedLevelIdx, setSelectedLevelIdx] = useState<number | null>(null);
 
   const fetchMappedIRF = async () => {
     const payload: GetMappedIRFReq = {
@@ -49,6 +56,37 @@ export default function LifetimeToolbar({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMappedIRF();
   }, [currentWorkspaceId, currentUpload, currentMeasurement, currentChannel]);
+
+  // reset level selection when measurement or channel switches
+  useEffect(() => {
+    setSelectedLevelIdx(null);
+  }, [currentMeasurement, currentChannel]);
+
+  const handleLevelSelect = async (idx: number) => {
+    setSelectedLevelIdx(idx === -1 ? null : idx);
+    setFitResult(null);
+
+    const payload: any = {
+      upload_id: currentUpload,
+      measurement_id: currentMeasurement,
+      bin_size_ms: bin,
+      channel: currentChannel,
+    };
+
+    if (idx >= 0 && cpaData?.levels?.[idx]) {
+      const lvl = cpaData.levels[idx];
+      payload.start_photon_idx = lvl.start_index;
+      payload.end_photon_idx = lvl.end_index;
+    }
+
+    try {
+      const response = await getFluorescenceDecay(payload);
+      setDecayTimes(response.times);
+      setDecayCounts(response.counts);
+    } catch (err) {
+      console.error("Failed to load level decay:", err);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4 h-12 px-4 border-b border-border bg-background mb-4 h-fit pb-2">
@@ -91,6 +129,24 @@ export default function LifetimeToolbar({
             >
               IRF Mapping
             </Button>
+                        {cpaData?.levels && cpaData.levels.length > 0 && (
+              <div className="flex items-center gap-1.5 text-xs font-mono ml-1">
+                <span className="text-muted-foreground">Level:</span>
+                <select
+                  aria-label="Select CPA Level"
+                  className="border rounded px-2 py-0.5 text-xs bg-card font-mono text-foreground"
+                  value={selectedLevelIdx !== null ? selectedLevelIdx : -1}
+                  onChange={(e) => handleLevelSelect(Number(e.target.value))}
+                >
+                  <option value={-1}>Full Trace</option>
+                  {cpaData.levels.map((lvl, idx) => (
+                    <option key={idx} value={idx}>
+                      Level {idx + 1} ({lvl.num_photons} ph, {Math.round(lvl.intensity_cps)} cps)
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
           {fitResult && (
             <div className="flex flex-wrap items-center justify-between gap-3 p-2 bg-card border border-border rounded-md mt-2">

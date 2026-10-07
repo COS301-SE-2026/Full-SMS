@@ -234,6 +234,7 @@ def fluorescence_decay(payload):
         channel_data = getattr(cached_measurement, channel_key, cached_measurement.channel1)
         microtimes = channel_data.microtimes
         channel_width = cached_measurement.channelwidth
+        
 
     times, counts = build_decay_histogram(
         microtimes=microtimes, channelwidth=channel_width
