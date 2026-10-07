@@ -102,7 +102,7 @@ export default function LifetimeToolbar({
       <div>
         <div>
           <div className="flex flex-row gap-4 items-center h-12">
-            <h3 className="text-foreground">Lifetime Analysis</h3>
+            <h3 className="text-foreground">Lifetime</h3>
             <Toggle
               label="Use log scale"
               checked={useLogScale}

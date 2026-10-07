@@ -242,7 +242,7 @@ export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory,
   return (
     <div className="flex flex-col border-b border-border bg-background flex-wrap  px-4 ">
       <div className="flex items-center gap-4 h-12">
-        <h3 className="text-foreground">Intensity Analysis</h3>
+        <h3 className="text-foreground">Intensity</h3>
 
 
         <NumberField label="Bin (ms)" value={localBinValue!} onChange={setLocalBinValue} onMouseUp={handleSliderRelease} />

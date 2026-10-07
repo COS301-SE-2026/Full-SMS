@@ -57,7 +57,6 @@ def get_irf_mappings(payload: dict):
     
     print(f"\n\n\n{payload}\n\n\n")
 
-    
     response = (supabaseClient
                 .table("irf_mappings")
                 .select("*")
@@ -82,22 +81,70 @@ def delete_irf_mapping(payload: MapIRFReq):
     print(f"\n\n\n{payload}\n\n\n")
     measurement_id = payload.measurement_id if payload.measurement_id is not None else -1
     
-    response = (supabaseClient
-                .table("irf_mappings")
-                .delete()
-                .eq("workspace_id", payload.workspace_id)
-                .eq("dataset_ref", payload.dataset_ref)
-                .eq("measurement_id", measurement_id)
-                .eq("channel", payload.channel)
-                .execute())
-    
-    if(response.data ==[]):
-        raise HTTPException(status_code=404, detail="No IRF mappings found for this workspace")
-    
-    return {
-        "status": "ok",
-        "data": response
-    } 
+    if measurement_id != -1:
+        # User is trying to clear a specific measurement
+        response = (supabaseClient
+                    .table("irf_mappings")
+                    .delete()
+                    .eq("workspace_id", payload.workspace_id)
+                    .eq("dataset_ref", payload.dataset_ref)
+                    .eq("measurement_id", measurement_id)
+                    .eq("channel", payload.channel)
+                    .execute())
+        
+        if response.data == []:
+            # No specific mapping found to delete, let's check for a wildcard mapping
+            wildcard_check = (supabaseClient
+                              .table("irf_mappings")
+                              .select("*")
+                              .eq("workspace_id", payload.workspace_id)
+                              .eq("dataset_ref", payload.dataset_ref)
+                              .eq("measurement_id", -1)
+                              .eq("channel", payload.channel)
+                              .execute())
+            
+            if wildcard_check.data:
+                # Upsert an explicit override mapping with irf_id = null
+                override_response = (supabaseClient
+                                     .table("irf_mappings")
+                                     .upsert({
+                                         "workspace_id": payload.workspace_id,
+                                         "dataset_ref": payload.dataset_ref,
+                                         "measurement_id": measurement_id,
+                                         "channel": payload.channel,
+                                         "irf_id": None
+                                     }, on_conflict="dataset_ref,measurement_id,channel")
+                                     .execute())
+                return {
+                    "status": "ok",
+                    "data": override_response.data,
+                    "message": "Created override mapping to clear wildcard for this measurement"
+                }
+            else:
+                raise HTTPException(status_code=404, detail="No IRF mappings found for this workspace")
+                
+        return {
+            "status": "ok",
+            "data": response.data
+        }
+    else:
+        # User is trying to clear the global "Apply All" wildcard
+        response = (supabaseClient
+                    .table("irf_mappings")
+                    .delete()
+                    .eq("workspace_id", payload.workspace_id)
+                    .eq("dataset_ref", payload.dataset_ref)
+                    .eq("measurement_id", measurement_id)
+                    .eq("channel", payload.channel)
+                    .execute())
+        
+        if(response.data ==[]):
+            raise HTTPException(status_code=404, detail="No IRF mappings found for this workspace")
+        
+        return {
+            "status": "ok",
+            "data": response.data
+        } 
     
 def get_mapped_irf_controller(payload: GetMappedIRFReq):
     measurement_id = payload.measurement_id if payload.measurement_id is not None else -1
@@ -111,6 +158,10 @@ def get_mapped_irf_controller(payload: GetMappedIRFReq):
                 .maybe_single()
                 .execute())
 
+    # Check if an explicit clear/null override exists
+    if mapping.data and mapping.data.get("irf_id") is None:
+        raise HTTPException(status_code=404, detail="IRF mapping cleared for this measurement")
+
     # If not found and this was a specific measurement, fall back to wildcard (-1)
     if not mapping.data and measurement_id != -1:
         mapping = (supabaseClient.table("irf_mappings")
@@ -122,7 +173,7 @@ def get_mapped_irf_controller(payload: GetMappedIRFReq):
                     .maybe_single()
                     .execute())
 
-    if not mapping.data:
+    if not mapping.data or mapping.data.get("irf_id") is None:
         raise HTTPException(status_code=404, detail="No IRF mapping found for this measurement/channel")
 
     irf_id = mapping.data["irf_id"]

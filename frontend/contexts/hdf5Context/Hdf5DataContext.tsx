@@ -151,7 +151,7 @@ interface Hdf5DataContextType {
 
   isMultiChannel: boolean;
 
-  currentMappedIrf: GetMappedIRFRes
+  currentMappedIrf: GetMappedIRFRes | undefined
   setCurrentMappedIrf: (irf: GetMappedIRFRes) => void
 }
 
