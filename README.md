@@ -86,3 +86,14 @@ make run-frontend  # Start frontend (http://localhost:3000)
 ```
 
 [Public Live URL](https://fullsms.duckdns.org/)
+
+## Demo Resources
+
+**Sample Datasets:** [Google Drive](https://drive.google.com/drive/folders/1N2aad49y84GglHph55xR5YPGt0tPfaqU)
+
+**Demo Login Credentials:**
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | `default@user.com` | `Password@1` |
+| User | `COS301Queries@cs.up.ac.za` | `rfbDqw@9RhHWVqtT` |
