@@ -115,7 +115,14 @@ export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
                       {n.type === "invite" && !n.read && (
                         <div className="flex gap-2 mt-1">
                           <button onClick={async() => {try{await acceptInvite(n.id); successToast("Invite accepted");} catch { errorToast("Failed to accept invite");} }} className="text-green-600 hover:underline">Accept</button>
-                          <button onClick={async() => {try{await declineInvite(n.id); successToast("Invite declined");} catch { errorToast("Failed to decline invite");} }} className="text-red-600 hover:underline">Decline</button>
+                          <button onClick={async() => {
+                            try{
+                              await declineInvite(n.id); 
+                              successToast("Invite declined");
+                              if(n.workspace_id === currentWorkspaceId){
+                                router.push("/dashboard");
+                                }
+                              } catch { errorToast("Failed to decline invite");} }} className="text-red-600 hover:underline">Decline</button>
                         </div>
                       )}
                     </li>
