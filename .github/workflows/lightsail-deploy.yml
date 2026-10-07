@@ -6,6 +6,7 @@ on:
       - main
       - chore/aws-cd
       - develop
+      - bugfix/aws-workflow
   workflow_dispatch:
     inputs:
       branch:
@@ -26,17 +27,51 @@ jobs:
         uses: appleboy/ssh-action@v1.0.0
         env:
           BRANCH: ${{ github.ref_name }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_JWT_SECRET_KEY: ${{ secrets.SUPABASE_JWT_SECRET_KEY }}
+          SUPABASE_JWK: ${{ secrets.SUPABASE_JWK }}
+          SUPABASE_BUCKET_NAME: ${{ secrets.SUPABASE_BUCKET_NAME }}
+          BACKEND_CORS_ORIGINS: ${{ secrets.BACKEND_CORS_ORIGINS }}
+          EXECUTION_URL: ${{ secrets.EXECUTION_URL }}
+          EXECUTION_API_KEY: ${{ secrets.EXECUTION_API_KEY }}
+          ONEDRIVE_CLIENT_ID: ${{ secrets.ONEDRIVE_CLIENT_ID }}
+          ONEDRIVE_CLIENT_SECRET: ${{ secrets.ONEDRIVE_CLIENT_SECRET }}
+          ONEDRIVE_REDIRECT_URI: ${{ secrets.ONEDRIVE_REDIRECT_URI }}
+          NEXT_PUBLIC_MS_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_MS_CLIENT_ID }}
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
           key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
           port: 22
-          envs: BRANCH
+          envs: BRANCH,SUPABASE_URL,SUPABASE_SERVICE_KEY,SUPABASE_SERVICE_ROLE_KEY,SUPABASE_JWT_SECRET_KEY,SUPABASE_JWK,SUPABASE_BUCKET_NAME,BACKEND_CORS_ORIGINS,EXECUTION_URL,EXECUTION_API_KEY,ONEDRIVE_CLIENT_ID,ONEDRIVE_CLIENT_SECRET,ONEDRIVE_REDIRECT_URI,NEXT_PUBLIC_MS_CLIENT_ID
           script_stop: true
           script: |
             echo "Starting deployment for branch: $BRANCH"
 
             cd ~/Full-SMS
+
+            echo "Creating backend .env file"
+            cat > .env << EOF
+            SUPABASE_URL=${SUPABASE_URL}
+            SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+            SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+            SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET_KEY}
+            SUPABASE_JWK=${SUPABASE_JWK}
+            SUPABASE_BUCKET_NAME=${SUPABASE_BUCKET_NAME}
+            BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
+            EXECUTION_URL=${EXECUTION_URL}
+            EXECUTION_API_KEY=${EXECUTION_API_KEY}
+            ONEDRIVE_CLIENT_ID=${ONEDRIVE_CLIENT_ID}
+            ONEDRIVE_CLIENT_SECRET=${ONEDRIVE_CLIENT_SECRET}
+            ONEDRIVE_REDIRECT_URI=${ONEDRIVE_REDIRECT_URI}
+            EOF
+
+            echo "Creating frontend .env file"
+            cat > frontend/.env << EOF
+            NEXT_PUBLIC_MS_CLIENT_ID=${NEXT_PUBLIC_MS_CLIENT_ID}
+            EOF
 
             echo "Current branch: $(git branch --show-current)"
 
@@ -45,9 +80,6 @@ jobs:
 
             echo "Stashing any local changes"
             git stash
-
-            echo "Cleaning untracked files that might conflict"
-            git clean -fd
 
             echo "Switching to branch: $BRANCH"
             git checkout $BRANCH
