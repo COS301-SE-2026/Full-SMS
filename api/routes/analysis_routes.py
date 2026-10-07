@@ -13,7 +13,6 @@ def get_intensity_trace(req: IntensityReq):
 
 @router.post("/change-point-analysis")
 def get_change_points(req: CpaReq):
-    print(f"\n\n\nRoute REQ: {req}")
     return change_point_analysis_controller(req)
 
 @router.get("/grouping/{task_id}")
@@ -44,7 +43,6 @@ def get_lifetime(req: LifetimeReq):
 
 @router.post("/lifetime")
 def get_lifetime(req: LifetimePayload):
-    print(f"ROUte: {req}")
     return get_decay_controller(req)
 
 @router.post("/correlation")
