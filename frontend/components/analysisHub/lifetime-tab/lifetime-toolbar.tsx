@@ -4,19 +4,28 @@
 import { Button, Toggle } from "@/components/ui";
 import { useAnalysisTab } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
 import React, { useEffect, useState } from "react";
-import { History, X } from "lucide-react";
+import { X } from "lucide-react";
 import { getMappedIRF } from "@/services/irfServices";
 import { GetMappedIRFReq, GetMappedIRFRes } from "@/types/analysis";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { getFluorescenceDecay } from "@/services/analysisServices";
+import { CommentToolbarButtons } from '../comments/CommentToolbar';
 
 export default function LifetimeToolbar({
   historyOpen,
   onToggleHistory,
-}: {
+  commentsOpen,
+  onToggleComments,
+  onNewComment,
+  commentCount,
+}: Readonly<{
   historyOpen: boolean;
   onToggleHistory: () => void;
-}) {
+  commentsOpen: boolean;
+  onToggleComments: () => void;
+  onNewComment: () => void;
+  commentCount: number;
+}>) {
   const {
     setFittingDialogOpen,
     useLogScale,
@@ -29,6 +38,7 @@ export default function LifetimeToolbar({
     setDecayTimes,
     setDecayCounts,
   } = useAnalysisTab();
+  
   const {
     currentWorkspaceId,
     currentUpload,
@@ -39,6 +49,7 @@ export default function LifetimeToolbar({
     cpaData,
     bin
   } = useHdf5Data();
+  
   const [selectedLevelIdx, setSelectedLevelIdx] = useState<number | null>(null);
 
   const fetchMappedIRF = async () => {
@@ -53,11 +64,9 @@ export default function LifetimeToolbar({
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMappedIRF();
   }, [currentWorkspaceId, currentUpload, currentMeasurement, currentChannel]);
 
-  // reset level selection when measurement or channel switches
   useEffect(() => {
     setSelectedLevelIdx(null);
   }, [currentMeasurement, currentChannel]);
@@ -89,10 +98,10 @@ export default function LifetimeToolbar({
   };
 
   return (
-    <div className="flex flex-col gap-4 h-12 px-4 border-b border-border bg-background mb-4 h-fit pb-2">
+    <div className="flex flex-col gap-4 px-4 border-b border-border bg-background mb-4 h-fit pb-2 pt-2 -mx-3 -mt-3">
       <div>
         <div>
-          <div className="flex flex-row gap-4 items-center">
+          <div className="flex flex-row gap-4 items-center h-12">
             <h3 className="text-foreground">Lifetime Analysis</h3>
             <Toggle
               label="Use log scale"
@@ -113,14 +122,6 @@ export default function LifetimeToolbar({
             </Button>
 
             <Button
-              variant="ghost"
-              size="sm"
-              title="View Parameter history"
-              onClick={onToggleHistory}
-              className={`ml-auto px-2 py-0.5 min-h-0 ${historyOpen ? "bg-card" : ""}`}
-              leftIcon={<History size={14} />}
-            />
-            <Button
               className="font-black border-0 text-primary bg-primary/10"
               variant={"secondary"}
               onClick={() => {
@@ -129,7 +130,8 @@ export default function LifetimeToolbar({
             >
               IRF Mapping
             </Button>
-                        {cpaData?.levels && cpaData.levels.length > 0 && (
+            
+            {cpaData?.levels && cpaData.levels.length > 0 && (
               <div className="flex items-center gap-1.5 text-xs font-mono ml-1">
                 <span className="text-muted-foreground">Level:</span>
                 <select
@@ -147,7 +149,18 @@ export default function LifetimeToolbar({
                 </select>
               </div>
             )}
+            
+            <CommentToolbarButtons
+              className="ml-auto"
+              historyOpen={historyOpen}
+              onToggleHistory={onToggleHistory}
+              commentsOpen={commentsOpen}
+              onToggleComments={onToggleComments}
+              onNewComment={onNewComment}
+              commentCount={commentCount}
+            />
           </div>
+          
           {fitResult && (
             <div className="flex flex-wrap items-center justify-between gap-3 p-2 bg-card border border-border rounded-md mt-2">
               <div className="flex flex-wrap items-center gap-4 text-xs font-mono">

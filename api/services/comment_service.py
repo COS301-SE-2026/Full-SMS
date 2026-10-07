@@ -5,7 +5,7 @@ from api.services.workspace_service import (
 )
 from api.services.notification_service import add_notification
 
-def list_comments(workspace_id:str, user_id: str, upload_id: str, tab:str) -> List[dict]:
+def list_comments(workspace_id:str, user_id: str, upload_id: str, tab:str, measurement_id: str | None = None) -> List[dict]:
     get_workspace_by_id(workspace_id, user_id)
     supabase = get_supabase_admin()
 
@@ -15,9 +15,12 @@ def list_comments(workspace_id:str, user_id: str, upload_id: str, tab:str) -> Li
         .eq("workspace_id", workspace_id)
         .eq("upload_id", upload_id)
         .eq("tab", tab)
-        .order("created_at", desc=False)
-        .execute()
     )
+
+    if measurement_id is not None:
+        response = response.eq("measurement_id", measurement_id)
+
+    response = response.order("created_at", desc=False).execute()
     return response.data or []
 
 def add_comment(workspace_id: str, user_id: str, upload_id: str, tab: str, content:str, measurement_id: str | None = None, anchor_x: float | None = None, anchor_y: float| None = None) -> dict:

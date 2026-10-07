@@ -1,14 +1,16 @@
+import os
 from pathlib import Path
-
 from api.legacy.analysis.lifetime import compute_convolved_fit_curve, fit_decay
 from api.legacy.analysis.histograms import build_decay_histogram
 from api.models.analysis_models import LifetimeReq, LifetimeRes
 from api.services.analysis_services.cache_fallback import cache_fallback_service
 from api.services.measurement_cache_service import get_cached_measurement
-from api.utils.supabase_client import supabaseClient
 from api.services.storage_service import download_to_temp
+from api.services.file_readers.reader_factory import read_file
 from api.services.hdf5_services import read_irf
 from api.utils.redis_Client import redisClient
+from api.utils.supabase_client import supabaseClient
+import json
 import numpy as np
 
 
@@ -61,22 +63,65 @@ def _fetch_irf_counts(dataset_ref: str, measurement_id: int, channel: int):
     return None
     
 
+def _get_native_block_data(upload_id: str, block_id: str | int):
+    """Helper to fetch a native decay histogram block (e.g. from SDT/PHU)."""
+    get_storage_key = supabaseClient.table("hdf5_uploads").select("storage_key").eq("id", upload_id).execute()
+    if not get_storage_key.data:
+        return None
+        
+    storage_key = get_storage_key.data[0]['storage_key']
+    suffix = Path(storage_key).suffix.lower() or ".tmp"
+    temp_path = download_to_temp(storage_key, suffix)
+    
+    try:
+        result = read_file(temp_path)
+        if not result.success or not result.native_blocks:
+            return None
+            
+        # Look for the specific block, or fallback to the first decay_histogram
+        for block in result.native_blocks:
+            if str(block.id) == str(block_id) and block.kind == "decay_histogram":
+                return block
+                
+        for block in result.native_blocks:
+            if block.kind == "decay_histogram":
+                return block
+                
+        return None
+    finally:
+        if os.path.exists(temp_path):
+            try: 
+                os.unlink(temp_path)
+            except Exception:
+                pass
 def lifetime_fitting(payload: LifetimeReq):
     upload_id = payload.upload_id
     measurement_id = payload.measurement_id
 
     channel = getattr(payload, 'channel', 1) or 1
-    cached_measurement = get_cached_measurement(upload_id, measurement_id)
-
-    if not cached_measurement:
-        cached_measurement = cache_fallback_service(
-            upload_id=upload_id, measurement_id=measurement_id
-        )
-
-    if isinstance(cached_measurement, dict):
-        channel_width = cached_measurement["channelwidth"]
+    
+    if payload.channelwidth is not None and payload.channelwidth > 0:
+        channel_width = payload.channelwidth
     else:
-        channel_width = cached_measurement.channelwidth
+        cached_measurement = get_cached_measurement(upload_id, measurement_id)
+
+        if not cached_measurement:
+            cached_measurement = cache_fallback_service(
+                upload_id=upload_id, measurement_id=measurement_id
+            )
+
+        if cached_measurement:
+            if isinstance(cached_measurement, dict):
+                channel_width = cached_measurement.get("channelwidth", 0.0)
+            else:
+                channel_width = getattr(cached_measurement, "channelwidth", 0.0)
+        else:
+            native_block = _get_native_block_data(upload_id, measurement_id)
+            if native_block and "time" in native_block.axes and len(native_block.axes["time"]) > 1:
+                times = native_block.axes["time"]
+                channel_width = float(times[1] - times[0])
+            else:
+                channel_width = 0.0
 
     irf_counts = (
         _fetch_irf_counts(
@@ -226,28 +271,55 @@ def fluorescence_decay(payload):
             upload_id=upload_id, measurement_id=measurement_id
         )
 
-    if isinstance(cached_measurement, dict):
-        channel_data = cached_measurement.get(channel_key) or cached_measurement["channel1"]
-        microtimes = channel_data["microtimes"]
-        channel_width = cached_measurement["channelwidth"]
+    if cached_measurement:
+        if isinstance(cached_measurement, dict):
+            channel_data = cached_measurement.get(channel_key) or cached_measurement.get("channel1", {})
+            microtimes = channel_data.get("microtimes", [])
+            channel_width = cached_measurement.get("channelwidth", 0.0)
+        else:
+            channel_data = getattr(cached_measurement, channel_key, getattr(cached_measurement, "channel1", None))
+            microtimes = channel_data.microtimes if channel_data else []
+            channel_width = getattr(cached_measurement, "channelwidth", 0.0)
+
+        microtimes_arr = np.asarray(microtimes, dtype=np.float64)
+        if channel_width > 0 and len(microtimes_arr) > 0 and not np.all(microtimes_arr == 0):
+            times, counts = build_decay_histogram(
+                microtimes=microtimes_arr, channelwidth=channel_width
+            )
+        else:
+            times, counts = np.array([]), np.array([])
     else:
-        channel_data = getattr(cached_measurement, channel_key, cached_measurement.channel1)
-        microtimes = channel_data.microtimes
-        channel_width = cached_measurement.channelwidth
-        
+        # If no cached measurement, check if it's a native block (SDT/PHU)
+        native_block = _get_native_block_data(upload_id, measurement_id)
+        if native_block:
+            times = native_block.axes.get("time", np.array([]))
+            counts = native_block.data
+            
+            if len(times) > 0:
+                # If it's a 2D matrix (like FLIM or multi-curve), sum over other axes or take the first
+                if counts.ndim > 1:
+                    if counts.shape[-1] == len(times):
+                        counts = counts.sum(axis=tuple(range(counts.ndim - 1)))
+                    else:
+                        counts = counts.flatten()[:len(times)]
+                counts = counts.astype(int)
+            else:
+                times, counts = np.array([]), np.array([])
+        else:
+            times, counts = np.array([]), np.array([])
 
-    times, counts = build_decay_histogram(
-        microtimes=microtimes, channelwidth=channel_width
-    )
+    if len(times) == 0:
+        return {"times": [], "counts": []}
 
-   # Fetch mapped IRF if there is one maped
+    # Fetch mapped IRF if there is one mapped
     irf_info = _fetch_irf_data(
         dataset_ref=upload_id,
         measurement_id=measurement_id,
         channel=getattr(payload, 'channel', 1) or 1
     )
+    
     return {
         "times": times.tolist(),
         "counts": counts.tolist(),
-        "irf": irf_info  # contains {"t": [...], "counts": [...]} or None
+        "irf": irf_info
     }

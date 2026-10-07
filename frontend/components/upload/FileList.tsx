@@ -6,8 +6,8 @@
   import { getHdf5UploadStatus } from '@/services/hdf5services';
 
   interface FileListProps {
-    files: SelectedFile[];
-    onRemove?: (id: string) => void;
+    readonly files: SelectedFile[];
+    readonly onRemove?: (id: string) => void;
   }
 
   const formatFileSize = (bytes: number): string => {
@@ -26,9 +26,10 @@
     return `${year}-${month}-${day} ${hours}:${minutes}`;
   };
 
-  export default function FileList({ files, onRemove }: FileListProps) {
+  export default function FileList({ files, onRemove }: Readonly<FileListProps>) {
     const { currentUpload } = useHdf5Data();
     const [parsingComplete, setParsingComplete] = useState(false);
+    const [parsingError, setParsingError] = useState<string | null>(null);
     const previousUploadRef = useRef<string | null>(null);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -49,12 +50,18 @@
 
       previousUploadRef.current = currentUpload;
       setParsingComplete(false);
+      setParsingError(null);
 
       const checkStatus = async (): Promise<boolean> => {
         try {
           const response = await getHdf5UploadStatus(currentUpload);
-          if (response?.status?.toLowerCase() === 'parsed') {
+          const status = response?.status?.toLowerCase();
+          if (status === 'parsed') {
             setParsingComplete(true);
+            return true;
+          }
+          if (status === 'failed') {
+            setParsingError(response.error || 'File processing failed');
             return true;
           }
         } catch (e) {
@@ -97,6 +104,16 @@
                 const isPending = file.status === 'pending';
                 const isSuccess = file.status === 'success';
                 const isError = file.status === 'error';
+                let iconColor = 'text-zinc-400 group-hover:text-zinc-300';
+                let filenameColor = 'text-zinc-300 group-hover:text-zinc-100';
+
+                if (isPending || isSuccess) {
+                  iconColor = 'text-primary';
+                  filenameColor = 'text-[#4fd1c5]';
+                } else if (isError) {
+                  iconColor = 'text-destructive';
+                  filenameColor = 'text-red-400/90';
+                }
 
                 return (
                   <div
@@ -110,13 +127,7 @@
                     {/*Document Icon and filename description */}
                     <div className="flex items-center gap-4 min-w-0 flex-1">
                       <svg
-                        className={`w-[18px] h-[18px] flex-shrink-0 transition-colors ${
-                          isPending || isSuccess 
-                            ? 'text-primary' 
-                            : isError 
-                            ? 'text-destructive' 
-                            : 'text-zinc-400 group-hover:text-zinc-300'
-                        }`}
+                        className={`w-[18px] h-[18px] flex-shrink-0 transition-colors ${iconColor}`}
                         fill="none"
                         stroke="currentColor"
                         strokeWidth={1.8}
@@ -131,13 +142,7 @@
 
                       <div className="min-w-0 flex-1">
                         <p 
-                          className={`text-[13.5px] font-normal tracking-wide truncate transition-colors ${
-                            isPending || isSuccess 
-                              ? 'text-[#4fd1c5]' 
-                              : isError 
-                              ? 'text-red-400/90' 
-                              : 'text-zinc-300 group-hover:text-zinc-100'
-                          }`}
+                          className={`text-[13.5px] font-normal tracking-wide truncate transition-colors ${filenameColor}`}
                           title={file.name}
                         >
                           {file.name}
@@ -159,11 +164,15 @@
                         )}
                         {isSuccess && (
                           <div className="text-[11px] mt-0.5 font-medium tracking-wide">
-                            {!parsingComplete ? (
+                            {parsingError && (
+                              <span className="text-red-400">{parsingError}</span>
+                            )}
+                            {!parsingError && !parsingComplete && (
                               <span className="text-[#4fd1c5] animate-pulse">
                                 Upload complete! Processing file...
                               </span>
-                            ) : (
+                            )}
+                            {!parsingError && parsingComplete && (
                               <span className="text-[#4fd1c5]">
                                 Ready! Go to your workspace to start analysis.
                               </span>

@@ -1,11 +1,18 @@
-import { Card } from "@/components/ui";
+import { Card, Button} from "@/components/ui";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { colors } from "@/lib/tokens";
 import { getRasterData } from "@/services/analysisServices";
 import { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
+import { Comment } from "@/types/comment";
+import { useCommentClick } from '@/hooks/useCommentClick';
+import { buildCommentMarkers } from '@/lib/commentMarkers';
 
-export function RasterHeatmap() {
+interface RasterHeatmapProps {
+  comments: Comment[];
+  onAddComment: (payload: { content: string; anchor_x: number; anchor_y: number }) => void;
+}
+export function RasterHeatmap({comments, onAddComment}: Readonly<RasterHeatmapProps>) {
   const [rasterData, setRasterData] = useState<any>(null);
   const { currentMeasurement, currentUpload, heatMapColor, hdf5Metadata } = useHdf5Data();
 
@@ -34,13 +41,7 @@ export function RasterHeatmap() {
 
   }, [currentMeasurement, currentUpload]);
 
-  // if (!rasterData?.raster_scan) {
-  //   return (
-  //     <div className="flex h-full w-full items-center justify-center text-gray-500">
-  //       Loading Raster Scan...
-  //     </div>
-  //   );
-  // }
+  const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote: controlSubmitComment } = useCommentClick(onAddComment);
 
   if(!hdf5Metadata?.has_rasters){
     return(
@@ -49,6 +50,15 @@ export function RasterHeatmap() {
       </Card>
     )
   }
+
+  if (!rasterData?.raster_scan) {
+    return (
+      <Card className="w-[83vw] h-[85vh] mt-1 p-4 flex flex-col items-center justify-center text-foreground/60">
+        <p>Loading Raster Scan...</p>
+      </Card>
+    );
+  }
+
   const { raster_scan, raster_scan_coord } = rasterData;
 
   // Calculate physical step sizes (um per pixel)
@@ -57,7 +67,10 @@ export function RasterHeatmap() {
   const dx = raster_scan.scan_range / numCols;
   const dy = raster_scan.scan_range / numRows;
 
+  const commentMarkers = buildCommentMarkers(comments);
+
   return (
+    <div>
     <Card className="flex flex-col w-[83vw] h-[85vh] p-2 mt-1 gap-4">
       <Plot
         data={[
@@ -91,7 +104,7 @@ export function RasterHeatmap() {
             },
             name: "Measurement Position",
             hoverinfo: "x+y",
-          },
+          }, commentMarkers
         ]}
         layout={{
           title: { text: "Raster Scan" },
@@ -116,9 +129,24 @@ export function RasterHeatmap() {
           showlegend: false,
           autosize: true,
         }}
+        onClick={controlPlotClick}
         useResizeHandler={true}
         style={{ width: "100%", height: "100%", minHeight: "500px" }}
       />
     </Card>
+
+    {progressSpot && (
+        <div className="flex gap-2 items-center p-2 border-t border-border">
+          <input
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            placeholder="Add a note..."
+            className="border border-border bg-card rounded flex-1 text-xs px-2 py-1"
+          />
+          <Button onClick={controlSubmitComment} variant="primary">Add</Button>
+          <Button onClick={() => setProgressSpot(null)} variant="secondary">Cancel</Button>
+        </div>
+      )}
+    </div>
   );
 }

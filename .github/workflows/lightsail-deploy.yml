@@ -46,8 +46,15 @@ jobs:
             echo "Stashing any local changes"
             git stash
 
+            echo "Cleaning untracked files that might conflict"
+            git clean -fd
+
             echo "Switching to branch: $BRANCH"
             git checkout $BRANCH
+
+            echo "Resetting to match remote exactly"
+            git fetch origin $BRANCH
+            git reset --hard origin/$BRANCH
             git pull origin $BRANCH
 
             echo "Latest commit: $(git log -1 --oneline)"

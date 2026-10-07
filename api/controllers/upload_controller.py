@@ -1,8 +1,9 @@
 from fastapi import UploadFile, HTTPException
 from pathlib import Path
+from api.services.hdf5_upload_service import SUPPORTED_EXTENSIONS
 from api.services.upload_service import save_temp_file, get_file_size
 
-ALLOWED_EXTENSIONS = {".pt3", ".csv", ".h5", ".hdf5"}
+ALLOWED_EXTENSIONS = SUPPORTED_EXTENSIONS
 
 async def handle_upload(file: UploadFile) -> dict:
     # 1. Validate file extension

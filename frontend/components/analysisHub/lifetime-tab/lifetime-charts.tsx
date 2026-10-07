@@ -1,13 +1,22 @@
-import { Card } from '@/components/ui'
+import { Card, Button } from '@/components/ui'
 import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsContext'
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { colors } from '@/lib/tokens'
 import { getFluorescenceDecay } from '@/services/analysisServices'
 import React, { useEffect } from 'react'
 import Plot from 'react-plotly.js'
+import { Comment } from '@/types/comment'
+import NativeDataViewer from "@/components/fileFormat/NativeDataViewer";
+import { useCommentClick } from '@/hooks/useCommentClick';
+import { buildCommentMarkers } from '@/lib/commentMarkers';
 
-export default function LifetimeCharts() {
-    const { currentMeasurement, currentUpload, bin, currentChannel } = useHdf5Data()
+interface LifeTimeChartProps{
+  comments: Comment[];
+  onAddComment: (payload: {content: string; anchor_x: number; anchor_y: number}) => void;
+}
+
+export default function LifetimeCharts({comments, onAddComment}: Readonly<LifeTimeChartProps>) {
+    const { currentMeasurement, currentUpload, bin, currentChannel, hdf5Metadata } = useHdf5Data()
     const {
       useLogScale,
       decayCounts,
@@ -21,6 +30,11 @@ export default function LifetimeCharts() {
       irfTimes,
       setIrfTimes
     } = useAnalysisTab()
+    
+    const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote } = useCommentClick(onAddComment);
+    const commentMarkers = buildCommentMarkers(comments, 'x', 'y');
+    const useNativeBlocksViewer = hdf5Metadata?.data_kind ==="native_data"
+
     useEffect(() => {
       const fetchLifetimeData = async () => {
         if (!currentUpload || !currentMeasurement) return; 
@@ -49,6 +63,7 @@ export default function LifetimeCharts() {
       
       fetchLifetimeData();
     }, [currentMeasurement, currentUpload, currentChannel])
+
     // Scale the IRF to the data peak (legacy behavior)
     const scaledIrfCounts = React.useMemo(() => {
       if (!irfCounts || irfCounts.length === 0 || !decayCounts || decayCounts.length === 0) return [];
@@ -63,8 +78,9 @@ export default function LifetimeCharts() {
       const scale = maxIrf > 0 ? maxData / maxIrf : 1;
       return irfCounts.map(c => c * scale);
     }, [irfCounts, decayCounts]);
+
   return (
-<div>
+    <div>
       <Card className="flex-1 flex flex-col p-2 min-w-0">
         <div className="flex-1 min-h-0 h-full overflow-hidden">
           <Plot
@@ -128,7 +144,8 @@ export default function LifetimeCharts() {
                   color: colors.foreground,
                   size: 4
                 }
-              }
+              },
+              commentMarkers
             ]}
             layout={{
               autosize: true, 
@@ -195,9 +212,30 @@ export default function LifetimeCharts() {
             }}
             style={{ width: '100%', height: '100%' }}
             useResizeHandler
+            onClick={controlPlotClick}
           />
         </div>
       </Card>
+
+      {progressSpot && (
+        <div className="flex gap-2 items-center p-2 border-t border-border">
+          <input
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            placeholder="Add a comment.."
+            className="border border-border bg-card rounded flex-1 text-xs px-2 py-1" />
+
+            <Button onClick={controlSubmitNote} variant="primary">
+              Add
+            </Button>
+
+            <Button onClick={() => setProgressSpot(null)} variant="secondary">
+              Cancel
+            </Button>
+
+        </div>
+      )}
     </div>
   )
-}
+  }
+// }

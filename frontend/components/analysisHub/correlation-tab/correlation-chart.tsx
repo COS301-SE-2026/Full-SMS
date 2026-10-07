@@ -3,9 +3,19 @@ import { colors } from "@/lib/tokens";
 import React, { useMemo } from "react";
 import Plot from "react-plotly.js";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
+import { Comment } from "@/types/comment";
+import { Button } from "@/components/ui";
+import { useCommentClick } from '@/hooks/useCommentClick';
+import { buildCommentMarkers } from '@/lib/commentMarkers';
 
-function CorrelationChart() {
+interface CorrelationChartProps{
+  readonly comments: Comment[];
+  readonly onAddComment: (payload: {content: string; anchor_x: number; anchor_y: number}) => void;
+}
+
+function CorrelationChart({comments, onAddComment}: Readonly<CorrelationChartProps>) {
   const { correlationData, currentMeasurement, hdf5Metadata } = useHdf5Data();
+  const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote } = useCommentClick(onAddComment);
 
   const { xAxis, yAxis } = useMemo(() => {
     if (correlationData?.measurement_id === currentMeasurement) {
@@ -28,7 +38,10 @@ function CorrelationChart() {
       </Card>
     )
   }
+
+  const commentMarkers = buildCommentMarkers(comments, 'x', 'y');
   return (
+    <div>
       <Card className="flex flex-col w-[83vw] h-[85vh] p-2 mt-1 gap-4 font-mono">
       <div className="flex-1 min-h-0 h-full overflow-hidden">
         <Plot
@@ -45,6 +58,7 @@ function CorrelationChart() {
                 width: 1.2,
               },
             },
+            commentMarkers,
           ]}
           layout={{
             title: { text: "g² Correlation" },
@@ -84,9 +98,30 @@ function CorrelationChart() {
           }}
           style={{ width: "100%", height: "100%" }}
           useResizeHandler
+          onClick={controlPlotClick}
         />
       </div>
     </Card>
+
+    {progressSpot && (
+      <div className="flex gap-2 items-center p-2 border-t border-border">
+          <input
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            placeholder="Add a comment.."
+            className="border border-border bg-card rounded flex-1 text-xs px-2 py-1" />
+    
+            <Button onClick={controlSubmitNote} variant="primary">
+               Add
+            </Button>
+    
+            <Button onClick={() => setProgressSpot(null)} variant="secondary">
+              Cancel
+            </Button>
+    
+      </div>
+    )}
+    </div>
   );
 }
 

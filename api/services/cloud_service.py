@@ -1,13 +1,14 @@
 import hashlib
+import mimetypes
 import os
-import uuid
+from pathlib import Path
 
 from fastapi import HTTPException
 import httpx
 
 from api.services import hdf5_job_service
-from api.services.hdf5_upload_service import create_upload_record, set_status, set_upload_progress, validate_upload_request
-from api.services.storage_service import build_storage_key
+from api.services.hdf5_upload_service import set_status, validate_upload_request
+from api.services.storage_service import BUCKET
 from  api.utils.supabase_client import supabaseClient
 
 def get_onedrive_token(user_id: str):
@@ -39,9 +40,10 @@ def get_onedrive_token(user_id: str):
         "expires_in": tokens["expires_in"]
     }
     
-BUCKET = os.environ.get("SUPABASE_BUCKET_NAME")  
-def onedrive_upload_service(user_id: str, file_id: str, upload_id: str, storage_key: str):
+def onedrive_upload_service(user_id: str, file_id: str, upload_id: str, storage_key: str, file_name: str | None = None, workspace_id: str | None = None,
+):
     try:
+        file_name = file_name or Path(storage_key).name
         set_status(upload_id=upload_id, user_id=user_id, progress=25, status="downloading")
         
         token_data = get_onedrive_token(user_id)
@@ -58,6 +60,7 @@ def onedrive_upload_service(user_id: str, file_id: str, upload_id: str, storage_
             file = response.content
             
             size_bytes = len(file)
+            validate_upload_request(file_name, size_bytes)
             
             # hashes and upload_ids are generated server side when upload comes from a cloud storage service
             sha256_hash = hashlib.sha256(file).hexdigest()
@@ -72,7 +75,7 @@ def onedrive_upload_service(user_id: str, file_id: str, upload_id: str, storage_
             supabaseClient.storage.from_(BUCKET).upload(
                 path=storage_key,
                 file=file,
-                file_options={"content-type": "application/x-hdf5"}
+                file_options={"content-type": mimetypes.guess_type(file_name)[0] or "application/octet-stream"}
             )
             
             set_status(progress=75, upload_id=upload_id, user_id=user_id, status="processing")
@@ -83,5 +86,5 @@ def onedrive_upload_service(user_id: str, file_id: str, upload_id: str, storage_
         print (f"An error occurent in the Onedrive upload service: {e}")
         supabaseClient.table("hdf5_uploads").update({
             "status": "failed",
-            "err_msg": str(e)
+            "progress": 100,
         }).eq("id", upload_id).execute()

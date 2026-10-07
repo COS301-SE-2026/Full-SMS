@@ -5,28 +5,59 @@ import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { useHistory } from "@/hooks/useHistory";
 import { HistoryPanel } from "../history/HistoryPanel";
 import { historyService } from "@/services/historyServices";
+import { useComments } from "@/hooks/useComments";
+import { CommentPanel } from "../comments/CommentPanel";
+import { NewCommentInput } from "../comments/CommentToolbar";
+import { useMemberLookup } from "@/hooks/useMemberLookup";
+import { useCommentSubmit } from "@/hooks/useCommentSubmit";
 
 function CorrelationTab() {
   const [window, setWindow] = useState<number>(450);
   const [bin, setBin] = useState<number>(0.5);
   const [offset, setOffset] = useState<number>(0);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const { currentWorkspaceId, currentUpload, currentMeasurement, setCorrelationData} = useHdf5Data();
+  const { currentWorkspaceId, currentUpload, currentMeasurement, members } = useHdf5Data();
   const {entries, loading, error, fetchHistory} = useHistory(currentWorkspaceId, currentUpload, "correlation");
-  
+  const [commentsOpen, setCommentsOpen] = useState(false)
+  const [newCommentOpen, setNewCommentOpen] = useState(false)
+  const memberLookup = useMemberLookup(currentWorkspaceId)
+  const { comments, loading: commentsLoading, error: commentsError, fetchComments} = useComments(currentWorkspaceId, currentUpload, "correlation", currentMeasurement)
+  const addComment = useCommentSubmit(currentWorkspaceId, currentUpload, "correlation", fetchComments, currentMeasurement)
+
   return (
     <div className="w-full h-full flex gap-3">
       <div className="flex flex-col flex-1">
         <CorrelationTabToolbar
-          window={window} setWindow={setWindow} bin={bin} setBin={setBin} offset={offset} setOffset={setOffset} onHistoryRecorded={fetchHistory} historyOpen={historyOpen} onToggleHistory={() => setHistoryOpen((v) => !v)}
-        />
-        <CorrelationChart/>
+          window={window}
+          setWindow={setWindow}
+          bin={bin}
+          setBin={setBin}
+          offset={offset}
+          setOffset={setOffset}
+          onHistoryRecorded={fetchHistory}
+          historyOpen={historyOpen}
+          onToggleHistory={() => setHistoryOpen((v) => !v)}
+          commentsOpen={commentsOpen}
+          onToggleComments={() => setCommentsOpen((v) => !v)}
+          onNewComment={() => setNewCommentOpen((v) => !v)}
+          commentCount={comments.length}/>
+
+        <NewCommentInput
+          open={newCommentOpen}
+          onSubmit={addComment}
+          onClose={() => setNewCommentOpen(false)}/>
+
+        <CorrelationChart
+          comments={comments}
+          onAddComment={addComment}
+          />
       </div>
       {historyOpen && (
       <HistoryPanel
         entries={entries}
         loading={loading}
         error={error}
+        members={members}
          onRevert={(entry) => {
           if(entry.parameter === "window") setWindow(entry.old_value);
           if(entry.parameter === "bin") setBin(entry.old_value);
@@ -34,6 +65,13 @@ function CorrelationTab() {
           historyService.revertEntry(currentWorkspaceId!, entry.id).then(fetchHistory);
          }}
       />
+      )}
+      {commentsOpen && (
+        <CommentPanel
+          comments={comments}
+          loading={commentsLoading}
+          error={commentsError}
+          authorFinder={memberLookup}/>
       )}
     </div>
   );
