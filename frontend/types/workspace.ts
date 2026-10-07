@@ -73,6 +73,9 @@ export interface WorkspaceUploadsResponse {
   message?: string;
 }
 
+export type WorkspaceFormats =   'all'|'.h5'| '.hdf5'| '.ptu'|".phu"|
+  '.sdt'| '.spc'| '.csv'| '.txt'| '.tsv'
+
 export interface WorkspaceMemberProfile{
   id: string;
   email: string;

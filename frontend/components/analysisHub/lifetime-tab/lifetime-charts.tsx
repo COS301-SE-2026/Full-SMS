@@ -47,11 +47,11 @@ export default function LifetimeCharts({comments, onAddComment}: Readonly<LifeTi
     fetchLifetimeData();
   }, [currentMeasurement, currentUpload, currentChannel]);
 
-  if (useNativeBlocksViewer) {
-    return(
-      <NativeDataViewer uploadId={currentUpload}/>
-    )
-  } else {
+  // if (useNativeBlocksViewer) {
+  //   return(
+  //     <NativeDataViewer uploadId={currentUpload}/>
+  //   )
+  // } else {
     return (
       <div>
         <Card className="flex-1 flex flex-col p-2 min-w-0">
@@ -202,4 +202,4 @@ export default function LifetimeCharts({comments, onAddComment}: Readonly<LifeTi
     </div>
   )
   }
-}
+// }

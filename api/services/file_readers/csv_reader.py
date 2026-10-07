@@ -141,6 +141,7 @@ class CSVReader(FileReader):
 
         abstime_col = self._find_column(columns, "abstimes", ABSTIME_ALIASES)
         microtime_col = self._find_column(columns, "microtimes", MICROTIME_ALIASES)
+        channel_col = self._find_column(columns, "channel", CHANNEL_ALIASES)
 
         if abstime_col is None:
             return self._create_error_result(
@@ -151,6 +152,7 @@ class CSVReader(FileReader):
 
         abstime_idx = columns.index(abstime_col)
         microtime_idx = columns.index(microtime_col) if microtime_col else None
+        channel_idx = columns.index(channel_col) if channel_col else None
 
         data = np.genfromtxt(path, delimiter=delimiter, skip_header=1)
 
@@ -167,6 +169,7 @@ class CSVReader(FileReader):
         file_metadata["column_mapping"] = {
             "abstimes": abstime_col,
             "microtimes": microtime_col,
+            "channel": channel_col,
         }
 
         measurement = MeasurementResult(
@@ -180,9 +183,28 @@ class CSVReader(FileReader):
                 "photon_count": len(abstimes),
             },
         )
+        if channel_idx is not None:
+            channels = data[:, channel_idx].astype(np.int64)
+            measurements = self._create_multi_channel_measurements(
+                abstimes, microtimes, channels, channelwidth, path.stem
+            )
+        else:
+            measurements = [
+                MeasurementResult(
+                    id=1,
+                    name=f"Measurement {id}",
+                    channel1=ChannelResult(abstimes=abstimes, microtimes=microtimes),
+                    channelwidth=channelwidth,
+                    tcspc_card=CSV_IMPORT,
+                    metadata={
+                        "source_file": path.name,
+                        "photon_count": len(abstimes),
+                    },
+                )
+            ]
 
         return ReaderResult(
-            measurements=[measurement],
+            measurements=measurements,
             file_metadata=file_metadata,
             format_name="CSV",
             success=True,

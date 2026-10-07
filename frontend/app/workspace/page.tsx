@@ -1,9 +1,9 @@
 "use client";
 
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { workspaceService } from "@/services/workspaceServices";
-import { Workspace } from "@/types/workspace";
+import { Workspace, WorkspaceFormats } from "@/types/workspace";
 import Sidebar from "@/components/dashboard/Sidebar";
 import {
   Badge,
@@ -23,7 +23,7 @@ import { OneDrivePicker } from "@/components/cloud-integration/OneDrivePicker";
 import { useAuth } from "@/contexts/authContext/AuthContext";
 import axiosInstance from "@/lib/api/axiosInstance";
 import { getHdf5UploadStatus } from "@/services/hdf5services";
-import { DeleteIcon, TrashIcon, UserPlus } from "lucide-react";
+import { Search, TrashIcon, UserPlus } from "lucide-react";
 import BackButton from "@/components/ui/BackButton";
 import FormatBadge from "@/components/fileFormat/FormatBadge";
 import { ManageMembersModal } from "@/components/dashboard/ManageMembersModal";
@@ -37,14 +37,14 @@ interface ProgressTrackerProps {
   };
 }
 
-interface WorkspaceMemberProfile{
+interface WorkspaceMemberProfile {
   id: string;
   email: string;
   username: string | null;
   role: string;
 }
 
-interface MemberProps{
+interface MemberProps {
   member_ids: WorkspaceMemberProfile[];
   owner_id: string;
   is_owner: boolean;
@@ -54,12 +54,17 @@ interface MemberProps{
 const MAX_MEMBERS_VISIBLE = 4;
 
 const AVATAR_COLORS = [
-  {text: "text-cyan-300", ring: "ring-[#2a3040]", bg: "bg-[#1e2330]"},
-  {text: "text-purple-300", ring: "ring-[#3a2f45]", bg: "bg-[#2a2233]"},
-  {text: "text-emerald-300", ring:"ring-[#26443c]", bg: "bg-[#1b2b28]"}
+  { text: "text-cyan-300", ring: "ring-[#2a3040]", bg: "bg-[#1e2330]" },
+  { text: "text-purple-300", ring: "ring-[#3a2f45]", bg: "bg-[#2a2233]" },
+  { text: "text-emerald-300", ring: "ring-[#26443c]", bg: "bg-[#1b2b28]" },
 ];
 
-function WorkspaceMemberBar({member_ids, owner_id, is_owner, onManageMembersClick}: MemberProps){
+function WorkspaceMemberBar({
+  member_ids,
+  owner_id,
+  is_owner,
+  onManageMembersClick,
+}: MemberProps) {
   const visible_members = member_ids.slice(0, MAX_MEMBERS_VISIBLE);
   const overflow_count = member_ids.length - visible_members.length;
 
@@ -68,20 +73,21 @@ function WorkspaceMemberBar({member_ids, owner_id, is_owner, onManageMembersClic
     return label.slice(0, 2).toUpperCase();
   };
 
-  return(
+  return (
     <div className="flex items-center gap-4 pt-3 mb-8">
       <div className="flex -space-x-2 items-center">
         {visible_members.map((member, index) => {
           const setOfColors = AVATAR_COLORS[index % AVATAR_COLORS.length];
-          return(
-          <div
-            key={member.id}
-            className={`w-8 h-8 rounded-full ${setOfColors.bg} border-2 border-[#0e1015] flex items-center justify-center text-xs ring-1 ${setOfColors.ring} font-semibold ${setOfColors.text}`}
-            title={member.username || member.email}>
+          return (
+            <div
+              key={member.id}
+              className={`w-8 h-8 rounded-full ${setOfColors.bg} border-2 border-[#0e1015] flex items-center justify-center text-xs ring-1 ${setOfColors.ring} font-semibold ${setOfColors.text}`}
+              title={member.username || member.email}
+            >
               {getMembersInitials(member)}
             </div>
-            );
-          })}
+          );
+        })}
         {overflow_count > 0 && (
           <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-xs border-2 border-cardBg text-white">
             +{overflow_count}
@@ -92,13 +98,15 @@ function WorkspaceMemberBar({member_ids, owner_id, is_owner, onManageMembersClic
       {is_owner && (
         <button
           onClick={onManageMembersClick}
-          className="hover:text-cyan-300 text-cyan-400 text-sm flex items-center gap-1">
-            <UserPlus className="h-3.5 w-3.5" />
-            <span>Manage Members</span>
-          </button>
+          className="hover:text-cyan-300 text-cyan-400 text-sm flex items-center gap-1"
+        >
+          <UserPlus className="h-3.5 w-3.5" />
+          <span>Manage Members</span>
+        </button>
       )}
     </div>
-  )}
+  );
+}
 
 function ProgressTracker({ activeUpload }: ProgressTrackerProps) {
   return (
@@ -119,18 +127,61 @@ function ProgressTracker({ activeUpload }: ProgressTrackerProps) {
   );
 }
 
+function FormatField({
+  label,
+  value,
+  onChange,
+}: {
+  readonly label: string;
+  readonly value: WorkspaceFormats;
+  readonly onChange: (v: WorkspaceFormats) => void;
+}) {
+  const choices: WorkspaceFormats[] = [
+    "all",
+    ".h5",
+    ".hdf5",
+    ".ptu",
+    ".phu",
+    ".sdt",
+    ".spc",
+    ".csv",
+    ".txt",
+    ".tsv",
+  ];
+
+  return (
+    <div className="flex items-center gap-2">
+      <label className="text-sm text-foreground/70 whitespace-nowrap">
+        {label}
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value as WorkspaceFormats)}
+        className="w-20 h-full px-2 rounded bg-card border border-border text-xs text-foreground text-right font-mono focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary appearance-none cursor-pointer"
+      >
+        {choices.map((format) => (
+          <option className="font-mono" key={format} value={format}>
+            {format}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 export default function WorkspacePage() {
   const router = useRouter();
   const { currentWorkspaceId, setCurrentUpload } = useHdf5Data();
-
   const [displayManageModal, setDisplayManageModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  console.log(currentWorkspaceId);
   const [data, setData] = useState<Workspace>();
   const [membersList, setMembersList] = useState<WorkspaceMemberProfile[]>([]);
   const [uploads, setUploads] = useState<UploadRecord[]>();
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
   const { showPicker, setShowPicker } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [formatFilter, setFormatFilter] = useState<WorkspaceFormats>("all");
+
   const [activeUpload, setActiveUpload] = useState<{
     id: string;
     file_name: string;
@@ -152,13 +203,14 @@ export default function WorkspacePage() {
     }
   };
 
-  const fetchWorkspaceMembers = async () =>{
-    if(!currentWorkspaceId) return;
-    const membersList = await workspaceService.getWorkspaceMembers(currentWorkspaceId);
-    if(membersList.success){
+  const fetchWorkspaceMembers = async () => {
+    if (!currentWorkspaceId) return;
+    const membersList =
+      await workspaceService.getWorkspaceMembers(currentWorkspaceId);
+    if (membersList.success) {
       setMembersList(membersList.members);
     }
-  }
+  };
   useEffect(() => {
     if (!currentWorkspaceId) return;
 
@@ -315,6 +367,24 @@ export default function WorkspacePage() {
     }
   };
 
+  const filteredWorspaceFiles = useMemo(() => {
+    return uploads?.filter((upload) => {
+      if (formatFilter !== "all" && upload.filename.toLowerCase().includes(formatFilter)) {
+        return false;
+      }
+
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchesName = upload.filename.toLowerCase().includes(query);
+        if (!matchesName) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [searchQuery, uploads, formatFilter]);
+
   return (
     <div className="size-full flex h-screen bg-background text-foreground">
       <Sidebar />
@@ -360,67 +430,88 @@ export default function WorkspacePage() {
             </div>
           </div>
         ) : (
-            <div className="p-16 h-[vh] overflow-y-auto w-full">
-              <BackButton
-                href="/dashboard"
-                label="Back to Workspaces"
-                className="mb-4"
+          <div className="p-16 h-[vh] overflow-y-auto w-full">
+            <BackButton
+              href="/dashboard"
+              label="Back to Workspaces"
+              className="mb-4"
+            />
+            <div>
+              <h1 className="font-bold">{data?.name?.toUpperCase()}</h1>
+              <p>{data?.description}</p>
+              <Badge variant="success" className="mt-2">
+                {data?.status}
+              </Badge>
+
+              <WorkspaceMemberBar
+                member_ids={membersList}
+                owner_id={data?.user_id ?? ""}
+                is_owner={data?.is_owner ?? false}
+                onManageMembersClick={() => setDisplayManageModal(true)}
               />
+
+              <ManageMembersModal
+                open={displayManageModal}
+                onClose={() => setDisplayManageModal(false)}
+                workspaceId={currentWorkspaceId ?? ""}
+                ownerId={data?.user_id ?? ""}
+                members={membersList}
+                onMembersChanged={fetchWorkspaceMembers}
+              />
+
+              <div className="mt-4 flex justify-between h-min">
+                <h2>Workspace Uploads</h2>
+                <div className="flex gap-2">
+                  <Button
+                    leftIcon={<GrOnedrive size={24} />}
+                    onClick={OneDriveLogin}
+                  >
+                    OneDrive
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className=""
+                    size="sm"
+                    onClick={() => {
+                      setFileUploadModalOpen(true);
+                    }}
+                  >
+                    Upload File
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              {activeUpload && <ProgressTracker activeUpload={activeUpload} />}
+            </div>
+            {!uploads || uploads.length === 0 ? (
               <div>
-                <h1 className="font-bold">{data?.name?.toUpperCase()}</h1>
-                <p>{data?.description}</p>
-                <Badge variant="success" className="mt-2">
-                  {data?.status}
-                </Badge>
-
-                <WorkspaceMemberBar 
-                  member_ids={membersList}
-                  owner_id = {data?.user_id ?? ""}
-                  is_owner = {data?.is_owner ?? false}
-                  onManageMembersClick={() => setDisplayManageModal(true)}/>
-
-                <ManageMembersModal 
-                  open={displayManageModal}
-                  onClose={() => setDisplayManageModal(false)}
-                  workspaceId={currentWorkspaceId ?? ""}
-                  ownerId={data?.user_id ?? ""}
-                  members={membersList}
-                  onMembersChanged={fetchWorkspaceMembers}/>
-
-                <div className="mt-4 flex justify-between h-min">
-                  <h2>Workspace Uploads</h2>
-                  <div className="flex gap-2">
-                    <Button
-                      leftIcon={<GrOnedrive size={24} />}
-                      onClick={OneDriveLogin}
-                    >
-                      OneDrive
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className=""
-                      size="sm"
-                      onClick={() => {
-                        setFileUploadModalOpen(true);
-                      }}
-                    >
-                      Upload File
-                    </Button>
+                <p>No Uploads yet. Load your first h5/hdf5 file.</p>
+              </div>
+            ) : (
+              <div>
+                <div className="flex flex-row w-full gap-4">
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/40" />
+                    <input
+                      type="text"
+                      placeholder="Search workspace..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full h-13 pl-10 pr-4 py-2 bg-card border border-border rounded-lg text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                    />
                   </div>
+                  {/* <FormatField
+                    label={"Filter"}
+                    value={formatFilter}
+                    onChange={(e) => {
+                      setFormatFilter(e);
+                    }}
+                  /> */}
                 </div>
-              </div>
 
-              <div>
-                {activeUpload && (
-                  <ProgressTracker activeUpload={activeUpload} />
-                )}
-              </div>
-              {!uploads || uploads.length === 0 ? (
-                <div>
-                  <p>No Uploads yet. Load your first h5/hdf5 file.</p>
-                </div>
-              ) : (
-                uploads.map((upload, index) => (
+                {filteredWorspaceFiles!.map((upload, index) => (
                   <Card
                     key={upload.id || index}
                     className="upload-item w-full mt-4 flex flex-row justify-between items-center cursor-pointer hover:border-primary hover:scale-[1.02]"
@@ -429,7 +520,7 @@ export default function WorkspacePage() {
                     }}
                   >
                     <div className=" p-4">
-                      <FormatBadge name={upload.filename}/>
+                      <FormatBadge name={upload.filename} />
                       <CardHeader className="font-bold">
                         {upload.filename}
                       </CardHeader>
@@ -445,9 +536,10 @@ export default function WorkspacePage() {
                       <TrashIcon className="text-destructive" />
                     </Button>
                   </Card>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>

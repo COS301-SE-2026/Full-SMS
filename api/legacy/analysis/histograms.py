@@ -90,6 +90,12 @@ def build_decay_histogram(
     if len(microtimes) == 0:
         return np.array([], dtype=np.float64), np.array([], dtype=np.int64)
 
+    if channelwidth <= 0:
+        # No TCSPC resolution available (e.g. Photon-HDF5 without nanotimes,
+        # or CSV without a microtime column).  A decay histogram cannot be
+        # constructed without a positive bin width.
+        return np.array([], dtype=np.float64), np.array([], dtype=np.int64)
+
     # Determine histogram range
     if tmin is None:
         tmin = np.min(microtimes)

@@ -17,7 +17,7 @@ def _to_legacy_channel(channel: ChannelResult) -> ChannelData:
         raise ValueError("Photon time arrays contain non-finite values")
     if np.any(abstimes < 0) or np.any(microtimes < 0):
         raise ValueError("Photon times must be non-negative")
-
+        
     # legacy abstimes are uint64
     abstimes = np.rint(abstimes).astype(np.uint64)
     return ChannelData(abstimes=abstimes, microtimes=microtimes)
