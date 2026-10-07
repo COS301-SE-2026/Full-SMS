@@ -51,7 +51,7 @@ def get_workspace_by_id(workspace_id: str, user_id: str) -> Optional[dict]:
     is_member = user_id in members
 
     if not is_owner and not is_member:
-        raise ValueError("Workspace not found")
+        raise ValueError(WORKSPACE_NOT_FOUND)
     
     file_count = 0
     if "workspace_files" in data and len(data["workspace_files"]) > 0:
@@ -123,7 +123,7 @@ def update_workspace(workspace_id: str, user_id: str, name: Optional[str] = None
     if not update_data:
         workspace = get_workspace_by_id(workspace_id, user_id)
         if workspace["user_id"] != user_id:
-            raise ValueError("Workspace not found")
+            raise ValueError(WORKSPACE_NOT_FOUND)
         return workspace
 
     response = (
@@ -146,7 +146,7 @@ def delete_workspace(workspace_id: str, user_id: str) -> bool:
     workspace = get_workspace_by_id(workspace_id, user_id)
 
     if workspace["user_id"] != user_id:
-        raise ValueError("Workspace not found")
+        raise ValueError(WORKSPACE_NOT_FOUND)
     
     if workspace.get("storage_bucket_path"):
         try:

@@ -7,6 +7,8 @@ from api.services.hdf5_services import read_irf
 from api.services.storage_service import download_to_temp
 from api.utils.supabase_client import supabaseClient
 
+NO_MAPPINGS_FOUND_MSG = "No IRF mappings found for this workspace"
+
 def get_workspace_irfs(workspace_id: str, user_id: str):
     """
     Return a list of IRF available to a workspace
@@ -68,7 +70,7 @@ def get_irf_mappings(payload: dict):
     print(f"\n\n\n{response}\n\n\n")
     
     if(response.data ==[]):
-         raise HTTPException(status_code=404, detail="No IRF mappings found for this workspace")
+         raise HTTPException(status_code=404, detail=NO_MAPPINGS_FOUND_MSG)
     
     
     
@@ -121,7 +123,7 @@ def delete_irf_mapping(payload: MapIRFReq):
                     "message": "Created override mapping to clear wildcard for this measurement"
                 }
             else:
-                raise HTTPException(status_code=404, detail="No IRF mappings found for this workspace")
+                raise HTTPException(status_code=404, detail=NO_MAPPINGS_FOUND_MSG)
                 
         return {
             "status": "ok",
@@ -139,7 +141,7 @@ def delete_irf_mapping(payload: MapIRFReq):
                     .execute())
         
         if(response.data ==[]):
-            raise HTTPException(status_code=404, detail="No IRF mappings found for this workspace")
+            raise HTTPException(status_code=404, detail=NO_MAPPINGS_FOUND_MSG)
         
         return {
             "status": "ok",
