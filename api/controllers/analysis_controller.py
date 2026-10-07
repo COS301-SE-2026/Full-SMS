@@ -27,7 +27,6 @@ def change_point_analysis_controller(req: CpaReq):
     """
     The function returns a ChangePointResult object. The property you need for graphing is result.levels, which is a list of LevelData objects.
     """
-    print(f"\n\n\nCPA conroller req: {req}")
     try:
         response = resolve_current_measurement(req)
         return response
