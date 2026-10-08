@@ -7,9 +7,15 @@ class TestGetUserWorkspaces:
     def test_returns_list_of_workspaces(self, sample_user_id):
         with patch("api.services.workspace_service.get_supabase_admin") as mock_admin:
             mock_client = MagicMock()
-            mock_response = MagicMock()
-            mock_response.data = [{"id": "ws1", "name": "Workspace 1"}]
-            mock_client.rpc.return_value.execute.return_value = mock_response
+
+            workspace_response = MagicMock()
+            workspace_response.data = [{"id": "ws1", "name": "Workspace 1"}]
+            mock_client.table.return_value.select.return_value.or_.return_value.execute.return_value = workspace_response
+
+            file_count_response = MagicMock()
+            file_count_response.count = 3
+            mock_client.table.return_value.select.return_value.eq.return_value.execute.return_value = file_count_response
+
             mock_admin.return_value = mock_client
 
             from api.services.workspace_service import get_user_workspaces
@@ -18,28 +24,35 @@ class TestGetUserWorkspaces:
 
             assert len(result) == 1
             assert result[0]["name"] == "Workspace 1"
+            assert result[0]["file_count"] == 3
 
 
 class TestGetWorkspaceById:
     def test_returns_workspace_when_found(self, sample_workspace_id, sample_user_id):
-        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin:
+        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin, \
+             patch("api.services.workspace_service.user_can_access_workspace") as mock_access:
+            mock_access.return_value = True
+
             mock_client = MagicMock()
-            mock_response = MagicMock()
-            mock_response.data = {
+
+            workspace_response = MagicMock()
+            workspace_response.data = {
                 "id": sample_workspace_id,
                 "user_id": sample_user_id,
-                "member_ids" : [],
+                "member_ids": [],
                 "name": "Test",
                 "description": None,
                 "storage_bucket_path": "/path",
                 "status": "active",
                 "created_at": "2024-01-01",
                 "updated_at": "2024-01-01",
-                "workspace_files": [{"count": 5}],
             }
-            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = (
-                mock_response
-            )
+            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = workspace_response
+
+            file_count_response = MagicMock()
+            file_count_response.count = 5
+            mock_client.table.return_value.select.return_value.eq.return_value.execute.return_value = file_count_response
+
             mock_admin.return_value = mock_client
 
             from api.services.workspace_service import get_workspace_by_id
@@ -51,13 +64,14 @@ class TestGetWorkspaceById:
             assert result["is_owner"] is True
 
     def test_raises_when_not_found(self, sample_workspace_id, sample_user_id):
-        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin:
+        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin, \
+             patch("api.services.workspace_service.user_can_access_workspace") as mock_access:
+            mock_access.return_value = True
+
             mock_client = MagicMock()
             mock_response = MagicMock()
             mock_response.data = None
-            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = (
-                mock_response
-            )
+            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = mock_response
             mock_admin.return_value = mock_client
 
             from api.services.workspace_service import get_workspace_by_id
@@ -67,24 +81,8 @@ class TestGetWorkspaceById:
 
     def test_raises_when_user_has_no_access(self, sample_workspace_id, sample_user_id):
         stranger_id = str(uuid.uuid4())
-        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin:
-            mock_client = MagicMock()
-            mock_response = MagicMock()
-            mock_response.data = {
-                "id": sample_workspace_id,
-                "user_id": sample_user_id,
-                "member_ids" : [],
-                "name": "Test",
-                "description": None,
-                "storage_bucket_path": "/path",
-                "status": "active",
-                "created_at": "2024-01-01",
-                "updated_at": "2024-01-01",
-                "workspace_files": [],
-            }
-
-            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = mock_response
-            mock_admin.return_value = mock_client
+        with patch("api.services.workspace_service.user_can_access_workspace") as mock_access:
+            mock_access.return_value = False
 
             from api.services.workspace_service import get_workspace_by_id
 
@@ -119,10 +117,14 @@ class TestCreateWorkspace:
     def test_member_sees_is_owner_false(self, sample_workspace_id, sample_user_id):
         member_id = str(uuid.uuid4())
 
-        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin:
+        with patch("api.services.workspace_service.get_supabase_admin") as mock_admin, \
+             patch("api.services.workspace_service.user_can_access_workspace") as mock_access:
+            mock_access.return_value = True
+
             mock_client = MagicMock()
-            mock_response = MagicMock()
-            mock_response.data = {
+
+            workspace_response = MagicMock()
+            workspace_response.data = {
                 "id": sample_workspace_id,
                 "user_id": sample_user_id,
                 "member_ids": [member_id],
@@ -132,10 +134,13 @@ class TestCreateWorkspace:
                 "status": "active",
                 "created_at": "2026-01-01",
                 "updated_at": "2026-09-01",
-                "workspace_files": []
             }
+            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = workspace_response
 
-            mock_client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value = mock_response
+            file_count_response = MagicMock()
+            file_count_response.count = 0
+            mock_client.table.return_value.select.return_value.eq.return_value.execute.return_value = file_count_response
+
             mock_admin.return_value = mock_client
 
             from api.services.workspace_service import get_workspace_by_id
