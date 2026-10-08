@@ -86,7 +86,6 @@ export default function UploadPage({ onComplete }: UploadPageProps) {
         await completeHdf5Upload(initialize.upload_id);
 
         updateItem(item.id, { status: "success", progress: 100 });
-        successCount++;
 
         setIsUploading(false);
         setIsProcessing(true);
@@ -119,6 +118,7 @@ export default function UploadPage({ onComplete }: UploadPageProps) {
 
         if (isParsed) {
           setIsParsing(false);
+          successCount++;
         } else {
           throw new Error("File processing failed or timed out");
         }

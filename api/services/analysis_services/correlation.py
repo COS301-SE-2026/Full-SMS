@@ -38,39 +38,45 @@ def get_correlation_result(params: CorrelationReq) -> dict[str, Any]:
         - tau: Bin centers in nanoseconds
         - g2: Correlation histogram (counts per bin)
         - events: Raw delay times for potential rebinning"""
-        
-        
-    print(f"{params}")
+
     upload_id = params.upload_id
     measurement_id = params.measurement_id
-    print(upload_id)
-    print(measurement_id)
-    
-    
+
     measurement = get_cached_measurement(upload_id=upload_id, measurement_id=measurement_id)
-    
+
     if not measurement:
         measurement = cache_fallback_service(upload_id=upload_id, measurement_id=measurement_id)
-    
-    if isinstance(measurement, str):
-        measurement = json.loads(measurement) 
-    if isinstance(measurement, dict):
-        abstimes1 =  np.array(measurement.channel1.abstimes, dtype=np.float64)
-        abstimes2 =  np.array(measurement.channel2.abstimes, dtype=np.float64)
-        microtimes1 =  np.array(measurement.channel1.microtimes, dtype=np.float64)
-        microtimes2 =  np.array(measurement.channel2.microtimes, dtype=np.float64)
 
+    if isinstance(measurement, str):
+        measurement = json.loads(measurement)
+
+    if isinstance(measurement, dict):
+        ch1 = measurement["channel1"]
+        ch2 = measurement.get("channel2")
+        abstimes1 = np.array(ch1["abstimes"], dtype=np.float64)
+        microtimes1 = np.array(ch1["microtimes"], dtype=np.float64)
+        if ch2:
+            abstimes2 = np.array(ch2["abstimes"], dtype=np.float64)
+            microtimes2 = np.array(ch2["microtimes"], dtype=np.float64)
+        else:
+            # Single-channel: autocorrelation
+            abstimes2 = abstimes1
+            microtimes2 = microtimes1
     else:
-        print("\n\n\n\n\nELSE\n\n\n\n\n")
-        abstimes1 =  measurement.channel1.abstimes
-        abstimes2 =  measurement.channel2.abstimes
-        microtimes1 =  measurement.channel1.microtimes
-        microtimes2 =  measurement.channel2.microtimes
-    
+        abstimes1 = measurement.channel1.abstimes
+        microtimes1 = measurement.channel1.microtimes
+        if measurement.channel2 is not None:
+            abstimes2 = measurement.channel2.abstimes
+            microtimes2 = measurement.channel2.microtimes
+        else:
+            # Single-channel: autocorrelation
+            abstimes2 = abstimes1
+            microtimes2 = microtimes1
+
     window_ns = params.window_ns
     binsize_ns = params.binsize_ns
     difftime_ns = params.difftime_ns
-    
+
     result = calculate_g2(
         abstimes1=abstimes1,
         abstimes2=abstimes2,
@@ -80,7 +86,7 @@ def get_correlation_result(params: CorrelationReq) -> dict[str, Any]:
         binsize_ns=binsize_ns,
         difftime_ns=difftime_ns,
     )
-    
+
     return {
         "tau": result.tau.tolist(),
         "g2": result.g2.tolist(),
@@ -89,7 +95,7 @@ def get_correlation_result(params: CorrelationReq) -> dict[str, Any]:
         "binsize_ns": result.binsize_ns,
         "num_photons_ch1": result.num_photons_ch1,
         "num_photons_ch2": result.num_photons_ch2,
-        "num_events": result.num_events ,
+        "num_events": result.num_events,
         "measurement_id": params.measurement_id
     }
 

@@ -14,6 +14,7 @@ import {
   ChangePointResult,
   ClusteringRes,
   CorrelationRes,
+  GetMappedIRFRes,
   LevelData,
 } from "@/types/analysis";
 import { workspaceService } from "@/services/workspaceServices";
@@ -149,6 +150,9 @@ interface Hdf5DataContextType {
   setCorrelationData: (data: CorrelationRes) => void;
 
   isMultiChannel: boolean;
+
+  currentMappedIrf: GetMappedIRFRes | undefined
+  setCurrentMappedIrf: (irf: GetMappedIRFRes) => void
 }
 
 const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(
@@ -160,6 +164,8 @@ export function Hdf5DataProvider({
 }: {
   readonly children: ReactNode;
 }) {
+
+  const [currentMappedIrf, setCurrentMappedIrf] = useState<GetMappedIRFRes>();
   const [hdf5Data, setHdf5Data] = useState<Hdf5Response>({
     time_bins: [],
     counts: [],
@@ -508,6 +514,8 @@ export function Hdf5DataProvider({
       clearPluginResults,
       correlationData,
       setCorrelationData,
+      currentMappedIrf, 
+      setCurrentMappedIrf,
       members,
     }),
     [
@@ -542,6 +550,7 @@ export function Hdf5DataProvider({
       isMultiChannel,
       groupingResults,
       currentChannel,
+      currentMappedIrf,
       members,
     ],
   );

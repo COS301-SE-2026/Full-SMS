@@ -1,12 +1,20 @@
 import { Card } from '../../ui/Card';
 import Plot from 'react-plotly.js'
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo} from 'react';
 import { colors } from '@/lib/tokens';
 import { Intensity_Req } from '@/types/analysis';
 import { intensityAnalysis } from '@/services/analysisServices';
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext';
+import { Comment } from '@/types/comment';
+import { Button } from '@/components/ui';
+import { useCommentClick } from '@/hooks/useCommentClick';
+import { buildCommentMarkers } from '@/lib/commentMarkers';
+interface IntensityChartProps{
+  comments: Comment[];
+  onAddComment: (payload: {content: string; anchor_x: number; anchor_y: number}) => void;
+}
 
-export function IntensityChart() {
+export function IntensityChart({comments, onAddComment}: Readonly<IntensityChartProps>) {
   let x_coords: number[] = []
   let y_coords: number[] = []
   const {setHdf5Data,hdf5Data, currentMeasurement, bin, cpaData, currentUpload, currentChannel} = useHdf5Data();
@@ -14,6 +22,11 @@ export function IntensityChart() {
     x_coords = hdf5Data.time_bins
     y_coords = hdf5Data.counts
   }
+
+
+  const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote } = useCommentClick(onAddComment);
+
+  const commentMarkers = buildCommentMarkers(comments, 'x', 'y');
 
     const fetchIntensityTrace= async ()=>{
       if(currentUpload){
@@ -53,7 +66,7 @@ export function IntensityChart() {
 
         }}
         return {x: x_axis, y:y_axis}
-    }, [cpaData])
+    }, [cpaData, bin])
 
   
 
@@ -98,11 +111,12 @@ export function IntensityChart() {
               xaxis: 'x2', //has its own x axiz
               yaxis: 'y',  
               marker: { color: colors.primary }
-            }
+            },
+            commentMarkers
           ]}
           layout={{
             autosize: true, 
-            uirevision: 'true',
+            uirevision: String(bin),
             title: { text: 'Intensity Trace' },
             plot_bgcolor: colors.card, 
             paper_bgcolor: colors.card,  
@@ -127,7 +141,7 @@ export function IntensityChart() {
               showgrid: true,
               gridcolor: colors.border,   
               gridwidth: 1,
-              range:[0,70],
+              autorange:true,
               anchor: 'x',
               title: {text:'Counts/bin'}
             },
@@ -139,11 +153,30 @@ export function IntensityChart() {
             },
             margin: { l: 60, r: 20, t: 50, b: 50 } 
           }}
+          onClick={controlPlotClick}
           revision={CpaLevels.x.length}
           style={{ width: '100%', height: '100%' }}
           useResizeHandler
         />
       </div>
+      {progressSpot && (
+        <div className="flex gap-2 items-center p-2 border-t border-border">
+          <input
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            placeholder="Add a note.."
+            className="border border-border bg-card rounded flex-1 text-xs px-2 py-1" />
+
+            <Button onClick={controlSubmitNote} variant="primary">
+              Add
+            </Button>
+
+            <Button onClick={() => setProgressSpot(null)} variant="secondary">
+              Cancel
+            </Button>
+
+        </div>
+      )}
     </Card>
   );
 }

@@ -18,6 +18,8 @@ import Sidebar from "@/components/dashboard/Sidebar";
 import { workspaceService } from "@/services/workspaceServices";
 import { getErrorMessage } from "@/utils/dashboard";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
+import { NotificationBell } from "@/components/analysisHub/notification-bell";
+import { useNotifications } from "@/hooks/useNotifications";
 
   async function runWorkspaceAction<T>({
     action,
@@ -58,6 +60,9 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { errorToast, successToast } = useToast();
+  const {notifications, markRead, acceptInvite, declineInvite} = useNotifications();
+  const unreadCount = notifications.filter((n) => !n.read).length;
+  const [notifOpen, setNotifOpen] = useState(false);
 
   const [workspaces, setWorkspaces] = useState<WorkspaceTableRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -231,13 +236,45 @@ export default function DashboardPage() {
     if (hasWorkspaces) {
       return (
         <div className="flex-1 p-6 overflow-auto">
-          <div className="mb-6">
-            <h1 className="text-2xl font-semibold text-foreground mb-1">
-              Workspaces
-            </h1>
-            <p className="text-foreground/60 text-sm">
-              Manage your spectroscopy analysis workspaces
-            </p>
+          <div className=" flex items-start justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-semibold text-foreground mb-1">
+                Workspaces
+              </h1>
+              <p className="text-foreground/60 text-sm">
+                Manage your spectroscopy analysis workspaces
+              </p>
+            </div>
+            <div className="relative">
+              <NotificationBell unreadCount={unreadCount} onClick={() => setNotifOpen(!notifOpen)} />
+                {notifOpen && (
+                  <div className="absolute right-0 top-8 w-72 bg-background border border-border rounded-sm shadow-lg z-50">
+                    <h4 className="text-xs font-semibold text-foreground/70 px-3 py-2 border-b border-border"> Notifications</h4>
+                    {notifications.length === 0 && <p className="text-sm px-3 py-2">No notifications yet.</p>}
+                    <ul className="max-h-80 overflow-y-auto">
+                      {notifications.map((n) =>(
+                        <li
+                          key={n.id}
+                          className={`px-3 py-2 text-xs cursor-pointer border-b border-border/40 ${n.read ? "text-foreground/50": "text-foreground"}`}
+                          >
+                          <button onClick={() => markRead(n.id)} className="text-left w-full cursor-pointer">{n.message}</button>
+                            {n.type === "invite" && !n.read && (
+                              <div className="flex gap-2 mt-1">
+                                <button onClick={async() => {try{await acceptInvite(n.id); successToast("Invite accepted");} catch { errorToast("Failed to accept invite");} }} className="text-green-600 hover:underline">Accept</button>
+                                <button onClick={async() => {
+                                  try{
+                                    await declineInvite(n.id);
+                                    setWorkspaces((prev) => prev.filter((w) => w.id !== n.workspace_id)); 
+                                    successToast("Invite declined");
+                                    } catch { errorToast("Failed to decline invite");} }} className="text-red-600 hover:underline">Decline</button>
+                              </div>
+                            )}
+                          </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+      </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1 max-w-md">

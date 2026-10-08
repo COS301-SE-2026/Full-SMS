@@ -43,6 +43,20 @@ def _parse_custom_hdf5(upload_id: str, path: Path, filename: str) -> dict:
 
 
 def _native_result_metadata(result, filename: str, detected_format: FileFormat) -> dict:
+    summaries = []
+    for block in result.native_blocks:
+        if block.kind == "decay_histogram":
+            channel_width = 0.0
+            if "time" in block.axes and len(block.axes["time"]) > 1:
+                channel_width = float(block.axes["time"][1] - block.axes["time"][0])
+            
+            summaries.append({
+                "id": block.id,
+                "name": block.name,
+                "channelWidth": channel_width,
+                "channels": ["Channel 1"]
+            })
+
     return {
         "filename": filename,
         "source_format": detected_format.value,
@@ -51,6 +65,7 @@ def _native_result_metadata(result, filename: str, detected_format: FileFormat) 
         "num_measurements": len(result.native_blocks),
         "has_spectra": False,
         "has_rasters": False,
+        "measurements_summary": summaries,
         "native_blocks": [
             {
                 "id": block.id,

@@ -1,5 +1,6 @@
 import os
 import uuid
+from datetime import datetime, timezone
 from typing import List, Optional
 from supabase import Client, create_client
 from api.services.storage_service import BUCKET
@@ -20,12 +21,26 @@ def get_supabase_admin() -> Client:
 
 def get_user_workspaces(user_id: str) -> List[dict]:
     supabase = get_supabase_admin()
-    response = supabase.rpc(
-        "get_workspaces_with_file_count",
-        {"p_user_id": user_id}
-    ).execute()
 
-    return response.data or []
+    response = (
+        supabase.table("workspaces")
+        .select("*")
+        .or_(f"user_id.eq.{user_id},member_ids.cs.{{{user_id}}}")
+        .execute()
+    )
+
+    workspaces = response.data or []
+
+    for workspace in workspaces:
+        file_count_response = (
+            supabase.table("hdf5_uploads")
+            .select("id", count="exact")
+            .eq("workspace_id", workspace["id"])
+            .execute()
+        )
+        workspace["file_count"] = file_count_response.count or 0
+
+    return workspaces
 
 
 def get_workspace_by_id(workspace_id: str, user_id: str) -> Optional[dict]:
@@ -36,7 +51,7 @@ def get_workspace_by_id(workspace_id: str, user_id: str) -> Optional[dict]:
 
     response = (
             supabase.table("workspaces")
-            .select("*, workspace_files(count)")
+            .select("*")
             .eq("id", workspace_id)
             .single()
             .execute()
@@ -46,10 +61,14 @@ def get_workspace_by_id(workspace_id: str, user_id: str) -> Optional[dict]:
         raise ValueError(WORKSPACE_NOT_FOUND)
 
     data = response.data
-    
-    file_count = 0
-    if "workspace_files" in data and len(data["workspace_files"]) > 0:
-        file_count = data["workspace_files"][0].get("count", 0)
+
+    file_count_response = (
+        supabase.table("hdf5_uploads")
+        .select("id", count="exact")
+        .eq("workspace_id", workspace_id)
+        .execute()
+    )
+    file_count = file_count_response.count or 0
 
     return {
         "id": data["id"],
@@ -178,6 +197,11 @@ def archive_workspace(workspace_id: str, user_id: str) -> dict:
 def unarchive_workspace(workspace_id: str, user_id: str) -> dict:
     return update_workspace(workspace_id, user_id, workspace_status="active")
 
+def touch_workspace(workspace_id: str) -> None:
+    supabase = get_supabase_admin()
+    supabase.table("workspaces").update({"updated_at": datetime.now(timezone.utc).isoformat()}).eq("id", workspace_id).execute()
+
+
 def get_workspace_uploads(workspace_id: str, user_id: str) -> dict:
     supabase = get_supabase_admin()
 
@@ -186,6 +210,7 @@ def get_workspace_uploads(workspace_id: str, user_id: str) -> dict:
     response = (supabase.table("hdf5_uploads")
                 .select("*")
                 .eq("workspace_id", workspace_id)
+                .eq("status", "parsed")
                 .execute()
                     )
     return response.data
@@ -218,14 +243,10 @@ def delete_workspace_upload(workspace_id: str, upload_id: str, user_id: str) -> 
     except Exception as e:
         print(f"Warning: Failed to delete Redis cache keys: {e}")
 
-    delete_res = (
-        supabase.table("hdf5_uploads")
-        .delete()
-        .eq("id", upload_id)
-        .eq("workspace_id", workspace_id)
-        .eq("user_id", user_id)
-        .execute()
-    )
+    supabase.table("hdf5_uploads").delete().eq("id", upload_id).eq("workspace_id", workspace_id).eq("user_id", user_id).execute()
+
+    touch_workspace(workspace_id)
+
     return {"deleted": True, "upload_id": upload_id}
 
 def add_workspace_member (workspace_id: str, user_id: str, member_id: str) -> dict:

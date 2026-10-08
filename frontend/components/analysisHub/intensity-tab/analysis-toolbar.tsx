@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Maximize2 } from "lucide-react";
+import { CommentToolbarButtons } from "../comments/CommentToolbar";
 import { Button } from "../../ui/Button";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { changePoint_Req } from "@/types/analysis";
 import { changePointAnalysis } from "@/services/analysisServices";
 import { useToast } from "@/contexts/toastContext/ToastContext";
 import { useHistoryRecorder } from "@/hooks/useHistoryRecorder";
-import { History } from "lucide-react";
+
 
 interface NumberFieldProps {
   readonly label: string;
@@ -15,7 +16,7 @@ interface NumberFieldProps {
   readonly min?: number;
   readonly max?: number;
   readonly onChange: (v: number) => void;
-  readonly onMouseUp?: (v: number) => void;
+  readonly onMouseUp?: (v: number) => void
 }
 
 export function NumberField({
@@ -99,7 +100,7 @@ function ConfidenceField({
   );
 }
 
-export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory }: { onHistoryChange?:() => void; historyOpen: boolean; onToggleHistory: () => void }) {
+export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory, commentsOpen, onToggleComments, onNewComment, commentCount}: Readonly<{ onHistoryChange?:() => void; historyOpen: boolean; commentsOpen: boolean, onToggleComments: () => void; onToggleHistory: () => void; onNewComment: () => void; commentCount: number }>) {
   const {
     bin,
     setBin,
@@ -241,7 +242,7 @@ export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory 
   return (
     <div className="flex flex-col border-b border-border bg-background flex-wrap  px-4 ">
       <div className="flex items-center gap-4 h-12">
-        <h3 className="text-foreground">Intensity Analysis</h3>
+        <h3 className="text-foreground">Intensity</h3>
 
 
         <NumberField label="Bin (ms)" value={localBinValue!} onChange={setLocalBinValue} onMouseUp={handleSliderRelease} />
@@ -272,7 +273,6 @@ export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory 
         >
           Resolve All
         </Button>
-
         <Button
           size="sm"
           variant="primary"
@@ -283,19 +283,13 @@ export function AnalysisToolbar({ onHistoryChange, historyOpen, onToggleHistory 
           Resolve Selected
         </Button>
         <div className="ml-auto flex gap-2">
-          <Button
-            size="sm"
-            variant="secondary"
-            leftIcon={<Maximize2 size={14} />}
-            className="min-h-[28px] px-3"
-          >
-            Fit View
-          </Button>
-          <Button variant="ghost" size="sm" 
-            title="View Parameter history"
-            onClick={onToggleHistory}
-            className={`px-2 py-0.5 min-h-0 ${historyOpen ? "bg-card" : ""}`}
-            leftIcon={<History size={14} />}
+          <CommentToolbarButtons
+            historyOpen={historyOpen}
+            onToggleHistory={onToggleHistory}
+            commentsOpen={commentsOpen}
+            onToggleComments={onToggleComments}
+            onNewComment={onNewComment}
+            commentCount={commentCount}
           />
         </div>
       </div>

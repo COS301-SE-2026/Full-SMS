@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File
+from api.controllers.irf_mapping_controller import create_irf_mapping, delete_irf_mapping, get_irf_mappings, get_mapped_irf_controller, get_workspace_irfs
+from api.models.analysis_models import GetMappedIRFReq, MapIRFReq, UploadIRFReq
 from api.routes.profile_routes import get_current_user
-from api.controllers.hdf5_controller import (get_user_uploads_by_id, read_hdf5_file, init_hdf5_upload, complete_hdf5_upload, get_hdf5_upload_status, get_hdf5_upload_result, get_upload_by_id)
+from api.controllers.hdf5_controller import (complete_irf_upload, get_user_uploads_by_id, init_irf_upload, read_hdf5_file, init_hdf5_upload, complete_hdf5_upload, get_hdf5_upload_status, get_hdf5_upload_result, get_upload_by_id)
 from typing import Annotated
 
 router = APIRouter(prefix="/hdf5", tags=["hdf5"])
@@ -33,3 +35,34 @@ async def read(file: UploadFile = File(...)):
 @router.get("/upload/{upload_id}")
 async def get_upload(upload_id: str ,current_user: Annotated[dict, Depends(get_current_user)]):
     return get_upload_by_id(user_id=current_user["user"]["id"], upload_id=upload_id)
+
+@router.post("/irf/init")
+def init_irf(payload: dict, current_user: Annotated[dict, Depends(get_current_user)]):
+    return init_irf_upload(payload, current_user["user"]["id"])
+
+@router.post("/irf/{irf_id}/complete")
+def complete_irf(irf_id: str, current_user: Annotated[dict, Depends(get_current_user)]):
+    return complete_irf_upload(irf_id, current_user["user"]["id"])
+
+@router.get("/irf/{workspace_id}")
+def get_irfs(workspace_id: str, current_user: Annotated[dict, Depends(get_current_user)]):
+    return get_workspace_irfs(workspace_id=workspace_id, user_id=current_user["user"]["id"])
+
+@router.post("/irf/{workspace_id}/map")
+def create_mapping(payload: MapIRFReq, current_user: Annotated[dict, Depends(get_current_user)]):
+    return create_irf_mapping(payload=payload)
+
+
+@router.post("/irf/{workspace}/mappings")
+def get_mappings(payload: dict, current_user: Annotated[dict, Depends(get_current_user)]):
+    return get_irf_mappings(payload=payload)
+
+@router.post("/irf/{workspace_id}/map/delete")
+def delete_mapping(payload: MapIRFReq, current_user: Annotated[dict, Depends(get_current_user)]):
+    print(f"\n\n\n{payload}\n\n\n")
+
+    return delete_irf_mapping(payload=payload)
+
+@router.post("/irf/{workspace_id}/mapping")
+def get_mapped_irf(payload: GetMappedIRFReq, current_user: Annotated[dict, Depends(get_current_user)]):
+    return get_mapped_irf_controller(payload=payload)

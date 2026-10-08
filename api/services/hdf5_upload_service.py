@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from api.utils.supabase_client import supabaseClient
 
 from api.services import storage_service
+from api.services.workspace_service import touch_workspace
 
 SUPPORTED_EXTENSIONS = {
     ".h5", ".hdf5", ".ptu",".phu",
@@ -65,6 +66,9 @@ def create_upload_record(user_id: str, filename: str, workspace_id: str, size_by
         .select("*")
         .execute()
     )
+
+    touch_workspace(workspace_id)
+
     return response.data[0]
 
 def mark_uploaded(upload_id: str, user_id: str) -> None:
@@ -185,5 +189,3 @@ def set_upload_progress(progress: int, upload_id: str):
             "status": "uploading",
             "progress": progress
         }).eq("id", upload_id).execute()
-
-            

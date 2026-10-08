@@ -40,7 +40,7 @@ axiosInstance.interceptors.response.use(
         case 401:
           // Token expired or invalid - sign out user
           await supabase.auth.signOut()
-          if (typeof window !== 'undefined') {
+          if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
             window.location.href = '/login'
           }
           break

@@ -77,10 +77,6 @@ export function MeasurementsBar({
     setCurrentChannel(1)
   };
 
-  useEffect(() => {
-    console.log(selectedChannels);
-  }, [selectedChannels]);
-
   return (
     <div className="flex flex-col border-t border-border overflow-hidden">
       <span className=" relative text-xs w-[15vw] text-foreground/60 tracking-wider bg-background p-3">

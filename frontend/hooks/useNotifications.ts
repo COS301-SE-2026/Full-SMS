@@ -37,9 +37,8 @@ export function useNotifications() {
 
     const declineInvite = async (notificationId: string) => {
         await notificationService.declineInvite(notificationId);
-        setNotifications((prev) => 
-            prev.map((n) => (n.id === notificationId ? { ...n, read: true} : n))
-        );
+        setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+        
     };
 
     const acceptInvite = async (notificationId: string) => {
