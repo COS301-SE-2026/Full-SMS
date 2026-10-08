@@ -39,9 +39,9 @@ export default function ContactSupport(){
                                 await supportService.sendEmail(user?.email, message)
                                 successToast("Ticket sent successfully!")
                                 setMessage('')
-                            }catch(error){
+                            }catch(error: any){
                                 console.error("Failed to send ticket",error);
-                                errorToast("Failed to send ticket")
+                                errorToast(error.message || "Failed to send ticket")
                             }}}
                              variant="primary" className="px-3 py-2" >
                             Submit a ticket
