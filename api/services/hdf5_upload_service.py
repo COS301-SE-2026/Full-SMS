@@ -189,5 +189,3 @@ def set_upload_progress(progress: int, upload_id: str):
             "status": "uploading",
             "progress": progress
         }).eq("id", upload_id).execute()
-
-            

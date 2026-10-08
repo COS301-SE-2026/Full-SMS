@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { WorkspaceTableRow, WorkspaceTableProps } from "@/types/workspace";
 import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import { formatDate, formatRelativeTime } from "@/utils/dateTime";
-import ActionMenu, { ActionMenuItem } from "@/components/ui/ActionMenu";
+import ActionMenu from "@/components/ui/ActionMenu";
 export default function WorkspaceTable({
   workspaces,
   onOpen,

@@ -88,6 +88,7 @@ export type LifetimeReq = {
     upload_id: string,
     measurement_id: string | string[]
     channel?: number
+    use_irf?: boolean
     times: Float64Array | number[];
     counts: BigInt64Array | number[] // Use BigInt64Array for exact 64-bit ints, or number[] if within safe limits
     channelwidth?: number;
@@ -202,4 +203,36 @@ export type RebinCorrelationReq = {
     result: CorrelationRes,
     new_binsize_ns: number,
     new_window_ns?: number
+}
+
+export type MapIRFReq = {
+    id?: string
+    workspace_id: string,
+    dataset_ref: string,      
+    measurement_id?: number,
+    channel: number,  
+    irf_id: string
+    createdAt?: string  
+}
+
+export type GetMappedIRFReq={
+    workspace_id: string,
+    dataset_ref: string,
+    measurement_id?: number,
+    channel: number  
+}
+
+// return {
+//         "status": "ok",
+//         "irf_id": irf_id,
+//         "name": irf_record.data.get("name"),
+//         "storage_key": storage_key,
+//         "data": parsed_irf  # { "t": [...], "counts": [...] }
+//     }
+
+export type GetMappedIRFRes = {
+    status: string,
+    irf_id: string,
+    name: string
+    storage_key: string
 }

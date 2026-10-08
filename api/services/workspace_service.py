@@ -210,6 +210,7 @@ def get_workspace_uploads(workspace_id: str, user_id: str) -> dict:
     response = (supabase.table("hdf5_uploads")
                 .select("*")
                 .eq("workspace_id", workspace_id)
+                .eq("status", "parsed")
                 .execute()
                     )
     return response.data

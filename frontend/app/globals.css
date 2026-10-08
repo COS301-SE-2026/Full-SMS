@@ -4,7 +4,7 @@
 
 @theme {
   --color-primary: #00e5ff;
-  --color-background: #121212;
+  --color-background: #1e1e1e;
   --color-card: #1e1e1e;
   --color-foreground: #e8e8e8;
   --color-success: #00e676;
@@ -36,7 +36,6 @@
     --color-card: #ffffff;
     --color-foreground: #121212;
     --color-border: #e4e4e7;
-
   }
 
   *,

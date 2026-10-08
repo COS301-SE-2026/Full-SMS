@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 from api.models.analysis_models import (ClusteringReq, CorrelationReq, CpaReq, IntensityReq, IntensityRes, LifetimeReq, RasterScanReq, RebinCorrelationReq)
@@ -37,6 +39,9 @@ class LifetimePayload(BaseModel):
     upload_id: str
     measurement_id: str
     bin_size_ms: float
+    channel: int = 1
+    start_photon_idx: Optional[int] = None
+    end_photon_idx: Optional[int] = None
 
 @router.post("/lifetime/fit")
 def get_lifetime(req: LifetimeReq):

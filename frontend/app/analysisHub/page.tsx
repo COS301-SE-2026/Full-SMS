@@ -25,6 +25,7 @@ import { HistoryPanel } from "@/components/analysisHub/history/HistoryPanel";
 import { useHistory } from "@/hooks/useHistory";
 import { historyService } from "@/services/historyServices";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
+import IrfManagementPage from "../irfManagement/page";
 import { CommentPanel } from "@/components/analysisHub/comments/CommentPanel";
 import { NewCommentInput } from "@/components/analysisHub/comments/CommentToolbar";
 import { useComments } from "@/hooks/useComments";
@@ -33,7 +34,7 @@ import { useCommentSubmit } from "@/hooks/useCommentSubmit";
 
 export default function App() {
   const [fileUploadModalOpen, setFileUploadModalOpen] = useState(false);
-  const { activeTab, fittingDialogOpen, setFittingDialogOpen } =
+  const { activeTab, fittingDialogOpen, setFittingDialogOpen, mappingDialog, setMappingDialog } =
     useAnalysisTab();
   const [currentPlugin, setCurrentPlugin] = useState<Plugin | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -88,8 +89,18 @@ export default function App() {
       <Modal
         open={fittingDialogOpen}
         onClose={() => setFittingDialogOpen(false)}
+        className="w-[43vw]"
+        title="Lifetime fitting"
       >
         <FittingDialog />
+      </Modal>
+
+      <Modal
+      open={mappingDialog}
+      onClose={()=>{setMappingDialog(false)}}
+      className="h-[95vh] overflow-y-auto"
+      >
+        <IrfManagementPage isDialog={true}/>
       </Modal>
 
       <Card className="inline-flex md:hidden m-4 p-5 border-destructive text-center">

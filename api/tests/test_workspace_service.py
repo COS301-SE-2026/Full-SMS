@@ -362,13 +362,12 @@ class TestGetWorkspaceUploads:
                 {"id": "file2", "workspace_id": sample_workspace_id}
             ]
 
-            mock_client.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_response
+            mock_client.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value = mock_response
             mock_admin.return_value = mock_client
 
             from api.services.workspace_service import get_workspace_uploads
 
             result = get_workspace_uploads(sample_workspace_id, sample_user_id)
-
             assert len(result) == 2
             mock_get_workspace.assert_called_with(sample_workspace_id, sample_user_id)
 

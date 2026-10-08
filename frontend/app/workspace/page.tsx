@@ -11,7 +11,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Loader,
 } from "@/components/ui";
 import { UploadRecord } from "@/types/hdf5";
 import { Modal } from "@/components/ui/Modal";
@@ -25,6 +24,7 @@ import axiosInstance from "@/lib/api/axiosInstance";
 import { getHdf5UploadStatus } from "@/services/hdf5services";
 import { Search, TrashIcon, UserPlus } from "lucide-react";
 import BackButton from "@/components/ui/BackButton";
+import { getWorkspaceIrfs } from "@/services/irfServices";
 import FormatBadge from "@/components/fileFormat/FormatBadge";
 import { ManageMembersModal } from "@/components/dashboard/ManageMembersModal";
 
@@ -188,6 +188,10 @@ export default function WorkspacePage() {
     status: string;
     progress: number;
   } | null>(null);
+
+  useEffect(()=>{
+    currentWorkspaceId && getWorkspaceIrfs(currentWorkspaceId)  
+}, [currentWorkspaceId])
 
   const handleUploadOpen = (upload_id: string) => {
     setCurrentUpload(upload_id);
@@ -360,6 +364,7 @@ export default function WorkspacePage() {
         currentWorkspaceId,
         uploadId,
       );
+
       // Optimistically remove the deleted upload from local state
       setUploads((prev) => prev?.filter((u) => u.id !== uploadId));
     } catch (error) {
@@ -367,9 +372,15 @@ export default function WorkspacePage() {
     }
   };
 
+  const handleOpenIRFConfig = (e: React.MouseEvent, uploadId: string) =>{
+    e.stopPropagation();
+    setCurrentUpload(uploadId)
+    router.push("/irfManagement")
+  }
+
   const filteredWorspaceFiles = useMemo(() => {
     return uploads?.filter((upload) => {
-      if (formatFilter !== "all" && upload.filename.toLowerCase().includes(formatFilter)) {
+      if (formatFilter !== "all" && !upload.filename.toLowerCase().includes(formatFilter)) {
         return false;
       }
 
@@ -528,13 +539,22 @@ export default function WorkspacePage() {
                         {(upload.size_bytes / (1024 * 1024)).toPrecision(2)} MB
                       </CardContent>
                     </div>
-                    <Button
-                      variant={"ghost"}
-                      className="mr-10 hover:bg-destructive/10"
-                      onClick={(e) => handleDeleteUpload(e, upload.id)}
-                    >
-                      <TrashIcon className="text-destructive" />
-                    </Button>
+                    <div className="flex flex-row items-center">
+                      <Button 
+                        variant={"ghost"}
+                        className=" hover:bg-primary/10 text-primary/50 hover:text-primary font-black"
+                        onClick={(e) => {handleOpenIRFConfig(e, upload.id)}}
+                      >
+                        <span >IRF</span>
+                      </Button>
+                      <Button
+                        variant={"ghost"}
+                        className="mr-10 hover:bg-destructive/10"
+                        onClick={(e) => handleDeleteUpload(e, upload.id)}
+                      >
+                        <TrashIcon className="text-destructive" />
+                      </Button>
+                    </div>
                   </Card>
                 ))}
               </div>
