@@ -40,6 +40,8 @@ jobs:
           ONEDRIVE_CLIENT_SECRET: ${{ secrets.ONEDRIVE_CLIENT_SECRET }}
           ONEDRIVE_REDIRECT_URI: ${{ secrets.ONEDRIVE_REDIRECT_URI }}
           NEXT_PUBLIC_MS_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_MS_CLIENT_ID }}
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_PASSWORD: ${{ secrets.GMAIL_PASSWORD }}
         with:
           host: ${{ secrets.LIGHTSAIL_HOST }}
           username: ${{ secrets.LIGHTSAIL_USER }}
