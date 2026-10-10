@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { Button } from "@/components/ui"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent} from "@/components/ui/Card"
-import { Rocket, ChartColumn, FileSearchCorner, Download, CircleQuestionMark, Save, RotateCcw, Puzzle, Mail } from "lucide-react"
+import { Rocket, ChartColumn, FileSearchCorner, Download, CircleQuestionMark, Save, RotateCcw, Puzzle, Mail, Database } from "lucide-react"
+
+const SAMPLE_DATA_URL = "https://drive.google.com/drive/folders/1N2aad49y84GglHph55xR5YPGt0tPfaqU";
 import HelpHero from "@/components/help/HelpHero";
 import { useState } from "react"
 import { GettingStartedModal } from "@/components/help/getting-started-modal";
@@ -32,6 +34,23 @@ export default function HelpMenuPage(){
                         </ul>
                     </CardContent>
                 </Card>
+
+                <a href={SAMPLE_DATA_URL} target="_blank" rel="noopener noreferrer" className="contents">
+                <Card className="group hover:-translate-y-2 transition-transform duration-300">
+                    <CardHeader>
+                        <div className="group-hover:bg-primary group-hover:text-background transition-colors w-11 h-11 rounded bg-primary/10 flex items-center justify-center text-primary"><Database /></div>
+                        <CardTitle>Sample Data</CardTitle>
+                        <CardDescription>Download sample HDF5 datasets to try the system</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ul className="list-none space-y-1">
+                            <li className="flex items-center gap-1">Pre-recorded spectroscopy measurements</li>
+                            <li className="flex items-center gap-1">Ready-to-analyze HDF5 files</li>
+                            <li className="flex items-center gap-1">Test all analysis features</li>
+                        </ul>
+                    </CardContent>
+                </Card>
+                </a>
 
                 <Link href="/help/session" className="contents">
                 <Card className="group hover:-translate-y-2 transition-transform duration-300">
