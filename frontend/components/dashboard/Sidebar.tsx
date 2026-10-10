@@ -101,7 +101,7 @@ export default function Sidebar({
               key={item.key}
               onClick={item.onClick}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 text-base transition-colors",
+                "flex items-center gap-3 px-4 py-3 text-base transition-colors cursor-pointer w-full",
                 isActive
                   ? "bg-primary text-background"
                   : "text-foreground hover:bg-card",
@@ -123,7 +123,7 @@ export default function Sidebar({
       <div className="border-t border-border py-1">
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 px-4 py-3 text-base transition-colors text-destructive hover:bg-destructive/10 w-full"
+          className="flex items-center gap-3 px-4 py-3 text-base transition-colors text-destructive hover:bg-destructive/10 w-full cursor-pointer"
         >
           <LogOut size={20} />
           <span>Log Out</span>
