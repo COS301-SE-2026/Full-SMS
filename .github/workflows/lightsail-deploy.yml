@@ -73,7 +73,8 @@ jobs:
             EOF
 
             echo "Creating frontend .env file"
-            cat > frontend/.env << EOF
+            cat > frontend/.env.local << EOF
+            NEXT_PUBLIC_API_URL=https://fullsms.tech
             NEXT_PUBLIC_MS_CLIENT_ID=${NEXT_PUBLIC_MS_CLIENT_ID}
             EOF
 
@@ -175,8 +176,8 @@ jobs:
             fi
 
             echo "Deployment completed successfully"
-            echo "Frontend: https://fullsms.duckdns.org"
-            echo "Backend: https://fullsms.duckdns.org/api/py"
+            echo "Frontend: https://fullsms.tech"
+            echo "Backend: https://fullsms.tech/api/py"
 
       - name: Deployment Success Notification
         if: success()

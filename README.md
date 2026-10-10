@@ -85,7 +85,7 @@ make run-api       # Start backend (http://localhost:8000)
 make run-frontend  # Start frontend (http://localhost:3000)
 ```
 
-[Public Live URL](https://fullsms.duckdns.org/)
+[Public Live URL](https://fullsms.tech/)
 
 ## Demo Resources
 
