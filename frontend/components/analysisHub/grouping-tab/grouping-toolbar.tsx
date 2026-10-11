@@ -112,10 +112,11 @@ export default function GroupingToolbar({commentsOpen, onToggleComments, onNewCo
     for( const id of measurementIds){
       try{
         setProgressStatus({ message: `Processing measurement ${id}...`, step: measurementIds.length - batchRemaining + 1, totalSteps: measurementIds.length });
-        const result = await runGroupingJob(cpaResults[id].levels!, setProgressStatus)
+        const result = runGroupingJob(cpaResults[id].levels!, setProgressStatus)
         setGroupingResultForMeasurement(id, result)
       }
       catch(ex){
+        console.error(`Grouping failed for measurement ${id}`, ex)
         errorToast(`Grouping failed for measurement ${id}`)
       }
       setBatchRemaining(prev => prev - 1 )
@@ -145,10 +146,11 @@ export default function GroupingToolbar({commentsOpen, onToggleComments, onNewCo
     for (const mId of targetIds) {
       try{
         setProgressStatus({ message: `Processing measurement ${mId}...`, step: targetIds.length - batchRemaining + 1, totalSteps: targetIds.length });
-        const result = await runGroupingJob(cpaResults[mId].levels!, setProgressStatus)
+        const result = runGroupingJob(cpaResults[mId].levels!, setProgressStatus)
         setGroupingResultForMeasurement(mId, result)
       }
       catch(ex){
+        console.error(`Grouping failed for measurement ${mId}`, ex)
         errorToast(`Grouping failed for measurement ${mId}`)
       }
       setBatchRemaining(prev => prev - 1)
