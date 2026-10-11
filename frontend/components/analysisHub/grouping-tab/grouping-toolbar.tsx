@@ -108,19 +108,28 @@ export default function GroupingToolbar({commentsOpen, onToggleComments, onNewCo
 
     setIsBatchProcessing(true)
     setBatchRemaining(measurementIds.length)
+    setProgressStatus({ message: `Processing ${measurementIds.length} measurements...`, step: 1, totalSteps: measurementIds.length });
 
-    for( const id of measurementIds){
-      try{
-        setProgressStatus({ message: `Processing measurement ${id}...`, step: measurementIds.length - batchRemaining + 1, totalSteps: measurementIds.length });
-        const result = runGroupingJob(cpaResults[id].levels!, setProgressStatus)
-        setGroupingResultForMeasurement(id, result)
+    const groupingPromises = measurementIds.map(id =>
+      runGroupingJob(cpaResults[id].levels!, setProgressStatus)
+        .then(result => ({ id, result, success: true as const }))
+        .catch(ex => {
+          console.error(`Grouping failed for measurement ${id}`, ex)
+          return { id, error: ex, success: false as const }
+        })
+    );
+
+    const results = await Promise.all(groupingPromises);
+
+    for (const outcome of results) {
+      if (outcome.success) {
+        setGroupingResultForMeasurement(outcome.id, outcome.result)
+      } else {
+        errorToast(`Grouping failed for measurement ${outcome.id}`)
       }
-      catch(ex){
-        console.error(`Grouping failed for measurement ${id}`, ex)
-        errorToast(`Grouping failed for measurement ${id}`)
-      }
-      setBatchRemaining(prev => prev - 1 )
+      setBatchRemaining(prev => prev - 1)
     }
+
     setIsBatchProcessing(false)
     setProgressStatus(null)
   }
@@ -142,19 +151,28 @@ export default function GroupingToolbar({commentsOpen, onToggleComments, onNewCo
 
     setIsBatchProcessing(true)
     setBatchRemaining(targetIds.length)
+    setProgressStatus({ message: `Processing ${targetIds.length} measurements...`, step: 1, totalSteps: targetIds.length });
 
-    for (const mId of targetIds) {
-      try{
-        setProgressStatus({ message: `Processing measurement ${mId}...`, step: targetIds.length - batchRemaining + 1, totalSteps: targetIds.length });
-        const result = runGroupingJob(cpaResults[mId].levels!, setProgressStatus)
-        setGroupingResultForMeasurement(mId, result)
-      }
-      catch(ex){
-        console.error(`Grouping failed for measurement ${mId}`, ex)
-        errorToast(`Grouping failed for measurement ${mId}`)
+    const groupingPromises = targetIds.map(mId =>
+      runGroupingJob(cpaResults[mId].levels!, setProgressStatus)
+        .then(result => ({ id: mId, result, success: true as const }))
+        .catch(ex => {
+          console.error(`Grouping failed for measurement ${mId}`, ex)
+          return { id: mId, error: ex, success: false as const }
+        })
+    );
+
+    const results = await Promise.all(groupingPromises);
+
+    for (const outcome of results) {
+      if (outcome.success) {
+        setGroupingResultForMeasurement(outcome.id, outcome.result)
+      } else {
+        errorToast(`Grouping failed for measurement ${outcome.id}`)
       }
       setBatchRemaining(prev => prev - 1)
     }
+
     setIsBatchProcessing(false)
     setProgressStatus(null)
   };
