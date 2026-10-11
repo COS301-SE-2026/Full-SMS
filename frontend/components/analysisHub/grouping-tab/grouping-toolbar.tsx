@@ -6,30 +6,43 @@ import { useToast } from "@/contexts/toastContext/ToastContext";
 import axiosInstance from "@/lib/api/axiosInstance";
 import { useState } from "react";
 import { CommentToolbarButtons } from "../comments/CommentToolbar";
+import { Loader2 } from "lucide-react";
 
 const GROUPING_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/py/analysis/grouping`;
 
+type ProgressStatus = {
+  message: string;
+  step: number;
+  totalSteps: number;
+};
+
 //  single clustering job + poll until done or failed
-async function runGroupingJob(levels: LevelData[]): Promise<ClusteringRes> {
+async function runGroupingJob(
+  levels: LevelData[],
+  onProgress?: (status: ProgressStatus) => void
+): Promise<ClusteringRes> {
+  onProgress?.({ message: "Submitting grouping job...", step: 1, totalSteps: 3 });
+
   const { data } = await axiosInstance.post(GROUPING_URL, { levels })
   if (!data.task_id) {
     throw new Error("No task_id returned")
   }
 
   const statusUrl = `${GROUPING_URL}/${data.task_id}`
+  onProgress?.({ message: "Analyzing level clusters...", step: 2, totalSteps: 3 });
 
   // poll until resolved
   while (true) {
-
     await new Promise((r) => setTimeout(r, 3000))
     const { data: status } = await axiosInstance.get(statusUrl)
 
     if (status.status === "completed") {
+      onProgress?.({ message: "Finalizing results...", step: 3, totalSteps: 3 });
       return status.result
     }
     if (status.status === "failed"){
-        throw new Error(status.error || "Grouping failed")
-      }
+      throw new Error(status.error || "Grouping failed")
+    }
     //loop again
   }
 }
@@ -53,7 +66,7 @@ export default function GroupingToolbar({commentsOpen, onToggleComments, onNewCo
 
   const [isBatchProcessing, setIsBatchProcessing] = useState(false)
   const [batchRemaining, setBatchRemaining] = useState(0)
-
+  const [progressStatus, setProgressStatus] = useState<ProgressStatus | null>(null)
 
   const { execute, isProcessing } = UseCeleryPolling<
     ClusteringReq,
@@ -64,25 +77,23 @@ export default function GroupingToolbar({commentsOpen, onToggleComments, onNewCo
       `${process.env.NEXT_PUBLIC_API_URL}/api/py/analysis/grouping/${job_id}`,
     {
       onSuccess: (data: ClusteringRes) => {
-        console.log("Grouping complete:", data);
         setGroupingData(data);
+        setProgressStatus(null);
       },
-      onError: (error) => {
-        console.error("Grouping failed", error);
+      onError: () => {
+        setProgressStatus(null);
       },
     },
   );
 
   const handleGroupCurrent = () => {
-    console.log("Group current clicked");
-
     if (!cpaData) {
       errorToast("Resolve Measurement before attempting to group");
       return;
     }
     if (cpaData) {
       if (!cpaData.levels) return;
-      else console.log("ONE LEVEL: ", cpaData.levels[0]);
+      setProgressStatus({ message: "Preparing levels for grouping...", step: 1, totalSteps: 3 });
       execute({ levels: cpaData.levels });
     }
   };
@@ -100,15 +111,17 @@ export default function GroupingToolbar({commentsOpen, onToggleComments, onNewCo
 
     for( const id of measurementIds){
       try{
-        const result = await runGroupingJob(cpaResults[id].levels!)
+        setProgressStatus({ message: `Processing measurement ${id}...`, step: measurementIds.length - batchRemaining + 1, totalSteps: measurementIds.length });
+        const result = await runGroupingJob(cpaResults[id].levels!, setProgressStatus)
         setGroupingResultForMeasurement(id, result)
       }
       catch(ex){
-        errorToast(`Grouping failed for measurement ${id}, ${ex}`)
+        errorToast(`Grouping failed for measurement ${id}`)
       }
       setBatchRemaining(prev => prev - 1 )
     }
     setIsBatchProcessing(false)
+    setProgressStatus(null)
   }
 
   const handleGroupSelected = async() => {
@@ -131,15 +144,17 @@ export default function GroupingToolbar({commentsOpen, onToggleComments, onNewCo
 
     for (const mId of targetIds) {
       try{
-        const result =  await runGroupingJob(cpaResults[mId].levels! )
+        setProgressStatus({ message: `Processing measurement ${mId}...`, step: targetIds.length - batchRemaining + 1, totalSteps: targetIds.length });
+        const result = await runGroupingJob(cpaResults[mId].levels!, setProgressStatus)
         setGroupingResultForMeasurement(mId, result)
       }
       catch(ex){
-        errorToast(`Grouping failed for measurement ${mId}, ${ex}`)
+        errorToast(`Grouping failed for measurement ${mId}`)
       }
       setBatchRemaining(prev => prev - 1)
     }
     setIsBatchProcessing(false)
+    setProgressStatus(null)
   };
   const busy = isProcessing || isBatchProcessing
 
@@ -194,10 +209,18 @@ export default function GroupingToolbar({commentsOpen, onToggleComments, onNewCo
           </Button>
         </div> */}
       </div>
-      {isBatchProcessing && (
-        <span className="block pb-2 font-mono text-sm text-primary animate-pulse">
-          Grouping {batchRemaining} measurement{batchRemaining !== 1 ? "s" : ""} …
-        </span>
+      {(isProcessing || isBatchProcessing) && progressStatus && (
+        <div className="flex items-center gap-2 pb-2">
+          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+          <span className="text-sm text-foreground/70">
+            {progressStatus.message}
+          </span>
+          {isBatchProcessing && batchRemaining > 0 && (
+            <span className="text-xs text-foreground/50">
+              ({batchRemaining} remaining)
+            </span>
+          )}
+        </div>
       )}
 </div>
   );

@@ -18,9 +18,6 @@ export const uploadIrfFile = async (
 		size_bytes: file.size,
 	});
 
-	console.log(initData);
-
-
 	await uploadToSignedUrl(initData.upload_url.signed_url, file, onProgress);
 
 	const { data: completeData} = await axiosInstance.post(`/api/py/hdf5/irf/${initData.irf_id}/complete`);

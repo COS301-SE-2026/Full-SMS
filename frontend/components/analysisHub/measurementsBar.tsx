@@ -61,7 +61,6 @@ export function MeasurementsBar({
           const metadata: UploadMetadata = record.metadata_json;
           setNum_measurements(metadata.num_measurements);
           setHdf5Metadata(metadata);
-          console.log(metadata);
         }
       } catch (error) {
         console.error("Failed to fetch or parse upload result:", error);

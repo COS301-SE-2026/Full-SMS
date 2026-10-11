@@ -87,17 +87,14 @@ export default function CorrelationTabToolbar({
   };
 
   const onCorrelationClick = async () => {
-    console.log("init Correlation");
     const data = await fetchCorrelationResult();
     setCorrelationData(data);
     const g2z = getG2AtZero(correlationData?.tau, correlationData?.g2);
     setG2AtZero(g2z);
-    console.log(correlationData);
     successToast("Correlation complete");
   };
 
   const onRebinClick = async () => {
-    console.log("init rebin");
     const data = await fetchRebinResult();
     if (data) setCorrelationData(data);
   };

@@ -93,8 +93,6 @@ export const pluginService = {
         `/api/py/plugins/${pluginId}/toggle`,
         { enabled },
       );
-      console.log("Raw axios response:", response);
-      console.log("Response data:", response.data);
       return response.data;
     } catch (error: unknown) {
       const message =
