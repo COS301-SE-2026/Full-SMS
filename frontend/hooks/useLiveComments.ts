@@ -51,10 +51,13 @@ export function useLiveComments(
                 }
             };
 
+            socket.onerror = () => {
+            };
+
             socket.onclose = (event) => {
                 if (stopped) return;
-                if (event.code === 4401 || event.code === 4403) return;
-                retryTimer = setTimeout(() => { void connect(); }, Math.min(1000 * 2 ** attempts++, 15000));
+                if (event.code === 4401 || event.code === 4403 || attempts >= 3) return;
+                retryTimer = setTimeout(() => { void connect(); }, Math.min(1000 * 2 ** attempts++, 10000));
             };
         };
 

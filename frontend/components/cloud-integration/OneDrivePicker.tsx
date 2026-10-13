@@ -41,7 +41,6 @@ export function OneDrivePicker({
           "/api/py/cloud/onedrive/token",
         );
         setToken(data.access_token);
-        console.log("Got OneDrive token");
       } catch (err) {
         console.error("Token fetch failed", err);
         setError("Could not authenticate with OneDrive. Try reconnecting.");

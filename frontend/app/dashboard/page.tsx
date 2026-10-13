@@ -91,8 +91,6 @@ export default function DashboardPage() {
       return true;
     });
   }, [workspaces, statusFilter, searchQuery]);
-  console.log("Rendering WorkspaceTable with workspaces:", filteredWorkspaces);
-
 
   useEffect(() => {
     if (!user) {
@@ -135,7 +133,6 @@ export default function DashboardPage() {
   }, [fetchWorkspaces]);
 
   const handleOpenWorkspace = (workspaceId: string) => {
-    console.log(workspaceId);
     setCurrentWorkspaceId(workspaceId)
     router.push("/workspace");
   };
@@ -143,8 +140,8 @@ export default function DashboardPage() {
   const handleCreateWorkspace = async (name: string, description?: string) => {
     await runWorkspaceAction({
       action: () => workspaceService.createWorkspace({ name, description }),
-      onSuccess: () => {
-        fetchWorkspaces();
+      onSuccess: async () => {
+        await fetchWorkspaces();
         setIsCreateModalOpen(false);
       },
       successMessage: "Workspace created successfully",
