@@ -1,7 +1,7 @@
 import json
 import numpy as np
 from unittest.mock import MagicMock, call, patch, ANY
-from api.routes.analysis_routes import get_spectra_data
+from api.routes.analysis_routes import LifetimePayload, get_spectra_data
 from api.services.analysis_services.cache_fallback import cache_fallback_service
 from api.services.analysis_services.change_point_analysis import resolve_current_measurement
 import pytest
@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from api.services.analysis_services.clustering_job_service import clustering_job
 from api.legacy.models.level import LevelData
 from api.services.analysis_services.clustering import execute_clustering
-from api.services.analysis_services.lifetime import lifetime_fitting
+from api.services.analysis_services.lifetime import fluorescence_decay, lifetime_fitting
 
 @patch("api.services.analysis_services.intensity.get_cached_measurement")
 @patch("api.services.analysis_services.intensity.bin_photons")
@@ -455,6 +455,33 @@ def test_lifetime_fitting_uses_selected_channel_irf(use_irf):
     else:
         fetch_irf.assert_not_called()
         assert fit_decay.call_args.kwargs["irf"] is None
+
+
+def test_fluorescence_decay_uses_inclusive_level_photon_indices():
+    request = LifetimePayload(
+        upload_id="dataset",
+        measurement_id="1",
+        bin_size_ms=10.0,
+        channel=1,
+        start_photon_idx=1,
+        end_photon_idx=2,
+    )
+    measurement = {
+        "channel1": {"microtimes": [0.0, 0.1, 0.2, 0.3]},
+        "channelwidth": 0.1,
+    }
+
+    with (
+        patch("api.services.analysis_services.lifetime.get_cached_measurement", return_value=measurement),
+        patch("api.services.analysis_services.lifetime.build_decay_histogram", return_value=(np.array([0.1]), np.array([2]))) as build_histogram,
+        patch("api.services.analysis_services.lifetime._fetch_irf_data", return_value=None),
+    ):
+        fluorescence_decay(request)
+
+    np.testing.assert_array_equal(
+        build_histogram.call_args.kwargs["microtimes"],
+        np.array([0.1, 0.2]),
+    )
 
 
 def test_fetch_irf_data_treats_none_mapping_responses_as_unmapped():

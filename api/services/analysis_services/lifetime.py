@@ -282,6 +282,15 @@ def fluorescence_decay(payload):
             channel_width = getattr(cached_measurement, "channelwidth", 0.0)
 
         microtimes_arr = np.asarray(microtimes, dtype=np.float64)
+        start_idx = getattr(payload, "start_photon_idx", None)
+        end_idx = getattr(payload, "end_photon_idx", None)
+
+        if start_idx is not None or end_idx is not None:
+            if start_idx is None or end_idx is None:
+                raise ValueError("Both photon indices are required for a level decay")
+            if start_idx < 0 or end_idx < start_idx or end_idx >= len(microtimes_arr):
+                raise ValueError("Level photon indices are outside the selected channel")
+            microtimes_arr = microtimes_arr[start_idx : end_idx + 1]
         if channel_width > 0 and len(microtimes_arr) > 0 and not np.all(microtimes_arr == 0):
             times, counts = build_decay_histogram(
                 microtimes=microtimes_arr, channelwidth=channel_width

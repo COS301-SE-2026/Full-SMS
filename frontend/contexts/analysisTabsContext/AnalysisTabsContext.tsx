@@ -22,6 +22,8 @@ interface AnalysisTabContextType {
     setDecayTimes: (counts: number[])=>void
     fitResult: LifetimeRes | null,
     setFitResult: (res: LifetimeRes | null) => void
+    fitResultsByTarget: Record<string, LifetimeRes>
+    setFitResultForTarget: (key: string, res: LifetimeRes) => void
     showIRF: boolean
     setShowIRF: (show: boolean) => void
     irfCounts: number[]
@@ -30,6 +32,8 @@ interface AnalysisTabContextType {
     setIrfTimes: (times: number[]) => void
     mappingDialog: boolean,
     setMappingDialog: (b: boolean) =>void
+    selectedLevelIdx : number | null
+    setSelectedLevelIdx: (idx: number | null ) => void
 }
 
 const AnalysisTabContext = createContext<AnalysisTabContextType | undefined> (undefined)
@@ -45,7 +49,9 @@ export function AnalysisTabProvider({children}: {readonly children: ReactNode}){
     const [decayCounts, setDecayCounts] = useState<number[]>([])
     const [decayTimes, setDecayTimes] = useState<number[]>([])
     const [fitResult, setFitResult] = useState<LifetimeRes | null>(null)
+    const [fitResultsByTarget, setFitResultsByTarget] = useState<Record<string, LifetimeRes>>({})
     const [mappingDialog, setMappingDialog] =useState<boolean>(false)
+    const [selectedLevelIdx, setSelectedLevelIdx] = useState<number | null>(null);
     
 
     const contextValue = useMemo(()=>({
@@ -67,9 +73,15 @@ export function AnalysisTabProvider({children}: {readonly children: ReactNode}){
         decayTimes,
         fitResult,
         setFitResult,
+        fitResultsByTarget,
+        setFitResultForTarget: (key: string, res: LifetimeRes) => {
+            setFitResultsByTarget((previous) => ({ ...previous, [key]: res }))
+        },
         mappingDialog, 
-        setMappingDialog
-    }),[activeTab, fittingDialogOpen, showIRF, irfCounts, irfTimes, useLogScale, decayCounts, decayTimes, fitResult, mappingDialog])
+        setMappingDialog,
+        selectedLevelIdx,
+        setSelectedLevelIdx
+    }),[activeTab, fittingDialogOpen, showIRF, irfCounts, irfTimes, useLogScale, decayCounts, decayTimes, fitResult, fitResultsByTarget, mappingDialog, selectedLevelIdx])
 
     return (
         <AnalysisTabContext.Provider value={contextValue}>
