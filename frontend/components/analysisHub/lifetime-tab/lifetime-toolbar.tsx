@@ -1,9 +1,8 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { Button, Toggle } from "@/components/ui";
 import { useAnalysisTab } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { X } from "lucide-react";
 import { getMappedIRF } from "@/services/irfServices";
 import { GetMappedIRFReq, GetMappedIRFRes } from "@/types/analysis";
@@ -37,6 +36,8 @@ export default function LifetimeToolbar({
     setFitResult,
     setDecayTimes,
     setDecayCounts,
+    selectedLevelIdx,
+    setSelectedLevelIdx
   } = useAnalysisTab();
   
   const {
@@ -50,7 +51,6 @@ export default function LifetimeToolbar({
     bin
   } = useHdf5Data();
   
-  const [selectedLevelIdx, setSelectedLevelIdx] = useState<number | null>(null);
 
   const fetchMappedIRF = async () => {
     const payload: GetMappedIRFReq = {
@@ -69,7 +69,7 @@ export default function LifetimeToolbar({
 
   useEffect(() => {
     setSelectedLevelIdx(null);
-  }, [currentMeasurement, currentChannel]);
+  }, [currentUpload, currentMeasurement, currentChannel, setSelectedLevelIdx]);
 
   const handleLevelSelect = async (idx: number) => {
     setSelectedLevelIdx(idx === -1 ? null : idx);

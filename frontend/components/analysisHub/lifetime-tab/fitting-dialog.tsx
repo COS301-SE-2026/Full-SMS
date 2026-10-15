@@ -4,9 +4,197 @@ import { Button, Card, CardContent, CardFooter, Toggle } from "@/components/ui";
 import React, { useState, useRef } from "react";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { useAnalysisTab } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
-import { LifetimeReq, StartpointMode } from "@/types/analysis";
-import { getLifetimeData } from "@/services/analysisServices";
+import { LifetimeReq, LifetimeRes, LevelData, StartpointMode } from "@/types/analysis";
+import { getFluorescenceDecay, getLifetimeData } from "@/services/analysisServices";
 import { useHistoryRecorder } from "@/hooks/useHistoryRecorder";
+import { useToast } from "@/contexts/toastContext/ToastContext";
+
+type FitTargetKind = "measurement" | "selected-level" | "all-levels";
+type FitCurveTarget = {
+  measurementId: string;
+  channel: number;
+  level?: LevelData;
+  levelIndex?: number;
+};
+type FitOptions = {
+  uploadId: string;
+  bin: number;
+  useIRF: boolean;
+  numExponents: number;
+  tauInit: number[];
+  tauBounds: [number, number];
+  autostart: StartpointMode;
+  autoend: boolean;
+  start: number | null;
+  end: number | null;
+  background: number | null;
+  shiftInit: number;
+  shiftBounds: [number, number];
+  fitIrfFwhm: boolean;
+  irfFwhmInit: number | null;
+  irfFwhmBounds: [number, number] | null;
+};
+type FitOutcome = { target: FitCurveTarget; result: LifetimeRes | null };
+
+function createFitOptions(values: {
+  uploadId: string;
+  bin: number;
+  useIRF: boolean;
+  useSimulatedIRF: boolean;
+  fitFWHM: boolean;
+  numExponents: number;
+  tauInit: number[];
+  boundsMin: number;
+  boundsMax: number;
+  startMode: string;
+  detectEndpoint: boolean;
+  startChannel: number;
+  endChannel: number;
+  background: boolean;
+  backgroundValue: number;
+  shiftInit: number;
+  shiftBoundsMin: number;
+  shiftBoundsMax: number;
+  fhwm: number;
+  fwhmBoundsMin: number;
+  fwhmBoundsMax: number;
+}): FitOptions {
+  const fitIrfFwhm = values.useIRF && values.useSimulatedIRF && values.fitFWHM;
+  return {
+    uploadId: values.uploadId,
+    bin: values.bin,
+    useIRF: values.useIRF,
+    numExponents: values.numExponents,
+    tauInit: values.tauInit,
+    tauBounds: [values.boundsMin, values.boundsMax],
+    autostart: mapStartMode(values.startMode),
+    autoend: values.detectEndpoint,
+    start: values.startMode === "Manual" ? values.startChannel : null,
+    end: values.detectEndpoint ? null : values.endChannel,
+    background: values.background ? null : values.backgroundValue,
+    shiftInit: values.shiftInit,
+    shiftBounds: [values.shiftBoundsMin, values.shiftBoundsMax],
+    fitIrfFwhm,
+    irfFwhmInit: fitIrfFwhm ? values.fhwm : null,
+    irfFwhmBounds: fitIrfFwhm
+      ? [values.fwhmBoundsMin, values.fwhmBoundsMax]
+      : null,
+  };
+}
+
+async function executeFitTargets(
+  targets: FitCurveTarget[],
+  options: FitOptions,
+): Promise<FitOutcome[]> {
+  return Promise.all(
+    targets.map(async (target) => {
+      try {
+        return { target, result: await fitCurveTarget(target, options) };
+      } catch (error) {
+        console.error(`Lifetime fit failed for ${getTargetLabel(target)}`, error);
+        return { target, result: null };
+      }
+    }),
+  );
+}
+
+function storeFitOutcomes(
+  outcomes: FitOutcome[],
+  values: {
+    uploadId: string;
+    currentMeasurement: string;
+    currentChannel: number;
+    selectedLevelIdx: number | null;
+    setFitResult: (result: LifetimeRes) => void;
+    setFitResultForTarget: (key: string, result: LifetimeRes) => void;
+  },
+): string[] {
+  const failures: string[] = [];
+  for (const { target, result } of outcomes) {
+    if (!result) {
+      failures.push(getTargetLabel(target));
+      continue;
+    }
+    const levelKey = target.level
+      ? `${target.level.start_index}-${target.level.end_index}`
+      : "full";
+    const resultKey = `${values.uploadId}:${target.measurementId}:${target.channel}:${levelKey}`;
+    values.setFitResultForTarget(resultKey, result);
+
+    const matchesCurrentView =
+      target.measurementId === values.currentMeasurement &&
+      target.channel === values.currentChannel &&
+      (target.levelIndex ?? null) === values.selectedLevelIdx;
+    if (matchesCurrentView) values.setFitResult(result);
+  }
+  return failures;
+}
+
+function mapStartMode(mode: string): StartpointMode {
+  switch (mode) {
+    case "Manual":
+      return StartpointMode.MANUAL;
+    case "Rise middle":
+      return StartpointMode.RISE_MIDDLE;
+    case "Rise start":
+      return StartpointMode.RISE_START;
+    case "Safe rise start":
+      return StartpointMode.SAFE_RISE_START;
+    default:
+      return StartpointMode.CLOSE_TO_MAX;
+  }
+}
+
+async function fitCurveTarget(
+  target: FitCurveTarget,
+  options: FitOptions,
+): Promise<LifetimeRes> {
+  const histogram = await getFluorescenceDecay({
+    upload_id: options.uploadId,
+    measurement_id: target.measurementId,
+    bin_size_ms: options.bin,
+    channel: target.channel,
+    ...(target.level
+      ? {
+          start_photon_idx: target.level.start_index,
+          end_photon_idx: target.level.end_index,
+        }
+      : {}),
+  });
+  if (!histogram.times?.length || !histogram.counts?.length) {
+    throw new Error("No decay histogram data");
+  }
+
+  const request: LifetimeReq = {
+    upload_id: options.uploadId,
+    measurement_id: target.measurementId,
+    channel: target.channel,
+    use_irf: options.useIRF,
+    times: histogram.times,
+    counts: histogram.counts,
+    num_exponentials: options.numExponents,
+    tau_init: options.tauInit,
+    tau_bounds: options.tauBounds,
+    autostart: options.autostart,
+    autoend: options.autoend,
+    start: options.start,
+    end: options.end,
+    background: options.background,
+    shift_init: options.shiftInit,
+    shift_bounds: options.shiftBounds,
+    fit_irf_fwhm: options.fitIrfFwhm,
+    irf_fwhm_init: options.irfFwhmInit,
+    irf_fwhm_bounds: options.irfFwhmBounds,
+  };
+  return getLifetimeData(request);
+}
+
+function getTargetLabel(target: FitCurveTarget): string {
+  const levelLabel = target.levelIndex === undefined
+    ? ""
+    : `, level ${target.levelIndex + 1}`;
+  return `${target.measurementId}, channel ${target.channel}${levelLabel}`;
+}
 
 export default function FittingDialog() {
   const [background, setBackground] = useState<boolean>(true);
@@ -16,6 +204,7 @@ export default function FittingDialog() {
   const [useSimulatedIRF, setUseSimulatedIRF] = useState<boolean>(false);
   const [fitFWHM, setFitFWHM] = useState<boolean>(false);
   const [scope, setScope] = useState<string>("Current");
+  const [fitTarget, setFitTarget] = useState<FitTargetKind>("measurement");
   const [numExponents, setNumExponents] = useState<number>(1);
 
   // Multi-exponential lifetime initial guesses (defaults match Full-SMS desktop)
@@ -35,15 +224,28 @@ export default function FittingDialog() {
   const [endChannel, setEndChannel] = useState<number>(4096);
   const [backgroundValue, setBackgroundValue] = useState<number>(0);
 
-  const { setFittingDialogOpen, decayCounts, decayTimes, setFitResult } =
-    useAnalysisTab();
+  const {
+    setFittingDialogOpen,
+    setFitResult,
+    setFitResultForTarget,
+    selectedLevelIdx,
+  } = useAnalysisTab();
+
   const {
     currentMeasurement,
     currentUpload,
     currentChannel,
     currentMappedIrf,
     currentWorkspaceId,
+    cpaData,
+    cpaResults,
+    hdf5Metadata,
+    isMultiChannel,
+    selectedMeasurements,
+    selectedChannels,
+    bin,
   } = useHdf5Data();
+  const { errorToast, successToast } = useToast();
 
   const recordHist = useHistoryRecorder(
     currentWorkspaceId,
@@ -68,67 +270,139 @@ export default function FittingDialog() {
     fwhmBoundsMax,
   });
 
-  const fetchLifetimeFitting = async () => {
-    const mapStartMode = (mode: string): StartpointMode => {
-      switch (mode) {
-        case "Manual":
-          return StartpointMode.MANUAL;
-        case "Rise middle":
-          return StartpointMode.RISE_MIDDLE;
-        case "Rise start":
-          return StartpointMode.RISE_START;
-        case "Safe rise start":
-          return StartpointMode.SAFE_RISE_START;
-        default:
-          return StartpointMode.CLOSE_TO_MAX;
-      }
-    };
+  const selectedLevel =
+    selectedLevelIdx === null ? undefined : cpaData?.levels?.[selectedLevelIdx];
+  const canFitSelectedLevel = selectedLevel !== undefined;
+  const canFitAllLevels = Object.values(cpaResults).some(
+    (result) => (result.levels?.length ?? 0) > 0,
+  );
+  const availableTargets: FitTargetKind[] = [
+    "measurement",
+    ...(canFitSelectedLevel ? ["selected-level" as const] : []),
+    ...(canFitAllLevels ? ["all-levels" as const] : []),
+  ];
+  const activeFitTarget = availableTargets.includes(fitTarget)
+    ? fitTarget
+    : "measurement";
 
-    const tauInitArray =
-      numExponents === 1
-        ? [tau1Init]
-        : numExponents === 2
-          ? [tau1Init, tau2Init]
-          : [tau1Init, tau2Init, tau3Init];
+  const getScopedMeasurements = () => {
+    const summaries = hdf5Metadata?.measurements_summary ?? [];
+    if (scope === "Current") {
+      return currentMeasurement && currentMeasurement !== "0"
+        ? [{ measurementId: currentMeasurement, channel: currentChannel }]
+        : [];
+    }
 
-    const request: LifetimeReq = {
-      upload_id: currentUpload,
-      measurement_id: currentMeasurement,
-      channel: currentChannel,
-      use_irf: useIRF,
-      times: decayTimes,
-      counts: decayCounts,
-      num_exponentials: numExponents,
-      tau_init: tauInitArray,
-      tau_bounds: [boundsMin, boundsMax],
-      autostart: mapStartMode(startMode),
-      autoend: detectEndpoint,
+    if (scope === "All") {
+      return summaries.flatMap((measurement) =>
+        (measurement.channels?.length
+          ? measurement.channels.map((_, index) => index + 1)
+          : [1]
+        ).map((channel) => ({
+          measurementId: String(measurement.id),
+          channel,
+        })),
+      );
+    }
 
-      // Send start/end channels only if manual mode is active
-      start: startMode === "Manual" ? startChannel : null,
-      end: !detectEndpoint ? endChannel : null,
+    if (isMultiChannel) {
+      return Array.from(selectedChannels).flatMap((key) => {
+        const [measurementId, channelValue] = key.split(":");
+        const channel = Number(channelValue);
+        return measurementId && Number.isInteger(channel) && channel > 0
+          ? [{ measurementId, channel }]
+          : [];
+      });
+    }
 
-      // Send background only if auto-estimate is toggled off
-      background: !background ? backgroundValue : null,
+    return Array.from(selectedMeasurements).map((measurementId) => ({
+      measurementId,
+      channel: 1,
+    }));
+  };
 
-      // Send Shift parameters
-      shift_init: shiftInit,
-      shift_bounds: [shiftBoundsMin, shiftBoundsMax],
+  const getFitTargets = (): FitCurveTarget[] => {
+    if (activeFitTarget === "selected-level") {
+      if (!selectedLevel || currentMeasurement === "0") return [];
+      return [{
+            measurementId: currentMeasurement,
+            channel: currentChannel,
+            level: selectedLevel,
+            levelIndex: selectedLevelIdx ?? undefined,
+          }];
+    }
 
-      // IRF / FWHM
-      fit_irf_fwhm: useIRF && useSimulatedIRF && fitFWHM,
-      irf_fwhm_init: useIRF && useSimulatedIRF && fitFWHM ? fhwm : null,
-      irf_fwhm_bounds:
-        useIRF && useSimulatedIRF && fitFWHM
-          ? [fwhmBoundsMin, fwhmBoundsMax]
-          : null,
-    };
+    const measurements = getScopedMeasurements();
+    if (activeFitTarget !== "all-levels") return measurements;
 
-    const response = await getLifetimeData(request);
-    setFitResult(response);
+    return measurements.flatMap(({ measurementId, channel }) => {
+      const cpaKey = isMultiChannel
+        ? `${measurementId}:${channel}`
+        : measurementId;
+      const levels = cpaResults[cpaKey]?.levels ?? [];
+      return levels.flatMap((level, levelIndex) =>
+        level.num_photons >= 100
+          ? [{ measurementId, channel, level, levelIndex }]
+          : [],
+      );
+    });
+  };
+
+  const fetchLifetimeFitting = async (targets: FitCurveTarget[]) => {
+    const tauInit = [tau1Init, tau2Init, tau3Init].slice(0, numExponents);
+    const fitOptions = createFitOptions({
+      uploadId: currentUpload,
+      bin,
+      useIRF,
+      useSimulatedIRF,
+      fitFWHM,
+      numExponents,
+      tauInit,
+      boundsMin,
+      boundsMax,
+      startMode,
+      detectEndpoint,
+      startChannel,
+      endChannel,
+      background,
+      backgroundValue,
+      shiftInit,
+      shiftBoundsMin,
+      shiftBoundsMax,
+      fhwm,
+      fwhmBoundsMin,
+      fwhmBoundsMax,
+    });
+    const outcomes = await executeFitTargets(targets, fitOptions);
+    const failures = storeFitOutcomes(outcomes, {
+      uploadId: currentUpload,
+      currentMeasurement,
+      currentChannel,
+      selectedLevelIdx,
+      setFitResult,
+      setFitResultForTarget,
+    });
+    const successCount = targets.length - failures.length;
+
+    if (successCount > 0) {
+      successToast(`Completed ${successCount} lifetime fit${successCount === 1 ? "" : "s"}`);
+    }
+    if (failures.length > 0) {
+      errorToast(`Failed ${failures.length} lifetime fit${failures.length === 1 ? "" : "s"}: ${failures.slice(0, 3).join("; ")}`);
+    }
   };
 
   const handleFit = () => {
+    const targets = getFitTargets();
+    if (targets.length === 0) {
+      errorToast(
+        activeFitTarget === "all-levels"
+          ? "No resolved levels with at least 100 photons are available in this scope"
+          : "No measurements or channels are selected for fitting",
+      );
+      return;
+    }
+
     const newSettings = {
       numExponents,
       tau1Init,
@@ -147,8 +421,8 @@ export default function FittingDialog() {
     };
     recordHist("fit_settings", initialSettings.current, newSettings);
     initialSettings.current = newSettings;
-    fetchLifetimeFitting();
     setFittingDialogOpen(false);
+    void fetchLifetimeFitting(targets);
   };
 
   return (
@@ -158,11 +432,14 @@ export default function FittingDialog() {
         <select
           name="fit-target"
           className="border p-2 rounded-sm font-mono bg-card"
+          value={activeFitTarget}
+          onChange={(event) => setFitTarget(event.target.value as FitTargetKind)}
         >
-          <option value="Measurement(full decay)">
-            Measurement(full decay)
-          </option>
-          <option value="All levels">All levels</option>
+          <option value="measurement">Measurement (full decay)</option>
+          {canFitSelectedLevel && (
+            <option value="selected-level">Selected Level</option>
+          )}
+          {canFitAllLevels && <option value="all-levels">All Levels</option>}
         </select>
 
         <div className="flex flex-row mt-2 items-center">
@@ -173,7 +450,8 @@ export default function FittingDialog() {
             name="Scope"
             id="Scope"
             className="border p-2 rounded-sm font-mono bg-card"
-            value={scope}
+            value={activeFitTarget === "selected-level" ? "Current" : scope}
+            disabled={activeFitTarget === "selected-level"}
             onChange={(e) => setScope(e.target.value)}
           >
             <option value="Current">Current</option>
