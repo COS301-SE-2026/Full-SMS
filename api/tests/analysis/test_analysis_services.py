@@ -11,6 +11,7 @@ from api.services.analysis_services.raster_scan import get_raster_scan_data
 from dataclasses import dataclass
 from api.services.analysis_services.clustering_job_service import clustering_job
 from api.legacy.models.level import LevelData
+from api.legacy.analysis.lifetime import fit_decay
 from api.services.analysis_services.clustering import execute_clustering
 from api.services.analysis_services.lifetime import fluorescence_decay, lifetime_fitting
 
@@ -427,6 +428,7 @@ def test_lifetime_fitting_uses_selected_channel_irf(use_irf):
         use_irf=use_irf,
         times=[0.0, 0.1, 0.2],
         counts=[100, 50, 25],
+        tau_bounds_per_component=[(0.5, 5.0)],
     )
 
     with (
@@ -452,9 +454,11 @@ def test_lifetime_fitting_uses_selected_channel_irf(use_irf):
             dataset_ref="dataset", measurement_id="2", channel=2
         )
         np.testing.assert_array_equal(fit_decay.call_args.kwargs["irf"], irf_counts)
+        assert fit_decay.call_args.kwargs["tau_bounds_per_component"] == [(0.5, 5.0)]
     else:
         fetch_irf.assert_not_called()
         assert fit_decay.call_args.kwargs["irf"] is None
+        assert fit_decay.call_args.kwargs["tau_bounds_per_component"] == [(0.5, 5.0)]
 
 
 def test_fluorescence_decay_uses_inclusive_level_photon_indices():
@@ -482,6 +486,45 @@ def test_fluorescence_decay_uses_inclusive_level_photon_indices():
         build_histogram.call_args.kwargs["microtimes"],
         np.array([0.1, 0.2]),
     )
+
+
+def test_fit_decay_applies_distinct_bounds_to_each_lifetime():
+    fitted_parameters = np.array([0.5, 2.0, 0.5, 0.5, 0.0])
+    with patch(
+        "api.legacy.analysis.lifetime.curve_fit",
+        return_value=(fitted_parameters, np.eye(len(fitted_parameters))),
+    ) as curve_fit_mock:
+        fit_decay(
+            t=np.array([0.0, 0.1, 0.2, 0.3, 0.4]),
+            counts=np.array([100, 80, 60, 40, 20]),
+            channelwidth=0.1,
+            num_exponentials=2,
+            tau_init=[0.5, 2.0],
+            tau_bounds=(0.01, 100.0),
+            tau_bounds_per_component=[(0.1, 1.0), (1.5, 3.0)],
+            start=0,
+            end=5,
+            background=0.0,
+        )
+
+    lower_bounds, upper_bounds = curve_fit_mock.call_args.kwargs["bounds"]
+    np.testing.assert_array_equal(lower_bounds, [0.1, 1.5, 0.0, 0.0, -2000.0])
+    np.testing.assert_array_equal(upper_bounds, [1.0, 3.0, 1.0, 1.0, 2000.0])
+
+
+def test_fit_decay_rejects_lifetime_initial_outside_component_bounds():
+    with pytest.raises(ValueError, match="initial lifetime must fall within its bounds"):
+        fit_decay(
+            t=np.array([0.0, 0.1, 0.2, 0.3, 0.4]),
+            counts=np.array([100, 80, 60, 40, 20]),
+            channelwidth=0.1,
+            num_exponentials=2,
+            tau_init=[0.05, 2.0],
+            tau_bounds_per_component=[(0.1, 1.0), (1.5, 3.0)],
+            start=0,
+            end=5,
+            background=0.0,
+        )
 
 
 def test_fetch_irf_data_treats_none_mapping_responses_as_unmapped():

@@ -8,6 +8,7 @@ import {
   useMemo,
   useEffect,
   useCallback,
+  useRef,
 } from "react";
 import { UploadMetadata } from "@/types/hdf5";
 import {
@@ -89,6 +90,10 @@ interface Hdf5DataContextType {
     result: ChangePointResult,
   ) => void;
   clearCpaResults: () => void;
+  restoreCpaResultsForSession: (
+    uploadId: string,
+    results: Record<string, ChangePointResult>,
+  ) => void;
 
   //measurement IDs actively resolving (for sidebar spinners)
   cpaProcessingIds: Set<string>;
@@ -176,6 +181,7 @@ export function Hdf5DataProvider({
   const [cpaResults, setCpaResults] = useState<
     Record<string, ChangePointResult>
   >({});
+  const sessionCpaRestoreUpload = useRef<string | null>(null);
   const [cpaProcessingIds, setCpaProcessingIds] = useState<Set<string>>(
     new Set(),
   );
@@ -237,6 +243,12 @@ export function Hdf5DataProvider({
 
   // Reset results if user switches to a different upload
   useEffect(() => {
+    if (sessionCpaRestoreUpload.current === currentUpload) {
+      sessionCpaRestoreUpload.current = null;
+      setCpaProcessingIds(new Set());
+      setGroupingResults({});
+      return;
+    }
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCpaResults({});
     setCpaProcessingIds(new Set());
@@ -286,6 +298,14 @@ export function Hdf5DataProvider({
   const clearCpaResults = useCallback(() => {
     setCpaResults({});
   }, []);
+
+  const restoreCpaResultsForSession = useCallback(
+    (uploadId: string, results: Record<string, ChangePointResult>) => {
+      sessionCpaRestoreUpload.current = uploadId === currentUpload ? null : uploadId;
+      setCpaResults(results);
+    },
+    [currentUpload],
+  );
 
   const groupingData = useMemo(() => {
     return groupingResults[activeKey] || undefined;
@@ -475,6 +495,7 @@ export function Hdf5DataProvider({
       setCpaResults,
       setCpaResultForMeasurement,
       clearCpaResults,
+      restoreCpaResultsForSession,
       cpaProcessingIds,
       setCpaProcessingIds,
       getAllResolvedLevels,
@@ -534,6 +555,7 @@ export function Hdf5DataProvider({
       cpaResults,
       setCpaResultForMeasurement,
       clearCpaResults,
+      restoreCpaResultsForSession,
       cpaProcessingIds,
       getAllResolvedLevels,
       currentWorkspaceId,
