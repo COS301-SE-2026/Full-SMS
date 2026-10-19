@@ -7,7 +7,55 @@ import {
   useState,
   ReactNode,
   useMemo,
+    useCallback,
+    useRef,
 } from "react";
+
+export type LifetimeFitDialogSettings = {
+    background: boolean;
+    detectEndpoint: boolean;
+    startMode: string;
+    useIRF: boolean;
+    useSimulatedIRF: boolean;
+    fitFWHM: boolean;
+    scope: string;
+    fitTarget: "measurement" | "selected-level" | "all-levels";
+    numExponents: number;
+    tauInit: [number, number, number];
+    tauBounds: [[number, number], [number, number], [number, number]];
+    shiftInit: number;
+    shiftBoundsMin: number;
+    shiftBoundsMax: number;
+    startChannel: number;
+    endChannel: number;
+    backgroundValue: number;
+    fhwm: number;
+    fwhmBoundsMin: number;
+    fwhmBoundsMax: number;
+}
+
+const DEFAULT_LIFETIME_FIT_DIALOG_SETTINGS: LifetimeFitDialogSettings = {
+    background: true,
+    detectEndpoint: true,
+    startMode: "(Close to) max",
+    useIRF: true,
+    useSimulatedIRF: false,
+    fitFWHM: false,
+    scope: "Current",
+    fitTarget: "measurement",
+    numExponents: 1,
+    tauInit: [5.0, 1.0, 0.1],
+    tauBounds: [[0.01, 100.0], [0.01, 100.0], [0.01, 100.0]],
+    shiftInit: 0,
+    shiftBoundsMin: -2000,
+    shiftBoundsMax: 2000,
+    startChannel: 0,
+    endChannel: 4096,
+    backgroundValue: 0,
+    fhwm: 0.1,
+    fwhmBoundsMin: 0.01,
+    fwhmBoundsMax: 2.0,
+};
 
 interface AnalysisTabContextType {
     activeTab: string 
@@ -23,7 +71,10 @@ interface AnalysisTabContextType {
     fitResult: LifetimeRes | null,
     setFitResult: (res: LifetimeRes | null) => void
     fitResultsByTarget: Record<string, LifetimeRes>
+    setFitResultsByTarget: (results: Record<string, LifetimeRes>) => void
     setFitResultForTarget: (key: string, res: LifetimeRes) => void
+    fitDialogSettings: LifetimeFitDialogSettings
+    setFitDialogSettings: (settings: LifetimeFitDialogSettings) => void
     showIRF: boolean
     setShowIRF: (show: boolean) => void
     irfCounts: number[]
@@ -34,6 +85,8 @@ interface AnalysisTabContextType {
     setMappingDialog: (b: boolean) =>void
     selectedLevelIdx : number | null
     setSelectedLevelIdx: (idx: number | null ) => void
+    restoreSelectedLevelIdx: (idx: number | null, skipNextReset: boolean) => void
+    resetSelectedLevelForViewChange: () => void
 }
 
 const AnalysisTabContext = createContext<AnalysisTabContextType | undefined> (undefined)
@@ -50,8 +103,25 @@ export function AnalysisTabProvider({children}: {readonly children: ReactNode}){
     const [decayTimes, setDecayTimes] = useState<number[]>([])
     const [fitResult, setFitResult] = useState<LifetimeRes | null>(null)
     const [fitResultsByTarget, setFitResultsByTarget] = useState<Record<string, LifetimeRes>>({})
+    const [fitDialogSettings, setFitDialogSettings] = useState<LifetimeFitDialogSettings>(DEFAULT_LIFETIME_FIT_DIALOG_SETTINGS)
     const [mappingDialog, setMappingDialog] =useState<boolean>(false)
     const [selectedLevelIdx, setSelectedLevelIdx] = useState<number | null>(null);
+    const skipNextSelectedLevelReset = useRef(false);
+
+    const restoreSelectedLevelIdx = useCallback(
+        (idx: number | null, skipNextReset: boolean) => {
+            skipNextSelectedLevelReset.current = skipNextReset;
+            setSelectedLevelIdx(idx);
+        },
+        [],
+    );
+    const resetSelectedLevelForViewChange = useCallback(() => {
+        if (skipNextSelectedLevelReset.current) {
+            skipNextSelectedLevelReset.current = false;
+            return;
+        }
+        setSelectedLevelIdx(null);
+    }, []);
     
 
     const contextValue = useMemo(()=>({
@@ -74,14 +144,21 @@ export function AnalysisTabProvider({children}: {readonly children: ReactNode}){
         fitResult,
         setFitResult,
         fitResultsByTarget,
+        setFitResultsByTarget: (results: Record<string, LifetimeRes>) => {
+            setFitResultsByTarget(results)
+        },
         setFitResultForTarget: (key: string, res: LifetimeRes) => {
             setFitResultsByTarget((previous) => ({ ...previous, [key]: res }))
         },
+        fitDialogSettings,
+        setFitDialogSettings,
         mappingDialog, 
         setMappingDialog,
         selectedLevelIdx,
-        setSelectedLevelIdx
-    }),[activeTab, fittingDialogOpen, showIRF, irfCounts, irfTimes, useLogScale, decayCounts, decayTimes, fitResult, fitResultsByTarget, mappingDialog, selectedLevelIdx])
+        setSelectedLevelIdx,
+        restoreSelectedLevelIdx,
+        resetSelectedLevelForViewChange
+    }),[activeTab, fittingDialogOpen, showIRF, irfCounts, irfTimes, useLogScale, decayCounts, decayTimes, fitResult, fitResultsByTarget, fitDialogSettings, mappingDialog, selectedLevelIdx, restoreSelectedLevelIdx, resetSelectedLevelForViewChange])
 
     return (
         <AnalysisTabContext.Provider value={contextValue}>

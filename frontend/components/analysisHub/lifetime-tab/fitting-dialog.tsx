@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Card, CardContent, CardFooter, Toggle } from "@/components/ui";
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { useAnalysisTab } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
 import { LifetimeReq, LifetimeRes, LevelData, StartpointMode } from "@/types/analysis";
@@ -22,7 +22,7 @@ type FitOptions = {
   useIRF: boolean;
   numExponents: number;
   tauInit: number[];
-  tauBounds: [number, number];
+  tauBoundsPerComponent: [number, number][];
   autostart: StartpointMode;
   autoend: boolean;
   start: number | null;
@@ -35,6 +35,11 @@ type FitOptions = {
   irfFwhmBounds: [number, number] | null;
 };
 type FitOutcome = { target: FitCurveTarget; result: LifetimeRes | null };
+const TAU_COMPONENTS = [
+  { key: "tau1", index: 0 },
+  { key: "tau2", index: 1 },
+  { key: "tau3", index: 2 },
+] as const;
 
 function createFitOptions(values: {
   uploadId: string;
@@ -44,8 +49,7 @@ function createFitOptions(values: {
   fitFWHM: boolean;
   numExponents: number;
   tauInit: number[];
-  boundsMin: number;
-  boundsMax: number;
+  tauBoundsPerComponent: [number, number][];
   startMode: string;
   detectEndpoint: boolean;
   startChannel: number;
@@ -66,7 +70,7 @@ function createFitOptions(values: {
     useIRF: values.useIRF,
     numExponents: values.numExponents,
     tauInit: values.tauInit,
-    tauBounds: [values.boundsMin, values.boundsMax],
+    tauBoundsPerComponent: values.tauBoundsPerComponent,
     autostart: mapStartMode(values.startMode),
     autoend: values.detectEndpoint,
     start: values.startMode === "Manual" ? values.startChannel : null,
@@ -82,30 +86,119 @@ function createFitOptions(values: {
   };
 }
 
+function TauParameterRow({
+  index,
+  initial,
+  bounds,
+  onInitialChange,
+  onBoundsChange,
+}: Readonly<{
+  index: number;
+  initial: number;
+  bounds: [number, number];
+  onInitialChange: (value: number) => void;
+  onBoundsChange: (boundIndex: 0 | 1, value: number) => void;
+}>) {
+  return (
+    <div className="grid grid-cols-[3rem_repeat(3,minmax(0,1fr))] items-center gap-2">
+      <span>&tau;<sub>{index + 1}</sub></span>
+      <input
+        aria-label={`tau${index + 1} initial (ns)`}
+        className="min-w-0 border rounded-sm p-1 bg-card"
+        type="number"
+        step={0.1}
+        value={initial}
+        onChange={(event) => onInitialChange(Number(event.target.value))}
+      />
+      <input
+        aria-label={`tau${index + 1} minimum (ns)`}
+        className="min-w-0 border rounded-sm p-1 bg-card"
+        type="number"
+        step={0.01}
+        value={bounds[0]}
+        onChange={(event) => onBoundsChange(0, Number(event.target.value))}
+      />
+      <input
+        aria-label={`tau${index + 1} maximum (ns)`}
+        className="min-w-0 border rounded-sm p-1 bg-card"
+        type="number"
+        step={1}
+        value={bounds[1]}
+        onChange={(event) => onBoundsChange(1, Number(event.target.value))}
+      />
+    </div>
+  );
+}
+
+function validateLifetimeParameters(
+  numExponents: number,
+  tauInit: number[],
+  tauBounds: [number, number][],
+): string | null {
+  for (let index = 0; index < numExponents; index += 1) {
+    const initial = tauInit[index];
+    const [minimum, maximum] = tauBounds[index] ?? [];
+    if (!Number.isFinite(minimum) || !Number.isFinite(maximum) || minimum >= maximum) {
+      return `tau${index + 1} minimum must be less than its maximum`;
+    }
+    if (!Number.isFinite(initial) || initial < minimum || initial > maximum) {
+      return `tau${index + 1} initial value must be within its bounds`;
+    }
+  }
+  return null;
+}
+
+function validateFwhmParameters(
+  initial: number,
+  bounds: [number, number],
+): string | null {
+  const [minimum, maximum] = bounds;
+  if (!Number.isFinite(minimum) || !Number.isFinite(maximum) || minimum >= maximum) {
+    return "FWHM minimum must be less than its maximum";
+  }
+  if (!Number.isFinite(initial) || initial < minimum || initial > maximum) {
+    return "FWHM initial value must be within its bounds";
+  }
+  return null;
+}
+
+function executeFitWorker(
+  targets: FitCurveTarget[],
+  options: FitOptions,
+  index: number,
+  stride: number,
+): Promise<FitOutcome[]> {
+  const outcomes: FitOutcome[] = [];
+  const runNext = (targetIndex: number): Promise<void> => {
+    const target = targets[targetIndex];
+    if (!target) return Promise.resolve();
+
+    return fitCurveTarget(target, options)
+      .then((result) => outcomes.push({ target, result }))
+      .catch((error: unknown) => {
+        console.error(`Lifetime fit failed for ${getTargetLabel(target)}`, error);
+        outcomes.push({ target, result: null });
+      })
+      .then(() => runNext(targetIndex + stride));
+  };
+  return runNext(index).then(() => outcomes);
+}
+
 async function executeFitTargets(
   targets: FitCurveTarget[],
   options: FitOptions,
 ): Promise<FitOutcome[]> {
-  return Promise.all(
-    targets.map(async (target) => {
-      try {
-        return { target, result: await fitCurveTarget(target, options) };
-      } catch (error) {
-        console.error(`Lifetime fit failed for ${getTargetLabel(target)}`, error);
-        return { target, result: null };
-      }
-    }),
+  const workerCount = Math.min(4, targets.length);
+  const workers = Array.from({ length: workerCount }, (_, index) =>
+    executeFitWorker(targets, options, index, workerCount),
   );
+  return (await Promise.all(workers)).flat();
 }
 
 function storeFitOutcomes(
   outcomes: FitOutcome[],
   values: {
     uploadId: string;
-    currentMeasurement: string;
-    currentChannel: number;
-    selectedLevelIdx: number | null;
-    setFitResult: (result: LifetimeRes) => void;
     setFitResultForTarget: (key: string, result: LifetimeRes) => void;
   },
 ): string[] {
@@ -120,12 +213,6 @@ function storeFitOutcomes(
       : "full";
     const resultKey = `${values.uploadId}:${target.measurementId}:${target.channel}:${levelKey}`;
     values.setFitResultForTarget(resultKey, result);
-
-    const matchesCurrentView =
-      target.measurementId === values.currentMeasurement &&
-      target.channel === values.currentChannel &&
-      (target.levelIndex ?? null) === values.selectedLevelIdx;
-    if (matchesCurrentView) values.setFitResult(result);
   }
   return failures;
 }
@@ -174,7 +261,8 @@ async function fitCurveTarget(
     counts: histogram.counts,
     num_exponentials: options.numExponents,
     tau_init: options.tauInit,
-    tau_bounds: options.tauBounds,
+    tau_bounds: options.tauBoundsPerComponent[0],
+    tau_bounds_per_component: options.tauBoundsPerComponent,
     autostart: options.autostart,
     autoend: options.autoend,
     start: options.start,
@@ -197,39 +285,53 @@ function getTargetLabel(target: FitCurveTarget): string {
 }
 
 export default function FittingDialog() {
-  const [background, setBackground] = useState<boolean>(true);
-  const [detectEndpoint, setDetectEndpoint] = useState<boolean>(true);
-  const [startMode, setStartMode] = useState<string>("(Close to) max");
-  const [useIRF, setUseIRF] = useState<boolean>(true);
-  const [useSimulatedIRF, setUseSimulatedIRF] = useState<boolean>(false);
-  const [fitFWHM, setFitFWHM] = useState<boolean>(false);
-  const [scope, setScope] = useState<string>("Current");
-  const [fitTarget, setFitTarget] = useState<FitTargetKind>("measurement");
-  const [numExponents, setNumExponents] = useState<number>(1);
-
-  // Multi-exponential lifetime initial guesses (defaults match Full-SMS desktop)
-  const [tau1Init, setTau1Init] = useState<number>(5.0);
-  const [tau2Init, setTau2Init] = useState<number>(1.0);
-  const [tau3Init, setTau3Init] = useState<number>(0.1);
-
-  const [boundsMin, setBoundsMin] = useState<number>(0.01);
-  const [boundsMax, setBoundsMax] = useState<number>(100.0);
-  const [fhwm, setFhwm] = useState<number>(0.1);
-  const [fwhmBoundsMin, setFwhmBoundsMin] = useState<number>(0);
-  const [fwhmBoundsMax, setFwhmBoundsMax] = useState<number>(2);
-  const [shiftInit, setShiftInit] = useState<number>(0);
-  const [shiftBoundsMin, setShiftBoundsMin] = useState<number>(-2000);
-  const [shiftBoundsMax, setShiftBoundsMax] = useState<number>(2000);
-  const [startChannel, setStartChannel] = useState<number>(0);
-  const [endChannel, setEndChannel] = useState<number>(4096);
-  const [backgroundValue, setBackgroundValue] = useState<number>(0);
-
   const {
     setFittingDialogOpen,
-    setFitResult,
     setFitResultForTarget,
     selectedLevelIdx,
+    fitDialogSettings,
+    setFitDialogSettings,
   } = useAnalysisTab();
+
+  const [background, setBackground] = useState(fitDialogSettings.background);
+  const [detectEndpoint, setDetectEndpoint] = useState(fitDialogSettings.detectEndpoint);
+  const [startMode, setStartMode] = useState(fitDialogSettings.startMode);
+  const [useIRF, setUseIRF] = useState(fitDialogSettings.useIRF);
+  const [useSimulatedIRF, setUseSimulatedIRF] = useState(fitDialogSettings.useSimulatedIRF);
+  const [fitFWHM, setFitFWHM] = useState(fitDialogSettings.fitFWHM);
+  const [scope, setScope] = useState(fitDialogSettings.scope);
+  const [fitTarget, setFitTarget] = useState<FitTargetKind>(fitDialogSettings.fitTarget);
+  const [numExponents, setNumExponents] = useState(fitDialogSettings.numExponents);
+  const [tauInit, setTauInit] = useState<[number, number, number]>(fitDialogSettings.tauInit);
+  const [tauBounds, setTauBounds] = useState<[[number, number], [number, number], [number, number]]>(fitDialogSettings.tauBounds);
+  const [fhwm, setFhwm] = useState(fitDialogSettings.fhwm);
+  const [fwhmBoundsMin, setFwhmBoundsMin] = useState(fitDialogSettings.fwhmBoundsMin);
+  const [fwhmBoundsMax, setFwhmBoundsMax] = useState(fitDialogSettings.fwhmBoundsMax);
+  const [shiftInit, setShiftInit] = useState(fitDialogSettings.shiftInit);
+  const [shiftBoundsMin, setShiftBoundsMin] = useState(fitDialogSettings.shiftBoundsMin);
+  const [shiftBoundsMax, setShiftBoundsMax] = useState(fitDialogSettings.shiftBoundsMax);
+  const [startChannel, setStartChannel] = useState(fitDialogSettings.startChannel);
+  const [endChannel, setEndChannel] = useState(fitDialogSettings.endChannel);
+  const [backgroundValue, setBackgroundValue] = useState(fitDialogSettings.backgroundValue);
+
+  const updateTauInitial = (index: number, value: number) => {
+    setTauInit((previous) => {
+      const updated = [...previous] as [number, number, number];
+      updated[index] = value;
+      return updated;
+    });
+  };
+  const updateTauBound = (index: number, boundIndex: 0 | 1, value: number) => {
+    setTauBounds((previous) => {
+      const updated = previous.map((bounds, componentIndex) => {
+        if (componentIndex !== index) return bounds;
+        return boundIndex === 0
+          ? [value, bounds[1]] as [number, number]
+          : [bounds[0], value] as [number, number];
+      }) as [[number, number], [number, number], [number, number]];
+      return updated;
+    });
+  };
 
   const {
     currentMeasurement,
@@ -255,11 +357,8 @@ export default function FittingDialog() {
 
   const initialSettings = useRef({
     numExponents,
-    tau1Init,
-    tau2Init,
-    tau3Init,
-    boundsMin,
-    boundsMax,
+    tauInit,
+    tauBounds,
     background,
     detectEndpoint,
     useIRF,
@@ -269,6 +368,31 @@ export default function FittingDialog() {
     fwhmBoundsMin,
     fwhmBoundsMax,
   });
+
+  useEffect(() => {
+    setFitDialogSettings({
+      background,
+      detectEndpoint,
+      startMode,
+      useIRF,
+      useSimulatedIRF,
+      fitFWHM,
+      scope,
+      fitTarget,
+      numExponents,
+      tauInit,
+      tauBounds,
+      shiftInit,
+      shiftBoundsMin,
+      shiftBoundsMax,
+      startChannel,
+      endChannel,
+      backgroundValue,
+      fhwm,
+      fwhmBoundsMin,
+      fwhmBoundsMax,
+    });
+  }, [background, detectEndpoint, startMode, useIRF, useSimulatedIRF, fitFWHM, scope, fitTarget, numExponents, tauInit, tauBounds, shiftInit, shiftBoundsMin, shiftBoundsMax, startChannel, endChannel, backgroundValue, fhwm, fwhmBoundsMin, fwhmBoundsMax, setFitDialogSettings]);
 
   const selectedLevel =
     selectedLevelIdx === null ? undefined : cpaData?.levels?.[selectedLevelIdx];
@@ -349,7 +473,8 @@ export default function FittingDialog() {
   };
 
   const fetchLifetimeFitting = async (targets: FitCurveTarget[]) => {
-    const tauInit = [tau1Init, tau2Init, tau3Init].slice(0, numExponents);
+    const activeTauInit = tauInit.slice(0, numExponents);
+    const activeTauBounds = tauBounds.slice(0, numExponents);
     const fitOptions = createFitOptions({
       uploadId: currentUpload,
       bin,
@@ -357,9 +482,8 @@ export default function FittingDialog() {
       useSimulatedIRF,
       fitFWHM,
       numExponents,
-      tauInit,
-      boundsMin,
-      boundsMax,
+      tauInit: activeTauInit,
+      tauBoundsPerComponent: activeTauBounds,
       startMode,
       detectEndpoint,
       startChannel,
@@ -376,10 +500,6 @@ export default function FittingDialog() {
     const outcomes = await executeFitTargets(targets, fitOptions);
     const failures = storeFitOutcomes(outcomes, {
       uploadId: currentUpload,
-      currentMeasurement,
-      currentChannel,
-      selectedLevelIdx,
-      setFitResult,
       setFitResultForTarget,
     });
     const successCount = targets.length - failures.length;
@@ -393,6 +513,28 @@ export default function FittingDialog() {
   };
 
   const handleFit = () => {
+    const activeTauInit = tauInit.slice(0, numExponents);
+    const activeTauBounds = tauBounds.slice(0, numExponents);
+    const tauValidationError = validateLifetimeParameters(
+      numExponents,
+      activeTauInit,
+      activeTauBounds,
+    );
+    if (tauValidationError) {
+      errorToast(tauValidationError);
+      return;
+    }
+    if (useIRF && useSimulatedIRF && fitFWHM) {
+      const fwhmValidationError = validateFwhmParameters(fhwm, [
+        fwhmBoundsMin,
+        fwhmBoundsMax,
+      ]);
+      if (fwhmValidationError) {
+        errorToast(fwhmValidationError);
+        return;
+      }
+    }
+
     const targets = getFitTargets();
     if (targets.length === 0) {
       errorToast(
@@ -405,11 +547,8 @@ export default function FittingDialog() {
 
     const newSettings = {
       numExponents,
-      tau1Init,
-      tau2Init,
-      tau3Init,
-      boundsMin,
-      boundsMax,
+      tauInit,
+      tauBounds,
       background,
       detectEndpoint,
       useIRF,
@@ -433,7 +572,11 @@ export default function FittingDialog() {
           name="fit-target"
           className="border p-2 rounded-sm font-mono bg-card"
           value={activeFitTarget}
-          onChange={(event) => setFitTarget(event.target.value as FitTargetKind)}
+          onChange={(event) => {
+            const target = event.target.value as FitTargetKind;
+            setFitTarget(target);
+            if (target === "selected-level") setScope("Current");
+          }}
         >
           <option value="measurement">Measurement (full decay)</option>
           {canFitSelectedLevel && (
@@ -487,84 +630,24 @@ export default function FittingDialog() {
         Lifetime Parameters (tau, ns)
       </CardContent>
       <div className="p-4 border-b flex flex-col gap-2">
-        <div className="flex items-center">
-          <label className="w-20" htmlFor="tau1 init">
-            &tau;<sub>1</sub> init:{" "}
-          </label>
-          <input
-            className="border rounded-sm p-1 bg-card"
-            type="number"
-            name="tau1 init"
-            min={0.001}
-            step={0.1}
-            value={tau1Init}
-            onChange={(e) => setTau1Init(Number(e.target.value))}
+        <div className="grid grid-cols-[3rem_repeat(3,minmax(0,1fr))] gap-2 text-muted-foreground">
+          <span />
+          <span>Init (ns)</span>
+          <span>Min (ns)</span>
+          <span>Max (ns)</span>
+        </div>
+        {TAU_COMPONENTS.slice(0, numExponents).map(({ key, index }) => (
+          <TauParameterRow
+            key={key}
+            index={index}
+            initial={tauInit[index]}
+            bounds={tauBounds[index]}
+            onInitialChange={(value) => updateTauInitial(index, value)}
+            onBoundsChange={(boundIndex, value) =>
+              updateTauBound(index, boundIndex, value)
+            }
           />
-        </div>
-
-        {numExponents >= 2 && (
-          <div className="flex items-center">
-            <label className="w-20" htmlFor="tau2 init">
-              &tau;<sub>2</sub> init:{" "}
-            </label>
-            <input
-              className="border rounded-sm p-1 bg-card"
-              type="number"
-              name="tau2 init"
-              min={0.001}
-              step={0.1}
-              value={tau2Init}
-              onChange={(e) => setTau2Init(Number(e.target.value))}
-            />
-          </div>
-        )}
-
-        {numExponents >= 3 && (
-          <div className="flex items-center">
-            <label className="w-20" htmlFor="tau3 init">
-              &tau;<sub>3</sub> init:{" "}
-            </label>
-            <input
-              className="border rounded-sm p-1 bg-card"
-              type="number"
-              name="tau3 init"
-              min={0.001}
-              step={0.1}
-              value={tau3Init}
-              onChange={(e) => setTau3Init(Number(e.target.value))}
-            />
-          </div>
-        )}
-
-        <div className="mt-2">
-          <p className="mb-2 font-bold">Bounds (ns): </p>
-          <div className="flex items-center gap-4">
-            <label htmlFor="min" className="mr-1">
-              min:
-            </label>
-            <input
-              className="border rounded-sm p-1 w-24 bg-card"
-              type="number"
-              name="min"
-              min={0.001}
-              step={0.01}
-              value={boundsMin}
-              onChange={(e) => setBoundsMin(Number(e.target.value))}
-            />
-            <label htmlFor="max" className="mr-1">
-              max:
-            </label>
-            <input
-              className="border rounded-sm p-1 w-24 bg-card"
-              type="number"
-              name="max"
-              min={0.01}
-              step={1}
-              value={boundsMax}
-              onChange={(e) => setBoundsMax(Number(e.target.value))}
-            />
-          </div>
-        </div>
+        ))}
       </div>
 
       <CardContent className="font-semibold">IRF Settings</CardContent>
@@ -613,7 +696,7 @@ export default function FittingDialog() {
                         className="border rounded-sm p-1 w-20 bg-card"
                         type="number"
                         name="fwhm-min"
-                        min={0}
+                        min={0.01}
                         step={0.05}
                         value={fwhmBoundsMin}
                         onChange={(e) =>

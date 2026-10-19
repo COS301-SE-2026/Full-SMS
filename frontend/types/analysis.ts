@@ -96,6 +96,7 @@ export type LifetimeReq = {
     num_exponentials?: number; // Default: 1
     tau_init?: number | number[] | null;
     tau_bounds?: [number, number] | null;
+    tau_bounds_per_component?: [number, number][] | null;
     amp_init?: number[] | null;
     amp_bounds?: [number, number] | null;
     shift_init?: number; // Default: 0.0

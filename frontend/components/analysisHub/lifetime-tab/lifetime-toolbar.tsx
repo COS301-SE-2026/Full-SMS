@@ -34,10 +34,12 @@ export default function LifetimeToolbar({
     setShowIRF,
     setMappingDialog,
     setFitResult,
+    fitResultsByTarget,
     setDecayTimes,
     setDecayCounts,
     selectedLevelIdx,
-    setSelectedLevelIdx
+    setSelectedLevelIdx,
+    resetSelectedLevelForViewChange,
   } = useAnalysisTab();
   
   const {
@@ -68,8 +70,21 @@ export default function LifetimeToolbar({
   }, [currentWorkspaceId, currentUpload, currentMeasurement, currentChannel]);
 
   useEffect(() => {
-    setSelectedLevelIdx(null);
-  }, [currentUpload, currentMeasurement, currentChannel, setSelectedLevelIdx]);
+    resetSelectedLevelForViewChange();
+  }, [currentUpload, currentMeasurement, currentChannel, resetSelectedLevelForViewChange]);
+
+  const selectedLevel =
+    selectedLevelIdx === null ? undefined : cpaData?.levels?.[selectedLevelIdx];
+  const currentFitKey = `${currentUpload}:${currentMeasurement}:${currentChannel}:${
+    selectedLevel
+      ? `${selectedLevel.start_index}-${selectedLevel.end_index}`
+      : "full"
+  }`;
+  const currentFitResult = fitResultsByTarget[currentFitKey] ?? null;
+
+  useEffect(() => {
+    setFitResult(currentFitResult);
+  }, [currentFitResult, setFitResult]);
 
   const handleLevelSelect = async (idx: number) => {
     setSelectedLevelIdx(idx === -1 ? null : idx);
