@@ -137,13 +137,14 @@ def lifetime_fitting(payload: LifetimeReq):
     has_real_irf = irf_counts is not None or payload.fit_irf_fwhm
 
     fit_result = fit_decay(
-        counts=np.array(payload.counts, dtype=np.float64),
+        counts=np.array(payload.counts, dtype=np.int64),
         t=np.array(payload.times, dtype=np.float64),
         channelwidth=channel_width,
         irf=irf_counts if irf_counts is not None else None,
         num_exponentials=payload.num_exponentials,
         tau_init=payload.tau_init,
         tau_bounds=payload.tau_bounds,
+        tau_bounds_per_component=payload.tau_bounds_per_component,
         amp_init=payload.amp_init,
         amp_bounds=payload.amp_bounds,
         shift_init=payload.shift_init,

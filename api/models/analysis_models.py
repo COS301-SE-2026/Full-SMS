@@ -43,6 +43,7 @@ class LifetimeReq(BaseModel):
     num_exponentials: int = 1
     tau_init: Optional[float | list[float]] = None
     tau_bounds: Optional[Tuple[float, float]] = None
+    tau_bounds_per_component: Optional[List[Tuple[float, float]]] = None
     amp_init: Optional[list[float]] = None
     amp_bounds: Optional[Tuple[float, float]] = None
     shift_init: float = 0.0
