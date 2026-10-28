@@ -1,6 +1,7 @@
 import React, {useState} from 'react'
 import LifetimeToolbar from './lifetime-toolbar'
 import LifetimeCharts from './lifetime-charts'
+import LifetimeLevelPlot from './lifetime-level-plot'
 import { useHistory } from '@/hooks/useHistory'
 import { HistoryPanel } from '../history/HistoryPanel'
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
@@ -39,6 +40,8 @@ export default function LifetimeTab() {
           open={newCommentOpen}
           onSubmit={addComment}
           onClose={() => setNewCommentOpen(false)}/>
+
+        <LifetimeLevelPlot />
 
         <LifetimeCharts
           comments={comments}

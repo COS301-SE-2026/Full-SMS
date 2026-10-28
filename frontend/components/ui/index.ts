@@ -12,6 +12,8 @@ export type { BadgeProps } from './Badge'
 
 export { Loader } from './Loader'
 export type { LoaderProps } from './Loader'
+export { ChartLoadingOverlay } from './ChartLoadingOverlay'
+export type { ChartLoadingOverlayProps } from './ChartLoadingOverlay'
 
 export { Checkbox } from './checkbox'
 export type { CheckboxProps } from './checkbox'
