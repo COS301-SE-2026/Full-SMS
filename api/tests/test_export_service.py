@@ -85,7 +85,7 @@ class TestExportLevelsData:
         outpt_file = tmp_path / "levels.csv"
         outpt_file.write_text("fake")
 
-        def fake_export_levels(levels, output_path, fmt, measurement_name):
+        def fake_export_levels(levels, output_path, fmt, measurement_name, level_fits=None):
             return outpt_file
 
         original_exporter = export_service.exporters.export_levels 
@@ -185,7 +185,7 @@ class TestExportFitsData:
 
         def fake_export_fitResults(fit_results, output_path, fmt):
             key = list(fit_results.keys())[0]
-            assert key == (7, 1, 0)
+            assert key == (7, 1, -1)
             assert fit_results[key].chi_squared == 1391.1055
             return outpt_file
 
@@ -566,7 +566,7 @@ class TestProcessSelection:
         def bic_plot_fake(req, analysis_getter, data, name):
             return None
 
-        def get_saved_analysis_fake(upload_id, measurement_id, user_id):
+        def get_saved_analysis_fake(upload_id, measurement_id, user_id, channel=1):
             raise AssertionError("shouldn't be called when levels and groups as well as plots aren't requested")
 
 
@@ -613,7 +613,7 @@ class TestProcessSelection:
         def getMeasurement_data_fake(upload_id, measurement_id, user_id):
             return fake_data
 
-        def get_saved_analysis_fake(upload_id, measurement_id, user_id):
+        def get_saved_analysis_fake(upload_id, measurement_id, user_id, channel=1):
             call_count["n"] += 1
 
             return {
@@ -627,7 +627,7 @@ class TestProcessSelection:
         def intensity_data_fake(req, data, channel, name):
             return None
 
-        def levelsData_fake(req, analysis, name):
+        def levelsData_fake(req, analysis, name, measurement_id=None, channel=1):
             return (Path("levels.csv"),"m1_levels.csv")
 
         def groupsData_fake(req, analysis, name):
@@ -692,7 +692,7 @@ class TestProcessSelection:
             def getMeasurement_data_fake(upload_id, measurement_id, user_id):
                 return fake_data
 
-            def get_saved_analysis_fake(upload_id, measurement_id, user_id):
+            def get_saved_analysis_fake(upload_id, measurement_id, user_id, channel=1):
                 return {"levels": None, "groups":None, "fits": {"tau": [1.0]}}
     
             def intensity_data_fake(req, data, channel, name):
