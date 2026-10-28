@@ -38,6 +38,7 @@ def get_spectra_data(req: RasterScanReq):
 class LifetimePayload(BaseModel):
     upload_id: str
     measurement_id: str
+    workspace_id: Optional[str] = None
     bin_size_ms: float
     channel: int = 1
     start_photon_idx: Optional[int] = None

@@ -451,7 +451,7 @@ def test_lifetime_fitting_uses_selected_channel_irf(use_irf):
 
     if use_irf:
         fetch_irf.assert_called_once_with(
-            dataset_ref="dataset", measurement_id="2", channel=2
+            dataset_ref="dataset", measurement_id="2", channel=2, workspace_id=None
         )
         np.testing.assert_array_equal(fit_decay.call_args.kwargs["irf"], irf_counts)
         assert fit_decay.call_args.kwargs["tau_bounds_per_component"] == [(0.5, 5.0)]
@@ -836,3 +836,118 @@ def test_cache_fallback_service_upload_not_found(
     with pytest.raises(IndexError):
         cache_fallback_service(upload_id, 1)
     
+
+
+def test_full_range_residuals_cover_whole_decay():
+    from api.services.analysis_services.lifetime import _full_range_residuals
+
+    times = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
+    counts = np.array([1.0, 4.0, 100.0, 50.0, 25.0])
+    residuals = _full_range_residuals(
+        times=times,
+        counts=counts,
+        fit_curve=np.array([100.0, 50.0]),
+        fit_start=2,
+        fit_end=4,
+        background=1.0,
+        average_lifetime=1.0,
+    )
+
+    assert len(residuals) == 5
+    assert all(r is not None for r in residuals)
+    assert residuals[2] == pytest.approx(0.0)
+    assert residuals[0] == pytest.approx(0.0)  # pre-window model starts at the background
+    expected_tail = 1.0 + (50.0 - 1.0) * np.exp(-1.0)
+    assert residuals[4] == pytest.approx((25.0 - expected_tail) / 5.0)
+
+
+def test_full_range_residuals_without_fit_are_empty():
+    from api.services.analysis_services.lifetime import _full_range_residuals
+
+    assert _full_range_residuals(
+        np.arange(3.0), np.ones(3), np.array([]), 0, 0, 0.0, 1.0
+    ) == [None, None, None]
+
+
+@pytest.mark.parametrize(
+    "request_kwargs, fitted_fwhm, irf_counts, expected_source, expected_fwhm",
+    [
+        ({"use_irf": True}, None, np.array([0.0, 2.0, 1.0]), "mapped", None),
+        ({"use_irf": True, "simulated_irf_fwhm": 0.2}, None, np.array([1.0, 3.0, 1.0]), "simulated", 0.2),
+        ({"use_irf": True, "simulated_irf_fwhm": 0.2, "fit_irf_fwhm": True}, 0.35, np.array([1.0, 3.0, 1.0]), "simulated", 0.35),
+        ({"use_irf": False}, None, None, None, None),
+    ],
+)
+def test_describe_irf_used(request_kwargs, fitted_fwhm, irf_counts, expected_source, expected_fwhm):
+    from types import SimpleNamespace
+
+    from api.legacy.analysis.lifetime import simulate_irf
+    from api.services.analysis_services.lifetime import _describe_irf_used
+
+    request = LifetimeReq(
+        upload_id="u", measurement_id="1", times=[0.0, 0.1, 0.2], counts=[10, 100, 25], **request_kwargs
+    )
+    source, fwhm, irf = _describe_irf_used(
+        request, SimpleNamespace(fitted_irf_fwhm=fitted_fwhm), 0.1, irf_counts
+    )
+
+    assert source == expected_source
+    assert fwhm == expected_fwhm
+    if fitted_fwhm:
+        expected, _ = simulate_irf(0.1, fitted_fwhm, np.array([10, 100, 25], dtype=np.float64))
+        np.testing.assert_allclose(irf, expected)
+    elif irf_counts is not None:
+        np.testing.assert_allclose(irf, irf_counts)
+    else:
+        assert irf is None
+
+
+def _mapping_query(*responses):
+    query = MagicMock()
+    query.execute.side_effect = list(responses)
+    supabase = MagicMock()
+    supabase.table.return_value = query
+    query.select.return_value = query
+    query.eq.return_value = query
+    query.maybe_single.return_value = query
+    query.single.return_value = query
+    return supabase, query
+
+
+def test_fetch_irf_data_cleared_mapping_does_not_fall_back_to_dataset_mapping():
+    from types import SimpleNamespace
+
+    from api.services.analysis_services import lifetime as lifetime_service
+
+    supabase, query = _mapping_query(SimpleNamespace(data={"irf_id": None}))
+
+    with patch.object(lifetime_service, "supabaseClient", supabase):
+        result = lifetime_service._fetch_irf_data("dataset", "3", 1)
+
+    assert result is None
+    assert query.execute.call_count == 1  # no wildcard lookup, no IRF record lookup
+
+
+def test_fetch_irf_data_falls_back_to_dataset_mapping_and_scopes_to_workspace():
+    from types import SimpleNamespace
+
+    from api.services.analysis_services import lifetime as lifetime_service
+
+    supabase, query = _mapping_query(
+        SimpleNamespace(data=None),
+        SimpleNamespace(data={"irf_id": "irf-id"}),
+        SimpleNamespace(data={"storage_key": "irfs/irf.csv"}),
+    )
+
+    with (
+        patch.object(lifetime_service, "supabaseClient", supabase),
+        patch.object(lifetime_service, "download_to_temp", return_value="tmp.csv"),
+        patch.object(lifetime_service, "read_irf", return_value={"t": [0.0], "counts": [1.0]}) as read_irf,
+    ):
+        result = lifetime_service._fetch_irf_data("dataset", "3", 1, workspace_id="ws-1")
+
+    assert result == {"t": [0.0], "counts": [1.0]}
+    read_irf.assert_called_once_with("tmp.csv")
+    eq_calls = [call.args for call in query.eq.call_args_list]
+    assert eq_calls.count(("workspace_id", "ws-1")) == 2
+    assert ("measurement_id", -1) in eq_calls

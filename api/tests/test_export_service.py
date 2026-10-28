@@ -876,3 +876,168 @@ class TestExportIntegration:
 
 
         
+
+def _saved_fit(num_exponentials=1, tau=2.0, **overrides):
+    fit = {
+        "times": [0.0, 0.1, 0.2, 0.3],
+        "counts": [5, 100, 50, 20],
+        "tau": [tau] * num_exponentials,
+        "tau_std": [0.1] * num_exponentials,
+        "amplitude": [1.0 / num_exponentials] * num_exponentials,
+        "amplitude_std": [0.0] * num_exponentials,
+        "shift": 0.05,
+        "shift_std": 0.0,
+        "chi_squared": 1.1,
+        "durbin_watson": 1.9,
+        "dw_bounds": None,
+        "residuals": [None, 0.1, -0.2, 0.3],
+        "fitted_curve": [None, 99.0, 51.0, 19.0],
+        "fit_start_index": 1,
+        "fit_end_index": 4,
+        "background": 1.0,
+        "num_exponentials": num_exponentials,
+        "average_lifetime": tau,
+        "fitted_irf_fwhm": None,
+        "fitted_irf_fwhm_std": None,
+        "irf": [0.0, 10.0, 2.0, 0.0],
+    }
+    fit.update(overrides)
+    return fit
+
+
+def _levels(*ranges):
+    return {"levels": [{"start_index": s, "end_index": e} for s, e in ranges]}
+
+
+class TestPerTargetFitExport:
+    def test_exports_measurement_and_level_fits_for_selection_only(self, tmp_path):
+        analysis = {
+            "levels": _levels((0, 9), (10, 19)),
+            "fit_results_by_target": {
+                "upload123:7:1:full": _saved_fit(tau=3.0),
+                "upload123:7:1:10-19": _saved_fit(tau=1.5),
+                "upload123:7:2:full": _saved_fit(tau=9.0),
+                "upload123:8:1:full": _saved_fit(tau=8.0),
+            },
+        }
+        captured = {}
+
+        def fake_export_fit_results(fit_results, output_path, fmt):
+            captured.update(fit_results)
+            return tmp_path / "fits.csv"
+
+        original = export_service.exporters.export_fit_results
+        export_service.exporters.export_fit_results = fake_export_fit_results
+        try:
+            _export_fits_data(make_request(export_fits=True), analysis, "7", 1, "m7")
+        finally:
+            export_service.exporters.export_fit_results = original
+
+        assert sorted(captured) == [(7, 1, -1), (7, 1, 1)]
+        assert captured[(7, 1, -1)].tau == (3.0,)
+        assert captured[(7, 1, 1)].tau == (1.5,)
+
+    def test_legacy_single_fit_is_skipped_for_other_measurement(self):
+        analysis = {
+            "levels": None,
+            "fits": _saved_fit(),
+            "current_fit_key": "upload123:8:1:full",
+        }
+        with pytest.raises(export_service.MissingAnalysisDataError):
+            _export_fits_data(make_request(export_fits=True), analysis, "7", 1, "m7")
+
+    def test_levels_export_includes_level_fits(self, tmp_path):
+        analysis = {
+            "levels": {"levels": [
+                {"start_index": 0, "end_index": 9, "start_time_ns": 0, "end_time_ns": 10,
+                 "num_photons": 10, "intensity_cps": 1000.0},
+            ]},
+            "fit_results_by_target": {
+                "upload123:7:1:0-9": _saved_fit(tau=2.5),
+                "upload123:7:1:full": _saved_fit(tau=4.0),
+            },
+        }
+        captured = {}
+
+        def fake_export_levels(levels, output_path, fmt, measurement_name, level_fits=None):
+            captured["level_fits"] = level_fits
+            return tmp_path / "levels.csv"
+
+        original = export_service.exporters.export_levels
+        export_service.exporters.export_levels = fake_export_levels
+        try:
+            _export_levels_data(make_request(export_levels=True), analysis, "m7", "7", 1)
+        finally:
+            export_service.exporters.export_levels = original
+
+        assert list(captured["level_fits"]) == [0]
+        assert captured["level_fits"][0].tau == (2.5,)
+
+
+class TestSavedAnalysisPerMeasurement:
+    def test_levels_come_from_cpa_results_and_groups_only_for_current(self):
+        sessions = [{
+            "dataset_ref": "u1",
+            "created_at": "2026-01-01",
+            "results": {
+                "levels": {"measurement_id": "m1", "levels": []},
+                "cpaResults": {"m2": {"measurement_id": "m2", "levels": [{"start_index": 0}]}},
+                "groups": {"data": "m1 groups"},
+                "fitResultsByTarget": {"u1:m2:1:full": {"tau": [1.0]}},
+            },
+        }]
+        original = export_service.get_sessions
+        export_service.get_sessions = lambda user_id: sessions
+        try:
+            result = _get_saved_analysis("u1", "m2", "user1")
+        finally:
+            export_service.get_sessions = original
+
+        assert result["levels"]["measurement_id"] == "m2"
+        assert result["groups"] is None
+        assert "u1:m2:1:full" in result["fit_results_by_target"]
+
+
+class TestExportDecayPlot:
+    def test_uses_saved_fit_window_and_shifted_irf(self, tmp_path):
+        analysis = {"levels": None, "fit_results_by_target": {"upload123:7:1:full": _saved_fit()}}
+        captured = {}
+
+        def fake_export_decay_plot(**kwargs):
+            captured.update(kwargs)
+            return tmp_path / "decay.png"
+
+        original = export_service.plot_exporters.export_decay_plot
+        export_service.plot_exporters.export_decay_plot = fake_export_decay_plot
+        try:
+            _, name = export_service._export_decay_plot(
+                make_request(plot_decay=True), {"name": "m7"}, 1, lambda: analysis, "7", "m7"
+            )
+        finally:
+            export_service.plot_exporters.export_decay_plot = original
+
+        assert name == "m7_decay_plot.png"
+        assert list(captured["fit_result"].fitted_curve) == [99.0, 51.0, 19.0]
+        assert list(captured["irf_t"]) == pytest.approx([0.05, 0.15, 0.25, 0.35])
+        assert captured["show_irf"] is True
+
+    def test_without_fit_builds_histogram_from_microtimes(self, tmp_path):
+        captured = {}
+
+        def fake_export_decay_plot(**kwargs):
+            captured.update(kwargs)
+            return tmp_path / "decay.png"
+
+        original = export_service.plot_exporters.export_decay_plot
+        export_service.plot_exporters.export_decay_plot = fake_export_decay_plot
+        try:
+            export_service._export_decay_plot(
+                make_request(plot_decay=True, plotDecay_fit=False, plotDecay_irf=False),
+                {"name": "m7", "channelwidth": 0.1, "channel1": {"microtimes": [0.05, 0.15, 0.15]}},
+                1, lambda: {}, "7", "m7",
+            )
+        finally:
+            export_service.plot_exporters.export_decay_plot = original
+
+        assert captured["fit_result"] is None
+        assert captured["counts"].sum() == 3

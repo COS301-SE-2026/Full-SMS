@@ -14,31 +14,35 @@ import json
 import numpy as np
 
 
-def _fetch_irf_data(dataset_ref: str, measurement_id: int, channel: int):
-    """
-    Find the IRF Mapping for this measurement, download it from Supabase, and parse it.
-    """
-    mapping = (supabaseClient.table("irf_mappings")
-               .select("irf_id")
+def _find_irf_mapping(dataset_ref: str, measurement_id, channel: int, workspace_id: str | None):
+    query = supabaseClient.table("irf_mappings").select("irf_id")
+    if workspace_id:
+        query = query.eq("workspace_id", workspace_id)
+    mapping = (query
                .eq("dataset_ref", dataset_ref)
                .eq("measurement_id", measurement_id)
                .eq("channel", channel)
                .maybe_single()
                .execute())
-    
-    if mapping is None or not mapping.data:
-        mapping = (supabaseClient.table("irf_mappings")
-                   .select("irf_id")
-                   .eq("dataset_ref", dataset_ref)
-                   .eq("measurement_id", -1)
-                   .eq("channel", channel)
-                   .maybe_single()
-                   .execute())
+    return mapping.data if mapping is not None and mapping.data else None
 
-    if mapping is None or not mapping.data:
+
+def _fetch_irf_data(dataset_ref: str, measurement_id: int, channel: int, workspace_id: str | None = None):
+    """
+    Find the IRF Mapping for this measurement, download it from Supabase, and parse it.
+
+    Follows the same rules as get_mapped_irf_controller (the IRF name shown in the UI):
+    a measurement's own mapping wins, a mapping cleared for the measurement (irf_id null)
+    means no IRF, and otherwise the dataset-wide mapping (measurement_id -1) applies.
+    """
+    mapping = _find_irf_mapping(dataset_ref, measurement_id, channel, workspace_id)
+    if mapping is None and str(measurement_id) != "-1":
+        mapping = _find_irf_mapping(dataset_ref, -1, channel, workspace_id)
+
+    if mapping is None or mapping.get("irf_id") is None:
         return None
-    
-    irf_id = mapping.data["irf_id"]
+
+    irf_id = mapping["irf_id"]
 
     irf_record = (supabaseClient.table("workspace_irfs")
                   .select("storage_key")
@@ -56,8 +60,8 @@ def _fetch_irf_data(dataset_ref: str, measurement_id: int, channel: int):
     return read_irf(temp_path)
 
 
-def _fetch_irf_counts(dataset_ref: str, measurement_id: int, channel: int):
-    parsed = _fetch_irf_data(dataset_ref, measurement_id, channel)
+def _fetch_irf_counts(dataset_ref: str, measurement_id: int, channel: int, workspace_id: str | None = None):
+    parsed = _fetch_irf_data(dataset_ref, measurement_id, channel, workspace_id)
     if parsed and "counts" in parsed:
         return np.array(parsed["counts"], dtype=np.float64)
     return None
@@ -94,6 +98,65 @@ def _get_native_block_data(upload_id: str, block_id: str | int):
                 os.unlink(temp_path)
             except Exception:
                 pass
+def _full_range_residuals(
+    times: np.ndarray,
+    counts: np.ndarray,
+    fit_curve: np.ndarray,
+    fit_start: int,
+    fit_end: int,
+    background: float,
+    average_lifetime: float,
+) -> list[float | None]:
+    """Weighted residuals (data - fit) over the whole decay, as in the legacy Lifetime tab.
+
+    Outside the fit window the model is continued smoothly: linearly from the
+    background up to the first fitted point, and as a single exponential with
+    the average lifetime after the last fitted point.
+    """
+    n_points = len(times)
+    if len(fit_curve) == 0 or fit_end <= fit_start:
+        return [None] * n_points
+
+    residuals = np.zeros(n_points)
+
+    fit_data = counts[fit_start:fit_end]
+    residuals[fit_start:fit_end] = (fit_data - fit_curve) / np.sqrt(np.maximum(fit_data, 1.0))
+
+    if fit_start > 0:
+        pre_data = counts[:fit_start]
+        fraction = np.linspace(0, 1, fit_start)
+        pre_expected = background + fraction * (fit_curve[0] - background)
+        residuals[:fit_start] = (pre_data - pre_expected) / np.sqrt(np.maximum(pre_data, 1.0))
+
+    if fit_end < n_points and average_lifetime > 0:
+        post_data = counts[fit_end:]
+        t0 = times[fit_end - 1]
+        extrapolated = background + (fit_curve[-1] - background) * np.exp(
+            -(times[fit_end:] - t0) / average_lifetime
+        )
+        residuals[fit_end:] = (post_data - extrapolated) / np.sqrt(np.maximum(post_data, 1.0))
+
+    return residuals.tolist()
+
+
+def _describe_irf_used(payload: LifetimeReq, fit_result, channel_width: float, irf_counts):
+    """Return (source, fwhm_ns, irf_counts) for the IRF the fit actually used.
+
+    A fitted FWHM replaces the initial one, so the simulated IRF is rebuilt
+    with the fitted width (legacy behaviour).
+    """
+    counts = np.array(payload.counts, dtype=np.float64)
+    if payload.fit_irf_fwhm and fit_result.fitted_irf_fwhm:
+        fwhm = float(fit_result.fitted_irf_fwhm)
+        irf, _ = simulate_irf(channelwidth=channel_width, fwhm=fwhm, measured=counts)
+        return "simulated", fwhm, irf.tolist()
+    if payload.use_irf and payload.simulated_irf_fwhm is not None:
+        return "simulated", float(payload.simulated_irf_fwhm), np.asarray(irf_counts).tolist()
+    if irf_counts is not None:
+        return "mapped", None, np.asarray(irf_counts, dtype=np.float64).tolist()
+    return None, None, None
+
+
 def lifetime_fitting(payload: LifetimeReq):
     upload_id = payload.upload_id
     measurement_id = payload.measurement_id
@@ -139,6 +202,7 @@ def lifetime_fitting(payload: LifetimeReq):
             dataset_ref=upload_id,
             measurement_id=measurement_id,
             channel=channel,
+            workspace_id=payload.workspace_id,
         )
 
         # Pass real IRF if available, otherwise None (fit_decay defaults to delta)
@@ -222,20 +286,18 @@ def lifetime_fitting(payload: LifetimeReq):
                 extrap = (y_end - bg) * np.exp(-dt / tau_avg) + bg
                 fitted_curve_list[k] = float(max(extrap, bg))
 
-    fit_curve_arr = np.array(fit_result.fitted_curve, dtype=np.float64)
-    data_arr = np.array(payload.counts, dtype=np.float64)
-    
-    # Build padded residuals array (matching fit window)
-    padded_residuals = [None] * n_points
-    if len(fit_curve_arr) > 0 and ei > si:
-        fit_data = data_arr[si:ei]
-        sigma = np.sqrt(np.maximum(fit_data, 1.0))
-        # Note the order: data - fit (Legacy UI display formula)
-        ui_residuals = (fit_data - fit_curve_arr) / sigma
-        for i, val in enumerate(ui_residuals.tolist()):
-            if si + i < n_points:
-                padded_residuals[si + i] = float(val)
-    
+    full_residuals = _full_range_residuals(
+        times=times_arr,
+        counts=np.array(payload.counts, dtype=np.float64),
+        fit_curve=np.array(fit_result.fitted_curve, dtype=np.float64),
+        fit_start=si,
+        fit_end=ei,
+        background=fit_result.background,
+        average_lifetime=fit_result.average_lifetime,
+    )
+    irf_source, irf_fwhm, irf_used = _describe_irf_used(
+        payload, fit_result, channel_width, irf_counts
+    )
 
     res_data = {
         "times": payload.times,
@@ -249,7 +311,7 @@ def lifetime_fitting(payload: LifetimeReq):
         "chi_squared": float(fit_result.chi_squared),
         "durbin_watson": float(fit_result.durbin_watson),
         "dw_bounds": list(fit_result.dw_bounds) if fit_result.dw_bounds else None,
-        "residuals": padded_residuals,
+        "residuals": full_residuals,
         "fitted_curve": fitted_curve_list,        # Send the full array
         "fit_start_index": int(fit_result.fit_start_index),
         "fit_end_index": int(fit_result.fit_end_index),
@@ -264,6 +326,10 @@ def lifetime_fitting(payload: LifetimeReq):
             if fit_result.fitted_irf_fwhm_std
             else None
         ),
+        "channelwidth": float(channel_width),
+        "irf_source": irf_source,
+        "irf_fwhm": irf_fwhm,
+        "irf": irf_used,
     }
 
     return LifetimeRes(**res_data)
@@ -333,7 +399,8 @@ def fluorescence_decay(payload):
     irf_info = _fetch_irf_data(
         dataset_ref=upload_id,
         measurement_id=measurement_id,
-        channel=getattr(payload, 'channel', 1) or 1
+        channel=getattr(payload, 'channel', 1) or 1,
+        workspace_id=getattr(payload, 'workspace_id', None),
     )
     
     return {

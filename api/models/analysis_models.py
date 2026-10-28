@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any, Tuple
+from typing import List, Literal, Optional, Dict, Any, Tuple
 import numpy as np
 from api.legacy.analysis.correlation import CorrelationResult
 from api.legacy.analysis.lifetime import FitSettings, StartpointMode
@@ -30,10 +30,15 @@ class LifetimeRes(BaseModel):
     average_lifetime: float
     fitted_irf_fwhm: Optional[float] = None
     fitted_irf_fwhm_std: Optional[float] = None
+    channelwidth: Optional[float] = None
+    irf_source: Optional[Literal["mapped", "simulated"]] = None  # IRF the fit used; None means no IRF
+    irf_fwhm: Optional[float] = None  # FWHM (ns) of a simulated IRF, fitted value when FWHM was fitted
+    irf: Optional[list[float]] = None  # IRF counts on the decay's channel axis, unshifted
 
 class LifetimeReq(BaseModel):
     upload_id: str
     measurement_id: str
+    workspace_id: Optional[str] = None  # scopes the IRF mapping lookup; unscoped when omitted
     times: list[float]                # Changed from NDArray
     counts: list[int]                 # Changed from NDArray
     channel: Optional[int] = 1
