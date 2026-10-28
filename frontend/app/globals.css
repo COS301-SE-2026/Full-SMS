@@ -27,6 +27,18 @@
   --font-size-lg: 16px;
   --font-size-xl: 20px;
   --font-size-2xl: 24px;
+
+  /* Chart loading overlay: fade in after a short delay so fast loads don't flicker */
+  --animate-chart-loading-in: chart-loading-in 200ms ease-out 150ms both;
+
+  @keyframes chart-loading-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 }
 
 @layer base {
