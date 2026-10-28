@@ -2,6 +2,7 @@
 
 import { Button, Card, CardContent, CardFooter, Toggle } from "@/components/ui";
 import React, { useEffect, useState, useRef } from "react";
+import axios from "axios";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { useAnalysisTab } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
 import { LifetimeReq, LifetimeRes, LevelData, StartpointMode } from "@/types/analysis";
@@ -18,6 +19,7 @@ type FitCurveTarget = {
 };
 type FitOptions = {
   uploadId: string;
+  workspaceId: string | null;
   bin: number;
   useIRF: boolean;
   numExponents: number;
@@ -35,7 +37,15 @@ type FitOptions = {
   irfFwhmBounds: [number, number] | null;
   simulatedIrfFwhm: number | null;
 };
-type FitOutcome = { target: FitCurveTarget; result: LifetimeRes | null };
+type FitOutcome = { target: FitCurveTarget; result: LifetimeRes | null; error?: string };
+
+function describeFitError(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const detail = error.response?.data?.detail;
+    if (typeof detail === "string" && detail) return detail;
+  }
+  return error instanceof Error ? error.message : String(error);
+}
 const TAU_COMPONENTS = [
   { key: "tau1", index: 0 },
   { key: "tau2", index: 1 },
@@ -44,6 +54,7 @@ const TAU_COMPONENTS = [
 
 function createFitOptions(values: {
   uploadId: string;
+  workspaceId: string | null;
   bin: number;
   useIRF: boolean;
   useSimulatedIRF: boolean;
@@ -68,6 +79,7 @@ function createFitOptions(values: {
   const fitIrfFwhm = useSimulatedIrf && values.fitFWHM;
   return {
     uploadId: values.uploadId,
+    workspaceId: values.workspaceId,
     bin: values.bin,
     useIRF: values.useIRF,
     numExponents: values.numExponents,
@@ -180,7 +192,7 @@ function executeFitWorker(
       .then((result) => outcomes.push({ target, result }))
       .catch((error: unknown) => {
         console.error(`Lifetime fit failed for ${getTargetLabel(target)}`, error);
-        outcomes.push({ target, result: null });
+        outcomes.push({ target, result: null, error: describeFitError(error) });
       })
       .then(() => runNext(targetIndex + stride));
   };
@@ -206,9 +218,9 @@ function storeFitOutcomes(
   },
 ): string[] {
   const failures: string[] = [];
-  for (const { target, result } of outcomes) {
+  for (const { target, result, error } of outcomes) {
     if (!result) {
-      failures.push(getTargetLabel(target));
+      failures.push(`${getTargetLabel(target)} (${error ?? "unknown error"})`);
       continue;
     }
     const levelKey = target.level
@@ -257,6 +269,7 @@ async function fitCurveTarget(
 
   const request: LifetimeReq = {
     upload_id: options.uploadId,
+    workspace_id: options.workspaceId,
     measurement_id: target.measurementId,
     channel: target.channel,
     use_irf: options.useIRF,
@@ -481,6 +494,7 @@ export default function FittingDialog() {
     const activeTauBounds = tauBounds.slice(0, numExponents);
     const fitOptions = createFitOptions({
       uploadId: currentUpload,
+      workspaceId: currentWorkspaceId,
       bin,
       useIRF,
       useSimulatedIRF,
