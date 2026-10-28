@@ -1,4 +1,4 @@
-import { Card, Button } from '@/components/ui'
+import { Card, Button, ChartLoadingOverlay } from '@/components/ui'
 import { useAnalysisTab } from '@/contexts/analysisTabsContext/AnalysisTabsContext'
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
 import { colors } from '@/lib/tokens'
@@ -10,13 +10,45 @@ import NativeDataViewer from "@/components/fileFormat/NativeDataViewer";
 import { useCommentClick } from '@/hooks/useCommentClick';
 import { buildCommentMarkers } from '@/lib/commentMarkers';
 
+const IRF_MIN_DISPLAY = 0.5 // matches the log-scale floor used for the data
+
+function maxOf(values: readonly (number | null)[]): number {
+  let max = 0
+  for (const value of values) {
+    if (value !== null && value > max) max = value
+  }
+  return max
+}
+
+// Legacy IRF display: shift, scale to targetMax, keep only the significant part
+// (>= IRF_MIN_DISPLAY, plus one point either side) and clip to the display floor.
+function buildIrfOverlay(irf: number[], times: number[], shift: number, targetMax: number) {
+  const n = Math.min(irf.length, times.length)
+  const irfMax = maxOf(irf.slice(0, n))
+  if (n === 0 || irfMax <= 0) return null
+  const scale = targetMax > 0 ? targetMax / irfMax : 1
+  const y = irf.slice(0, n).map(c => c * scale)
+
+  const first = y.findIndex(c => c >= IRF_MIN_DISPLAY)
+  if (first === -1) return null
+  let last = n - 1
+  while (y[last] < IRF_MIN_DISPLAY) last -= 1
+  const start = Math.max(0, first - 1)
+  const end = Math.min(n, last + 2)
+
+  return {
+    x: times.slice(start, end).map(t => t + shift),
+    y: y.slice(start, end).map(c => Math.max(c, IRF_MIN_DISPLAY)),
+  }
+}
+
 interface LifeTimeChartProps{
   comments: Comment[];
   onAddComment: (payload: {content: string; anchor_x: number; anchor_y: number}) => void;
 }
 
 export default function LifetimeCharts({comments, onAddComment}: Readonly<LifeTimeChartProps>) {
-    const { currentMeasurement, currentUpload, bin, currentChannel, hdf5Metadata } = useHdf5Data()
+    const { currentMeasurement, currentUpload, currentWorkspaceId, bin, currentChannel, hdf5Metadata } = useHdf5Data()
     const {
       useLogScale,
       decayCounts,
@@ -28,25 +60,35 @@ export default function LifetimeCharts({comments, onAddComment}: Readonly<LifeTi
       irfCounts,
       setIrfCounts,
       irfTimes,
-      setIrfTimes
+      setIrfTimes,
+      fitViewRevision,
+      decayLoading,
     } = useAnalysisTab()
     
     const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote } = useCommentClick(onAddComment);
     const commentMarkers = buildCommentMarkers(comments, 'x', 'y');
     const useNativeBlocksViewer = hdf5Metadata?.data_kind ==="native_data"
 
+    // Loading until the decay for the current measurement/channel arrives (or fails); level
+    // switches report through decayLoading from useLifetimeLevelSelection.
+    const requestKey = `${currentUpload}:${currentMeasurement}:${currentChannel}:${currentWorkspaceId}`
+    const [loadedKey, setLoadedKey] = React.useState<string | null>(null)
+    const measurementLoading = Boolean(currentUpload && currentMeasurement) && loadedKey !== requestKey
+
     useEffect(() => {
-      const fetchLifetimeData = async () => {
-        if (!currentUpload || !currentMeasurement) return; 
-    
-        const payload = {
-          "upload_id": currentUpload,
-          "measurement_id": currentMeasurement,
-          "bin_size_ms": bin,
-          "channel": currentChannel
-        };
-        try {
-          const response = await getFluorescenceDecay(payload)
+      if (!currentUpload || !currentMeasurement) return;
+      // Ignore a response that arrives after the measurement/channel has changed again
+      let cancelled = false;
+      const payload = {
+        "upload_id": currentUpload,
+        "workspace_id": currentWorkspaceId,
+        "measurement_id": currentMeasurement,
+        "bin_size_ms": bin,
+        "channel": currentChannel
+      };
+      void getFluorescenceDecay(payload)
+        .then((response) => {
+          if (cancelled) return;
           setDecayTimes(response.times)
           setDecayCounts(response.counts)
           if (response.irf) {
@@ -56,33 +98,43 @@ export default function LifetimeCharts({comments, onAddComment}: Readonly<LifeTi
             setIrfTimes([])
             setIrfCounts([])
           }
-        } catch (error) {
-          console.error(error)
-        }
+        })
+        .catch((error) => console.error(error))
+        .finally(() => {
+          if (!cancelled) setLoadedKey(requestKey);
+        });
+      return () => {
+        cancelled = true;
       };
-      
-      fetchLifetimeData();
-    }, [currentMeasurement, currentUpload, currentChannel])
+    }, [currentMeasurement, currentUpload, currentChannel, currentWorkspaceId])
 
-    // Scale the IRF to the data peak (legacy behavior)
-    const scaledIrfCounts = React.useMemo(() => {
-      if (!irfCounts || irfCounts.length === 0 || !decayCounts || decayCounts.length === 0) return [];
-      let maxData = 0;
-      for (let i = 0; i < decayCounts.length; i++) {
-        if (decayCounts[i] > maxData) maxData = decayCounts[i];
+    // A fit carries the IRF it used: draw that one shifted by the fitted shift and scaled to
+    // the fit peak. Before a fit, show the mapped IRF scaled to the data peak.
+    const irfOverlay = React.useMemo(() => {
+      if (fitResult?.irf?.length && fitResult.times?.length) {
+        return buildIrfOverlay(fitResult.irf, fitResult.times, fitResult.shift, maxOf(fitResult.fitted_curve));
       }
-      let maxIrf = 0;
-      for (let i = 0; i < irfCounts.length; i++) {
-        if (irfCounts[i] > maxIrf) maxIrf = irfCounts[i];
+      if (irfCounts.length > 0 && decayCounts.length > 0) {
+        const times = irfTimes.length === irfCounts.length ? irfTimes : decayTimes;
+        return buildIrfOverlay(irfCounts, times, 0, maxOf(decayCounts));
       }
-      const scale = maxIrf > 0 ? maxData / maxIrf : 1;
-      return irfCounts.map(c => c * scale);
-    }, [irfCounts, decayCounts]);
+      return null;
+    }, [fitResult, irfCounts, irfTimes, decayCounts, decayTimes]);
+
+    const residualSeries = React.useMemo(() => {
+      const residuals = fitResult?.residuals ?? [];
+      const inRange = residuals.map((r, i) =>
+        i >= fitResult!.fit_start_index && i < fitResult!.fit_end_index ? r : null);
+      const outOfRange = residuals.map((r, i) =>
+        i < fitResult!.fit_start_index || i >= fitResult!.fit_end_index ? r : null);
+      return { inRange, outOfRange };
+    }, [fitResult]);
 
   return (
     <div>
       <Card className="flex-1 flex flex-col p-2 min-w-0">
-        <div className="flex-1 min-h-0 h-full overflow-hidden">
+        <div className="relative flex-1 min-h-0 h-full overflow-hidden">
+          <ChartLoadingOverlay loading={measurementLoading || decayLoading} />
           <Plot
             data={[
               //Histogram Data
@@ -99,9 +151,9 @@ export default function LifetimeCharts({comments, onAddComment}: Readonly<LifeTi
                   width: 0.5,
                 }
               },
-              ...(showIRF && scaledIrfCounts.length > 0 ? [{
-                x: irfTimes.length === scaledIrfCounts.length ? irfTimes : decayTimes,
-                y: useLogScale ? scaledIrfCounts.map(c => Math.max(c, 0.5)) : scaledIrfCounts,
+              ...(showIRF && irfOverlay ? [{
+                x: irfOverlay.x,
+                y: irfOverlay.y,
                 type: 'scatter' as const,
                 mode: 'lines' as const,
                 name: 'IRF',
@@ -113,43 +165,60 @@ export default function LifetimeCharts({comments, onAddComment}: Readonly<LifeTi
                   dash: 'dash' as const,
                 }
               }] : []),
-              // The Fitting
-              {
-                //  If the backend only returns the fitted curve for the sliced index range, 
-                //slice xAxis here to match fitCurve.length
-                x: decayTimes,
-                y:useLogScale && fitResult?.fitted_curve
-                  ? fitResult.fitted_curve.map(v => (v !== null ? Math.max(v, 0.5) : null))
-                  : fitResult?.fitted_curve,// fit curve
-                type: 'scatter',
-                mode: 'lines',
-                name: 'Fit',
-                xaxis: 'x', 
-                yaxis: 'y',
-                line: { 
-                  color: colors.destructive,
-                  width: 2
-                }
-              },
-              //The Residuals (Bottom Panel)
-              {
-                x: decayTimes,
-                y: fitResult?.residuals,//residuals 
-                type: 'scatter',
-                mode: 'markers',
-                name: 'Residuals',
-                xaxis: 'x',
-                yaxis: 'y2',
-                marker: { 
-                  color: colors.foreground,
-                  size: 4
-                }
-              },
+              // Fit curve and residuals only exist once a fit has been run for this view
+              ...(fitResult ? [
+                {
+                  x: decayTimes,
+                  y: useLogScale
+                    ? fitResult.fitted_curve.map(v => (v !== null ? Math.max(v, 0.5) : null))
+                    : fitResult.fitted_curve,
+                  type: 'scatter' as const,
+                  mode: 'lines' as const,
+                  name: 'Fit',
+                  xaxis: 'x',
+                  yaxis: 'y',
+                  line: {
+                    color: colors.destructive,
+                    width: 2
+                  }
+                },
+                //The Residuals (Bottom Panel)
+                {
+                  x: decayTimes,
+                  y: residualSeries.inRange,
+                  type: 'scatter' as const,
+                  mode: 'markers' as const,
+                  name: 'Residuals',
+                  xaxis: 'x',
+                  yaxis: 'y2',
+                  marker: {
+                    color: colors.foreground,
+                    size: 4
+                  }
+                },
+                // Residuals outside the fit window (model continued past the window, legacy behaviour)
+                {
+                  x: decayTimes,
+                  y: residualSeries.outOfRange,
+                  type: 'scatter' as const,
+                  mode: 'markers' as const,
+                  name: 'Residuals (outside fit)',
+                  showlegend: false,
+                  xaxis: 'x',
+                  yaxis: 'y2',
+                  marker: {
+                    color: colors.foreground,
+                    size: 3,
+                    opacity: 0.3,
+                  }
+                },
+              ] : []),
               commentMarkers
             ]}
             layout={{
               autosize: true, 
-              uirevision: String(useLogScale),
+              // Changing uirevision drops user zoom, so the Fit View button bumps fitViewRevision
+              uirevision: `${useLogScale}:${fitViewRevision}`,
               title: { 
                 text: 'Fluorescence Decay', 
                 font:{
