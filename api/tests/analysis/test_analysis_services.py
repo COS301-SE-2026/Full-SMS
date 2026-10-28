@@ -461,6 +461,67 @@ def test_lifetime_fitting_uses_selected_channel_irf(use_irf):
         assert fit_decay.call_args.kwargs["tau_bounds_per_component"] == [(0.5, 5.0)]
 
 
+@pytest.mark.parametrize("fit_irf_fwhm", [False, True])
+def test_lifetime_fitting_uses_simulated_irf_instead_of_mapped_irf(fit_irf_fwhm):
+    from types import SimpleNamespace
+
+    from api.legacy.analysis.lifetime import simulate_irf
+    from api.services.analysis_services import lifetime as lifetime_service
+
+    fit_result = SimpleNamespace(
+        tau=(2.5,),
+        tau_std=(0.1,),
+        amplitude=(1.0,),
+        amplitude_std=(0.01,),
+        shift=0.0,
+        shift_std=0.0,
+        chi_squared=1.0,
+        durbin_watson=1.8,
+        dw_bounds=(1.5, 1.7),
+        residuals=np.array([0.0, 0.0]),
+        fitted_curve=np.array([90.0, 40.0]),
+        fit_start_index=0,
+        fit_end_index=2,
+        background=0.0,
+        num_exponentials=1,
+        average_lifetime=2.5,
+        fitted_irf_fwhm=0.3 if fit_irf_fwhm else None,
+        fitted_irf_fwhm_std=0.01 if fit_irf_fwhm else None,
+    )
+
+    request = LifetimeReq(
+        upload_id="dataset",
+        measurement_id="2",
+        use_irf=True,
+        times=[0.0, 0.1, 0.2],
+        counts=[10, 100, 25],
+        simulated_irf_fwhm=0.2,
+        fit_irf_fwhm=fit_irf_fwhm,
+        irf_fwhm_init=0.2 if fit_irf_fwhm else None,
+    )
+
+    with (
+        patch.object(
+            lifetime_service,
+            "get_cached_measurement",
+            return_value=MagicMock(channelwidth=0.1),
+        ),
+        patch.object(lifetime_service, "_fetch_irf_counts") as fetch_irf,
+        patch.object(lifetime_service, "fit_decay", return_value=fit_result) as fit_decay,
+        patch.object(
+            lifetime_service,
+            "compute_convolved_fit_curve",
+            return_value=(np.array([95.0, 45.0, 20.0]), np.array([0.0, 0.0])),
+        ),
+    ):
+        lifetime_service.lifetime_fitting(request)
+
+    expected_irf, _ = simulate_irf(0.1, 0.2, np.array([10, 100, 25], dtype=np.float64))
+    fetch_irf.assert_not_called()
+    np.testing.assert_allclose(fit_decay.call_args.kwargs["irf"], expected_irf)
+    assert fit_decay.call_args.kwargs["fit_irf_fwhm"] is fit_irf_fwhm
+
+
 def test_fluorescence_decay_uses_inclusive_level_photon_indices():
     request = LifetimePayload(
         upload_id="dataset",

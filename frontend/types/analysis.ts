@@ -111,6 +111,7 @@ export type LifetimeReq = {
     fit_irf_fwhm?: boolean; // Default: false
     irf_fwhm_init?: number | null;
     irf_fwhm_bounds?: [number, number] | null;
+    simulated_irf_fwhm?: number | null;
 }
 
 export type LifetimeRes = {

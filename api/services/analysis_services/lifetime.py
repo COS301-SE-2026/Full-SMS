@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from api.legacy.analysis.lifetime import compute_convolved_fit_curve, fit_decay
+from api.legacy.analysis.lifetime import compute_convolved_fit_curve, fit_decay, simulate_irf
 from api.legacy.analysis.histograms import build_decay_histogram
 from api.models.analysis_models import LifetimeReq, LifetimeRes
 from api.services.analysis_services.cache_fallback import cache_fallback_service
@@ -123,16 +123,24 @@ def lifetime_fitting(payload: LifetimeReq):
             else:
                 channel_width = 0.0
 
-    irf_counts = (
-        _fetch_irf_counts(
+    irf_counts = None
+    if payload.use_irf and payload.simulated_irf_fwhm is not None:
+        if channel_width <= 0:
+            raise ValueError("Channel width is required to simulate an IRF")
+        if payload.simulated_irf_fwhm <= 0:
+            raise ValueError("Simulated IRF FWHM must be greater than 0")
+        irf_counts, _ = simulate_irf(
+            channelwidth=channel_width,
+            fwhm=payload.simulated_irf_fwhm,
+            measured=np.array(payload.counts, dtype=np.float64),
+        )
+    elif payload.use_irf:
+        irf_counts = _fetch_irf_counts(
             dataset_ref=upload_id,
             measurement_id=measurement_id,
             channel=channel,
         )
-        if payload.use_irf
-        else None
-    )
-    
+
         # Pass real IRF if available, otherwise None (fit_decay defaults to delta)
     has_real_irf = irf_counts is not None or payload.fit_irf_fwhm
 

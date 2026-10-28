@@ -33,6 +33,7 @@ type FitOptions = {
   fitIrfFwhm: boolean;
   irfFwhmInit: number | null;
   irfFwhmBounds: [number, number] | null;
+  simulatedIrfFwhm: number | null;
 };
 type FitOutcome = { target: FitCurveTarget; result: LifetimeRes | null };
 const TAU_COMPONENTS = [
@@ -63,7 +64,8 @@ function createFitOptions(values: {
   fwhmBoundsMin: number;
   fwhmBoundsMax: number;
 }): FitOptions {
-  const fitIrfFwhm = values.useIRF && values.useSimulatedIRF && values.fitFWHM;
+  const useSimulatedIrf = values.useIRF && values.useSimulatedIRF;
+  const fitIrfFwhm = useSimulatedIrf && values.fitFWHM;
   return {
     uploadId: values.uploadId,
     bin: values.bin,
@@ -83,6 +85,7 @@ function createFitOptions(values: {
     irfFwhmBounds: fitIrfFwhm
       ? [values.fwhmBoundsMin, values.fwhmBoundsMax]
       : null,
+    simulatedIrfFwhm: useSimulatedIrf ? values.fhwm : null,
   };
 }
 
@@ -273,6 +276,7 @@ async function fitCurveTarget(
     fit_irf_fwhm: options.fitIrfFwhm,
     irf_fwhm_init: options.irfFwhmInit,
     irf_fwhm_bounds: options.irfFwhmBounds,
+    simulated_irf_fwhm: options.simulatedIrfFwhm,
   };
   return getLifetimeData(request);
 }
@@ -522,6 +526,10 @@ export default function FittingDialog() {
     );
     if (tauValidationError) {
       errorToast(tauValidationError);
+      return;
+    }
+    if (useIRF && useSimulatedIRF && !fitFWHM && !(Number.isFinite(fhwm) && fhwm > 0)) {
+      errorToast("FWHM must be greater than 0");
       return;
     }
     if (useIRF && useSimulatedIRF && fitFWHM) {

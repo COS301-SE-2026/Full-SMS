@@ -112,6 +112,9 @@ export default function LifetimeToolbar({
     }
   };
 
+const leftBracket = "\u27e8";
+const rightBracket = "\u27e9";
+
   return (
     <div className="flex flex-col gap-4 px-4 border-b border-border bg-background mb-4 h-fit pb-2 pt-2 -mx-3 -mt-3">
       <div>
@@ -211,7 +214,7 @@ export default function LifetimeToolbar({
                       ))}
                       {fitResult.average_lifetime > 0 && (
                         <span className="text-primary font-semibold pl-2 border-l border-border">
-                          &langle;&tau;&rangle; ={" "}
+                          {leftBracket}&tau;{rightBracket} ={" "}
                           {fitResult.average_lifetime.toFixed(2)} ns
                         </span>
                       )}

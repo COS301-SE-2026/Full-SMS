@@ -58,6 +58,7 @@ class LifetimeReq(BaseModel):
     fit_irf_fwhm: bool = False
     irf_fwhm_init: Optional[float] = None
     irf_fwhm_bounds: Optional[Tuple[float, float]] = None
+    simulated_irf_fwhm: Optional[float] = None  # Gaussian IRF FWHM (ns); replaces the mapped IRF when set
 
 ## request and response models for intensity analysis
 class IntensityReq(BaseModel):
