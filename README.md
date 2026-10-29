@@ -1,8 +1,17 @@
-![coretech logo](frontend/public/coretech-logo.png) 
-![up biophysics logo](frontend/public/biophysicsNo_bg.png) 
-![up logo](frontend/public/UPlogo-No-bg.png)
+<div align="center">
 
+  <!-- First Image -->
+  <img src="frontend/public/coretech-logo.png" alt="Coretech logo" width="600">
+  <br><br>
 
+  <!-- Second Image (Different Width) -->
+  <img src="frontend/public/biophysicsNo_bg.png" alt="UP biophysics logo" width="450">
+  <br><br>
+
+  <!-- Third Image (Different Width) -->
+  <img src="frontend/public/UPlogo-No-bg.png" alt="UP logo" width="300">
+
+</div>
 # CoreTech - Full SMS - Modern Architecture Rewrite
 
 ## Project Description
