@@ -1,3 +1,6 @@
+![coretech logo](frontend\public\coretech-logo.png)
+
+
 # CoreTech - Full SMS - Modern Architecture Rewrite
 
 ## Project Description
