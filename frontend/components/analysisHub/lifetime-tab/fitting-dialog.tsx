@@ -4,19 +4,33 @@ import { Button, Card, CardContent, CardFooter, Toggle } from "@/components/ui";
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
-import { useAnalysisTab } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
+import { LifetimeFitDialogSettings, useAnalysisTab } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
 import { LifetimeReq, LifetimeRes, LevelData, StartpointMode } from "@/types/analysis";
 import { getFluorescenceDecay, getLifetimeData } from "@/services/analysisServices";
 import { useHistoryRecorder } from "@/hooks/useHistoryRecorder";
 import { useToast } from "@/contexts/toastContext/ToastContext";
+import {
+  fitTargetKey,
+  groupFitKeyPart,
+  groupLevels,
+  groupPhotonCount,
+  levelFitKeyPart,
+  photonRanges,
+  selectedGroups,
+} from "@/lib/lifetimeTargets";
 
-type FitTargetKind = "measurement" | "selected-level" | "all-levels";
+type FitTargetKind = LifetimeFitDialogSettings["fitTarget"];
 type FitCurveTarget = {
   measurementId: string;
   channel: number;
   level?: LevelData;
   levelIndex?: number;
+  // A group's decay pools the photons of all its levels
+  group?: { id: number; levels: LevelData[] };
 };
+
+// Levels and groups with fewer photons than this are skipped by "All Levels"/"All Groups"
+const MIN_TARGET_PHOTONS = 100;
 type FitOptions = {
   uploadId: string;
   workspaceId: string | null;
@@ -223,11 +237,13 @@ function storeFitOutcomes(
       failures.push(`${getTargetLabel(target)} (${error ?? "unknown error"})`);
       continue;
     }
-    const levelKey = target.level
-      ? `${target.level.start_index}-${target.level.end_index}`
-      : "full";
-    const resultKey = `${values.uploadId}:${target.measurementId}:${target.channel}:${levelKey}`;
-    values.setFitResultForTarget(resultKey, result);
+    let keyPart = "full";
+    if (target.group) keyPart = groupFitKeyPart(target.group.levels);
+    else if (target.level) keyPart = levelFitKeyPart(target.level);
+    values.setFitResultForTarget(
+      fitTargetKey(values.uploadId, target.measurementId, target.channel, keyPart),
+      result,
+    );
   }
   return failures;
 }
@@ -262,6 +278,7 @@ async function fitCurveTarget(
           end_photon_idx: target.level.end_index,
         }
       : {}),
+    ...(target.group ? { photon_ranges: photonRanges(target.group.levels) } : {}),
   });
   if (!histogram.times?.length || !histogram.counts?.length) {
     throw new Error("No decay histogram data");
@@ -294,11 +311,18 @@ async function fitCurveTarget(
   return getLifetimeData(request);
 }
 
+function activeFitTargetOf(
+  availableTargets: FitTargetKind[],
+  fitTarget: FitTargetKind,
+): FitTargetKind {
+  return availableTargets.includes(fitTarget) ? fitTarget : "measurement";
+}
+
 function getTargetLabel(target: FitCurveTarget): string {
-  const levelLabel = target.levelIndex === undefined
-    ? ""
-    : `, level ${target.levelIndex + 1}`;
-  return `${target.measurementId}, channel ${target.channel}${levelLabel}`;
+  let partLabel = "";
+  if (target.group) partLabel = `, group ${target.group.id + 1}`;
+  else if (target.levelIndex !== undefined) partLabel = `, level ${target.levelIndex + 1}`;
+  return `${target.measurementId}, channel ${target.channel}${partLabel}`;
 }
 
 export default function FittingDialog() {
@@ -306,6 +330,7 @@ export default function FittingDialog() {
     setFittingDialogOpen,
     setFitResultForTarget,
     selectedLevelIdx,
+    selectedGroupIdx,
     fitDialogSettings,
     setFitDialogSettings,
   } = useAnalysisTab();
@@ -358,6 +383,8 @@ export default function FittingDialog() {
     currentWorkspaceId,
     cpaData,
     cpaResults,
+    groupingData,
+    groupingResults,
     hdf5Metadata,
     isMultiChannel,
     selectedMeasurements,
@@ -417,14 +444,26 @@ export default function FittingDialog() {
   const canFitAllLevels = Object.values(cpaResults).some(
     (result) => (result.levels?.length ?? 0) > 0,
   );
+  const selectedGroup =
+    selectedGroupIdx === null ? undefined : selectedGroups(groupingData)[selectedGroupIdx];
+  const selectedGroupMembers = selectedGroup
+    ? groupLevels(selectedGroup, cpaData?.levels ?? [])
+    : null;
+  const canFitSelectedGroup = selectedGroup !== undefined && selectedGroupMembers !== null;
+  const canFitAllGroups = Object.values(groupingResults).some(
+    (result) => selectedGroups(result).length > 0,
+  );
   const availableTargets: FitTargetKind[] = [
     "measurement",
     ...(canFitSelectedLevel ? ["selected-level" as const] : []),
     ...(canFitAllLevels ? ["all-levels" as const] : []),
+    ...(canFitSelectedGroup ? ["selected-group" as const] : []),
+    ...(canFitAllGroups ? ["all-groups" as const] : []),
   ];
-  const activeFitTarget = availableTargets.includes(fitTarget)
-    ? fitTarget
-    : "measurement";
+  const activeFitTarget = activeFitTargetOf(availableTargets, fitTarget);
+  // Selected level/group targets only exist for the current measurement
+  const isSingleTarget =
+    activeFitTarget === "selected-level" || activeFitTarget === "selected-group";
 
   const getScopedMeasurements = () => {
     const summaries = hdf5Metadata?.measurements_summary ?? [];
@@ -473,16 +512,36 @@ export default function FittingDialog() {
           }];
     }
 
-    const measurements = getScopedMeasurements();
-    if (activeFitTarget !== "all-levels") return measurements;
+    if (activeFitTarget === "selected-group") {
+      if (!selectedGroup || !selectedGroupMembers || currentMeasurement === "0") return [];
+      return [{
+        measurementId: currentMeasurement,
+        channel: currentChannel,
+        group: { id: selectedGroup.group_id, levels: selectedGroupMembers },
+      }];
+    }
 
-    return measurements.flatMap(({ measurementId, channel }) => {
-      const cpaKey = isMultiChannel
+    const measurements = getScopedMeasurements();
+    if (activeFitTarget === "measurement") return measurements;
+
+    return measurements.flatMap(({ measurementId, channel }): FitCurveTarget[] => {
+      // cpaResults and groupingResults share keys
+      const resultKey = isMultiChannel
         ? `${measurementId}:${channel}`
         : measurementId;
-      const levels = cpaResults[cpaKey]?.levels ?? [];
+      const levels = cpaResults[resultKey]?.levels ?? [];
+
+      if (activeFitTarget === "all-groups") {
+        return selectedGroups(groupingResults[resultKey]).flatMap((group) => {
+          const members = groupLevels(group, levels);
+          return members && groupPhotonCount(members) >= MIN_TARGET_PHOTONS
+            ? [{ measurementId, channel, group: { id: group.group_id, levels: members } }]
+            : [];
+        });
+      }
+
       return levels.flatMap((level, levelIndex) =>
-        level.num_photons >= 100
+        level.num_photons >= MIN_TARGET_PHOTONS
           ? [{ measurementId, channel, level, levelIndex }]
           : [],
       );
@@ -559,10 +618,12 @@ export default function FittingDialog() {
 
     const targets = getFitTargets();
     if (targets.length === 0) {
+      const emptyMessages: Partial<Record<FitTargetKind, string>> = {
+        "all-levels": `No resolved levels with at least ${MIN_TARGET_PHOTONS} photons are available in this scope`,
+        "all-groups": `No groups with at least ${MIN_TARGET_PHOTONS} photons are available in this scope`,
+      };
       errorToast(
-        activeFitTarget === "all-levels"
-          ? "No resolved levels with at least 100 photons are available in this scope"
-          : "No measurements or channels are selected for fitting",
+        emptyMessages[activeFitTarget] ?? "No measurements or channels are selected for fitting",
       );
       return;
     }
@@ -597,7 +658,7 @@ export default function FittingDialog() {
           onChange={(event) => {
             const target = event.target.value as FitTargetKind;
             setFitTarget(target);
-            if (target === "selected-level") setScope("Current");
+            if (target === "selected-level" || target === "selected-group") setScope("Current");
           }}
         >
           <option value="measurement">Measurement (full decay)</option>
@@ -605,6 +666,12 @@ export default function FittingDialog() {
             <option value="selected-level">Selected Level</option>
           )}
           {canFitAllLevels && <option value="all-levels">All Levels</option>}
+          {canFitSelectedGroup && (
+            <option value="selected-group">
+              Selected Group (group {selectedGroup.group_id + 1})
+            </option>
+          )}
+          {canFitAllGroups && <option value="all-groups">All Groups</option>}
         </select>
 
         <div className="flex flex-row mt-2 items-center">
@@ -615,8 +682,8 @@ export default function FittingDialog() {
             name="Scope"
             id="Scope"
             className="border p-2 rounded-sm font-mono bg-card"
-            value={activeFitTarget === "selected-level" ? "Current" : scope}
-            disabled={activeFitTarget === "selected-level"}
+            value={isSingleTarget ? "Current" : scope}
+            disabled={isSingleTarget}
             onChange={(e) => setScope(e.target.value)}
           >
             <option value="Current">Current</option>

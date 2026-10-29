@@ -1138,3 +1138,35 @@ class TestSavedAnalysisGroups:
             export_service.get_sessions = original
 
         assert result["groups"] == {"data": "m2 groups"}
+
+
+class TestExportDecayPlotNumpyData:
+    def test_accepts_numpy_microtimes_from_cached_measurement(self, tmp_path):
+        """_get_measurement_data returns numpy arrays for cached measurement objects."""
+        import numpy as np
+
+        captured = {}
+
+        def fake_export_decay_plot(**kwargs):
+            captured.update(kwargs)
+            return tmp_path / "decay.png"
+
+        original = export_service.plot_exporters.export_decay_plot
+        export_service.plot_exporters.export_decay_plot = fake_export_decay_plot
+        try:
+            export_service._export_decay_plot(
+                make_request(plot_decay=True, plotDecay_fit=False, plotDecay_irf=False),
+                {
+                    "name": "m7",
+                    "channelWidth": 0.1,
+                    "channel1": {
+                        "abstimes": np.arange(3),
+                        "microtimes": np.array([0.05, 0.15, 0.15]),
+                    },
+                },
+                1, lambda: {}, "7", "m7",
+            )
+        finally:
+            export_service.plot_exporters.export_decay_plot = original
+
+        assert captured["counts"].sum() == 3

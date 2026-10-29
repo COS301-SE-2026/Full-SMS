@@ -105,7 +105,7 @@ export default function ExportPanel() {
                             helperText={form.PlotfileFormat !== "png" ? "Only used for PNG" : undefined}
                             className="w-28"/>
                         
-                        <div className="flex items-end gap-4 ml-35">
+                        <div className="flex flex-col items-start gap-4 ml-35">
                             <div className="flex flex-col gap-1 mb-2">
                                 <Toggle 
                                     label = "Use bin size from Intensity tab"

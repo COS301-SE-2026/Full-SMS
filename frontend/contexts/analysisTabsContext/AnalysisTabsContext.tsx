@@ -19,7 +19,7 @@ export type LifetimeFitDialogSettings = {
     useSimulatedIRF: boolean;
     fitFWHM: boolean;
     scope: string;
-    fitTarget: "measurement" | "selected-level" | "all-levels";
+    fitTarget: "measurement" | "selected-level" | "all-levels" | "selected-group" | "all-groups";
     numExponents: number;
     tauInit: [number, number, number];
     tauBounds: [[number, number], [number, number], [number, number]];
@@ -90,7 +90,10 @@ interface AnalysisTabContextType {
     setMappingDialog: (b: boolean) =>void
     selectedLevelIdx : number | null
     setSelectedLevelIdx: (idx: number | null ) => void
-    restoreSelectedLevelIdx: (idx: number | null, skipNextReset: boolean) => void
+    // Index into the groups of the selected grouping step; at most one of level/group is set
+    selectedGroupIdx: number | null
+    setSelectedGroupIdx: (idx: number | null) => void
+    restoreSelectedLevelIdx: (idx: number | null, skipNextReset: boolean, groupIdx?: number | null) => void
     resetSelectedLevelForViewChange: () => void
 }
 
@@ -113,12 +116,14 @@ export function AnalysisTabProvider({children}: {readonly children: ReactNode}){
     const [decayLoading, setDecayLoading] = useState<boolean>(false)
     const [mappingDialog, setMappingDialog] =useState<boolean>(false)
     const [selectedLevelIdx, setSelectedLevelIdx] = useState<number | null>(null);
+    const [selectedGroupIdx, setSelectedGroupIdx] = useState<number | null>(null);
     const skipNextSelectedLevelReset = useRef(false);
 
     const restoreSelectedLevelIdx = useCallback(
-        (idx: number | null, skipNextReset: boolean) => {
+        (idx: number | null, skipNextReset: boolean, groupIdx: number | null = null) => {
             skipNextSelectedLevelReset.current = skipNextReset;
             setSelectedLevelIdx(idx);
+            setSelectedGroupIdx(groupIdx);
         },
         [],
     );
@@ -128,6 +133,7 @@ export function AnalysisTabProvider({children}: {readonly children: ReactNode}){
             return;
         }
         setSelectedLevelIdx(null);
+        setSelectedGroupIdx(null);
     }, []);
     
 
@@ -174,9 +180,11 @@ export function AnalysisTabProvider({children}: {readonly children: ReactNode}){
         setMappingDialog,
         selectedLevelIdx,
         setSelectedLevelIdx,
+        selectedGroupIdx,
+        setSelectedGroupIdx,
         restoreSelectedLevelIdx,
         resetSelectedLevelForViewChange
-    }),[activeTab, fittingDialogOpen, showIRF, irfCounts, irfTimes, useLogScale, decayCounts, decayTimes, fitResult, fitResultsByTarget, fitViewRevision, decayLoading, fitDialogSettings, mappingDialog, selectedLevelIdx, restoreSelectedLevelIdx, resetSelectedLevelForViewChange])
+    }),[activeTab, fittingDialogOpen, showIRF, irfCounts, irfTimes, useLogScale, decayCounts, decayTimes, fitResult, fitResultsByTarget, fitViewRevision, decayLoading, fitDialogSettings, mappingDialog, selectedLevelIdx, selectedGroupIdx, restoreSelectedLevelIdx, resetSelectedLevelForViewChange])
 
     return (
         <AnalysisTabContext.Provider value={contextValue}>

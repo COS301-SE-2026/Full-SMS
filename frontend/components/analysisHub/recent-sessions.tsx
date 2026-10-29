@@ -19,12 +19,13 @@ export function RecentSessionsModal({open, onClose}:RecentSessionsProps){
     const {setChosenSession} = useSessionData()
     const {user} = useAuth()
     const {errorToast} = useToast()
-    const {currentUpload, currentMeasurement, currentChannel, setCurrentUpload, setCurrentUploadName, setBin, setConfidence, restoreCpaResultsForSession, setGroupingData, setHdf5Data, setHdf5Metadata, setCurrentMeasurement, setCurrentChannel, setCurrentWorkspaceId, setHeatMapColor, setSpectraHeatMapColor} = useHdf5Data()
+    const {currentUpload, currentMeasurement, currentChannel, setCurrentUpload, setCurrentUploadName, setBin, setConfidence, restoreCpaResultsForSession, setHdf5Data, setHdf5Metadata, setCurrentMeasurement, setCurrentChannel, setCurrentWorkspaceId, setHeatMapColor, setSpectraHeatMapColor} = useHdf5Data()
     const {setActiveTab, setFitResult, setFitResultsByTarget, restoreSelectedLevelIdx} = useAnalysisTab()
     const chooseSession = (session: any) => {
         const savedChannel = session.results?.currentChannel ?? 1
         const savedMeasurement = session.results?.currentMeasurement ?? "0"
         const savedLevelIdx = session.results?.selectedLevelIdx ?? null
+        const savedGroupIdx = session.results?.selectedGroupIdx ?? null
         const legacyFit = session.results?.fits
         const legacyFitKey = session.results?.currentFitKey ??
             `${session.dataset_ref}:${savedMeasurement}:${savedChannel}:full`
@@ -46,6 +47,12 @@ export function RecentSessionsModal({open, onClose}:RecentSessionsProps){
                 ? {[legacyCpaKey]: session.results.levels}
                 : {}
         )
+        // Older sessions only saved the open measurement's grouping as "groups"
+        const restoredGroupingResults = session.results?.groupingResults ?? (
+            session.results?.groups
+                ? {[legacyCpaKey]: session.results.groups}
+                : {}
+        )
 
         setHdf5Data(session.results?.hdf5Data)
             setCurrentUpload(session.dataset_ref)
@@ -54,8 +61,7 @@ export function RecentSessionsModal({open, onClose}:RecentSessionsProps){
             setHdf5Metadata(session.results?.hdf5Metadata)
             setBin(session.parameters?.bin_size)
             setConfidence(session.parameters?.confidence)
-            restoreCpaResultsForSession(session.dataset_ref, restoredCpaResults)
-            setGroupingData(session.results?.groups)
+            restoreCpaResultsForSession(session.dataset_ref, restoredCpaResults, restoredGroupingResults)
             setCurrentUploadName(session.dataset_name)
             setChosenSession(session)
             setCurrentWorkspaceId(session.results?.currentWorkspaceId)
@@ -67,6 +73,7 @@ export function RecentSessionsModal({open, onClose}:RecentSessionsProps){
                 session.dataset_ref !== currentUpload ||
                     savedMeasurement !== currentMeasurement ||
                     savedChannel !== currentChannel,
+                savedGroupIdx,
             )
             setHeatMapColor(session.results?.heatMapColor)
             setSpectraHeatMapColor(session.results?.spectraHeatMapColor)

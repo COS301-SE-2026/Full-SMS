@@ -8,7 +8,8 @@ import { X } from "lucide-react";
 import { getMappedIRF } from "@/services/irfServices";
 import { GetMappedIRFReq, LifetimeRes } from "@/types/analysis";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
-import { useLifetimeLevelSelection } from "@/hooks/useLifetimeLevelSelection";
+import { useLifetimeSelection } from "@/hooks/useLifetimeSelection";
+import { fitTargetKey, groupLevels, selectedGroups, selectionFitKeyPart } from "@/lib/lifetimeTargets";
 import { CommentToolbarButtons } from '../comments/CommentToolbar';
 
 // photons | time range | peak counts | channel width
@@ -68,6 +69,7 @@ export default function LifetimeToolbar({
     decayTimes,
     decayCounts,
     selectedLevelIdx,
+    selectedGroupIdx,
     resetSelectedLevelForViewChange,
   } = useAnalysisTab();
   
@@ -79,6 +81,7 @@ export default function LifetimeToolbar({
     currentMappedIrf,
     setCurrentMappedIrf,
     cpaData,
+    groupingData,
   } = useHdf5Data();
   
 
@@ -114,20 +117,31 @@ export default function LifetimeToolbar({
     resetSelectedLevelForViewChange();
   }, [currentUpload, currentMeasurement, currentChannel, resetSelectedLevelForViewChange]);
 
-  const selectedLevel =
-    selectedLevelIdx === null ? undefined : cpaData?.levels?.[selectedLevelIdx];
-  const currentFitKey = `${currentUpload}:${currentMeasurement}:${currentChannel}:${
-    selectedLevel
-      ? `${selectedLevel.start_index}-${selectedLevel.end_index}`
-      : "full"
-  }`;
+  const levels = cpaData?.levels ?? [];
+  const groups = selectedGroups(groupingData);
+  const currentFitKey = fitTargetKey(
+    currentUpload,
+    currentMeasurement,
+    currentChannel,
+    selectionFitKeyPart(levels, groups, selectedLevelIdx, selectedGroupIdx),
+  );
   const currentFitResult = fitResultsByTarget[currentFitKey] ?? null;
 
   useEffect(() => {
     setFitResult(currentFitResult);
   }, [currentFitResult, setFitResult]);
 
-  const selectLevel = useLifetimeLevelSelection();
+  const { selectLevel, selectGroup } = useLifetimeSelection();
+
+  // Dropdown values: "full", "level:<idx>", "group:<idx>"
+  let selectionValue = "full";
+  if (selectedGroupIdx !== null) selectionValue = `group:${selectedGroupIdx}`;
+  else if (selectedLevelIdx !== null) selectionValue = `level:${selectedLevelIdx}`;
+  const handleSelectionChange = (value: string) => {
+    const [kind, idx] = value.split(":");
+    if (kind === "group") void selectGroup(Number(idx));
+    else void selectLevel(kind === "level" ? Number(idx) : null);
+  };
   const decayInfo = describeDecay(decayTimes, decayCounts);
 
 const leftBracket = "\u27e8";
@@ -175,24 +189,36 @@ const rightBracket = "\u27e9";
               IRF Mapping
             </Button>
             
-            {cpaData?.levels && cpaData.levels.length > 0 && (
+            {levels.length > 0 && (
               <div className="flex items-center gap-1.5 text-xs font-mono ml-1">
-                <span className="text-muted-foreground">Level:</span>
+                <span className="text-muted-foreground">Decay:</span>
                 <select
-                  aria-label="Select CPA Level"
+                  aria-label="Select level or group"
                   className="border rounded px-2 py-0.5 text-xs bg-card font-mono text-foreground"
-                  value={selectedLevelIdx !== null ? selectedLevelIdx : -1}
-                  onChange={(e) => {
-                    const idx = Number(e.target.value);
-                    void selectLevel(idx === -1 ? null : idx);
-                  }}
+                  value={selectionValue}
+                  onChange={(e) => handleSelectionChange(e.target.value)}
                 >
-                  <option value={-1}>Full Trace</option>
-                  {cpaData.levels.map((lvl, idx) => (
-                    <option key={idx} value={idx}>
-                      Level {idx + 1} ({lvl.num_photons} ph, {Math.round(lvl.intensity_cps)} cps)
-                    </option>
-                  ))}
+                  <option value="full">Full Trace</option>
+                  <optgroup label="Levels">
+                    {levels.map((lvl, idx) => (
+                      <option key={`level-${lvl.start_index}`} value={`level:${idx}`}>
+                        Level {idx + 1} ({lvl.num_photons} ph, {Math.round(lvl.intensity_cps)} cps)
+                      </option>
+                    ))}
+                  </optgroup>
+                  {groups.length > 0 && (
+                    <optgroup label="Groups">
+                      {groups.map((group, idx) => (
+                        <option
+                          key={`group-${group.group_id}`}
+                          value={`group:${idx}`}
+                          disabled={!groupLevels(group, levels)}
+                        >
+                          Group {group.group_id + 1} ({group.level_indices.length} levels, {group.total_photons} ph, {Math.round(group.intensity_cps)} cps)
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
               </div>
             )}
@@ -310,7 +336,6 @@ const rightBracket = "\u27e9";
           )}
         </div>
       </div>
-
                   {decayInfo && (
               <span className="text-xs font-mono text-muted-foreground text-nowrap">
                 {decayInfo}
@@ -318,8 +343,8 @@ const rightBracket = "\u27e9";
             )}
                   {currentMappedIrf && (
         <div className="">
-          <span className="font-bold flex flex-row">
-            <p className="text-primary"> Mapped IRF: &nbsp;</p>
+          <span className="font-bold flex flex-row text-sm">
+            <p className="text-primary text-sm"> Mapped IRF: &nbsp;</p>
             {currentMappedIrf?.name}
           </span>
         </div>

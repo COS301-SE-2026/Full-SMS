@@ -2,29 +2,31 @@ import { useCallback } from "react";
 import { useAnalysisTab } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { getFluorescenceDecay } from "@/services/analysisServices";
+import { groupLevels, photonRanges, selectedGroups } from "@/lib/lifetimeTargets";
 
-// Selects a CPA level (or the full trace when idx is null) and loads its decay histogram.
-export function useLifetimeLevelSelection() {
-  const { setSelectedLevelIdx, setFitResult, setDecayTimes, setDecayCounts, setDecayLoading } = useAnalysisTab();
-  const { currentUpload, currentMeasurement, currentChannel, cpaData, bin } = useHdf5Data();
+// Selects what the Lifetime tab shows and loads its decay histogram:
+// a CPA level, a group (the pooled photons of all its levels), or the full trace.
+export function useLifetimeSelection() {
+  const {
+    setSelectedLevelIdx,
+    setSelectedGroupIdx,
+    setFitResult,
+    setDecayTimes,
+    setDecayCounts,
+    setDecayLoading,
+  } = useAnalysisTab();
+  const { currentUpload, currentMeasurement, currentChannel, cpaData, groupingData, bin } = useHdf5Data();
 
-  return useCallback(
-    async (idx: number | null) => {
-      setSelectedLevelIdx(idx);
+  const loadDecay = useCallback(
+    async (ranges: [number, number][] | null) => {
       setFitResult(null);
-
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         upload_id: currentUpload,
         measurement_id: currentMeasurement,
         bin_size_ms: bin,
         channel: currentChannel,
       };
-
-      const level = idx === null ? undefined : cpaData?.levels?.[idx];
-      if (level) {
-        payload.start_photon_idx = level.start_index;
-        payload.end_photon_idx = level.end_index;
-      }
+      if (ranges) payload.photon_ranges = ranges;
 
       setDecayLoading(true);
       try {
@@ -32,11 +34,36 @@ export function useLifetimeLevelSelection() {
         setDecayTimes(response.times);
         setDecayCounts(response.counts);
       } catch (err) {
-        console.error("Failed to load level decay:", err);
+        console.error("Failed to load decay:", err);
       } finally {
         setDecayLoading(false);
       }
     },
-    [currentUpload, currentMeasurement, currentChannel, cpaData, bin, setSelectedLevelIdx, setFitResult, setDecayTimes, setDecayCounts, setDecayLoading],
+    [currentUpload, currentMeasurement, currentChannel, bin, setFitResult, setDecayTimes, setDecayCounts, setDecayLoading],
   );
+
+  // idx null shows the full trace
+  const selectLevel = useCallback(
+    async (idx: number | null) => {
+      const level = idx === null ? undefined : cpaData?.levels?.[idx];
+      setSelectedGroupIdx(null);
+      setSelectedLevelIdx(level ? idx : null);
+      await loadDecay(level ? [[level.start_index, level.end_index]] : null);
+    },
+    [cpaData, loadDecay, setSelectedLevelIdx, setSelectedGroupIdx],
+  );
+
+  const selectGroup = useCallback(
+    async (idx: number) => {
+      const group = selectedGroups(groupingData)[idx];
+      const members = group ? groupLevels(group, cpaData?.levels ?? []) : null;
+      if (!members) return;
+      setSelectedLevelIdx(null);
+      setSelectedGroupIdx(idx);
+      await loadDecay(photonRanges(members));
+    },
+    [cpaData, groupingData, loadDecay, setSelectedLevelIdx, setSelectedGroupIdx],
+  );
+
+  return { selectLevel, selectGroup };
 }

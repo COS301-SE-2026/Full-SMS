@@ -182,8 +182,13 @@ MEASUREMENT_FIT_ID = -1  # level_or_group_id used for whole-measurement fits (le
 
 def _float_array(values) -> np.ndarray:
     return np.array(
-        [np.nan if v is None else v for v in (values or [])], dtype=np.float64
+        [np.nan if v is None else v for v in ([] if values is None else values)], dtype=np.float64
     )
+
+
+def _has_values(values) -> bool:
+    """True for a non-empty list or numpy array (arrays have no single truth value)."""
+    return values is not None and len(values) > 0
 
 
 def _fit_result_from_dict(fit_data: dict) -> FitResult:
@@ -386,8 +391,8 @@ def _decay_plot_fit(fit_data: dict) -> FitResult:
     start, end = fit_data["fit_start_index"], fit_data["fit_end_index"]
     return _fit_result_from_dict({
         **fit_data,
-        "fitted_curve": (fit_data.get("fitted_curve") or [])[start:end],
-        "residuals": (fit_data.get("residuals") or [])[start:end],
+        "fitted_curve": _float_array(fit_data.get("fitted_curve"))[start:end],
+        "residuals": _float_array(fit_data.get("residuals"))[start:end],
     })
 
 
@@ -399,19 +404,21 @@ def _export_decay_plot(request, data, channel, analysis_getter, measurement_id, 
     if request.plotDecay_fit or request.plotDecay_irf:
         fit_data = _collect_fit_dicts(analysis_getter(), measurement_id, channel).get(MEASUREMENT_FIT_ID)
 
-    if fit_data and fit_data.get("times") and fit_data.get("counts"):
+    if fit_data and _has_values(fit_data.get("times")) and _has_values(fit_data.get("counts")):
         t_ns = np.array(fit_data["times"], dtype=np.float64)
         counts = np.array(fit_data["counts"], dtype=np.int64)
     else:
+        # Cached measurement objects hold numpy arrays, so avoid truthiness tests on them
         channel_data = data.get(f"channel{channel}") or {}
         channelwidth = data.get("channelwidth") or data.get("channelWidth") or 0.0
-        microtimes = np.asarray(channel_data.get("microtimes") or [], dtype=np.float64)
+        raw_microtimes = channel_data.get("microtimes")
+        microtimes = np.asarray([] if raw_microtimes is None else raw_microtimes, dtype=np.float64)
         if channelwidth <= 0 or len(microtimes) == 0:
             raise InvalidExportDataErr(f"No decay data available for {measurement_name}.")
         t_ns, counts = build_decay_histogram(microtimes=microtimes, channelwidth=channelwidth)
 
     irf_t = irf_counts = None
-    if request.plotDecay_irf and fit_data and fit_data.get("irf"):
+    if request.plotDecay_irf and fit_data and _has_values(fit_data.get("irf")):
         irf_counts = _float_array(fit_data["irf"])[: len(t_ns)]
         irf_t = t_ns[: len(irf_counts)] + fit_data["shift"]
 
