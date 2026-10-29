@@ -1,6 +1,6 @@
 ![coretech logo](frontend/public/coretech-logo.png) 
-![up biophysics logo](frontend\public\biophysicsNo_bg.png) 
-![up logo](frontend\public\UPlogo-No-bg.png)
+![up biophysics logo](frontend/public/biophysicsNo_bg.png) 
+![up logo](frontend/public/UPlogo-No-bg.png)
 
 
 # CoreTech - Full SMS - Modern Architecture Rewrite
