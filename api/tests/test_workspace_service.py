@@ -10,11 +10,11 @@ class TestGetUserWorkspaces:
 
             workspace_response = MagicMock()
             workspace_response.data = [{"id": "ws1", "name": "Workspace 1"}]
-            mock_client.table.return_value.select.return_value.or_.return_value.execute.return_value = workspace_response
+            mock_client.table.return_value.select.return_value.or_.return_value.order.return_value.execute.return_value = workspace_response
 
             file_count_response = MagicMock()
             file_count_response.count = 3
-            mock_client.table.return_value.select.return_value.eq.return_value.execute.return_value = file_count_response
+            mock_client.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value = file_count_response
 
             mock_admin.return_value = mock_client
 
@@ -51,7 +51,7 @@ class TestGetWorkspaceById:
 
             file_count_response = MagicMock()
             file_count_response.count = 5
-            mock_client.table.return_value.select.return_value.eq.return_value.execute.return_value = file_count_response
+            mock_client.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value = file_count_response
 
             mock_admin.return_value = mock_client
 
@@ -139,7 +139,7 @@ class TestCreateWorkspace:
 
             file_count_response = MagicMock()
             file_count_response.count = 0
-            mock_client.table.return_value.select.return_value.eq.return_value.execute.return_value = file_count_response
+            mock_client.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value = file_count_response
 
             mock_admin.return_value = mock_client
 
