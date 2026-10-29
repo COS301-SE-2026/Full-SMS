@@ -951,3 +951,29 @@ def test_fetch_irf_data_falls_back_to_dataset_mapping_and_scopes_to_workspace():
     eq_calls = [call.args for call in query.eq.call_args_list]
     assert eq_calls.count(("workspace_id", "ws-1")) == 2
     assert ("measurement_id", -1) in eq_calls
+
+
+def test_select_photons_concatenates_group_ranges():
+    from api.services.analysis_services.lifetime import _select_photons
+
+    microtimes = np.arange(10.0)
+    selected = _select_photons(microtimes, photon_ranges=[(0, 1), (6, 8)])
+
+    np.testing.assert_array_equal(selected, [0.0, 1.0, 6.0, 7.0, 8.0])
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"photon_ranges": []},
+        {"photon_ranges": [(5, 12)]},
+        {"photon_ranges": [(3, 1)]},
+        {"start_idx": 0, "end_idx": 1, "photon_ranges": [(2, 3)]},
+        {"start_idx": 0},
+    ],
+)
+def test_select_photons_rejects_invalid_ranges(kwargs):
+    from api.services.analysis_services.lifetime import _select_photons
+
+    with pytest.raises(ValueError):
+        _select_photons(np.arange(10.0), **kwargs)

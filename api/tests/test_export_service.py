@@ -125,7 +125,7 @@ class TestExportGroupsData:
          }
         outpt_file = tmp_path / "groups.csv"
 
-        def fake_export_groups(groups, output_path, fmt, measurement_name):
+        def fake_export_groups(groups, output_path, fmt, measurement_name, group_fits=None):
             assert groups[0].group_id == 1
             return outpt_file
 
@@ -630,7 +630,7 @@ class TestProcessSelection:
         def levelsData_fake(req, analysis, name, measurement_id=None, channel=1):
             return (Path("levels.csv"),"m1_levels.csv")
 
-        def groupsData_fake(req, analysis, name):
+        def groupsData_fake(req, analysis, name, measurement_id=None, channel=1):
             return (Path("groups.csv"),"m1_groups.csv")
 
         def intensity_plot_fake(req, data, channel, analysis_getter, name):
@@ -1041,3 +1041,100 @@ class TestExportDecayPlot:
 
         assert captured["fit_result"] is None
         assert captured["counts"].sum() == 3
+
+
+def _group_analysis(fit_results_by_target):
+    return {
+        "levels": {"levels": [
+            {"start_index": 0, "end_index": 9},
+            {"start_index": 10, "end_index": 19},
+            {"start_index": 20, "end_index": 29},
+        ]},
+        "groups": {
+            "selected_step_index": 0,
+            "steps": [{"groups": [
+                {"group_id": 0, "level_indices": [2, 0], "total_photons": 20,
+                 "total_dwell_time_s": 2.0, "intensity_cps": 10.0},
+                {"group_id": 1, "level_indices": [1], "total_photons": 10,
+                 "total_dwell_time_s": 1.0, "intensity_cps": 10.0},
+            ]}],
+        },
+        "fit_results_by_target": fit_results_by_target,
+    }
+
+
+class TestGroupFitExport:
+    def test_group_key_uses_sorted_photon_ranges(self):
+        levels = _group_analysis({})["levels"]["levels"]
+        assert export_service._group_fit_key({"level_indices": [2, 0]}, levels) == "group[0-9,20-29]"
+        assert export_service._group_fit_key({"level_indices": [5]}, levels) is None
+
+    def test_group_fits_match_selected_step_and_stay_out_of_level_fits(self):
+        analysis = _group_analysis({
+            "upload123:7:1:group[0-9,20-29]": _saved_fit(tau=4.2),
+            "upload123:7:1:group[0-9]": _saved_fit(tau=9.9),  # group from another grouping run
+            "upload123:7:1:10-19": _saved_fit(tau=1.0),
+        })
+
+        group_fits = export_service._collect_group_fit_dicts(analysis, "7", 1)
+        level_fits = export_service._collect_fit_dicts(analysis, "7", 1)
+
+        assert list(group_fits) == [0]
+        assert group_fits[0]["tau"] == [4.2]
+        assert list(level_fits) == [1]
+
+    def test_group_fits_written_to_their_own_file(self, tmp_path):
+        analysis = _group_analysis({"upload123:7:1:group[10-19]": _saved_fit(tau=3.3)})
+        captured = {}
+
+        def fake_export_fit_results(fit_results, output_path, fmt):
+            captured.update(fit_results)
+            return tmp_path / "group_fits.csv"
+
+        original = export_service.exporters.export_fit_results
+        export_service.exporters.export_fit_results = fake_export_fit_results
+        try:
+            request = make_request(export_fits=True)
+            assert _export_fits_data(request, analysis, "7", 1, "m7") is None
+            _, name = export_service._export_group_fits_data(request, analysis, "7", 1, "m7")
+        finally:
+            export_service.exporters.export_fit_results = original
+
+        assert name == "m7_group_fits.csv"
+        assert list(captured) == [(7, 1, 1)]
+
+    def test_groups_csv_includes_tau_columns(self, tmp_path):
+        analysis = _group_analysis({"upload123:7:1:group[0-9,20-29]": _saved_fit(tau=4.2)})
+        request = make_request(export_groups=True)
+
+        path, _ = _export_groups_data(request, analysis, "m7", "7", 1)
+
+        rows = path.read_text().splitlines()
+        assert rows[0].split(",")[:7] == [
+            "group_id", "num_levels", "total_photons", "total_dwell_time_s",
+            "intensity_cps", "level_indices", "tau_1_ns",
+        ]
+        assert rows[1].split(",")[5:7] == ["2;0", "4.2000"]
+        assert rows[2].split(",")[6] == ""
+
+
+class TestSavedAnalysisGroups:
+    def test_groups_come_from_grouping_results_for_any_measurement(self):
+        sessions = [{
+            "dataset_ref": "u1",
+            "created_at": "2026-01-01",
+            "results": {
+                "levels": {"measurement_id": "m1", "levels": []},
+                "cpaResults": {"m2": {"measurement_id": "m2", "levels": []}},
+                "groups": {"data": "m1 groups"},
+                "groupingResults": {"m2": {"data": "m2 groups"}},
+            },
+        }]
+        original = export_service.get_sessions
+        export_service.get_sessions = lambda user_id: sessions
+        try:
+            result = _get_saved_analysis("u1", "m2", "user1")
+        finally:
+            export_service.get_sessions = original
+
+        assert result["groups"] == {"data": "m2 groups"}

@@ -335,6 +335,29 @@ def lifetime_fitting(payload: LifetimeReq):
     return LifetimeRes(**res_data)
 
 
+def _select_photons(microtimes: np.ndarray, start_idx=None, end_idx=None, photon_ranges=None) -> np.ndarray:
+    """Restrict microtimes to one level (start/end) or several levels (a group's photon_ranges).
+
+    Ranges are inclusive photon indices, as stored on CPA levels.
+    """
+    if photon_ranges is not None and (start_idx is not None or end_idx is not None):
+        raise ValueError("Use either a single photon range or photon_ranges, not both")
+
+    if start_idx is not None or end_idx is not None:
+        if start_idx is None or end_idx is None:
+            raise ValueError("Both photon indices are required for a level decay")
+        photon_ranges = [(start_idx, end_idx)]
+
+    if photon_ranges is None:
+        return microtimes
+    if len(photon_ranges) == 0:
+        raise ValueError("photon_ranges must contain at least one range")
+    for start, end in photon_ranges:
+        if start < 0 or end < start or end >= len(microtimes):
+            raise ValueError("Level photon indices are outside the selected channel")
+    return np.concatenate([microtimes[start : end + 1] for start, end in photon_ranges])
+
+
 def fluorescence_decay(payload):
     upload_id = payload.upload_id
     measurement_id = payload.measurement_id
@@ -356,16 +379,12 @@ def fluorescence_decay(payload):
             microtimes = channel_data.microtimes if channel_data else []
             channel_width = getattr(cached_measurement, "channelwidth", 0.0)
 
-        microtimes_arr = np.asarray(microtimes, dtype=np.float64)
-        start_idx = getattr(payload, "start_photon_idx", None)
-        end_idx = getattr(payload, "end_photon_idx", None)
-
-        if start_idx is not None or end_idx is not None:
-            if start_idx is None or end_idx is None:
-                raise ValueError("Both photon indices are required for a level decay")
-            if start_idx < 0 or end_idx < start_idx or end_idx >= len(microtimes_arr):
-                raise ValueError("Level photon indices are outside the selected channel")
-            microtimes_arr = microtimes_arr[start_idx : end_idx + 1]
+        microtimes_arr = _select_photons(
+            np.asarray(microtimes, dtype=np.float64),
+            start_idx=getattr(payload, "start_photon_idx", None),
+            end_idx=getattr(payload, "end_photon_idx", None),
+            photon_ranges=getattr(payload, "photon_ranges", None),
+        )
         if channel_width > 0 and len(microtimes_arr) > 0 and not np.all(microtimes_arr == 0):
             times, counts = build_decay_histogram(
                 microtimes=microtimes_arr, channelwidth=channel_width

@@ -70,7 +70,7 @@ export default function LifetimeCharts({comments, onAddComment}: Readonly<LifeTi
     const useNativeBlocksViewer = hdf5Metadata?.data_kind ==="native_data"
 
     // Loading until the decay for the current measurement/channel arrives (or fails); level
-    // switches report through decayLoading from useLifetimeLevelSelection.
+    // and group switches report through decayLoading from useLifetimeSelection.
     const requestKey = `${currentUpload}:${currentMeasurement}:${currentChannel}:${currentWorkspaceId}`
     const [loadedKey, setLoadedKey] = React.useState<string | null>(null)
     const measurementLoading = Boolean(currentUpload && currentMeasurement) && loadedKey !== requestKey

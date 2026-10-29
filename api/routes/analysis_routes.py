@@ -43,6 +43,8 @@ class LifetimePayload(BaseModel):
     channel: int = 1
     start_photon_idx: Optional[int] = None
     end_photon_idx: Optional[int] = None
+    # Inclusive (start, end) photon indices of several levels, e.g. all levels of a group
+    photon_ranges: Optional[list[tuple[int, int]]] = None
 
 @router.post("/lifetime/fit")
 def get_lifetime(req: LifetimeReq):
