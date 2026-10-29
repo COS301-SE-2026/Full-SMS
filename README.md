@@ -1,4 +1,4 @@
-![coretech logo](frontend\public\coretech-logo.png)
+![coretech logo](frontend/public/coretech-logo.png)
 
 
 # CoreTech - Full SMS - Modern Architecture Rewrite
