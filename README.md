@@ -12,6 +12,7 @@
   <img src="frontend/public/UPlogo-No-bg.png" alt="UP logo" width="300">
 
 </div>
+
 # CoreTech - Full SMS - Modern Architecture Rewrite
 
 ## Project Description
