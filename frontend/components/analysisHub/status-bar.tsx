@@ -13,8 +13,7 @@ export function StatusBar() {
     getFile()
   }, [currentUpload])
   return (
-    <div className="flex items-center h-4 px-3 border-t border-border bg-background text-xs text-foreground/70 gap-4 max-h-6">
-      <div className="flex items-center gap-1.5">
+<div className="flex shrink-0 items-center h-4 px-3 border-t border-border bg-background text-xs text-foreground/70 gap-4 max-h-6">      <div className="flex items-center gap-1.5">
         <span className="w-2 h-2 rounded-full bg-success" />
         <span>Ready</span>
       </div>

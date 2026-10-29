@@ -26,8 +26,8 @@ export default function LifetimeTab() {
   const addComment = useCommentSubmit(currentWorkspaceId, currentUpload, "lifetime", fetchComments, currentMeasurement)
 
   return (
-    <div className='w-full h-full flex gap-3'>
-      <div className='flex flex-col flex-1'>
+  <div className="w-full h-full min-h-0 flex gap-3 overflow-y-auto">
+    <div className="flex flex-col flex-1 min-h-0">
         <LifetimeToolbar 
         historyOpen={historyOpen}
         onToggleHistory={() => setHistoryOpen((v) => !v)}
