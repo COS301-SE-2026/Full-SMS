@@ -1,3 +1,20 @@
+<div align="center">
+  <table border="0" style="border-collapse: collapse; border: none;">
+    <tr style="border: none;">
+      <td align="center" valign="middle" style="border: none; padding: 0 20px;">
+        <img src="frontend/public/coretech-logo.png" alt="Coretech logo" height="90">
+      </td>
+      <td align="center" valign="middle" style="border: none; padding: 0 20px;">
+        <img src="frontend/public/biophysicsNo_bg.png" alt="UP biophysics logo" height="55">
+      </td>
+      <td align="center" valign="middle" style="border: none; padding: 0 20px;">
+        <img src="frontend/public/UPlogo-No-bg.png" alt="UP logo" height="65">
+      </td>
+    </tr>
+  </table>
+</div>
+
+
 # CoreTech - Full SMS - Modern Architecture Rewrite
 
 ## Project Description
@@ -85,7 +102,7 @@ make run-api       # Start backend (http://localhost:8000)
 make run-frontend  # Start frontend (http://localhost:3000)
 ```
 
-[Public Live URL](https://fullsms.tech/)
+[Public Live URL](https://fullsms.tech/landing)
 
 ## Demo Resources
 
