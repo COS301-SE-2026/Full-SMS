@@ -1,15 +1,15 @@
 <div align="center">
 
   <!-- First Image -->
-  <img src="frontend/public/coretech-logo.png" alt="Coretech logo" width="600">
+  <img src="frontend/public/coretech-logo.png" alt="Coretech logo">
   <br><br>
 
   <!-- Second Image (Different Width) -->
-  <img src="frontend/public/biophysicsNo_bg.png" alt="UP biophysics logo" width="450">
+  <img src="frontend/public/biophysicsNo_bg.png" alt="UP biophysics logo">
   <br><br>
 
   <!-- Third Image (Different Width) -->
-  <img src="frontend/public/UPlogo-No-bg.png" alt="UP logo" width="300">
+  <img src="frontend/public/UPlogo-No-bg.png" alt="UP logo">
 
 </div>
 
