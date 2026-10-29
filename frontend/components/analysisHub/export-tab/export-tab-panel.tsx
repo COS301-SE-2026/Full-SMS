@@ -50,6 +50,12 @@ export default function ExportPanel() {
                                 <Checkbox label= "Include Groups ( contains Level Boundaries )" checked={form.plotIncludeGroups} onCheckedChange={form.setPlotIncludeGroups} disabled={!form.plotIntensity}/>
                             </div>
 
+                            <Checkbox label="Decay Plot" checked={form.plotDecay} onCheckedChange={form.setPlotDecay} />
+                            <div className="ml-6 flex flex-col gap-2">
+                                <Checkbox label="Include Fit (saved measurement fit)" checked={form.plotDecayFit} onCheckedChange={form.setPlotDecayFit} disabled={!form.plotDecay}/>
+                                <Checkbox label="Include IRF" checked={form.plotDecayIrf} onCheckedChange={form.setPlotDecayIrf} disabled={!form.plotDecay}/>
+                            </div>
+
                             <Checkbox label= "BIC Plot" checked={form.BICPlot} onCheckedChange={form.setBICPlot} />
                             <Checkbox label="Correlation Plot" checked={form.plotCorrelation} onCheckedChange={form.setPlotCorrelation} />
                         </CardContent>
@@ -99,7 +105,7 @@ export default function ExportPanel() {
                             helperText={form.PlotfileFormat !== "png" ? "Only used for PNG" : undefined}
                             className="w-28"/>
                         
-                        <div className="flex items-end gap-4 ml-35">
+                        <div className="flex flex-col items-start gap-4 ml-35">
                             <div className="flex flex-col gap-1 mb-2">
                                 <Toggle 
                                     label = "Use bin size from Intensity tab"

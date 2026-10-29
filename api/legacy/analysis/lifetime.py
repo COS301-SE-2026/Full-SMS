@@ -442,6 +442,7 @@ def fit_decay(
     fit_irf_fwhm: bool = False,
     irf_fwhm_init: Optional[float] = None,
     irf_fwhm_bounds: Optional[Tuple[float, float]] = None,
+    tau_bounds_per_component: Optional[list[Tuple[float, float]]] = None,
 ) -> FitResult:
     """Fit fluorescence decay data with exponential models.
 
@@ -457,6 +458,7 @@ def fit_decay(
         tau_init: Initial guess for lifetime(s) in nanoseconds. For multi-exponential
             fits, provide a list with one value per component.
         tau_bounds: Bounds for tau as (min, max) in nanoseconds. Applies to all components.
+        tau_bounds_per_component: Optional bounds for each lifetime component, in component order.
         amp_init: Initial guess for amplitudes. Only used for multi-exponential fits.
             Amplitudes are normalized so they sum to 1.
         amp_bounds: Bounds for individual amplitudes as (min, max). Default is (0, 1).
@@ -560,6 +562,25 @@ def fit_decay(
     if tau_bounds is None:
         tau_bounds = (0.01, 100.0)
 
+    if tau_bounds_per_component is None:
+        tau_bounds_per_component = [tau_bounds] * num_exponentials
+    elif len(tau_bounds_per_component) != num_exponentials:
+        raise ValueError(
+            "tau_bounds_per_component must contain one min/max pair per exponential"
+        )
+
+    tau_lower_bounds = [float(bounds[0]) for bounds in tau_bounds_per_component]
+    tau_upper_bounds = [float(bounds[1]) for bounds in tau_bounds_per_component]
+    if any(lower >= upper for lower, upper in zip(tau_lower_bounds, tau_upper_bounds)):
+        raise ValueError("Each lifetime minimum bound must be less than its maximum")
+    if any(
+        not lower <= initial <= upper
+        for lower, initial, upper in zip(
+            tau_lower_bounds, tau_init_list, tau_upper_bounds
+        )
+    ):
+        raise ValueError("Each initial lifetime must fall within its bounds")
+
     if amp_bounds is None:
         amp_bounds = (0.0, 1.0)
 
@@ -623,8 +644,8 @@ def fit_decay(
                 return make_convd_multi(shift, [tau1], [amp1], fwhm=fwhm)
 
             # Setup parameter bounds: [tau1, amp1, shift, fwhm]
-            paramin = [tau_bounds[0], amp_bounds[0], shift_bounds[0], irf_fwhm_bounds[0]]
-            paramax = [tau_bounds[1], amp_bounds[1], shift_bounds[1], irf_fwhm_bounds[1]]
+            paramin = [tau_lower_bounds[0], amp_bounds[0], shift_bounds[0], irf_fwhm_bounds[0]]
+            paramax = [tau_upper_bounds[0], amp_bounds[1], shift_bounds[1], irf_fwhm_bounds[1]]
             paraminit = [tau_init_list[0], amp_init_list[0], shift_init, irf_fwhm_init]
         else:
 
@@ -635,8 +656,8 @@ def fit_decay(
                 return make_convd_multi(shift, [tau1], [amp1])
 
             # Setup parameter bounds: [tau1, amp1, shift]
-            paramin = [tau_bounds[0], amp_bounds[0], shift_bounds[0]]
-            paramax = [tau_bounds[1], amp_bounds[1], shift_bounds[1]]
+            paramin = [tau_lower_bounds[0], amp_bounds[0], shift_bounds[0]]
+            paramax = [tau_upper_bounds[0], amp_bounds[1], shift_bounds[1]]
             paraminit = [tau_init_list[0], amp_init_list[0], shift_init]
 
     elif num_exponentials == 2:
@@ -656,16 +677,16 @@ def fit_decay(
 
             # Setup parameter bounds: [tau1, tau2, amp1, amp2, shift, fwhm]
             paramin = [
-                tau_bounds[0],
-                tau_bounds[0],
+                tau_lower_bounds[0],
+                tau_lower_bounds[1],
                 amp_bounds[0],
                 amp_bounds[0],
                 shift_bounds[0],
                 irf_fwhm_bounds[0],
             ]
             paramax = [
-                tau_bounds[1],
-                tau_bounds[1],
+                tau_upper_bounds[0],
+                tau_upper_bounds[1],
                 amp_bounds[1],
                 amp_bounds[1],
                 shift_bounds[1],
@@ -694,15 +715,15 @@ def fit_decay(
 
             # Setup parameter bounds: [tau1, tau2, amp1, amp2, shift]
             paramin = [
-                tau_bounds[0],
-                tau_bounds[0],
+                tau_lower_bounds[0],
+                tau_lower_bounds[1],
                 amp_bounds[0],
                 amp_bounds[0],
                 shift_bounds[0],
             ]
             paramax = [
-                tau_bounds[1],
-                tau_bounds[1],
+                tau_upper_bounds[0],
+                tau_upper_bounds[1],
                 amp_bounds[1],
                 amp_bounds[1],
                 shift_bounds[1],
@@ -736,9 +757,9 @@ def fit_decay(
 
             # Setup parameter bounds: [tau1, tau2, tau3, amp1, amp2, amp3, shift, fwhm]
             paramin = [
-                tau_bounds[0],
-                tau_bounds[0],
-                tau_bounds[0],
+                tau_lower_bounds[0],
+                tau_lower_bounds[1],
+                tau_lower_bounds[2],
                 amp_bounds[0],
                 amp_bounds[0],
                 amp_bounds[0],
@@ -746,9 +767,9 @@ def fit_decay(
                 irf_fwhm_bounds[0],
             ]
             paramax = [
-                tau_bounds[1],
-                tau_bounds[1],
-                tau_bounds[1],
+                tau_upper_bounds[0],
+                tau_upper_bounds[1],
+                tau_upper_bounds[2],
                 amp_bounds[1],
                 amp_bounds[1],
                 amp_bounds[1],
@@ -782,18 +803,18 @@ def fit_decay(
 
             # Setup parameter bounds: [tau1, tau2, tau3, amp1, amp2, amp3, shift]
             paramin = [
-                tau_bounds[0],
-                tau_bounds[0],
-                tau_bounds[0],
+                tau_lower_bounds[0],
+                tau_lower_bounds[1],
+                tau_lower_bounds[2],
                 amp_bounds[0],
                 amp_bounds[0],
                 amp_bounds[0],
                 shift_bounds[0],
             ]
             paramax = [
-                tau_bounds[1],
-                tau_bounds[1],
-                tau_bounds[1],
+                tau_upper_bounds[0],
+                tau_upper_bounds[1],
+                tau_upper_bounds[2],
                 amp_bounds[1],
                 amp_bounds[1],
                 amp_bounds[1],

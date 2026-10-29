@@ -160,25 +160,30 @@ def get_mapped_irf_controller(payload: GetMappedIRFReq):
                 .maybe_single()
                 .execute())
 
+    mapping_data = mapping.data if mapping is not None else None
+
     # Check if an explicit clear/null override exists
-    if mapping.data and mapping.data.get("irf_id") is None:
+    if mapping_data and mapping_data.get("irf_id") is None:
         raise HTTPException(status_code=404, detail="IRF mapping cleared for this measurement")
 
     # If not found and this was a specific measurement, fall back to wildcard (-1)
-    if not mapping.data and measurement_id != -1:
-        mapping = (supabaseClient.table("irf_mappings")
-                    .select("irf_id")
-                    .eq("workspace_id", payload.workspace_id)
-                    .eq("dataset_ref", payload.dataset_ref)
-                    .eq("measurement_id", -1)
-                    .eq("channel", payload.channel)
-                    .maybe_single()
-                    .execute())
+    if not mapping_data and measurement_id != -1:
+        mapping = (
+            supabaseClient.table("irf_mappings")
+            .select("irf_id")
+            .eq("workspace_id", payload.workspace_id)
+            .eq("dataset_ref", payload.dataset_ref)
+            .eq("measurement_id", -1)
+            .eq("channel", payload.channel)
+            .maybe_single()
+            .execute()
+        )
+        mapping_data = mapping.data if mapping is not None else None
 
-    if not mapping.data or mapping.data.get("irf_id") is None:
+    if not mapping_data or mapping_data.get("irf_id") is None:
         raise HTTPException(status_code=404, detail="No IRF mapping found for this measurement/channel")
 
-    irf_id = mapping.data["irf_id"]
+    irf_id = mapping_data["irf_id"]
 
     irf_record = (supabaseClient.table("workspace_irfs")
                   .select("*")

@@ -1,12 +1,12 @@
 import { Card } from '../../ui/Card';
 import Plot from 'react-plotly.js'
-import { useEffect, useMemo} from 'react';
+import { useEffect, useMemo, useState} from 'react';
 import { colors } from '@/lib/tokens';
 import { Intensity_Req } from '@/types/analysis';
 import { intensityAnalysis } from '@/services/analysisServices';
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext';
 import { Comment } from '@/types/comment';
-import { Button } from '@/components/ui';
+import { Button, ChartLoadingOverlay } from '@/components/ui';
 import { useCommentClick } from '@/hooks/useCommentClick';
 import { buildCommentMarkers } from '@/lib/commentMarkers';
 interface IntensityChartProps{
@@ -28,23 +28,32 @@ export function IntensityChart({comments, onAddComment}: Readonly<IntensityChart
 
   const commentMarkers = buildCommentMarkers(comments, 'x', 'y');
 
-    const fetchIntensityTrace= async ()=>{
-      if(currentUpload){
-        const request: Intensity_Req ={
+    // Loading until a response (or error) for the current upload/measurement/channel/bin arrives
+    const requestKey = `${currentUpload}:${currentMeasurement}:${currentChannel}:${bin}`
+    const [loadedKey, setLoadedKey] = useState<string | null>(null)
+    const loading = Boolean(currentUpload) && loadedKey !== requestKey
+
+    useEffect(()=>{
+      if(!currentUpload) return
+      // Ignore a response that arrives after the measurement/channel/bin has changed again
+      let cancelled = false
+      const request: Intensity_Req ={
         upload_id:currentUpload,
         measurement_id:currentMeasurement,
         bin_size_ms: Number(bin),
         channel: currentChannel
       }
-      const response = await intensityAnalysis(request)
-      setHdf5Data(response)
+      void intensityAnalysis(request)
+        .then((response) => {
+          if(!cancelled) setHdf5Data(response)
+        })
+        .catch((error) => console.error("Failed to load intensity trace:", error))
+        .finally(() => {
+          if(!cancelled) setLoadedKey(requestKey)
+        })
+      return () => {
+        cancelled = true
       }
-
-    }
-  
-  
-    useEffect(()=>{
-      fetchIntensityTrace()
       },[currentMeasurement, currentChannel, bin, currentUpload])
 
       
@@ -73,7 +82,8 @@ export function IntensityChart({comments, onAddComment}: Readonly<IntensityChart
 
   return (
     <Card className="flex-1 flex flex-col p-4 min-w-0">
-      <div className="flex-1 min-h-0 h-full overflow-hidden">
+      <div className="relative flex-1 min-h-0 h-full overflow-hidden">
+        <ChartLoadingOverlay loading={loading} />
         <Plot
           data={[
             {

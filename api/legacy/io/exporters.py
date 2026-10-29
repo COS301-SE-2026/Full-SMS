@@ -12,7 +12,7 @@ import logging
 from dataclasses import asdict
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from numpy.typing import NDArray
@@ -439,6 +439,7 @@ def export_groups(
     output_path: Path,
     fmt: ExportFormat = ExportFormat.CSV,
     measurement_name: str = "",
+    group_fits: dict[int, "FitResultData"] | None = None,
 ) -> Path:
     """Export clustered groups to a file.
 
@@ -447,6 +448,8 @@ def export_groups(
         output_path: Path to output file (without extension).
         fmt: Export format.
         measurement_name: Optional measurement name for metadata.
+        group_fits: Optional dict mapping group_id to the lifetime fit of that group's
+            pooled decay. Adds tau/amplitude/fit-quality columns.
 
     Returns:
         Path to the exported file.
@@ -455,13 +458,13 @@ def export_groups(
     _ensure_directory(output_file)
 
     if fmt == ExportFormat.CSV:
-        _export_groups_csv(output_file, groups)
+        _export_groups_csv(output_file, groups, group_fits)
     elif fmt == ExportFormat.PARQUET:
-        _export_groups_parquet(output_file, groups)
+        _export_groups_parquet(output_file, groups, group_fits)
     elif fmt == ExportFormat.EXCEL:
-        _export_groups_excel(output_file, groups)
+        _export_groups_excel(output_file, groups, group_fits)
     elif fmt == ExportFormat.JSON:
-        _export_groups_json(output_file, groups, measurement_name)
+        _export_groups_json(output_file, groups, measurement_name, group_fits)
     else:
         raise ValueError(f"Unsupported format: {fmt}")
 
@@ -469,30 +472,67 @@ def export_groups(
     return output_file
 
 
-def _export_groups_csv(path: Path, groups: list[GroupData]) -> None:
+def _fit_columns(fit, max_exponentials: int) -> dict[str, Any]:
+    """Fit parameter columns (None when there is no fit) for one exported row."""
+    columns: dict[str, Any] = {}
+    for i in range(max_exponentials):
+        columns[f"tau_{i + 1}_ns"] = fit.tau[i] if fit is not None and len(fit.tau) > i else None
+        columns[f"tau_{i + 1}_std"] = fit.tau_std[i] if fit is not None and len(fit.tau_std) > i else None
+        columns[f"amp_{i + 1}"] = fit.amplitude[i] if fit is not None and len(fit.amplitude) > i else None
+    if max_exponentials > 0:
+        columns["avg_lifetime_ns"] = fit.average_lifetime if fit is not None else None
+        columns["chi_squared"] = fit.chi_squared if fit is not None else None
+        columns["durbin_watson"] = fit.durbin_watson if fit is not None else None
+    return columns
+
+
+_GROUP_COLUMNS = [
+    "group_id", "num_levels", "total_photons", "total_dwell_time_s", "intensity_cps", "level_indices",
+]
+
+
+def _group_rows(groups: list[GroupData], group_fits) -> list[dict[str, Any]]:
+    max_exponentials = max((fit.num_exponentials for fit in (group_fits or {}).values()), default=0)
+    return [
+        {
+            "group_id": group.group_id,
+            "num_levels": group.num_levels,
+            "total_photons": group.total_photons,
+            "total_dwell_time_s": group.total_dwell_time_s,
+            "intensity_cps": group.intensity_cps,
+            "level_indices": list(group.level_indices),
+            **_fit_columns((group_fits or {}).get(group.group_id), max_exponentials),
+        }
+        for group in groups
+    ]
+
+
+def _format_group_cell(key: str, value: Any) -> Any:
+    if value is None:
+        return ""
+    if key == "level_indices":
+        return ";".join(str(i) for i in value)
+    if key == "total_dwell_time_s":
+        return f"{value:.6f}"
+    if key == "intensity_cps":
+        return f"{value:.2f}"
+    if isinstance(value, float):
+        return f"{value:.4f}"
+    return value
+
+
+def _export_groups_csv(path: Path, groups: list[GroupData], group_fits=None) -> None:
     """Export groups to CSV."""
+    rows = _group_rows(groups, group_fits)
+    header = list(rows[0]) if rows else _GROUP_COLUMNS
     with open(path, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow([
-            "group_id",
-            "num_levels",
-            "total_photons",
-            "total_dwell_time_s",
-            "intensity_cps",
-            "level_indices",
-        ])
-        for group in groups:
-            writer.writerow([
-                group.group_id,
-                group.num_levels,
-                group.total_photons,
-                f"{group.total_dwell_time_s:.6f}",
-                f"{group.intensity_cps:.2f}",
-                ";".join(str(i) for i in group.level_indices),
-            ])
+        writer.writerow(header)
+        for row in rows:
+            writer.writerow([_format_group_cell(key, row[key]) for key in header])
 
 
-def _export_groups_parquet(path: Path, groups: list[GroupData]) -> None:
+def _export_groups_parquet(path: Path, groups: list[GroupData], group_fits=None) -> None:
     """Export groups to Parquet format."""
     try:
         import pyarrow as pa
@@ -500,19 +540,13 @@ def _export_groups_parquet(path: Path, groups: list[GroupData]) -> None:
     except ImportError:
         raise ImportError("pyarrow is required for Parquet export. Install with: pip install pyarrow")
 
-    data = {
-        "group_id": [group.group_id for group in groups],
-        "num_levels": [group.num_levels for group in groups],
-        "total_photons": [group.total_photons for group in groups],
-        "total_dwell_time_s": [group.total_dwell_time_s for group in groups],
-        "intensity_cps": [group.intensity_cps for group in groups],
-        "level_indices": [list(group.level_indices) for group in groups],
-    }
+    rows = _group_rows(groups, group_fits)
+    data = {key: [row[key] for row in rows] for key in (list(rows[0]) if rows else _GROUP_COLUMNS)}
     table = pa.table(data)
     pq.write_table(table, path)
 
 
-def _export_groups_excel(path: Path, groups: list[GroupData]) -> None:
+def _export_groups_excel(path: Path, groups: list[GroupData], group_fits=None) -> None:
     """Export groups to Excel format."""
     try:
         import openpyxl
@@ -523,31 +557,19 @@ def _export_groups_excel(path: Path, groups: list[GroupData]) -> None:
     ws = wb.active
     ws.title = "Groups"
 
-    # Header
-    ws.append([
-        "group_id",
-        "num_levels",
-        "total_photons",
-        "total_dwell_time_s",
-        "intensity_cps",
-        "level_indices",
-    ])
-
-    # Data
-    for group in groups:
+    rows = _group_rows(groups, group_fits)
+    header = list(rows[0]) if rows else _GROUP_COLUMNS
+    ws.append(header)
+    for row in rows:
         ws.append([
-            group.group_id,
-            group.num_levels,
-            group.total_photons,
-            group.total_dwell_time_s,
-            group.intensity_cps,
-            ";".join(str(i) for i in group.level_indices),
+            ";".join(str(i) for i in row[key]) if key == "level_indices" else row[key]
+            for key in header
         ])
 
     wb.save(path)
 
 
-def _export_groups_json(path: Path, groups: list[GroupData], measurement_name: str) -> None:
+def _export_groups_json(path: Path, groups: list[GroupData], measurement_name: str, group_fits=None) -> None:
     """Export groups to JSON format."""
     data = {
         "metadata": {
@@ -555,17 +577,7 @@ def _export_groups_json(path: Path, groups: list[GroupData], measurement_name: s
             "measurement_name": measurement_name,
             "num_groups": len(groups),
         },
-        "groups": [
-            {
-                "group_id": group.group_id,
-                "num_levels": group.num_levels,
-                "total_photons": group.total_photons,
-                "total_dwell_time_s": group.total_dwell_time_s,
-                "intensity_cps": group.intensity_cps,
-                "level_indices": list(group.level_indices),
-            }
-            for group in groups
-        ],
+        "groups": _group_rows(groups, group_fits),
     }
     with open(path, "w") as f:
         json.dump(data, f, indent=2)

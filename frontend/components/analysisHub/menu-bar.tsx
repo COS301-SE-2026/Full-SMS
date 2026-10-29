@@ -13,6 +13,7 @@ import BackButton from "@/components/ui/BackButton";
 import { useRouter } from "next/navigation";
 import { NotificationBell } from "./notification-bell";
 import { useNotifications } from "@/hooks/useNotifications";
+import { fitTargetKey, selectedGroups, selectionFitKeyPart } from "@/lib/lifetimeTargets";
 
 interface MenuBarProps {
   readonly onOpenFileUpload: () => void;
@@ -20,16 +21,22 @@ interface MenuBarProps {
 
 export function MenuBar({ onOpenFileUpload }: MenuBarProps) {
   const [saveModalOpen, setSaveModalOpen] = useState(false)
-  const {currentUploadName, cpaData, groupingData, bin, confidence, currentUpload, hdf5Data, hdf5Metadata, currentMeasurement, currentWorkspaceId, heatMapColor, spectraHeatMapColor} = useHdf5Data()
+  const {currentUploadName, cpaData, cpaResults, groupingData, groupingResults, bin, confidence, currentUpload, hdf5Data, hdf5Metadata, currentMeasurement, currentChannel, currentWorkspaceId, heatMapColor, spectraHeatMapColor} = useHdf5Data()
   const {user} = useAuth()
-  const {activeTab, fitResult} = useAnalysisTab()
+  const {activeTab, fitResult, fitResultsByTarget, selectedLevelIdx, selectedGroupIdx} = useAnalysisTab()
   const {successToast, errorToast} = useToast()
   const { notifications, markRead, acceptInvite, declineInvite} = useNotifications();
   const unreadCount = notifications.filter((n) => !n.read).length;
   const [notifOpen, setNotifOpen] = useState(false);
+  const currentFitKey = fitTargetKey(
+    currentUpload,
+    currentMeasurement,
+    currentChannel,
+    selectionFitKeyPart(cpaData?.levels ?? [], selectedGroups(groupingData), selectedLevelIdx, selectedGroupIdx),
+  )
   const callSave = async (name: string) => {
     try{
-      await sessionsService.saveSession({name: name, dataset_ref: currentUpload, dataset_name: currentUploadName, parameters: {bin_size: bin, confidence: confidence}, results: {levels: cpaData, groups:groupingData, fits: fitResult, hdf5Data: hdf5Data, hdf5Metadata: hdf5Metadata, currentMeasurement: currentMeasurement, currentWorkspaceId: currentWorkspaceId, activeTab: activeTab, heatMapColor: heatMapColor, spectraHeatMapColor:spectraHeatMapColor}})
+      await sessionsService.saveSession({name: name, dataset_ref: currentUpload, dataset_name: currentUploadName, parameters: {bin_size: bin, confidence: confidence}, results: {levels: cpaData, cpaResults, groups:groupingData, groupingResults, fits: fitResult, fitResultsByTarget, currentFitKey, currentChannel, selectedLevelIdx, selectedGroupIdx, hdf5Data: hdf5Data, hdf5Metadata: hdf5Metadata, currentMeasurement: currentMeasurement, currentWorkspaceId: currentWorkspaceId, activeTab: activeTab, heatMapColor: heatMapColor, spectraHeatMapColor:spectraHeatMapColor}})
       successToast("Session has been saved")
       setSaveModalOpen(false)
     }catch(error){

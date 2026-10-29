@@ -22,6 +22,9 @@ class ExportRequest(BaseModel):
     plot_intensity: bool = False
     plotIntensity_levels: bool = False
     plotIntensity_groups: bool = False
+    plot_decay: bool = False
+    plotDecay_fit: bool = True
+    plotDecay_irf: bool = True
     plot_bic: bool = False
     plot_correlation: bool = False
     correlation_tau: list[float] | None=None

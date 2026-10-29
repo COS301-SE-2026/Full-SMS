@@ -1,7 +1,7 @@
 import json
 import numpy as np
 from unittest.mock import MagicMock, call, patch, ANY
-from api.routes.analysis_routes import get_spectra_data
+from api.routes.analysis_routes import LifetimePayload, get_spectra_data
 from api.services.analysis_services.cache_fallback import cache_fallback_service
 from api.services.analysis_services.change_point_analysis import resolve_current_measurement
 import pytest
@@ -11,8 +11,9 @@ from api.services.analysis_services.raster_scan import get_raster_scan_data
 from dataclasses import dataclass
 from api.services.analysis_services.clustering_job_service import clustering_job
 from api.legacy.models.level import LevelData
+from api.legacy.analysis.lifetime import fit_decay
 from api.services.analysis_services.clustering import execute_clustering
-from api.services.analysis_services.lifetime import lifetime_fitting
+from api.services.analysis_services.lifetime import fluorescence_decay, lifetime_fitting
 
 @patch("api.services.analysis_services.intensity.get_cached_measurement")
 @patch("api.services.analysis_services.intensity.bin_photons")
@@ -427,6 +428,7 @@ def test_lifetime_fitting_uses_selected_channel_irf(use_irf):
         use_irf=use_irf,
         times=[0.0, 0.1, 0.2],
         counts=[100, 50, 25],
+        tau_bounds_per_component=[(0.5, 5.0)],
     )
 
     with (
@@ -449,12 +451,141 @@ def test_lifetime_fitting_uses_selected_channel_irf(use_irf):
 
     if use_irf:
         fetch_irf.assert_called_once_with(
-            dataset_ref="dataset", measurement_id="2", channel=2
+            dataset_ref="dataset", measurement_id="2", channel=2, workspace_id=None
         )
         np.testing.assert_array_equal(fit_decay.call_args.kwargs["irf"], irf_counts)
+        assert fit_decay.call_args.kwargs["tau_bounds_per_component"] == [(0.5, 5.0)]
     else:
         fetch_irf.assert_not_called()
         assert fit_decay.call_args.kwargs["irf"] is None
+        assert fit_decay.call_args.kwargs["tau_bounds_per_component"] == [(0.5, 5.0)]
+
+
+@pytest.mark.parametrize("fit_irf_fwhm", [False, True])
+def test_lifetime_fitting_uses_simulated_irf_instead_of_mapped_irf(fit_irf_fwhm):
+    from types import SimpleNamespace
+
+    from api.legacy.analysis.lifetime import simulate_irf
+    from api.services.analysis_services import lifetime as lifetime_service
+
+    fit_result = SimpleNamespace(
+        tau=(2.5,),
+        tau_std=(0.1,),
+        amplitude=(1.0,),
+        amplitude_std=(0.01,),
+        shift=0.0,
+        shift_std=0.0,
+        chi_squared=1.0,
+        durbin_watson=1.8,
+        dw_bounds=(1.5, 1.7),
+        residuals=np.array([0.0, 0.0]),
+        fitted_curve=np.array([90.0, 40.0]),
+        fit_start_index=0,
+        fit_end_index=2,
+        background=0.0,
+        num_exponentials=1,
+        average_lifetime=2.5,
+        fitted_irf_fwhm=0.3 if fit_irf_fwhm else None,
+        fitted_irf_fwhm_std=0.01 if fit_irf_fwhm else None,
+    )
+
+    request = LifetimeReq(
+        upload_id="dataset",
+        measurement_id="2",
+        use_irf=True,
+        times=[0.0, 0.1, 0.2],
+        counts=[10, 100, 25],
+        simulated_irf_fwhm=0.2,
+        fit_irf_fwhm=fit_irf_fwhm,
+        irf_fwhm_init=0.2 if fit_irf_fwhm else None,
+    )
+
+    with (
+        patch.object(
+            lifetime_service,
+            "get_cached_measurement",
+            return_value=MagicMock(channelwidth=0.1),
+        ),
+        patch.object(lifetime_service, "_fetch_irf_counts") as fetch_irf,
+        patch.object(lifetime_service, "fit_decay", return_value=fit_result) as fit_decay,
+        patch.object(
+            lifetime_service,
+            "compute_convolved_fit_curve",
+            return_value=(np.array([95.0, 45.0, 20.0]), np.array([0.0, 0.0])),
+        ),
+    ):
+        lifetime_service.lifetime_fitting(request)
+
+    expected_irf, _ = simulate_irf(0.1, 0.2, np.array([10, 100, 25], dtype=np.float64))
+    fetch_irf.assert_not_called()
+    np.testing.assert_allclose(fit_decay.call_args.kwargs["irf"], expected_irf)
+    assert fit_decay.call_args.kwargs["fit_irf_fwhm"] is fit_irf_fwhm
+
+
+def test_fluorescence_decay_uses_inclusive_level_photon_indices():
+    request = LifetimePayload(
+        upload_id="dataset",
+        measurement_id="1",
+        bin_size_ms=10.0,
+        channel=1,
+        start_photon_idx=1,
+        end_photon_idx=2,
+    )
+    measurement = {
+        "channel1": {"microtimes": [0.0, 0.1, 0.2, 0.3]},
+        "channelwidth": 0.1,
+    }
+
+    with (
+        patch("api.services.analysis_services.lifetime.get_cached_measurement", return_value=measurement),
+        patch("api.services.analysis_services.lifetime.build_decay_histogram", return_value=(np.array([0.1]), np.array([2]))) as build_histogram,
+        patch("api.services.analysis_services.lifetime._fetch_irf_data", return_value=None),
+    ):
+        fluorescence_decay(request)
+
+    np.testing.assert_array_equal(
+        build_histogram.call_args.kwargs["microtimes"],
+        np.array([0.1, 0.2]),
+    )
+
+
+def test_fit_decay_applies_distinct_bounds_to_each_lifetime():
+    fitted_parameters = np.array([0.5, 2.0, 0.5, 0.5, 0.0])
+    with patch(
+        "api.legacy.analysis.lifetime.curve_fit",
+        return_value=(fitted_parameters, np.eye(len(fitted_parameters))),
+    ) as curve_fit_mock:
+        fit_decay(
+            t=np.array([0.0, 0.1, 0.2, 0.3, 0.4]),
+            counts=np.array([100, 80, 60, 40, 20]),
+            channelwidth=0.1,
+            num_exponentials=2,
+            tau_init=[0.5, 2.0],
+            tau_bounds=(0.01, 100.0),
+            tau_bounds_per_component=[(0.1, 1.0), (1.5, 3.0)],
+            start=0,
+            end=5,
+            background=0.0,
+        )
+
+    lower_bounds, upper_bounds = curve_fit_mock.call_args.kwargs["bounds"]
+    np.testing.assert_array_equal(lower_bounds, [0.1, 1.5, 0.0, 0.0, -2000.0])
+    np.testing.assert_array_equal(upper_bounds, [1.0, 3.0, 1.0, 1.0, 2000.0])
+
+
+def test_fit_decay_rejects_lifetime_initial_outside_component_bounds():
+    with pytest.raises(ValueError, match="initial lifetime must fall within its bounds"):
+        fit_decay(
+            t=np.array([0.0, 0.1, 0.2, 0.3, 0.4]),
+            counts=np.array([100, 80, 60, 40, 20]),
+            channelwidth=0.1,
+            num_exponentials=2,
+            tau_init=[0.05, 2.0],
+            tau_bounds_per_component=[(0.1, 1.0), (1.5, 3.0)],
+            start=0,
+            end=5,
+            background=0.0,
+        )
 
 
 def test_fetch_irf_data_treats_none_mapping_responses_as_unmapped():
@@ -705,3 +836,144 @@ def test_cache_fallback_service_upload_not_found(
     with pytest.raises(IndexError):
         cache_fallback_service(upload_id, 1)
     
+
+
+def test_full_range_residuals_cover_whole_decay():
+    from api.services.analysis_services.lifetime import _full_range_residuals
+
+    times = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
+    counts = np.array([1.0, 4.0, 100.0, 50.0, 25.0])
+    residuals = _full_range_residuals(
+        times=times,
+        counts=counts,
+        fit_curve=np.array([100.0, 50.0]),
+        fit_start=2,
+        fit_end=4,
+        background=1.0,
+        average_lifetime=1.0,
+    )
+
+    assert len(residuals) == 5
+    assert all(r is not None for r in residuals)
+    assert residuals[2] == pytest.approx(0.0)
+    assert residuals[0] == pytest.approx(0.0)  # pre-window model starts at the background
+    expected_tail = 1.0 + (50.0 - 1.0) * np.exp(-1.0)
+    assert residuals[4] == pytest.approx((25.0 - expected_tail) / 5.0)
+
+
+def test_full_range_residuals_without_fit_are_empty():
+    from api.services.analysis_services.lifetime import _full_range_residuals
+
+    assert _full_range_residuals(
+        np.arange(3.0), np.ones(3), np.array([]), 0, 0, 0.0, 1.0
+    ) == [None, None, None]
+
+
+@pytest.mark.parametrize(
+    "request_kwargs, fitted_fwhm, irf_counts, expected_source, expected_fwhm",
+    [
+        ({"use_irf": True}, None, np.array([0.0, 2.0, 1.0]), "mapped", None),
+        ({"use_irf": True, "simulated_irf_fwhm": 0.2}, None, np.array([1.0, 3.0, 1.0]), "simulated", 0.2),
+        ({"use_irf": True, "simulated_irf_fwhm": 0.2, "fit_irf_fwhm": True}, 0.35, np.array([1.0, 3.0, 1.0]), "simulated", 0.35),
+        ({"use_irf": False}, None, None, None, None),
+    ],
+)
+def test_describe_irf_used(request_kwargs, fitted_fwhm, irf_counts, expected_source, expected_fwhm):
+    from types import SimpleNamespace
+
+    from api.legacy.analysis.lifetime import simulate_irf
+    from api.services.analysis_services.lifetime import _describe_irf_used
+
+    request = LifetimeReq(
+        upload_id="u", measurement_id="1", times=[0.0, 0.1, 0.2], counts=[10, 100, 25], **request_kwargs
+    )
+    source, fwhm, irf = _describe_irf_used(
+        request, SimpleNamespace(fitted_irf_fwhm=fitted_fwhm), 0.1, irf_counts
+    )
+
+    assert source == expected_source
+    assert fwhm == expected_fwhm
+    if fitted_fwhm:
+        expected, _ = simulate_irf(0.1, fitted_fwhm, np.array([10, 100, 25], dtype=np.float64))
+        np.testing.assert_allclose(irf, expected)
+    elif irf_counts is not None:
+        np.testing.assert_allclose(irf, irf_counts)
+    else:
+        assert irf is None
+
+
+def _mapping_query(*responses):
+    query = MagicMock()
+    query.execute.side_effect = list(responses)
+    supabase = MagicMock()
+    supabase.table.return_value = query
+    query.select.return_value = query
+    query.eq.return_value = query
+    query.maybe_single.return_value = query
+    query.single.return_value = query
+    return supabase, query
+
+
+def test_fetch_irf_data_cleared_mapping_does_not_fall_back_to_dataset_mapping():
+    from types import SimpleNamespace
+
+    from api.services.analysis_services import lifetime as lifetime_service
+
+    supabase, query = _mapping_query(SimpleNamespace(data={"irf_id": None}))
+
+    with patch.object(lifetime_service, "supabaseClient", supabase):
+        result = lifetime_service._fetch_irf_data("dataset", "3", 1)
+
+    assert result is None
+    assert query.execute.call_count == 1  # no wildcard lookup, no IRF record lookup
+
+
+def test_fetch_irf_data_falls_back_to_dataset_mapping_and_scopes_to_workspace():
+    from types import SimpleNamespace
+
+    from api.services.analysis_services import lifetime as lifetime_service
+
+    supabase, query = _mapping_query(
+        SimpleNamespace(data=None),
+        SimpleNamespace(data={"irf_id": "irf-id"}),
+        SimpleNamespace(data={"storage_key": "irfs/irf.csv"}),
+    )
+
+    with (
+        patch.object(lifetime_service, "supabaseClient", supabase),
+        patch.object(lifetime_service, "download_to_temp", return_value="tmp.csv"),
+        patch.object(lifetime_service, "read_irf", return_value={"t": [0.0], "counts": [1.0]}) as read_irf,
+    ):
+        result = lifetime_service._fetch_irf_data("dataset", "3", 1, workspace_id="ws-1")
+
+    assert result == {"t": [0.0], "counts": [1.0]}
+    read_irf.assert_called_once_with("tmp.csv")
+    eq_calls = [call.args for call in query.eq.call_args_list]
+    assert eq_calls.count(("workspace_id", "ws-1")) == 2
+    assert ("measurement_id", -1) in eq_calls
+
+
+def test_select_photons_concatenates_group_ranges():
+    from api.services.analysis_services.lifetime import _select_photons
+
+    microtimes = np.arange(10.0)
+    selected = _select_photons(microtimes, photon_ranges=[(0, 1), (6, 8)])
+
+    np.testing.assert_array_equal(selected, [0.0, 1.0, 6.0, 7.0, 8.0])
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"photon_ranges": []},
+        {"photon_ranges": [(5, 12)]},
+        {"photon_ranges": [(3, 1)]},
+        {"start_idx": 0, "end_idx": 1, "photon_ranges": [(2, 3)]},
+        {"start_idx": 0},
+    ],
+)
+def test_select_photons_rejects_invalid_ranges(kwargs):
+    from api.services.analysis_services.lifetime import _select_photons
+
+    with pytest.raises(ValueError):
+        _select_photons(np.arange(10.0), **kwargs)

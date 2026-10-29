@@ -25,6 +25,9 @@ export function useExportform() {
     const [plotIntensity, setPlotIntensity] = useState(true);
     const [plotIncludeLevels, setPlotIncludeLevels] = useState(true);
     const [plotIncludeGroups, setPlotIncludeGroups] = useState(false);
+    const [plotDecay, setPlotDecay] = useState(false);
+    const [plotDecayFit, setPlotDecayFit] = useState(true);
+    const [plotDecayIrf, setPlotDecayIrf] = useState(true);
     const [BICPlot, setBICPlot] = useState(false);
     const[plotCorrelation, setPlotCorrelation] = useState(false);
 
@@ -95,6 +98,9 @@ export function useExportform() {
             plot_intensity: plotIntensity,
             plotIntensity_levels: plotIncludeLevels,
             plotIntensity_groups: plotIncludeGroups,
+            plot_decay: plotDecay,
+            plotDecay_fit: plotDecayFit,
+            plotDecay_irf: plotDecayIrf,
             plot_bic: BICPlot,
             plot_correlation: plotCorrelation,
             correlation_tau: correlationData?.tau ?? null,
@@ -177,6 +183,12 @@ export function useExportform() {
         setPlotIncludeLevels,
         plotIncludeGroups,
         setPlotIncludeGroups,
+        plotDecay,
+        setPlotDecay,
+        plotDecayFit,
+        setPlotDecayFit,
+        plotDecayIrf,
+        setPlotDecayIrf,
         BICPlot,
         setBICPlot,
         plotCorrelation,
