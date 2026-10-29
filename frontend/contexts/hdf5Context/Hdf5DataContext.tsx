@@ -8,6 +8,7 @@ import {
   useMemo,
   useEffect,
   useCallback,
+  useRef,
 } from "react";
 import { UploadMetadata } from "@/types/hdf5";
 import {
@@ -89,6 +90,11 @@ interface Hdf5DataContextType {
     result: ChangePointResult,
   ) => void;
   clearCpaResults: () => void;
+  restoreCpaResultsForSession: (
+    uploadId: string,
+    results: Record<string, ChangePointResult>,
+    groupingResults?: Record<string, ClusteringRes>,
+  ) => void;
 
   //measurement IDs actively resolving (for sidebar spinners)
   cpaProcessingIds: Set<string>;
@@ -152,7 +158,7 @@ interface Hdf5DataContextType {
   isMultiChannel: boolean;
 
   currentMappedIrf: GetMappedIRFRes | undefined
-  setCurrentMappedIrf: (irf: GetMappedIRFRes) => void
+  setCurrentMappedIrf: (irf: GetMappedIRFRes | undefined) => void
 }
 
 const Hdf5DataContext = createContext<Hdf5DataContextType | undefined>(
@@ -176,6 +182,9 @@ export function Hdf5DataProvider({
   const [cpaResults, setCpaResults] = useState<
     Record<string, ChangePointResult>
   >({});
+  const sessionCpaRestoreUpload = useRef<string | null>(null);
+  // Grouping results from a restored session, applied once its upload becomes current
+  const sessionGroupingRestore = useRef<Record<string, ClusteringRes>>({});
   const [cpaProcessingIds, setCpaProcessingIds] = useState<Set<string>>(
     new Set(),
   );
@@ -237,6 +246,13 @@ export function Hdf5DataProvider({
 
   // Reset results if user switches to a different upload
   useEffect(() => {
+    if (sessionCpaRestoreUpload.current === currentUpload) {
+      sessionCpaRestoreUpload.current = null;
+      setCpaProcessingIds(new Set());
+      setGroupingResults(sessionGroupingRestore.current);
+      sessionGroupingRestore.current = {};
+      return;
+    }
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCpaResults({});
     setCpaProcessingIds(new Set());
@@ -286,6 +302,24 @@ export function Hdf5DataProvider({
   const clearCpaResults = useCallback(() => {
     setCpaResults({});
   }, []);
+
+  const restoreCpaResultsForSession = useCallback(
+    (
+      uploadId: string,
+      results: Record<string, ChangePointResult>,
+      restoredGroupingResults: Record<string, ClusteringRes> = {},
+    ) => {
+      sessionCpaRestoreUpload.current = uploadId === currentUpload ? null : uploadId;
+      setCpaResults(results);
+      if (uploadId === currentUpload) {
+        setGroupingResults(restoredGroupingResults);
+      } else {
+        // The upload switch effect would otherwise clear these
+        sessionGroupingRestore.current = restoredGroupingResults;
+      }
+    },
+    [currentUpload],
+  );
 
   const groupingData = useMemo(() => {
     return groupingResults[activeKey] || undefined;
@@ -475,6 +509,7 @@ export function Hdf5DataProvider({
       setCpaResults,
       setCpaResultForMeasurement,
       clearCpaResults,
+      restoreCpaResultsForSession,
       cpaProcessingIds,
       setCpaProcessingIds,
       getAllResolvedLevels,
@@ -534,6 +569,7 @@ export function Hdf5DataProvider({
       cpaResults,
       setCpaResultForMeasurement,
       clearCpaResults,
+      restoreCpaResultsForSession,
       cpaProcessingIds,
       getAllResolvedLevels,
       currentWorkspaceId,

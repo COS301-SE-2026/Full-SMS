@@ -26,6 +26,7 @@ def get_user_workspaces(user_id: str) -> List[dict]:
         supabase.table("workspaces")
         .select("*")
         .or_(f"user_id.eq.{user_id},member_ids.cs.{{{user_id}}}")
+        .order("updated_at", desc=True)
         .execute()
     )
 
@@ -36,6 +37,7 @@ def get_user_workspaces(user_id: str) -> List[dict]:
             supabase.table("hdf5_uploads")
             .select("id", count="exact")
             .eq("workspace_id", workspace["id"])
+            .eq("status", "parsed")
             .execute()
         )
         workspace["file_count"] = file_count_response.count or 0
@@ -66,6 +68,7 @@ def get_workspace_by_id(workspace_id: str, user_id: str) -> Optional[dict]:
         supabase.table("hdf5_uploads")
         .select("id", count="exact")
         .eq("workspace_id", workspace_id)
+        .eq("status", "parsed")
         .execute()
     )
     file_count = file_count_response.count or 0

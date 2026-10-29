@@ -13,15 +13,13 @@ import {
   CloudUpload,
   XCircle,
   MessageSquare,
-  Mail,
   Download,
 } from "lucide-react";
 import { useState } from "react";
-import { createPortal } from "react-dom";
 import { formatDate } from "@/utils/dateTime";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
-import ActionMenu, { ActionMenuItem } from "@/components/ui/ActionMenu";
+import ActionMenu from "@/components/ui/ActionMenu";
 
 interface PluginTableProps {
   plugins: Plugin[];
@@ -47,12 +45,10 @@ export default function PluginTable({
   submittingId,
   cancellingId,
   updatingId,
-}: PluginTableProps) {
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+}: Readonly<PluginTableProps>) {
   const [feedbackPlugin, setFeedbackPlugin] = useState<Plugin | null>(null);
 
   const getMarketplaceStatusBadge = (plugin: Plugin) => {
-    console.log("plugin..", plugin);
     if (plugin?.source_plugin_id) {
       if (plugin.available_version) {
         return (
@@ -86,11 +82,6 @@ export default function PluginTable({
     return (
       !plugin.source_plugin_id && plugin.marketplace_status === "pending_review"
     );
-  };
-
-  const handleAction = (action: () => void) => {
-    action();
-    setOpenMenuId(null);
   };
 
   return (

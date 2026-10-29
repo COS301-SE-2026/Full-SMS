@@ -1,4 +1,4 @@
-import { Card } from "@/components/ui";
+import { Card, ChartLoadingOverlay } from "@/components/ui";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { useHistory } from "@/hooks/useHistory";
 import { useHistoryRecorder } from "@/hooks/useHistoryRecorder";
@@ -53,23 +53,31 @@ export default function SpectraMap() {
     "Twilight",
   ];
 
-  useEffect(() => {
-    const fetchSpectraData = async () => {
-      try {
-        const payload = {
-          upload_id: currentUpload,
-          measurement_id: currentMeasurement,
-        };
-        const response = await getSpectraData(payload);
-        setSpectraData(response);
-      } catch (error) {
-        console.error("Unable to fetch spectra data: ", error);
-      }
-    };
-    if(hdf5Metadata?.has_spectra){
-      fetchSpectraData();
-    }
+  // Loading until a response (or error) for the current measurement arrives
+  const requestKey = `${currentUpload}:${currentMeasurement}`;
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const spectraLoading = loadedKey !== requestKey;
 
+  useEffect(() => {
+    if (!hdf5Metadata?.has_spectra) return;
+
+    // Ignore a response that arrives after the measurement has changed again
+    let cancelled = false;
+    const payload = {
+      upload_id: currentUpload,
+      measurement_id: currentMeasurement,
+    };
+    void getSpectraData(payload)
+      .then((response) => {
+        if (!cancelled) setSpectraData(response);
+      })
+      .catch((error) => console.error("Unable to fetch spectra data: ", error))
+      .finally(() => {
+        if (!cancelled) setLoadedKey(requestKey);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [currentMeasurement, currentUpload]);
 
   const plotData = useMemo(() => {
@@ -152,7 +160,8 @@ export default function SpectraMap() {
         onClose={() => setNewCommentOpen(false)}
       />
 
-      <Card className="flex flex-col w-[83vw] h-[85vh] p-2 mt-1 gap-4">
+      <Card className="relative flex flex-col w-[83vw] h-[85vh] p-2 mt-1 gap-4">
+        <ChartLoadingOverlay loading={spectraLoading} />
         <Plot
           data={[
             {

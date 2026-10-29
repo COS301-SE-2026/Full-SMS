@@ -1,4 +1,4 @@
-import { Card, Button} from "@/components/ui";
+import { Card, Button, ChartLoadingOverlay, Loader } from "@/components/ui";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
 import { colors } from "@/lib/tokens";
 import { getRasterData } from "@/services/analysisServices";
@@ -16,29 +16,32 @@ export function RasterHeatmap({comments, onAddComment}: Readonly<RasterHeatmapPr
   const [rasterData, setRasterData] = useState<any>(null);
   const { currentMeasurement, currentUpload, heatMapColor, hdf5Metadata } = useHdf5Data();
 
+  // Loading until a response (or error) for the current measurement arrives
+  const requestKey = `${currentUpload}:${currentMeasurement}`;
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const loading = loadedKey !== requestKey;
+
   useEffect(() => {
-    const fetchRasterData = async () => {
-      // Prevent fetching if we don't have the context IDs yet
-      if (!currentUpload || !currentMeasurement) return;
+    // Prevent fetching if we don't have the context IDs yet
+    if (!currentUpload || !currentMeasurement || !hdf5Metadata?.has_rasters) return;
 
-      const payload = {
-        upload_id: currentUpload,
-        measurement_id: currentMeasurement,
-      };
-      console.log("Payload: ", payload);
-
-      try {
-        const data = await getRasterData(payload);
-        console.log("Fetched Raster Data:", data);
-        setRasterData(data);
-      } catch (error) {
-        console.error("Failed to fetch raster data:", error);
-      }
+    // Ignore a response that arrives after the measurement has changed again
+    let cancelled = false;
+    const payload = {
+      upload_id: currentUpload,
+      measurement_id: currentMeasurement,
     };
-    if(hdf5Metadata?.has_rasters){
-          fetchRasterData();
-    }
-
+    void getRasterData(payload)
+      .then((data) => {
+        if (!cancelled) setRasterData(data);
+      })
+      .catch((error) => console.error("Failed to fetch raster data:", error))
+      .finally(() => {
+        if (!cancelled) setLoadedKey(requestKey);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [currentMeasurement, currentUpload]);
 
   const { progressSpot, setProgressSpot, noteText, setNoteText, controlPlotClick, controlSubmitNote: controlSubmitComment } = useCommentClick(onAddComment);
@@ -54,7 +57,7 @@ export function RasterHeatmap({comments, onAddComment}: Readonly<RasterHeatmapPr
   if (!rasterData?.raster_scan) {
     return (
       <Card className="w-[83vw] h-[85vh] mt-1 p-4 flex flex-col items-center justify-center text-foreground/60">
-        <p>Loading Raster Scan...</p>
+        {loading ? <Loader size="sm" label="Loading raster scan…" /> : <p>The raster scan could not be loaded.</p>}
       </Card>
     );
   }
@@ -71,7 +74,8 @@ export function RasterHeatmap({comments, onAddComment}: Readonly<RasterHeatmapPr
 
   return (
     <div>
-    <Card className="flex flex-col w-[83vw] h-[85vh] p-2 mt-1 gap-4">
+    <Card className="relative flex flex-col w-[83vw] h-[85vh] p-2 mt-1 gap-4">
+      <ChartLoadingOverlay loading={loading} />
       <Plot
         data={[
           {

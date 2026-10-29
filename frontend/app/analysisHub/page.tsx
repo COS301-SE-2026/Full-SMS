@@ -76,7 +76,7 @@ export default function App() {
   }, [pluginId]);
 
   return (
-    <div className="size-full flex flex-col bg-background text-foreground h-screen">
+    <div className="size-full flex flex-col bg-background text-foreground h-screen overflow-hidden">
       <MenuBar onOpenFileUpload={() => setFileUploadModalOpen(true)} />
 
       <Modal

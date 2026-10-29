@@ -1,15 +1,42 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { Button, Toggle } from "@/components/ui";
 import { useAnalysisTab } from "@/contexts/analysisTabsContext/AnalysisTabsContext";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
+import axios from "axios";
 import { X } from "lucide-react";
 import { getMappedIRF } from "@/services/irfServices";
-import { GetMappedIRFReq, GetMappedIRFRes } from "@/types/analysis";
+import { GetMappedIRFReq, LifetimeRes } from "@/types/analysis";
 import { useHdf5Data } from "@/contexts/hdf5Context/Hdf5DataContext";
-import { getFluorescenceDecay } from "@/services/analysisServices";
+import { useLifetimeSelection } from "@/hooks/useLifetimeSelection";
+import { fitTargetKey, groupLevels, selectedGroups, selectionFitKeyPart } from "@/lib/lifetimeTargets";
 import { CommentToolbarButtons } from '../comments/CommentToolbar';
+
+// photons | time range | peak counts | channel width
+function describeDecay(times: number[], counts: number[]): string | null {
+  if (times.length === 0 || counts.length === 0) return null;
+  let photons = 0;
+  let maxCounts = 0;
+  for (const c of counts) {
+    photons += c;
+    if (c > maxCounts) maxCounts = c;
+  }
+  const parts = [
+    `${photons.toLocaleString()} photons`,
+    `${(times[times.length - 1] - times[0]).toFixed(1)} ns range`,
+    `Max: ${maxCounts.toLocaleString()} counts`,
+  ];
+  if (times.length > 1) parts.push(`Channel: ${(times[1] - times[0]).toFixed(3)} ns`);
+  return parts.join(" | ");
+}
+
+function describeFitIrf(fit: LifetimeRes): string {
+  if (fit.irf_source === "simulated") {
+    const fitted = fit.fitted_irf_fwhm ? " (fitted)" : "";
+    return `simulated, FWHM ${fit.irf_fwhm?.toFixed(3)} ns${fitted}`;
+  }
+  return fit.irf_source === "mapped" ? "mapped" : "none";
+}
 
 export default function LifetimeToolbar({
   historyOpen,
@@ -33,10 +60,17 @@ export default function LifetimeToolbar({
     fitResult,
     showIRF,
     setShowIRF,
+    mappingDialog,
     setMappingDialog,
     setFitResult,
-    setDecayTimes,
-    setDecayCounts,
+    fitResultsByTarget,
+    clearFitResultForTarget,
+    requestFitView,
+    decayTimes,
+    decayCounts,
+    selectedLevelIdx,
+    selectedGroupIdx,
+    resetSelectedLevelForViewChange,
   } = useAnalysisTab();
   
   const {
@@ -47,55 +81,71 @@ export default function LifetimeToolbar({
     currentMappedIrf,
     setCurrentMappedIrf,
     cpaData,
-    bin
+    groupingData,
   } = useHdf5Data();
   
-  const [selectedLevelIdx, setSelectedLevelIdx] = useState<number | null>(null);
 
-  const fetchMappedIRF = async () => {
+  // Show only the IRF mapped to the current measurement/channel. The API answers 404 when
+  // there is none (or it was cleared), so clear the name rather than keep the previous one.
+  // Re-run when the mapping dialog closes, since mappings may have changed there.
+  useEffect(() => {
+    setCurrentMappedIrf(undefined);
+    if (!currentWorkspaceId || !currentUpload || mappingDialog) return;
+
+    let cancelled = false;
     const payload: GetMappedIRFReq = {
-      workspace_id: currentWorkspaceId!,
+      workspace_id: currentWorkspaceId,
       dataset_ref: currentUpload,
       measurement_id: Number(currentMeasurement),
       channel: currentChannel,
     };
-    const IRF: GetMappedIRFRes = await getMappedIRF(payload);
-    setCurrentMappedIrf(IRF);
-  };
-
-  useEffect(() => {
-    fetchMappedIRF();
-  }, [currentWorkspaceId, currentUpload, currentMeasurement, currentChannel]);
-
-  useEffect(() => {
-    setSelectedLevelIdx(null);
-  }, [currentMeasurement, currentChannel]);
-
-  const handleLevelSelect = async (idx: number) => {
-    setSelectedLevelIdx(idx === -1 ? null : idx);
-    setFitResult(null);
-
-    const payload: any = {
-      upload_id: currentUpload,
-      measurement_id: currentMeasurement,
-      bin_size_ms: bin,
-      channel: currentChannel,
+    getMappedIRF(payload)
+      .then((irf) => {
+        if (!cancelled) setCurrentMappedIrf(irf ?? undefined);
+      })
+      .catch((error) => {
+        if (!axios.isAxiosError(error) || error.response?.status !== 404) {
+          console.error("Failed to load mapped IRF:", error);
+        }
+      });
+    return () => {
+      cancelled = true;
     };
+  }, [currentWorkspaceId, currentUpload, currentMeasurement, currentChannel, mappingDialog, setCurrentMappedIrf]);
 
-    if (idx >= 0 && cpaData?.levels?.[idx]) {
-      const lvl = cpaData.levels[idx];
-      payload.start_photon_idx = lvl.start_index;
-      payload.end_photon_idx = lvl.end_index;
-    }
+  useEffect(() => {
+    resetSelectedLevelForViewChange();
+  }, [currentUpload, currentMeasurement, currentChannel, resetSelectedLevelForViewChange]);
 
-    try {
-      const response = await getFluorescenceDecay(payload);
-      setDecayTimes(response.times);
-      setDecayCounts(response.counts);
-    } catch (err) {
-      console.error("Failed to load level decay:", err);
-    }
+  const levels = cpaData?.levels ?? [];
+  const groups = selectedGroups(groupingData);
+  const currentFitKey = fitTargetKey(
+    currentUpload,
+    currentMeasurement,
+    currentChannel,
+    selectionFitKeyPart(levels, groups, selectedLevelIdx, selectedGroupIdx),
+  );
+  const currentFitResult = fitResultsByTarget[currentFitKey] ?? null;
+
+  useEffect(() => {
+    setFitResult(currentFitResult);
+  }, [currentFitResult, setFitResult]);
+
+  const { selectLevel, selectGroup } = useLifetimeSelection();
+
+  // Dropdown values: "full", "level:<idx>", "group:<idx>"
+  let selectionValue = "full";
+  if (selectedGroupIdx !== null) selectionValue = `group:${selectedGroupIdx}`;
+  else if (selectedLevelIdx !== null) selectionValue = `level:${selectedLevelIdx}`;
+  const handleSelectionChange = (value: string) => {
+    const [kind, idx] = value.split(":");
+    if (kind === "group") void selectGroup(Number(idx));
+    else void selectLevel(kind === "level" ? Number(idx) : null);
   };
+  const decayInfo = describeDecay(decayTimes, decayCounts);
+
+const leftBracket = "\u27e8";
+const rightBracket = "\u27e9";
 
   return (
     <div className="flex flex-col gap-4 px-4 border-b border-border bg-background mb-4 h-fit pb-2 pt-2 -mx-3 -mt-3">
@@ -114,6 +164,14 @@ export default function LifetimeToolbar({
               onCheckedChange={setShowIRF}
             />
             <Button
+              variant="secondary"
+              size={"sm"}
+              onClick={requestFitView}
+              disabled={decayCounts.length === 0}
+            >
+              Fit View
+            </Button>
+            <Button
               variant="primary"
               size={"sm"}
               onClick={() => setFittingDialogOpen(true)}
@@ -131,25 +189,41 @@ export default function LifetimeToolbar({
               IRF Mapping
             </Button>
             
-            {cpaData?.levels && cpaData.levels.length > 0 && (
+            {levels.length > 0 && (
               <div className="flex items-center gap-1.5 text-xs font-mono ml-1">
-                <span className="text-muted-foreground">Level:</span>
+                <span className="text-muted-foreground">Decay:</span>
                 <select
-                  aria-label="Select CPA Level"
+                  aria-label="Select level or group"
                   className="border rounded px-2 py-0.5 text-xs bg-card font-mono text-foreground"
-                  value={selectedLevelIdx !== null ? selectedLevelIdx : -1}
-                  onChange={(e) => handleLevelSelect(Number(e.target.value))}
+                  value={selectionValue}
+                  onChange={(e) => handleSelectionChange(e.target.value)}
                 >
-                  <option value={-1}>Full Trace</option>
-                  {cpaData.levels.map((lvl, idx) => (
-                    <option key={idx} value={idx}>
-                      Level {idx + 1} ({lvl.num_photons} ph, {Math.round(lvl.intensity_cps)} cps)
-                    </option>
-                  ))}
+                  <option value="full">Full Trace</option>
+                  <optgroup label="Levels">
+                    {levels.map((lvl, idx) => (
+                      <option key={`level-${lvl.start_index}`} value={`level:${idx}`}>
+                        Level {idx + 1} ({lvl.num_photons} ph, {Math.round(lvl.intensity_cps)} cps)
+                      </option>
+                    ))}
+                  </optgroup>
+                  {groups.length > 0 && (
+                    <optgroup label="Groups">
+                      {groups.map((group, idx) => (
+                        <option
+                          key={`group-${group.group_id}`}
+                          value={`group:${idx}`}
+                          disabled={!groupLevels(group, levels)}
+                        >
+                          Group {group.group_id + 1} ({group.level_indices.length} levels, {group.total_photons} ph, {Math.round(group.intensity_cps)} cps)
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
               </div>
             )}
             
+
             <CommentToolbarButtons
               className="ml-auto"
               historyOpen={historyOpen}
@@ -196,7 +270,7 @@ export default function LifetimeToolbar({
                       ))}
                       {fitResult.average_lifetime > 0 && (
                         <span className="text-primary font-semibold pl-2 border-l border-border">
-                          &langle;&tau;&rangle; ={" "}
+                          {leftBracket}&tau;{rightBracket} ={" "}
                           {fitResult.average_lifetime.toFixed(2)} ns
                         </span>
                       )}
@@ -240,6 +314,9 @@ export default function LifetimeToolbar({
                     ns
                   </span>
                   <span>Bg: {fitResult.background.toFixed(1)}</span>
+                  {fitResult.irf_source !== undefined && (
+                    <span>IRF: {describeFitIrf(fitResult)}</span>
+                  )}
                 </div>
               </div>
 
@@ -247,7 +324,10 @@ export default function LifetimeToolbar({
                 variant="ghost"
                 size="sm"
                 className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                onClick={() => setFitResult(null as any)}
+                onClick={() => {
+                  clearFitResultForTarget(currentFitKey);
+                  setFitResult(null);
+                }}
                 leftIcon={<X size={12} />}
               >
                 Clear
@@ -256,10 +336,15 @@ export default function LifetimeToolbar({
           )}
         </div>
       </div>
-      {currentMappedIrf && (
+                  {decayInfo && (
+              <span className="text-xs font-mono text-muted-foreground text-nowrap">
+                {decayInfo}
+              </span>
+            )}
+                  {currentMappedIrf && (
         <div className="">
-          <span className="font-bold flex flex-row">
-            <p className="text-primary"> Mapped IRF: &nbsp;</p>
+          <span className="font-bold flex flex-row text-sm">
+            <p className="text-primary text-sm"> Mapped IRF: &nbsp;</p>
             {currentMappedIrf?.name}
           </span>
         </div>

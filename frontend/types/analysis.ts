@@ -86,6 +86,7 @@ export type SpectraData = {
 
 export type LifetimeReq = {
     upload_id: string,
+    workspace_id?: string | null, // scopes the mapped-IRF lookup
     measurement_id: string | string[]
     channel?: number
     use_irf?: boolean
@@ -96,6 +97,7 @@ export type LifetimeReq = {
     num_exponentials?: number; // Default: 1
     tau_init?: number | number[] | null;
     tau_bounds?: [number, number] | null;
+    tau_bounds_per_component?: [number, number][] | null;
     amp_init?: number[] | null;
     amp_bounds?: [number, number] | null;
     shift_init?: number; // Default: 0.0
@@ -110,6 +112,7 @@ export type LifetimeReq = {
     fit_irf_fwhm?: boolean; // Default: false
     irf_fwhm_init?: number | null;
     irf_fwhm_bounds?: [number, number] | null;
+    simulated_irf_fwhm?: number | null;
 }
 
 export type LifetimeRes = {
@@ -124,8 +127,8 @@ export type LifetimeRes = {
     chi_squared: number;
     durbin_watson: number;
     dw_bounds: number[] | null;
-    residuals: number[];
-    fitted_curve: number[];
+    residuals: (number | null)[];
+    fitted_curve: (number | null)[];
     fit_start_index: number;
     fit_end_index: number;
     background: number;
@@ -133,6 +136,11 @@ export type LifetimeRes = {
     average_lifetime: number;
     fitted_irf_fwhm: number | null;
     fitted_irf_fwhm_std: number | null;
+    channelwidth?: number | null;
+    // IRF the fit used; absent on fits saved before this was recorded
+    irf_source?: "mapped" | "simulated" | null;
+    irf_fwhm?: number | null;
+    irf?: number[] | null;
 }
 
 export enum StartpointMode {

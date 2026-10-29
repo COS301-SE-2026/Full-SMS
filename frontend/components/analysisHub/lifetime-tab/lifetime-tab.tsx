@@ -1,6 +1,7 @@
 import React, {useState} from 'react'
 import LifetimeToolbar from './lifetime-toolbar'
 import LifetimeCharts from './lifetime-charts'
+import LifetimeLevelPlot from './lifetime-level-plot'
 import { useHistory } from '@/hooks/useHistory'
 import { HistoryPanel } from '../history/HistoryPanel'
 import { useHdf5Data } from '@/contexts/hdf5Context/Hdf5DataContext'
@@ -25,8 +26,8 @@ export default function LifetimeTab() {
   const addComment = useCommentSubmit(currentWorkspaceId, currentUpload, "lifetime", fetchComments, currentMeasurement)
 
   return (
-    <div className='w-full h-full flex gap-3'>
-      <div className='flex flex-col flex-1'>
+  <div className="w-full h-full min-h-0 flex gap-3 overflow-y-auto">
+    <div className="flex flex-col flex-1 min-h-0">
         <LifetimeToolbar 
         historyOpen={historyOpen}
         onToggleHistory={() => setHistoryOpen((v) => !v)}
@@ -39,6 +40,8 @@ export default function LifetimeTab() {
           open={newCommentOpen}
           onSubmit={addComment}
           onClose={() => setNewCommentOpen(false)}/>
+
+        <LifetimeLevelPlot />
 
         <LifetimeCharts
           comments={comments}
