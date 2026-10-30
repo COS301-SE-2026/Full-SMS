@@ -90,6 +90,8 @@ make run-frontend  # Start frontend (http://localhost:3000)
 ## Demo Resources
 
 **Sample Datasets:** [Google Drive](https://drive.google.com/drive/folders/1N2aad49y84GglHph55xR5YPGt0tPfaqU)
+**Project Day Trailer:** [Full SMS Trailer](https://youtu.be/C_jIIf3fVEY)
+**Project Day Video:** [Google drive link](https://drive.google.com/file/d/15aryPHgctogLb1PJ5SZ9FVO4BuhvoiVN/view?usp=sharing)
 
 **Demo Login Credentials:**
 
@@ -97,3 +99,5 @@ make run-frontend  # Start frontend (http://localhost:3000)
 |------|-------|----------|
 | Admin | `default@user.com` | `Password@1` |
 | User | `COS301Queries@cs.up.ac.za` | `rfbDqw@9RhHWVqtT` |
+
+
